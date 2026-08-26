@@ -648,3 +648,29 @@ ouverture automatique de la phase 2 — architecture.
 - Limites USPTO/WIPO et recherche juridique exhaustive maintenues.
 - Phase 2 et `TASK-0004` ouvertes automatiquement; `ACTION-0007` devient
   l'action unique en cours.
+
+---
+
+## 2026-08-26 — TASK-0006 — MVP local sans IA
+
+**Agent :** Codex puis vérification orchestrateur
+**Résultat :** `VERIFIED`, phase 4 close, `TASK-0007` ouverte
+
+### Fait
+
+- Registre de collections et index SQLite persistants hors corpus.
+- Sélecteur de dossier natif, scan asynchrone, progression et annulation sans index partiel.
+- Recherche et filtres paginés, état vu/non vu, détection en ligne seulement.
+- Carte à niveau de détail progressif et liste accessible synchronisée.
+- Ouverture explicite confinée dans l’Explorateur Windows.
+- Guides FR/EN, mesures 10 k/100 k, 11 tests Rust et 4 tests d’interface.
+- Clippy strict, audit de dépendances sans vulnérabilité connue, build release et NSIS.
+- Inspection visuelle corrigée et revérifiée en français et en anglais.
+
+### Sécurité
+
+Aucun dossier utilisateur choisi par l’agent, aucun corpus privé, aucun contenu réel, aucune publication, aucun dépôt distant et aucun crédit Anthropic.
+
+### Suite
+
+`ACTION-0010` : exécuter `TASK-0007`, préparation publique strictement locale. La phase 6 reste soumise à un GO humain spécial.

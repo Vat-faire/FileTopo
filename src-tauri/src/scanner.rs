@@ -16,6 +16,10 @@ pub enum ScanError {
     RootNotDirectory,
     #[error("root_metadata_failed: {0}")]
     RootMetadata(#[from] io::Error),
+    #[error("root_reparse_point_not_allowed")]
+    RootReparsePoint,
+    #[error("scan_cancelled")]
+    Cancelled,
 }
 
 #[derive(Debug)]
@@ -33,9 +37,20 @@ struct PendingDirectory {
 }
 
 pub fn scan_tree(root: &Path) -> Result<ScanResult, ScanError> {
+    scan_tree_controlled(root, || false, |_| {})
+}
+
+pub fn scan_tree_controlled(
+    root: &Path,
+    is_cancelled: impl Fn() -> bool,
+    mut report_progress: impl FnMut(usize),
+) -> Result<ScanResult, ScanError> {
     let root_meta = fs::symlink_metadata(root)?;
     if !root_meta.is_dir() {
         return Err(ScanError::RootNotDirectory);
+    }
+    if is_reparse_point(&root_meta) || root_meta.file_type().is_symlink() {
+        return Err(ScanError::RootReparsePoint);
     }
 
     let root_name = root
@@ -54,6 +69,7 @@ pub fn scan_tree(root: &Path) -> Result<ScanResult, ScanError> {
         online_only: is_online_only(&root_meta),
         reparse_point: is_reparse_point(&root_meta),
         child_count: 0,
+        seen: false,
     }];
     let mut diagnostics = Vec::new();
     let mut queue = VecDeque::from([PendingDirectory {
@@ -65,6 +81,9 @@ pub fn scan_tree(root: &Path) -> Result<ScanResult, ScanError> {
     let mut next_id = 2_i64;
 
     while let Some(directory) = queue.pop_front() {
+        if is_cancelled() {
+            return Err(ScanError::Cancelled);
+        }
         let read_dir = match fs::read_dir(&directory.absolute) {
             Ok(entries) => entries,
             Err(_) => {
@@ -80,6 +99,9 @@ pub fn scan_tree(root: &Path) -> Result<ScanResult, ScanError> {
         entries.sort_by_key(|entry| entry.file_name());
 
         for entry in entries {
+            if is_cancelled() {
+                return Err(ScanError::Cancelled);
+            }
             let relative = directory.relative.join(entry.file_name());
             let metadata = match fs::symlink_metadata(entry.path()) {
                 Ok(metadata) => metadata,
@@ -119,7 +141,11 @@ pub fn scan_tree(root: &Path) -> Result<ScanResult, ScanError> {
                 online_only: is_online_only(&metadata),
                 reparse_point: reparse,
                 child_count: 0,
+                seen: false,
             });
+            if nodes.len() % 250 == 0 {
+                report_progress(nodes.len());
+            }
 
             if kind == NodeKind::Directory {
                 queue.push_back(PendingDirectory {
@@ -141,6 +167,8 @@ pub fn scan_tree(root: &Path) -> Result<ScanResult, ScanError> {
     for node in &mut nodes {
         node.child_count = children.get(&node.id).copied().unwrap_or_default();
     }
+
+    report_progress(nodes.len());
 
     Ok(ScanResult { nodes, diagnostics })
 }
@@ -203,5 +231,19 @@ mod tests {
             fs::metadata(&document).and_then(|m| m.modified()).ok()
         );
         assert!(result.diagnostics.is_empty());
+    }
+
+    #[test]
+    fn cancellation_stops_before_indexing() {
+        let temp = tempfile::tempdir().expect("tempdir");
+        fs::write(temp.path().join("synthetic.txt"), b"synthetic-only").expect("fixture");
+
+        let result = scan_tree_controlled(temp.path(), || true, |_| {});
+
+        assert!(matches!(result, Err(ScanError::Cancelled)));
+        assert_eq!(
+            fs::read(temp.path().join("synthetic.txt")).expect("unchanged"),
+            b"synthetic-only"
+        );
     }
 }

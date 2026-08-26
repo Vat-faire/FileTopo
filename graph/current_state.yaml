@@ -25,10 +25,10 @@ allowed_states:
   - REJECTED
   - DEFERRED
 
-current_phase: 4
+current_phase: 5
 current_phase_status: IN_PROGRESS
 
-in_progress_task: TASK-0006
+in_progress_task: TASK-0007
 in_progress_count: 1
 
 tasks:
@@ -83,20 +83,31 @@ tasks:
     title: "Phase 3 : squelette verifiable"
     file: docs/tasks/TASK-0005-phase-3-verifiable-skeleton.md
   - id: TASK-0006
+    status: VERIFIED
+    verified: true
+    approved_via: "autorisation_permanente_2026-08-25"
+    opened_on: "2026-08-26"
+    started_on: "2026-08-26"
+    delivered_on: "2026-08-26"
+    verified_on: "2026-08-26"
+    verified_by: orchestrator
+    title: "Phase 4 : MVP local sans IA"
+    file: docs/tasks/TASK-0006-phase-4-local-mvp.md
+  - id: TASK-0007
     status: IN_PROGRESS
     verified: false
     approved_via: "autorisation_permanente_2026-08-25"
     opened_on: "2026-08-26"
     started_on: "2026-08-26"
-    title: "Phase 4 : MVP local sans IA"
-    file: docs/tasks/TASK-0006-phase-4-local-mvp.md
+    title: "Phase 5 : preparation publique"
+    file: docs/tasks/TASK-0007-phase-5-public-preparation.md
 
 next_action:
-  id: ACTION-0009
-  target_task_id: TASK-0006
+  id: ACTION-0010
+  target_task_id: TASK-0007
   status: IN_PROGRESS
-  title: "Construire le MVP local sans IA"
-  target_phase: 4
+  title: "Preparer le depot publiable localement"
+  target_phase: 5
   actor: codex
   requires_human_go: false
   executes_research: false
@@ -153,7 +164,7 @@ phase_1_research:
 repository:
   has_application_code: true
   has_dependencies: true
-  has_commits: false
+  has_commits: true
   decisions_recorded: 5
   performance_measurements: 2
   synthetic_fixtures: 1
@@ -200,6 +211,23 @@ verification:
     perf_10k_total_ms: 97
     perf_100k_total_ms: 1027
     computer_use_visual_check: true
+    private_corpus_accessed: false
+  task_0006:
+    performed_on: "2026-08-26"
+    performed_by: orchestrator
+    status: VERIFIED
+    typescript_check: true
+    frontend_tests_passed: 4
+    rust_tests_passed: 11
+    rust_clippy_strict: true
+    dependency_audit_known_vulnerabilities: 0
+    vite_build: true
+    tauri_release_build: true
+    nsis_bundle_build: true
+    synthetic_100k_index_ms: 587
+    synthetic_100k_paged_read_ms: 181
+    synthetic_100k_filtered_query_ms: 126
+    computer_use_visual_check_fr_en: true
     private_corpus_accessed: false
   still_untested:
     - "Fins de ligne sur le disque"

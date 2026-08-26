@@ -6,30 +6,27 @@ Ce fichier contient **exactement une** action.
 
 ---
 
-## ACTION-0009 — Construire TASK-0006 : MVP local sans IA
+## ACTION-0010 — Préparer TASK-0007 : dépôt publiable localement
 
-- **Tâche visée :** `TASK-0006`
-- **Fiche :** `docs/tasks/TASK-0006-phase-4-local-mvp.md`
+- **Tâche visée :** `TASK-0007`
+- **Fiche :** `docs/tasks/TASK-0007-phase-5-public-preparation.md`
 - **Statut :** `IN_PROGRESS`
 - **Exécutant :** Codex
 - **GO humain :** non requis pour les changements locaux réversibles
-- **Phase :** 4
+- **Phase :** 5
 
 ### Objet
 
-Passer du pipeline synthétique vérifié à un MVP Windows utilisable : registre
-de collections, choix natif explicite d'une racine, index persistant hors du
-corpus, progression et annulation, requêtes paginées, recherche, filtres et
-ouverture explicite d'un élément.
+Préparer localement tous les éléments nécessaires à une publication sûre :
+sécurité, confidentialité, contribution, avis de tiers, inventaire,
+reproductibilité, notes de version et checklist.
 
 ### Première tranche
 
-Implémenter le modèle persistant des collections et les commandes Rust
-étroites, puis les tester exclusivement avec des répertoires temporaires et
-les fixtures synthétiques du dépôt.
+Auditer les fichiers versionnés et les dépendances verrouillées, puis produire
+les politiques et inventaires sans modifier d'état externe.
 
 ### Interdictions
 
-Aucun scan de dossier utilisateur pendant le développement, aucun corpus
-privé, aucun réseau à l'exécution, aucune IA, télémétrie, publication, Claude
-ou crédit Anthropic.
+Aucun scan utilisateur, corpus privé, secret, signature, dépôt distant,
+release ou publication. La phase 6 exige toujours un GO humain spécial.

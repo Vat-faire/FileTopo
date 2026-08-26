@@ -1,10 +1,10 @@
 # CURRENT_STATE.md — État courant
 
-**Dernière mise à jour :** 2026-08-26 — phase 3 vérifiée; phase 4 démarrée.
+**Dernière mise à jour :** 2026-08-26 — phase 4 vérifiée; phase 5 démarrée.
 
 ## Résumé
 
-FileTopo possède maintenant un squelette Windows local construit et vérifié.
+FileTopo possède maintenant un MVP Windows local construit et vérifié.
 L'application Tauri/Rust/React affiche une carte topographique synthétique,
 un index accessible, une interface FR/EN et un pipeline réel
 scanner → SQLite → DTO. Un exécutable et un installateur NSIS de débogage ont
@@ -25,8 +25,8 @@ Anthropic payant ne doit être consommé automatiquement.
 | 1 — Recherche et positionnement | `VERIFIED` | `TASK-0002`, `TASK-0003` |
 | 2 — Architecture | `VERIFIED` | `TASK-0004`, `DEC-0002` à `DEC-0005` |
 | 3 — Squelette | `VERIFIED` | `TASK-0005`, tests, mesures et inspection visuelle |
-| 4 — MVP local | `IN_PROGRESS` | `TASK-0006` |
-| 5 — Préparation publique | `DEFERRED` | — |
+| 4 — MVP local | `VERIFIED` | `TASK-0006` |
+| 5 — Préparation publique | `IN_PROGRESS` | `TASK-0007` |
 | 6 — Publication | `DEFERRED` | GO humain spécial requis |
 
 ## Preuves de phase 3
@@ -40,11 +40,17 @@ Anthropic payant ne doit être consommé automatiquement.
 - Inspection réelle via Ordinateur : relief visible, liste défilable et
   fixture synthétique chargée avec 9 éléments.
 
+## Preuves de phase 4
+
+- 11 tests Rust, 4 tests Vitest, TypeScript, Vite et Clippy strict réussis.
+- Registre/index persistants, annulation sans index partiel, recherche et filtres paginés, état vu/non vu et ouverture confinée.
+- Audit de dépendances de production : aucune vulnérabilité connue.
+- 100 000 éléments synthétiques : indexation 587 ms, lecture 181 ms, recherche filtrée paginée 126 ms.
+- Exécutable release et installateur NSIS construits; inspection visuelle FR/EN réussie.
+
 ## Tâche active
 
-`TASK-0006` est l'unique tâche `IN_PROGRESS`. Sa première tranche porte sur
-le registre persistant des collections et les commandes Rust étroites, testés
-uniquement dans des emplacements temporaires.
+`TASK-0007` est l'unique tâche `IN_PROGRESS`. Elle prépare localement la sécurité, la confidentialité, les avis de tiers, la contribution et la checklist de publication, sans publication.
 
 ## Décidé
 
@@ -73,5 +79,4 @@ uniquement dans des emplacements temporaires.
 
 ## Prochaine action
 
-`ACTION-0009` : construire le MVP local sans IA, en commençant par les
-collections persistantes et leurs tests synthétiques.
+`ACTION-0010` : préparer le dépôt publiable localement, sans aborder la phase 6.

@@ -1,10 +1,12 @@
 # TASK-0006 — Phase 4 : MVP local sans IA
 
-- **Statut :** `IN_PROGRESS`
+- **Statut :** `VERIFIED`
 - **Phase :** 4 — MVP local sans IA
 - **Ouverte et démarrée le :** 2026-08-26
 - **Approuvée via :** autorisation permanente du 2026-08-25
 - **Exécutant :** Codex
+- **Livrée et vérifiée le :** 2026-08-26
+- **Vérifiée par :** orchestrateur
 
 ## Objectif
 
@@ -47,3 +49,17 @@ filtres et ouverture contrôlée d'un élément.
 - Ne jamais utiliser le corpus privé interdit, même pour un test en lecture.
 - Ne pas publier ni créer de dépôt distant.
 - Ne pas relancer Claude ou consommer des crédits Anthropic.
+
+## Résultat vérifié
+
+- Registre SQLite de collections persistant, racines encodées et jamais exposées au frontend.
+- Choix natif explicite sans scan automatique; index séparé, progression, annulation et conservation atomique de l’index valide.
+- Scanner de métadonnées seulement, sans suivi de liens, jonctions ou points de réanalyse.
+- Recherche et filtres paginés côté Rust, états vu/non vu persistants et détection des fichiers en ligne seulement.
+- Carte synchronisée avec niveau de détail de 150 à 2 000 repères et liste DOM navigable au clavier.
+- Ouverture explicite confinée à un ID déjà indexé; chemins échappés, absents, ignorés ou devenus points de réanalyse refusés.
+- Guides FR/EN et mesures à 10 000/100 000 éléments produits.
+- 11 tests Rust, 4 tests Vitest, TypeScript, Vite, Clippy strict, audit de dépendances, exécutable release et installateur NSIS réussis.
+- Deux inspections réelles de l’exécutable ont validé mise en page, filtres, sélection, LOD et bilinguisme. Données synthétiques seulement.
+
+Les 10 critères d’acceptation sont conformes. Aucun corpus réel ou privé, aucune publication et aucun crédit Anthropic n’ont été utilisés.

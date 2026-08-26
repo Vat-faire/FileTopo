@@ -48,7 +48,7 @@ allowed_states:
   REJECTED: "Refusee ou rejetee apres examen, avec le motif ecrit."
   DEFERRED: "Reportee, sans travail engage."
 
-execution_note: "Les phases 0 a 3 sont verifiees. TASK-0006 execute maintenant le MVP local sans IA, uniquement sur donnees synthetiques pendant les tests."
+execution_note: "Les phases 0 a 4 sont verifiees. TASK-0007 prepare maintenant le depot a une publication sure, localement et sans publication."
 
 phases:
   - id: 0
@@ -76,12 +76,14 @@ phases:
     tasks: [TASK-0005]
   - id: 4
     name: "MVP local sans IA"
-    status: IN_PROGRESS
+    status: VERIFIED
+    verified_on: "2026-08-26"
+    verified_by: orchestrator
     tasks: [TASK-0006]
   - id: 5
     name: "Preparation publique"
-    status: DEFERRED
-    tasks: []
+    status: IN_PROGRESS
+    tasks: [TASK-0007]
   - id: 6
     name: "Publication"
     status: DEFERRED
@@ -167,8 +169,21 @@ tasks:
   - id: TASK-0006
     title: "Phase 4 : MVP local sans IA"
     phase: 4
-    status: IN_PROGRESS
+    status: VERIFIED
     file: docs/tasks/TASK-0006-phase-4-local-mvp.md
+    opened_on: "2026-08-26"
+    started_on: "2026-08-26"
+    delivered_on: "2026-08-26"
+    verified: true
+    verified_on: "2026-08-26"
+    verified_by: orchestrator
+    requires_human_go: false
+    approved_via: "autorisation_permanente_2026-08-25"
+  - id: TASK-0007
+    title: "Phase 5 : preparation publique"
+    phase: 5
+    status: IN_PROGRESS
+    file: docs/tasks/TASK-0007-phase-5-public-preparation.md
     opened_on: "2026-08-26"
     started_on: "2026-08-26"
     verified: false

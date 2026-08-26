@@ -12,6 +12,7 @@ export interface NodeDto {
   onlineOnly: boolean;
   reparsePoint: boolean;
   childCount: number;
+  seen: boolean;
 }
 
 export interface ScanDiagnostic { code: string; relativePath: string; }
@@ -37,3 +38,27 @@ export interface CollectionSnapshot {
 }
 
 export interface AppHealth { appVersion: string; sqliteVersion: string; mode: string; }
+
+export interface CollectionSummary {
+  id: string;
+  name: string;
+  rootLabel: string;
+  color: string;
+  nodeCount: number;
+  totalSizeBytes: number;
+  createdUnixMs: number;
+  lastIndexedUnixMs: number | null;
+}
+
+export interface IndexProgress {
+  collectionId: string;
+  visitedNodes: number;
+  status: "scanning" | "cancelling";
+}
+
+export interface NodePage {
+  items: NodeDto[];
+  total: number;
+  limit: number;
+  offset: number;
+}

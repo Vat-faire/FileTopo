@@ -1,8 +1,8 @@
 # ROADMAP.md — Feuille de route
 
-> **État.** Les phases 0 à 3 sont exécutées et vérifiées. FileTopo possède un
-> squelette Windows construit, testé et inspecté visuellement sur données
-> synthétiques. La phase 4 — MVP local sans IA — est en cours. Les phases 5 à
+> **État.** Les phases 0 à 4 sont exécutées et vérifiées. FileTopo possède un
+> MVP Windows construit, testé et inspecté visuellement sur données
+> synthétiques. La phase 5 — préparation publique locale — est en cours. Les phases 6 et
 > 7 demeurent différées et aucune publication n'est autorisée sans le GO
 > humain spécial prévu pour la phase 6.
 
@@ -12,8 +12,8 @@
 | 1 | Recherche et positionnement | VERIFIED (TASK-0002 et TASK-0003) |
 | 2 | Architecture | VERIFIED (TASK-0004) |
 | 3 | Squelette vérifiable | VERIFIED (TASK-0005) |
-| 4 | MVP local sans IA | IN_PROGRESS (TASK-0006) |
-| 5 | Préparation publique | DEFERRED |
+| 4 | MVP local sans IA | VERIFIED (TASK-0006) |
+| 5 | Préparation publique | IN_PROGRESS (TASK-0007) |
 | 6 | Publication | DEFERRED |
 | 7 | Fonctions avancées facultatives | DEFERRED |
 
@@ -109,7 +109,7 @@ Les mesures 10 k/100 k et l'inspection visuelle sont consignées dans
 **But.** Un produit utilisable, local, hors ligne, sans intelligence
 artificielle.
 
-**Statut.** `IN_PROGRESS` via `TASK-0006` depuis le 2026-08-26.
+**Statut.** `VERIFIED` via `TASK-0006` le 2026-08-26.
 
 **Contenu envisagé.** Plusieurs cerveaux indépendants (nom, couleur, icône),
 choix d'une racine, index incrémental reconstructible et versionné,
@@ -123,6 +123,8 @@ sur Windows, accessibilité et bilinguisme FR/EN.
 ## Phase 5 — Préparation publique
 
 **But.** Rendre le projet publiable sans risque.
+
+**Statut.** `IN_PROGRESS` via `TASK-0007` depuis le 2026-08-26.
 
 **Contenu envisagé.** Licence apposée, mentions de tiers, relecture de
 sécurité et de confidentialité, absence de donnée réelle, guide de

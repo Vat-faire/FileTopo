@@ -7,7 +7,7 @@ le scanner.
 
 ## État actuel
 
-La phase 3 fournit un squelette Tauri 2 vérifié de bout en bout :
+La phase 4 fournit un MVP Windows local vérifié de bout en bout :
 
 - interface React/TypeScript bilingue français/anglais;
 - carte PixiJS/WebGL avec relief SVG de secours;
@@ -15,11 +15,15 @@ La phase 3 fournit un squelette Tauri 2 vérifié de bout en bout :
 - scanner Rust itératif qui ne suit pas les liens ou points de réanalyse;
 - SQLite 3.53.2 embarqué et accessible uniquement depuis Rust;
 - commandes IPC étroites, sans chemin arbitraire ni SQL exposé;
+- registre de collections et index SQLite persistants hors des racines;
+- choix natif explicite, indexation en arrière-plan, progression et annulation;
+- recherche et filtres paginés, états vu/non vu et fichiers en ligne seulement;
+- niveau de détail progressif et ouverture confinée dans l’Explorateur Windows;
 - fixture physique et générateur de volume entièrement synthétiques;
 - exécutable et installateur Windows construits localement.
 
-Ce squelette n'est pas encore un produit publié. La sélection d'une vraie
-collection utilisateur et l'index incrémental relèvent de la phase 4.
+Ce MVP n'est pas encore un produit publié. Une collection réelle n’est jamais
+choisie ou scannée sans les actions explicites de l’utilisateur.
 
 ## Prérequis de développement
 
@@ -59,6 +63,9 @@ Le bouton **Démonstration** utilise un générateur déterministe. Le bouton
 `tests/fixtures_synthetic/demo`. Aucun test ne doit pointer vers un dossier
 utilisateur.
 
+Les guides d’utilisation sont disponibles en [français](docs/user-guide-fr.md)
+et en [anglais](docs/user-guide-en.md).
+
 ## Garanties de sécurité du squelette
 
 - aucune télémétrie, mise à jour automatique, IA ou CDN;
@@ -71,8 +78,8 @@ utilisateur.
 
 ## Mesures
 
-Les mesures reproductibles de 10 000 et 100 000 éléments sont consignées dans
-`docs/performance/phase-3-measurements.md`. Les budgets et la stratégie vers
+Les mesures MVP reproductibles de 10 000 et 100 000 éléments sont consignées
+dans `docs/performance/phase-4-mvp-measurements.md`. Les budgets et la stratégie vers
 un million d'éléments se trouvent dans `docs/performance/phase-2-budgets.md`.
 
 ## Licence et auteur

@@ -1,17 +1,29 @@
 import { Application, Graphics } from "pixi.js";
-import { useEffect, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { CollectionSnapshot } from "../types";
 
 interface TerrainMapProps {
   snapshot: CollectionSnapshot;
   selectedId: number | null;
   onSelect: (nodeId: number) => void;
+  detailLabel: string;
+  lessDetailLabel: string;
+  moreDetailLabel: string;
 }
 
 const palette = { directory: 0xb8db82, file: 0xd8bd7d, skipped: 0x788b83, root: 0x78c9ac };
 
-export default function TerrainMap({ snapshot, selectedId, onSelect }: TerrainMapProps) {
+export default function TerrainMap({ snapshot, selectedId, onSelect, detailLabel, lessDetailLabel, moreDetailLabel }: TerrainMapProps) {
   const hostRef = useRef<HTMLDivElement>(null);
+  const [detailLimit, setDetailLimit] = useState(600);
+  const visibleTerrain = useMemo(() => {
+    if (snapshot.terrain.length <= detailLimit) return snapshot.terrain;
+    const stride = Math.ceil(snapshot.terrain.length / detailLimit);
+    const sampled = snapshot.terrain.filter((_, index) => index % stride === 0);
+    const selected = snapshot.terrain.find((point) => point.nodeId === selectedId);
+    if (selected && !sampled.some((point) => point.nodeId === selected.nodeId)) sampled.push(selected);
+    return sampled;
+  }, [detailLimit, selectedId, snapshot.terrain]);
 
   useEffect(() => {
     const host = hostRef.current;
@@ -41,7 +53,7 @@ export default function TerrainMap({ snapshot, selectedId, onSelect }: TerrainMa
       }
       app.stage.addChild(contours);
 
-      for (const point of snapshot.terrain) {
+      for (const point of visibleTerrain) {
         const selected = point.nodeId === selectedId;
         const marker = new Graphics()
           .circle(point.x * scaleX, point.y * scaleY, Math.max(2.2, point.radius * .3 + (selected ? 4 : 0)))
@@ -58,10 +70,15 @@ export default function TerrainMap({ snapshot, selectedId, onSelect }: TerrainMa
       disposed = true;
       if (mounted) { app.canvas.remove(); app.destroy(); }
     };
-  }, [onSelect, selectedId, snapshot]);
+  }, [onSelect, selectedId, snapshot, visibleTerrain]);
 
   return (
     <div ref={hostRef} className="terrain-canvas" data-testid="terrain-map" aria-label="Rendu topographique interactif">
+      <div className="detail-controls" aria-label={detailLabel}>
+        <button type="button" aria-label={lessDetailLabel} disabled={detailLimit <= 150} onClick={() => setDetailLimit((current) => Math.max(150, Math.floor(current / 2)))}>−</button>
+        <span>{visibleTerrain.length}</span>
+        <button type="button" aria-label={moreDetailLabel} disabled={detailLimit >= 2_000 || detailLimit >= snapshot.terrain.length} onClick={() => setDetailLimit((current) => Math.min(2_000, current * 2))}>+</button>
+      </div>
       <svg className="terrain-fallback" viewBox="0 0 960 660" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
         <defs>
           <radialGradient id="terrain-glow">
@@ -83,7 +100,7 @@ export default function TerrainMap({ snapshot, selectedId, onSelect }: TerrainMa
           ))}
         </g>
         <g className="terrain-points">
-          {snapshot.terrain.map((point) => (
+          {visibleTerrain.map((point) => (
             <circle
               key={point.nodeId}
               cx={point.x}
@@ -91,6 +108,12 @@ export default function TerrainMap({ snapshot, selectedId, onSelect }: TerrainMa
               r={Math.max(2.4, point.radius * .31 + (point.nodeId === selectedId ? 4 : 0))}
               className={`${point.kind}${point.nodeId === selectedId ? " selected" : ""}`}
               onClick={() => onSelect(point.nodeId)}
+              onKeyDown={(event) => {
+                if (event.key === "Enter" || event.key === " ") onSelect(point.nodeId);
+              }}
+              tabIndex={0}
+              role="button"
+              aria-label={point.label}
             />
           ))}
         </g>

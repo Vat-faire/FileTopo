@@ -5,7 +5,7 @@ export function createDemoSnapshot(count = 128): CollectionSnapshot {
   const nodes: NodeDto[] = [{
     id: 1, parentId: null, name: "FileTopo Demo", relativePath: "", kind: "root",
     depth: 0, sizeBytes: 0, modifiedUnixMs: null, onlineOnly: false,
-    reparsePoint: false, childCount: 8,
+    reparsePoint: false, childCount: 8, seen: false,
   }];
 
   for (let index = 0; index < 8; index += 1) {
@@ -14,7 +14,7 @@ export function createDemoSnapshot(count = 128): CollectionSnapshot {
       name: `Territoire ${String(index + 1).padStart(2, "0")}`,
       relativePath: `territoire-${String(index + 1).padStart(2, "0")}`,
       kind: "directory", depth: 1, sizeBytes: 0, modifiedUnixMs: null,
-      onlineOnly: false, reparsePoint: false, childCount: 0,
+      onlineOnly: false, reparsePoint: false, childCount: 0, seen: false,
     });
   }
 
@@ -27,7 +27,7 @@ export function createDemoSnapshot(count = 128): CollectionSnapshot {
       relativePath: `territoire-${String(territory + 1).padStart(2, "0")}/document-${String(index).padStart(4, "0")}.md`,
       kind: "file", depth: 2, sizeBytes: 512 + (index * 97) % 65_536,
       modifiedUnixMs: null, onlineOnly: index % 23 === 0,
-      reparsePoint: false, childCount: 0,
+      reparsePoint: false, childCount: 0, seen: false,
     });
   }
 

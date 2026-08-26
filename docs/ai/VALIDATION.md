@@ -375,3 +375,33 @@ optimisé et d'un index en mémoire, pas d'une promesse de performance disque.
 L'autorisation permanente permet d'ouvrir immédiatement `TASK-0006` et
 `ACTION-0009` pour la phase 4, sans autoriser de scan réel par l'agent ni de
 publication.
+
+---
+
+## F. TASK-0006 — MVP local sans IA (2026-08-26)
+
+### F.1 Vérification de l’orchestrateur
+
+| # | Critère | Résultat | Preuve |
+|---|---------|----------|--------|
+| 1 | Racine choisie explicitement | Conforme | dialogue natif déclenché par bouton; ajout sans scan automatique |
+| 2 | Contenu jamais lu | Conforme | scanner limité à `symlink_metadata`, `read_dir` et attributs; tests d’empreinte |
+| 3 | Reparse jamais suivi | Conforme | racine refusée, descendants `Skipped`, ouverture revérifiée composant par composant |
+| 4 | Index séparé/reconstructible | Conforme | données d’application `collections/<UUID>/index.sqlite`, jamais dans la racine |
+| 5 | Progression/annulation/erreurs | Conforme | worker bloquant, compte atomique, annulation coopérative, aucun index partiel |
+| 6 | Recherche/filtres/pagination 100 k | Conforme | deux pages de 120 distinctes, filtre type/en ligne, 126 ms observés |
+| 7 | Clavier et FR/EN | Conforme | liste DOM, contrôles nommés, 4 tests et inspection réelle corrigée |
+| 8 | Ouverture explicite | Conforme | bouton seulement après sélection; commande par collection ID + node ID, confinement testé |
+| 9 | Tests/build/audit | Conforme | 11 Rust, 4 Vitest, TypeScript, Vite, Clippy `-D warnings`, audit 0 vulnérabilité, release + NSIS |
+| 10 | Aucun réseau/donnée/publication | Conforme | CSP IPC seulement, données synthétiques/temp, aucun remote ou publication |
+
+### F.2 Mesures et artefacts
+
+- 10 000 : génération 7 ms, indexation 54 ms, lecture 19 ms, filtre paginé 14 ms.
+- 100 000 : génération 69 ms, indexation 587 ms, lecture 181 ms, filtre paginé 126 ms.
+- Exécutable optimisé et `FileTopo_0.1.0_x64-setup.exe` produits localement.
+- Inspection avec Ordinateur : filtre « En ligne », sélection carte/liste, état non vu, niveau de détail et bascule FR/EN vérifiés. Une première inspection a révélé des légendes anglaises incomplètes; corrigées et revérifiées après reconstruction.
+
+### F.3 Conclusion
+
+`TASK-0006` et la phase 4 passent à `VERIFIED`; `ACTION-0009` est close. `TASK-0007` et `ACTION-0010` ouvrent automatiquement la préparation publique locale. Aucune publication n’est autorisée.

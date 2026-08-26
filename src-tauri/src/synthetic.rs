@@ -20,6 +20,7 @@ pub fn scale_snapshot(count: usize) -> CollectionSnapshot {
         online_only: false,
         reparse_point: false,
         child_count: 0,
+        seen: false,
     });
 
     let folder_count = 8.min(count.saturating_sub(1));
@@ -37,6 +38,7 @@ pub fn scale_snapshot(count: usize) -> CollectionSnapshot {
             online_only: false,
             reparse_point: false,
             child_count: 0,
+            seen: false,
         });
     }
 
@@ -59,6 +61,7 @@ pub fn scale_snapshot(count: usize) -> CollectionSnapshot {
             online_only: item % 23 == 0,
             reparse_point: false,
             child_count: 0,
+            seen: false,
         });
     }
 
