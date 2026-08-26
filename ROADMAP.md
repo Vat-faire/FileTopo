@@ -1,8 +1,8 @@
 # ROADMAP.md — Feuille de route
 
-> **État.** Les phases 0 à 4 sont exécutées et vérifiées. FileTopo possède un
+> **État.** Les phases 0 à 5 sont exécutées et vérifiées. FileTopo possède un
 > MVP Windows construit, testé et inspecté visuellement sur données
-> synthétiques. La phase 5 — préparation publique locale — est en cours. Les phases 6 et
+> synthétiques et un dossier de publication préparé localement. Les phases 6 et
 > 7 demeurent différées et aucune publication n'est autorisée sans le GO
 > humain spécial prévu pour la phase 6.
 
@@ -13,7 +13,7 @@
 | 2 | Architecture | VERIFIED (TASK-0004) |
 | 3 | Squelette vérifiable | VERIFIED (TASK-0005) |
 | 4 | MVP local sans IA | VERIFIED (TASK-0006) |
-| 5 | Préparation publique | IN_PROGRESS (TASK-0007) |
+| 5 | Préparation publique | VERIFIED (TASK-0007) |
 | 6 | Publication | DEFERRED |
 | 7 | Fonctions avancées facultatives | DEFERRED |
 
@@ -124,7 +124,7 @@ sur Windows, accessibilité et bilinguisme FR/EN.
 
 **But.** Rendre le projet publiable sans risque.
 
-**Statut.** `IN_PROGRESS` via `TASK-0007` depuis le 2026-08-26.
+**Statut.** `VERIFIED` via `TASK-0007` le 2026-08-26.
 
 **Contenu envisagé.** Licence apposée, mentions de tiers, relecture de
 sécurité et de confidentialité, absence de donnée réelle, guide de

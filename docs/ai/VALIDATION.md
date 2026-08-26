@@ -405,3 +405,44 @@ publication.
 ### F.3 Conclusion
 
 `TASK-0006` et la phase 4 passent à `VERIFIED`; `ACTION-0009` est close. `TASK-0007` et `ACTION-0010` ouvrent automatiquement la préparation publique locale. Aucune publication n’est autorisée.
+
+---
+
+## G. TASK-0007 — Préparation publique (2026-08-26)
+
+### G.1 Vérification de l'orchestrateur
+
+| # | Critère | Résultat | Preuve |
+|---|---|---|---|
+| 1 | Aucun secret, chemin personnel ou contenu réel | Conforme | audit reproductible sur 102 fichiers candidats; zéro motif; fixtures synthétiques seulement |
+| 2 | MIT et avis de tiers cohérents | Conforme | `LICENSE`, deux verrous, inventaire JS/Rust et `THIRD_PARTY_NOTICES.md` recoupés |
+| 3 | Sécurité, confidentialité, contribution et limites | Conforme | `SECURITY.md`, `PRIVACY.md`, `CONTRIBUTING.md`, modèle de menace et notes 0.1.0 |
+| 4 | Tests, analyses, audits et build | Conforme | 4 Vitest, 11 Rust, TypeScript, Vite, fmt, Clippy strict, audit 0, release + NSIS |
+| 5 | Préparation/signature/publication séparées | Conforme | trois sections et deux arrêts explicites dans `docs/release-checklist.md` |
+| 6 | Aucune action externe | Conforme | aucun remote, signature, distribution, compte, achat ou publication |
+
+### G.2 Inventaire et artefacts
+
+- JavaScript : 16 entrées de production et 172 entrées dans le graphe complet.
+- Rust : 456 paquets dans le graphe verrouillé conservateur toutes cibles;
+  zéro licence absente.
+- `pnpm audit --prod` : aucune vulnérabilité connue.
+- `filetopo.exe` SHA-256 :
+  `A187BAF6072055B9ED223ACD22FDC22491FCFED8BE7804F14C8CD09383EAFC65`.
+- `FileTopo_0.1.0_x64-setup.exe` SHA-256 :
+  `DA85199FC69EBA9298CA3EAA3ECEABD41B9569BBEDC38EA974CE1B3CAA0C450A`.
+- Artefacts locaux non signés et non distribués.
+
+### G.3 Limites maintenues
+
+- Le graphe Cargo toutes cibles est conservateur; certains paquets
+  conditionnels ne sont pas embarqués dans le binaire Windows.
+- L'inventaire technique ne remplace pas une analyse juridique.
+- Le nom public n'a pas fait l'objet d'une recherche juridique exhaustive.
+- Le canal privé de signalement et la signature n'existent pas encore.
+
+### G.4 Conclusion
+
+`TASK-0007` et la phase 5 passent à `VERIFIED`; `ACTION-0010` est close.
+`ACTION-0011` est `DEFERRED`. La phase 6 ne peut commencer qu'après un GO
+humain spécial et distinct.

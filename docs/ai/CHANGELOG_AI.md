@@ -674,3 +674,30 @@ Aucun dossier utilisateur choisi par l’agent, aucun corpus privé, aucun conte
 ### Suite
 
 `ACTION-0010` : exécuter `TASK-0007`, préparation publique strictement locale. La phase 6 reste soumise à un GO humain spécial.
+
+---
+
+## 2026-08-26 — TASK-0007 — Préparation publique locale
+
+**Agent :** Codex puis vérification orchestrateur
+**Résultat :** `VERIFIED`, phase 5 close, publication différée
+
+### Fait
+
+- Ajout de `SECURITY.md`, `PRIVACY.md`, `CONTRIBUTING.md` et du modèle de menace.
+- Avis de tiers recoupé avec les verrous; scripts reproductibles d'inventaire
+  et d'audit public ajoutés.
+- Notes candidates 0.1.0 et checklist distincte pour préparation, signature
+  et publication.
+- Audit de 102 fichiers candidats : zéro motif sensible, zéro chemin
+  personnel, zéro fichier supérieur à 5 Mio et aucun remote.
+- 4 tests interface, 11 tests Rust, TypeScript, Vite, fmt, Clippy strict,
+  audit de vulnérabilités, release et NSIS réussis.
+- Empreintes SHA-256 des deux artefacts locaux non signés consignées.
+
+### Non fait, volontairement
+
+- Aucun corpus réel ou privé consulté.
+- Aucun remote, compte, secret, achat, signature, téléversement, release ou
+  publication.
+- La phase 6 et `ACTION-0011` restent `DEFERRED` jusqu'au GO humain spécial.

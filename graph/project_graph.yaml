@@ -48,7 +48,7 @@ allowed_states:
   REJECTED: "Refusee ou rejetee apres examen, avec le motif ecrit."
   DEFERRED: "Reportee, sans travail engage."
 
-execution_note: "Les phases 0 a 4 sont verifiees. TASK-0007 prepare maintenant le depot a une publication sure, localement et sans publication."
+execution_note: "Les phases 0 a 5 sont verifiees. La publication reste differee jusqu'au GO humain special de phase 6."
 
 phases:
   - id: 0
@@ -82,7 +82,9 @@ phases:
     tasks: [TASK-0006]
   - id: 5
     name: "Preparation publique"
-    status: IN_PROGRESS
+    status: VERIFIED
+    verified_on: "2026-08-26"
+    verified_by: orchestrator
     tasks: [TASK-0007]
   - id: 6
     name: "Publication"
@@ -182,11 +184,14 @@ tasks:
   - id: TASK-0007
     title: "Phase 5 : preparation publique"
     phase: 5
-    status: IN_PROGRESS
+    status: VERIFIED
     file: docs/tasks/TASK-0007-phase-5-public-preparation.md
     opened_on: "2026-08-26"
     started_on: "2026-08-26"
-    verified: false
+    delivered_on: "2026-08-26"
+    verified: true
+    verified_on: "2026-08-26"
+    verified_by: orchestrator
     requires_human_go: false
     approved_via: "autorisation_permanente_2026-08-25"
 

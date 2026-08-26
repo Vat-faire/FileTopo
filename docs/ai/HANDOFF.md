@@ -1,32 +1,32 @@
 # HANDOFF.md — Passation
 
 **Date :** 2026-08-26
-**De :** orchestrateur, clôture de `ACTION-0009`
-**Vers :** Codex, exécution de `TASK-0007`
+**De :** orchestrateur, clôture de `ACTION-0010`
+**Vers :** humain, décision éventuelle sur la phase 6
 
 ## État vérifié
 
-- `TASK-0001` à `TASK-0006` : `VERIFIED`.
+- `TASK-0001` à `TASK-0007` : `VERIFIED`.
 - Nom de travail public : **FileTopo**, décision `DEC-0001` vérifiée.
-- Phase 5 : `IN_PROGRESS`; tâche unique `TASK-0007`.
-- MVP Windows, release et NSIS construits; aucun remote, publication ou corpus réel.
+- Phase 5 : `VERIFIED`; aucune tâche active.
+- MVP Windows, release et NSIS reconstruits; aucun remote, signature,
+  publication ou corpus réel.
 
 ## Mission actuelle
 
-Préparer localement le dépôt à une publication sûre : sécurité,
-confidentialité, contribution, avis de tiers exacts, inventaire, notes de
-version et checklist. Lire `docs/tasks/TASK-0007-phase-5-public-preparation.md`
-puis suivre `ACTION-0010`.
+Attendre. `ACTION-0011` est différée. La publication, la signature et toute
+création de dépôt distant exigent le GO humain spécial de phase 6.
 
 ## Contraintes dominantes
 
 - Ne versionner aucun secret, chemin personnel ou donnée réelle.
 - Conserver les tests exclusivement synthétiques ou temporaires.
-- Distinguer préparation locale, signature, distribution et publication.
-- Ne pas créer de remote, release, compte ou artefact distribué.
+- Suivre `docs/release-checklist.md`, qui sépare préparation locale,
+  signature et publication.
+- Ne pas créer de remote, release, compte ou artefact distribué avant le GO.
 
 ## Points d'arrêt
 
 Publication, dépôt distant, signature, achat, réservation, secret manquant,
 action destructive ou accès à un corpus privé. La phase 6 exige un GO humain
-spécial; le reste de la phase 5 s’enchaîne automatiquement.
+spécial et distinct.

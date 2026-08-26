@@ -1,10 +1,12 @@
 # TASK-0007 — Phase 5 : préparation publique
 
-- **Statut :** `IN_PROGRESS`
+- **Statut :** `VERIFIED`
 - **Phase :** 5 — Préparation publique
 - **Ouverte et démarrée le :** 2026-08-26
 - **Approuvée via :** autorisation permanente du 2026-08-25
 - **Exécutant :** Codex
+- **Livrée et vérifiée le :** 2026-08-26
+- **Vérifiée par :** orchestrateur, sur preuves locales reproductibles
 
 ## Objectif
 
@@ -34,3 +36,24 @@ Rendre le dépôt local publiable sans risque, tout en maintenant la publication
 - Ne jamais signer ou distribuer un artefact.
 - Ne jamais accéder à un corpus utilisateur ou au corpus privé interdit.
 - La phase 6 demeure bloquée jusqu’à un GO humain spécial et distinct.
+
+## Résultat et preuves
+
+- Politiques de sécurité et de confidentialité, modèle de menace, guide de
+  contribution, notes de version et checklist créés et relus.
+- Inventaire reproductible : 16 entrées JavaScript de production, 172 entrées
+  JavaScript dans le graphe complet, 456 paquets Rust toutes cibles et zéro
+  licence Rust manquante.
+- Audit public : 102 fichiers candidats, aucun motif sensible, aucun chemin
+  personnel absolu, aucun fichier supérieur à 5 Mio et aucun remote Git.
+- `pnpm install --frozen-lockfile`, TypeScript, 4 tests Vitest, Vite,
+  `pnpm audit --prod`, format Rust, Clippy strict et 11 tests Rust réussis.
+- Exécutable release et installateur NSIS reconstruits localement; empreintes
+  SHA-256 consignées dans `docs/releases/0.1.0.md`.
+- Aucun corpus réel ou privé, aucune signature, distribution ou publication.
+
+## Conclusion
+
+Les six critères d'acceptation sont satisfaits. `TASK-0007` et la phase 5
+passent à `VERIFIED`. La phase 6 demeure `DEFERRED` et exige un GO humain
+spécial et distinct avant toute action externe.

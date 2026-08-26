@@ -6,27 +6,27 @@ Ce fichier contient **exactement une** action.
 
 ---
 
-## ACTION-0010 — Préparer TASK-0007 : dépôt publiable localement
+## ACTION-0011 — Attendre le GO spécial de publication
 
-- **Tâche visée :** `TASK-0007`
-- **Fiche :** `docs/tasks/TASK-0007-phase-5-public-preparation.md`
-- **Statut :** `IN_PROGRESS`
-- **Exécutant :** Codex
-- **GO humain :** non requis pour les changements locaux réversibles
-- **Phase :** 5
+- **Tâche visée :** aucune tâche ouverte
+- **Statut :** `DEFERRED`
+- **Exécutant :** humain, puis Codex seulement après autorisation
+- **GO humain :** spécial et distinct, obligatoire
+- **Phase :** 6
 
 ### Objet
 
-Préparer localement tous les éléments nécessaires à une publication sûre :
-sécurité, confidentialité, contribution, avis de tiers, inventaire,
-reproductibilité, notes de version et checklist.
+La préparation publique locale est vérifiée. Attendre une instruction humaine
+explicite autorisant la phase 6 avant de créer un dépôt distant, configurer un
+compte ou canal de sécurité, signer, distribuer ou publier quoi que ce soit.
 
-### Première tranche
+### État d'attente
 
-Auditer les fichiers versionnés et les dépendances verrouillées, puis produire
-les politiques et inventaires sans modifier d'état externe.
+Aucune action externe n'est en cours. Les artefacts présents sont locaux,
+non signés et non distribués. La checklist se trouve dans
+`docs/release-checklist.md`.
 
-### Interdictions
+### Interdictions avant le GO spécial
 
-Aucun scan utilisateur, corpus privé, secret, signature, dépôt distant,
-release ou publication. La phase 6 exige toujours un GO humain spécial.
+Aucun remote, compte, achat, secret, signature, téléversement, release ou
+publication. Aucun corpus utilisateur ou privé ne doit être consulté.

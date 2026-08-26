@@ -7,7 +7,8 @@ le scanner.
 
 ## État actuel
 
-La phase 4 fournit un MVP Windows local vérifié de bout en bout :
+Les phases 4 et 5 fournissent un MVP Windows local vérifié de bout en bout et
+préparé à une éventuelle publication :
 
 - interface React/TypeScript bilingue français/anglais;
 - carte PixiJS/WebGL avec relief SVG de secours;
@@ -22,7 +23,7 @@ La phase 4 fournit un MVP Windows local vérifié de bout en bout :
 - fixture physique et générateur de volume entièrement synthétiques;
 - exécutable et installateur Windows construits localement.
 
-Ce MVP n'est pas encore un produit publié. Une collection réelle n’est jamais
+Ce MVP n'est pas un produit publié. Une collection réelle n’est jamais
 choisie ou scannée sans les actions explicites de l’utilisateur.
 
 ## Prérequis de développement
@@ -66,7 +67,7 @@ utilisateur.
 Les guides d’utilisation sont disponibles en [français](docs/user-guide-fr.md)
 et en [anglais](docs/user-guide-en.md).
 
-## Garanties de sécurité du squelette
+## Sécurité et confidentialité
 
 - aucune télémétrie, mise à jour automatique, IA ou CDN;
 - politique de sécurité de contenu restrictive;
@@ -75,6 +76,10 @@ et en [anglais](docs/user-guide-en.md).
 - index reconstructible, stocké séparément de la collection;
 - fichiers en ligne seulement détectés par attributs, jamais hydratés exprès;
 - données de dépôt strictement synthétiques.
+
+Consultez [SECURITY.md](SECURITY.md), [PRIVACY.md](PRIVACY.md), le
+[modèle de menace](docs/security/threat-model.md) et le
+[guide de contribution](CONTRIBUTING.md).
 
 ## Mesures
 
@@ -85,8 +90,8 @@ un million d'éléments se trouvent dans `docs/performance/phase-2-budgets.md`.
 ## Licence et auteur
 
 FileTopo est offert sous licence MIT. Création originale de Sébastien Dubé.
-Les avis concernant les composants open source sont préparés dans
-`THIRD_PARTY_NOTICES.md` et seront générés précisément avant publication.
+Les composants open source verrouillés et leur méthode d'inventaire sont
+documentés dans `THIRD_PARTY_NOTICES.md`.
 
 Le nom FileTopo demeure un nom public de travail réversible : aucune marque,
 aucun domaine et aucun dépôt distant n'ont été réservés ou publiés.

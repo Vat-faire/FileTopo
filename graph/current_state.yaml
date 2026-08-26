@@ -26,10 +26,10 @@ allowed_states:
   - DEFERRED
 
 current_phase: 5
-current_phase_status: IN_PROGRESS
+current_phase_status: VERIFIED
 
-in_progress_task: TASK-0007
-in_progress_count: 1
+in_progress_task: null
+in_progress_count: 0
 
 tasks:
   - id: TASK-0001
@@ -94,24 +94,27 @@ tasks:
     title: "Phase 4 : MVP local sans IA"
     file: docs/tasks/TASK-0006-phase-4-local-mvp.md
   - id: TASK-0007
-    status: IN_PROGRESS
-    verified: false
+    status: VERIFIED
+    verified: true
     approved_via: "autorisation_permanente_2026-08-25"
     opened_on: "2026-08-26"
     started_on: "2026-08-26"
+    delivered_on: "2026-08-26"
+    verified_on: "2026-08-26"
+    verified_by: orchestrator
     title: "Phase 5 : preparation publique"
     file: docs/tasks/TASK-0007-phase-5-public-preparation.md
 
 next_action:
-  id: ACTION-0010
-  target_task_id: TASK-0007
-  status: IN_PROGRESS
-  title: "Preparer le depot publiable localement"
-  target_phase: 5
-  actor: codex
-  requires_human_go: false
+  id: ACTION-0011
+  target_task_id: null
+  status: DEFERRED
+  title: "Attendre le GO special avant toute publication"
+  target_phase: 6
+  actor: human_then_codex
+  requires_human_go: true
   executes_research: false
-  network_access: "aucun a l'execution; registres officiels seulement pour dependances declarees"
+  network_access: "interdit avant GO special"
   file: docs/ai/NEXT_ACTION.md
 
 decided:
@@ -228,6 +231,28 @@ verification:
     synthetic_100k_paged_read_ms: 181
     synthetic_100k_filtered_query_ms: 126
     computer_use_visual_check_fr_en: true
+    private_corpus_accessed: false
+  task_0007:
+    performed_on: "2026-08-26"
+    performed_by: orchestrator
+    status: VERIFIED
+    candidate_files_audited: 102
+    personal_paths_or_secrets_found: 0
+    git_remotes: 0
+    javascript_production_entries: 16
+    javascript_all_entries: 172
+    rust_all_target_packages: 456
+    rust_missing_licenses: 0
+    dependency_audit_known_vulnerabilities: 0
+    typescript_check: true
+    frontend_tests_passed: 4
+    rust_tests_passed: 11
+    rust_clippy_strict: true
+    vite_build: true
+    tauri_release_build: true
+    nsis_bundle_build: true
+    signed: false
+    published: false
     private_corpus_accessed: false
   still_untested:
     - "Fins de ligne sur le disque"
