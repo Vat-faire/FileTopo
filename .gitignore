@@ -1,0 +1,10 @@
+/node_modules/
+/dist/
+/src-tauri/target/
+/.pnpm-store/
+*.log
+*.sqlite
+*.sqlite-wal
+*.sqlite-shm
+.DS_Store
+Thumbs.db

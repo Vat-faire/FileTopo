@@ -1,0 +1,239 @@
+schema: project_graph
+schema_version: 1
+generated_at: "2026-08-26"
+generated_by: TASK-0001
+
+project:
+  folder_name: TopographicDocumentMap
+  folder_name_is_provisional: true
+  public_name: FileTopo
+  public_name_decided: true
+  public_name_decision: docs/decisions/DEC-0001-public-name.md
+  license: MIT
+  license_candidate: MIT
+  license_decided: true
+  license_decision: docs/decisions/DEC-0002-license.md
+  tech_stack: "Tauri 2 + Rust + React/TypeScript + Vite + SQLite + PixiJS/WebGL"
+  tech_stack_decided: true
+  author: "Sebastien Dube"
+  visibility_intent: public
+  published: false
+  has_application_code: true
+
+principles:
+  - id: read_only
+    label: "Lecture seule des documents utilisateur"
+  - id: local_first
+    label: "Analyse locale sur la machine de l'utilisateur"
+  - id: windows_first
+    label: "Windows comme premiere plateforme cible"
+  - id: offline_mvp_no_ai
+    label: "MVP hors ligne et sans IA"
+  - id: independent_collections
+    label: "Plusieurs collections independantes"
+  - id: incremental_watch
+    label: "Surveillance incrementale"
+  - id: accessibility_fr_en
+    label: "Accessibilite et bilinguisme FR/EN"
+  - id: non_destruction
+    label: "Non-destruction du corpus analyse"
+
+allowed_states:
+  PROPOSED: "Decrite, pas demarree. Attend une approbation."
+  APPROVED: "Approuvee, autorisee a demarrer, pas encore demarree."
+  IN_PROGRESS: "En cours d'execution."
+  BLOCKED: "Arretee par un obstacle, avec la cause ecrite."
+  IMPLEMENTED: "Livrable produit, pas encore verifie independamment."
+  VERIFIED: "Verifie sur preuves par une instance independante de l'executeur."
+  REJECTED: "Refusee ou rejetee apres examen, avec le motif ecrit."
+  DEFERRED: "Reportee, sans travail engage."
+
+execution_note: "Les phases 0 a 3 sont verifiees. TASK-0006 execute maintenant le MVP local sans IA, uniquement sur donnees synthetiques pendant les tests."
+
+phases:
+  - id: 0
+    name: "Isolation et demarrage"
+    status: VERIFIED
+    tasks: [TASK-0001]
+  - id: 1
+    name: "Recherche et positionnement"
+    status: VERIFIED
+    verified_on: "2026-08-25"
+    verified_by: orchestrator
+    tasks: [TASK-0002, TASK-0003]
+    deliverable: docs/research/phase-1-research-and-positioning.md
+  - id: 2
+    name: "Architecture"
+    status: VERIFIED
+    verified_on: "2026-08-25"
+    verified_by: orchestrator
+    tasks: [TASK-0004]
+  - id: 3
+    name: "Squelette verifiable"
+    status: VERIFIED
+    verified_on: "2026-08-26"
+    verified_by: orchestrator
+    tasks: [TASK-0005]
+  - id: 4
+    name: "MVP local sans IA"
+    status: IN_PROGRESS
+    tasks: [TASK-0006]
+  - id: 5
+    name: "Preparation publique"
+    status: DEFERRED
+    tasks: []
+  - id: 6
+    name: "Publication"
+    status: DEFERRED
+    requires_special_human_go: true
+    tasks: []
+  - id: 7
+    name: "Fonctions avancees facultatives"
+    status: DEFERRED
+    tasks: []
+
+tasks:
+  - id: TASK-0001
+    title: "Phase 0 : isolation et demarrage"
+    phase: 0
+    status: VERIFIED
+    file: docs/tasks/TASK-0001-phase-0-bootstrap.md
+    opened_on: "2026-08-25"
+    delivered_on: "2026-08-25"
+    verified: true
+    verified_on: "2026-08-25"
+    verified_by: orchestrator
+  - id: TASK-0002
+    title: "Phase 1 : recherche et positionnement"
+    phase: 1
+    status: VERIFIED
+    file: docs/tasks/TASK-0002-phase-1-research-and-positioning.md
+    deliverable: docs/research/phase-1-research-and-positioning.md
+    opened_on: "2026-08-25"
+    delivered_on: "2026-08-25"
+    verified: true
+    verified_on: "2026-08-25"
+    verified_by: orchestrator
+    executes_research: true
+    research_executed: true
+    requires_human_go: false
+    approved_via: "autorisation_permanente_2026-08-25"
+    network_access: "lecture seule de sources publiques, effectuee le 2026-08-25, couverte par l'autorisation permanente"
+  - id: TASK-0003
+    title: "Diligence raisonnable et decision du nom public"
+    phase: 1
+    status: VERIFIED
+    file: docs/tasks/TASK-0003-public-name-due-diligence.md
+    deliverable: docs/decisions/DEC-0001-public-name.md
+    opened_on: "2026-08-25"
+    delivered_on: "2026-08-25"
+    verified: true
+    verified_on: "2026-08-25"
+    verified_by: orchestrator
+    executes_research: true
+    research_executed: true
+    requires_human_go: false
+    approved_via: "autorisation_permanente_2026-08-25"
+    network_access: "lecture seule de sources publiques, couverte par l'autorisation permanente"
+  - id: TASK-0004
+    title: "Phase 2 : architecture et pile technologique"
+    phase: 2
+    status: VERIFIED
+    file: docs/tasks/TASK-0004-phase-2-architecture.md
+    deliverable: docs/architecture/phase-2-architecture.md
+    opened_on: "2026-08-25"
+    started_on: "2026-08-25"
+    delivered_on: "2026-08-25"
+    verified: true
+    verified_on: "2026-08-25"
+    verified_by: orchestrator
+    executes_research: true
+    requires_human_go: false
+    approved_via: "autorisation_permanente_2026-08-25"
+    network_access: "lecture seule de documentations officielles"
+  - id: TASK-0005
+    title: "Phase 3 : squelette verifiable"
+    phase: 3
+    status: VERIFIED
+    file: docs/tasks/TASK-0005-phase-3-verifiable-skeleton.md
+    opened_on: "2026-08-25"
+    started_on: "2026-08-25"
+    delivered_on: "2026-08-26"
+    verified: true
+    verified_on: "2026-08-26"
+    verified_by: orchestrator
+    requires_human_go: false
+    approved_via: "autorisation_permanente_2026-08-25"
+  - id: TASK-0006
+    title: "Phase 4 : MVP local sans IA"
+    phase: 4
+    status: IN_PROGRESS
+    file: docs/tasks/TASK-0006-phase-4-local-mvp.md
+    opened_on: "2026-08-26"
+    started_on: "2026-08-26"
+    verified: false
+    requires_human_go: false
+    approved_via: "autorisation_permanente_2026-08-25"
+
+open_questions:
+  - id: Q-001
+    question: "Quel nom public final pour le projet ?"
+    target_phase: 1
+    researched_on: "2026-08-25"
+    decided: true
+    decided_on: "2026-08-25"
+    decision: "FileTopo comme nom de travail public reversible"
+    decision_file: docs/decisions/DEC-0001-public-name.md
+    recommendation: "FileTopo retenu apres neuf controles techniques, 0 resultat exact CIPO/EUIPO et comparaison des collisions. USPTO/WIPO et recherche juridique exhaustive restent a refaire avant fixation irreversible."
+    reserved: false
+    followup_task: null
+  - id: Q-002
+    question: "Quelle licence definitive ? MIT est une hypothese a verifier."
+    target_phase: 1
+    researched_on: "2026-08-25"
+    decided: true
+    decided_on: "2026-08-25"
+    decision: "Licence MIT"
+    decision_file: docs/decisions/DEC-0002-license.md
+    recommendation: "MIT retenue; Apache-2.0 examinee et non retenue."
+    applied: true
+  - id: Q-003
+    question: "Quelle pile technologique ?"
+    target_phase: 2
+    decided: true
+    decision: "Tauri 2 + Rust + React/TypeScript + Vite + SQLite"
+    decision_file: docs/decisions/DEC-0003-tech-stack.md
+  - id: Q-004
+    question: "Quel mode de rendu (SVG, Canvas, WebGL) et quelle methode de disposition ?"
+    target_phase: 2
+    decided: true
+    decision: "PixiJS/WebGL avec LOD et liste DOM; SVG de secours"
+    decision_file: docs/decisions/DEC-0005-rendering-and-relief.md
+
+standing_authorization:
+  granted_on: "2026-08-25"
+  granted_by: user
+  covers:
+    - public_research_read_only
+    - documented_decisions
+    - architecture
+    - development
+    - tests
+    - documentation
+    - local_commits
+  autonomous_task_chaining: true
+  stop_and_ask_for:
+    - important_ambiguity
+    - missing_secret_or_credential
+    - spend_or_purchase
+    - destructive_action_on_user_documents
+    - external_action_outside_project_scope
+  no_automatic_paid_wallet_usage: true
+
+constraints:
+  scope: "Depot local uniquement"
+  network_access: "lecture seule de sources publiques, couverte par l'autorisation permanente pour une tache de recherche documentee"
+  dependencies: true
+  commits: "commits locaux autorises par l'autorisation permanente ; depot distant/publication hors perimetre"
+  publication: false
+  real_data: false

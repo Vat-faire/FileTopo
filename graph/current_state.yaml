@@ -1,0 +1,268 @@
+schema: current_state
+schema_version: 1
+updated_at: "2026-08-26"
+updated_by: orchestrator
+
+standing_authorization:
+  granted_on: "2026-08-25"
+  granted_by: user
+  autonomous_task_chaining: true
+  requires_go_for:
+    - important_ambiguity
+    - missing_secret_or_credential
+    - spend_or_purchase
+    - destructive_action_on_user_documents
+    - external_action_outside_project_scope
+  no_automatic_paid_wallet_usage: true
+
+allowed_states:
+  - PROPOSED
+  - APPROVED
+  - IN_PROGRESS
+  - BLOCKED
+  - IMPLEMENTED
+  - VERIFIED
+  - REJECTED
+  - DEFERRED
+
+current_phase: 4
+current_phase_status: IN_PROGRESS
+
+in_progress_task: TASK-0006
+in_progress_count: 1
+
+tasks:
+  - id: TASK-0001
+    status: VERIFIED
+    verified: true
+    verified_on: "2026-08-25"
+    verified_by: orchestrator
+  - id: TASK-0002
+    status: VERIFIED
+    verified: true
+    verified_on: "2026-08-25"
+    verified_by: orchestrator
+    approved_via: "autorisation_permanente_2026-08-25"
+    opened_on: "2026-08-25"
+    delivered_on: "2026-08-25"
+    deliverable: docs/research/phase-1-research-and-positioning.md
+    file: docs/tasks/TASK-0002-phase-1-research-and-positioning.md
+  - id: TASK-0003
+    status: VERIFIED
+    verified: true
+    approved_via: "autorisation_permanente_2026-08-25"
+    opened_on: "2026-08-25"
+    started_on: "2026-08-25"
+    delivered_on: "2026-08-25"
+    verified_on: "2026-08-25"
+    verified_by: orchestrator
+    title: "Diligence raisonnable et decision du nom public"
+    deliverable: docs/decisions/DEC-0001-public-name.md
+    file: docs/tasks/TASK-0003-public-name-due-diligence.md
+  - id: TASK-0004
+    status: VERIFIED
+    verified: true
+    approved_via: "autorisation_permanente_2026-08-25"
+    opened_on: "2026-08-25"
+    started_on: "2026-08-25"
+    delivered_on: "2026-08-25"
+    verified_on: "2026-08-25"
+    verified_by: orchestrator
+    title: "Phase 2 : architecture et pile technologique"
+    deliverable: docs/architecture/phase-2-architecture.md
+    file: docs/tasks/TASK-0004-phase-2-architecture.md
+  - id: TASK-0005
+    status: VERIFIED
+    verified: true
+    approved_via: "autorisation_permanente_2026-08-25"
+    opened_on: "2026-08-25"
+    started_on: "2026-08-25"
+    delivered_on: "2026-08-26"
+    verified_on: "2026-08-26"
+    verified_by: orchestrator
+    title: "Phase 3 : squelette verifiable"
+    file: docs/tasks/TASK-0005-phase-3-verifiable-skeleton.md
+  - id: TASK-0006
+    status: IN_PROGRESS
+    verified: false
+    approved_via: "autorisation_permanente_2026-08-25"
+    opened_on: "2026-08-26"
+    started_on: "2026-08-26"
+    title: "Phase 4 : MVP local sans IA"
+    file: docs/tasks/TASK-0006-phase-4-local-mvp.md
+
+next_action:
+  id: ACTION-0009
+  target_task_id: TASK-0006
+  status: IN_PROGRESS
+  title: "Construire le MVP local sans IA"
+  target_phase: 4
+  actor: codex
+  requires_human_go: false
+  executes_research: false
+  network_access: "aucun a l'execution; registres officiels seulement pour dependances declarees"
+  file: docs/ai/NEXT_ACTION.md
+
+decided:
+  - "Intention du projet : carte topographique locale de dossiers et documents"
+  - "Principes fondateurs (voir project_graph.yaml)"
+  - "Regime de travail des agents"
+  - "Nom de travail public reversible : FileTopo (DEC-0001)"
+  - "Licence MIT (DEC-0002)"
+  - "Pile Tauri 2, Rust, React/TypeScript, Vite (DEC-0003)"
+  - "Index SQLite par collection (DEC-0004)"
+  - "Rendu PixiJS/WebGL et relief composite (DEC-0005)"
+
+not_decided:
+  - visual_identity
+
+phase_1_research:
+  executed_on: "2026-08-25"
+  verified_on: "2026-08-25"
+  verified_by: orchestrator
+  report: docs/research/phase-1-research-and-positioning.md
+  network_access: "lecture seule de sources publiques"
+  primary_sources_prioritized: true
+  secondary_sources_flagged: 3
+  sources_defined: 32
+  compared_solutions: 10
+  questions_answered: 14
+  name_candidates_checked: 7
+  registries_queried:
+    - npm
+    - pypi
+    - crates.io
+    - github_api
+    - rdap_verisign_com
+  registries_per_candidate: 5
+  crates_io_checked_for_all_seven: true
+  official_links_checked: 25
+  official_links_status_200: 25
+  names_reserved: 0
+  domains_purchased: 0
+  accounts_created: 0
+  public_name_decided: true
+  license_decided: true
+  tech_stack_decided: true
+  recommendation_status: "soumise a decision humaine"
+  remaining_limits:
+    - uspto_exact_results_not_verified
+    - wipo_exact_results_not_verified
+    - legal_clearance_not_exhaustive
+
+repository:
+  has_application_code: true
+  has_dependencies: true
+  has_commits: false
+  decisions_recorded: 5
+  performance_measurements: 2
+  synthetic_fixtures: 1
+  research_reports: 1
+
+verification:
+  task_0001:
+    performed_on: "2026-08-25"
+    performed_by: orchestrator
+    independent: true
+    yaml_parsed_by_tool: true
+    jsonl_parsed_by_tool: true
+    encoding_inspected: true
+    private_reference_scan: true
+    file_count: 19
+    git_state_read: true
+    git_warning_non_blocking: "Fichier d'exclusion global inaccessible ; avertissement non bloquant, l'etat local a bien ete obtenu."
+  task_0002:
+    performed_on: "2026-08-25"
+    performed_by: orchestrator
+    independent: true
+    status: VERIFIED
+    verified_on: "2026-08-25"
+    verified_by: orchestrator
+    note: "Verification independante finale, voir docs/ai/VALIDATION.md section A.7. Clot ACTION-0004."
+    yaml_parsed_by_tool: true
+    jsonl_parsed_by_tool: true
+    source_table_crosscheck_automated: true
+    compared_tools_installed_or_run: 0
+    performance_measurements_taken: 0
+  task_0005:
+    performed_on: "2026-08-26"
+    performed_by: orchestrator
+    status: VERIFIED
+    typescript_check: true
+    frontend_tests_passed: 1
+    rust_tests_passed: 5
+    vite_build: true
+    tauri_executable_build: true
+    nsis_bundle_build: true
+    sqlite_version: "3.53.2"
+    synthetic_fixture_node_count: 9
+    fixture_fingerprint_unchanged: true
+    perf_10k_total_ms: 97
+    perf_100k_total_ms: 1027
+    computer_use_visual_check: true
+    private_corpus_accessed: false
+  still_untested:
+    - "Fins de ligne sur le disque"
+    - "Coherence des liens relatifs entre documents"
+    - "Résultats exacts USPTO et WIPO"
+    - "Recherche juridique exhaustive par classes et similarités"
+  known_residual_nonconformity:
+    file: ROADMAP.md
+    line: 19
+    text: "Chaque passage d'une phase a la suivante requiert un GO humain explicite."
+    issue: "Obsolete depuis l'autorisation permanente du 2026-08-25, sauf pour la phase 6."
+    corrected: true
+    corrected_on: "2026-08-25"
+    corrected_by: orchestrator
+  orchestrator_partial_independent_check:
+    performed_on: "2026-08-25"
+    performed_by: orchestrator
+    evidence:
+      github_repo_api_confirmed: true
+      github_releases_api_confirmed: true
+      github_contributors_api_confirmed: true
+      readme_license_quotes_confirmed: true
+      microsoft_graphrag_facts_confirmed: true
+      folderscape_cartodoc_404_confirmed: true
+      official_links_checked: 25
+      official_links_status_200: 25
+      softpedia_s27_http_status: 403
+    corrections_applied_to_report:
+      - "S-04 pointe vers l'API officielle des releases ; intitule exact et date officielle de v0.1.0-alpha.1 remplacent l'intitule invente et l'annee inferee"
+      - "Nuance Apache-2.0 : fichier NOTICE non universellement obligatoire, conditionne a l'existence d'un NOTICE dans l'oeuvre distribuee (§4(d))"
+      - "Nuance GPL/AGPL : distribution combinee/liee doit respecter la licence copyleft, sans etre un avis juridique sur plugiciel/processus separe/liaison dynamique"
+    trademark_formal_search: not_verified
+    task_0002_status_after_correction: IMPLEMENTED
+    note: "Verification partielle. N'a pas clos ACTION-0004 a elle seule ; clos par orchestrator_final_independent_check."
+  orchestrator_final_independent_check:
+    performed_on: "2026-08-25"
+    performed_by: orchestrator
+    evidence:
+      questions_answered: 14
+      sources_defined: 32
+      graphrag_api_confirmed: true
+      official_links_status_200: 25
+      registries_per_candidate: 5
+      candidates_checked: 7
+      crates_io_404_confirmed_for_all_seven: true
+      topodoc_npm_rdap_status: 200
+      docscape_github_rdap_status: 200
+      cartodoc_five_registries_status: 404
+      folderscape_five_registries_status: 404
+      isodoc_github_rdap_status: 200
+      terradoc_pypi_github_rdap_status: 200
+      reliefdoc_rdap_status: 200
+      reliefdoc_npm_pypi_crates_github_status: 404
+      yaml_jsonl_utf8_consistent: true
+      private_document_scan: "aucun scan de document prive effectue ; aucune reference privee introduite"
+      tech_stack_chosen: false
+    corrections_applied_to_report:
+      - "Section 7.4 : limite crates.io non verifie pour cinq candidats retiree, remplacee par la confirmation des sept"
+      - "Section 7.7.4 et section 8 (Non teste) mises a jour en consequence"
+      - "Limites marques et TLD conservees intactes, non levees"
+    trademark_formal_search: not_verified
+    tld_other_than_com: not_verified
+    task_0002_status_after_verification: VERIFIED
+    closes_action_0004: true
+    note: "Vérification finale. Voir docs/ai/VALIDATION.md section A.7."
+  note: "Voir docs/ai/VALIDATION.md pour le detail des preuves."
