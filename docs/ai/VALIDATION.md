@@ -704,3 +704,26 @@ Empreintes de la candidate locale non distribuée :
 Les huit critères locaux de `TASK-0008` sont conformes. `TASK-0008` passe à
 `VERIFIED`. La phase 6 reste `IN_PROGRESS`; `TASK-0009` attend uniquement la
 réauthentification humaine GitHub avant la publication source contrôlée.
+
+---
+
+## I. Vérification de TASK-0009 — publication GitHub (2026-08-26)
+
+**Exécutant et vérificateur :** orchestrateur, sous le GO humain spécial de
+phase 6.
+
+| Contrôle | Résultat |
+|---|---|
+| Dépôt | `Vat-faire/FileTopo`, public, branche `main` |
+| Licence | MIT détectée par GitHub |
+| CI finale | exécution `33036847625`, succès, chaîne Windows complète |
+| Sécurité | signalement privé, analyse de secrets et blocage au push actifs |
+| Release | `v0.1.0-alpha.1`, prerelease, non brouillon |
+| Actifs joints | **0**; archives source GitHub seulement |
+| Binaire, signature ou dépense | aucun |
+| Donnée privée ou chemin personnel transmis | aucun |
+
+La première CI a réussi mais signalait trois actions fondées sur Node.js 20.
+Les références ont été mises à jour vers `actions/checkout@v6`,
+`actions/setup-node@v6` et `actions/cache@v5`; les deux CI suivantes ont réussi
+sans cet avertissement. `TASK-0009` et la phase 6 passent à `VERIFIED`.

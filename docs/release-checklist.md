@@ -35,11 +35,11 @@ externes irréversibles ou coûteuses.
 - [x] Mentions nominatives opérationnelles réduites dans les documents publics
       mutables; le nom reste où il sert la paternité, la licence et les
       métadonnées.
-- [ ] **Décision du propriétaire** : appliquer ou non la renormalisation des
+- [x] **Décision du propriétaire** : appliquer la renormalisation des
       fins de ligne (`git add --renormalize .`), qui touche 11 fichiers
       historiquement en CRLF.
-- [ ] **Décision du propriétaire** : conserver `0.1.0` ou passer à
-      `0.1.0-alpha` dans les trois manifestes.
+- [x] **Décision du propriétaire** : utiliser `0.1.0-alpha.1` dans les trois
+      manifestes.
 
 Rapport complet et preuves : `docs/reviews/TASK-0008-independent-review.md`.
 
@@ -78,32 +78,36 @@ Les actions ci-dessous relèvent de l'orchestrateur ou de l'humain, après
 réauthentification du compte GitHub `Vat-faire`.
 
 - [x] **GO humain spécial et distinct de phase 6 obtenu.**
-- [ ] Refaire la diligence sur le nom public et confirmer la destination.
-- [ ] Créer ou confirmer le dépôt distant et ses protections.
-- [ ] Activer le **signalement privé de vulnérabilité** de GitHub, puis
+- [x] Refaire la diligence sur le nom public et confirmer la destination.
+- [x] Créer ou confirmer le dépôt distant et ses protections de sécurité.
+- [x] Activer le **signalement privé de vulnérabilité** de GitHub, puis
       mettre à jour `SECURITY.md` avec le lien exact.
-- [ ] Publier le code source avec licence et avis de tiers.
-- [ ] Rejouer `scripts/audit-public-readiness.ps1 -AllowRemotes` après
+- [x] Publier le code source avec licence et avis de tiers.
+- [x] Rejouer `scripts/audit-public-readiness.ps1 -AllowRemotes` après
       configuration du remote.
-- [ ] Vérifier que le workflow CI passe sur l'exécuteur GitHub Windows.
-- [ ] Créer la release **seulement** si la section B est intégralement close;
+- [x] Vérifier que le workflow CI passe sur l'exécuteur GitHub Windows.
+- [x] Créer la release **seulement** si la section B est intégralement close;
       sinon publier une release sans binaire, ou aucune release.
-- [ ] Vérifier publiquement les liens, hachages, notes et téléchargements.
-- [ ] Documenter la procédure de retrait ou correction.
+- [x] Vérifier publiquement les liens, notes et téléchargements : zéro actif
+      joint, archives source GitHub seulement.
+- [x] Documenter la procédure de retrait ou correction dans les politiques de
+      sécurité et de contribution.
 
 ## D. Réglages du dépôt GitHub — à faire dans l'interface, pas dans le dépôt
 
 Ces éléments sont des **réglages**, non des fichiers. Les inscrire ici évite
 d'alourdir le dépôt de fichiers de configuration inutiles.
 
-- [ ] Description courte du dépôt, en anglais, et lien vers le README.
-- [ ] Sujets (*topics*) : par exemple `windows`, `tauri`, `rust`, `react`,
-      `visualization`, `file-manager`, `offline`, `local-first`.
-- [ ] Licence détectée automatiquement à partir de `LICENSE`.
-- [ ] Désactiver les fonctions non utilisées : wiki, projets, déploiements.
-- [ ] Protection de la branche `main` : exiger le succès du workflow CI.
-- [ ] Activer l'analyse de secrets et son blocage au *push*.
-- [ ] Décider **explicitement** d'activer ou non Dependabot — voir le rapport
+- [x] Description courte du dépôt, en anglais, et lien vers le README.
+- [x] Sujets (*topics*) : `windows`, `tauri`, `rust`, `react`, `typescript`,
+      `filesystem`, `visualization`, `offline-first`.
+- [x] Licence détectée automatiquement à partir de `LICENSE`.
+- [x] Désactiver le wiki non utilisé; aucun déploiement n'est configuré.
+- [ ] Protection de la branche `main` : différée jusqu'à l'adoption d'un flux
+      de contributions par pull request; la CI reste obligatoire par procédure.
+- [x] Activer l'analyse de secrets et son blocage au *push*.
+- [x] Décider **explicitement** de ne pas activer Dependabot pour l'instant —
+      voir le rapport
       de revue, qui recommande de ne pas l'activer avant qu'une personne soit
       disponible pour trier ses demandes de fusion.
 
@@ -121,4 +125,5 @@ chemin local absolu, document privé, ou toute autre donnée personnelle. Les
 mentions nominatives se limitent à la paternité, la licence, la maintenance et
 les métadonnées; les mentions opérationnelles disent « le propriétaire ».
 
-Aucune case des sections B, C ou D n'est autorisée par la préparation locale.
+La section C a été exécutée sous le GO spécial de phase 6. La section B reste
+non autorisée et non exécutée.

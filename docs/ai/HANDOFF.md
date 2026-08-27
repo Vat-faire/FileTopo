@@ -1,19 +1,17 @@
 # HANDOFF.md — Passation
 
 **Date :** 2026-08-26
-**De :** orchestrateur, vérification de `TASK-0008`
-**Vers :** humain pour la connexion GitHub, puis orchestrateur
+**De :** orchestrateur, clôture de `TASK-0009`
+**Vers :** prochaine session de maintenance
 
 ## État livré
 
-- `TASK-0001` à `TASK-0007` : `VERIFIED`.
-- `TASK-0008` : **`VERIFIED`** après trois tours Claude Code et une
-  vérification indépendante de l'orchestrateur.
-- `TASK-0009` : `APPROVED`, attend la réauthentification GitHub.
-- Phase 6 : `IN_PROGRESS` depuis le GO humain spécial du propriétaire du
-  2026-08-26.
-- Aucun remote, aucun push, aucune release publique, aucune signature, aucune
-  publication. Aucune connexion réseau n'a eu lieu.
+- `TASK-0001` à `TASK-0009` : `VERIFIED`.
+- Phases 0 à 6 : `VERIFIED`; phase 7 : `DEFERRED`.
+- Dépôt public : `https://github.com/Vat-faire/FileTopo`.
+- Prerelease source seulement : `v0.1.0-alpha.1`, zéro actif joint.
+- CI Windows finale verte; signalement privé, analyse de secrets et blocage au
+  push actifs. Aucun binaire n'est distribué.
 
 ## Ce qui a changé depuis la dernière passation
 
@@ -33,16 +31,14 @@
 
 ## Ce qui attend l'orchestrateur
 
-1. Commiter localement la candidate `0.1.0-alpha.1` vérifiée.
-2. Après la connexion humaine, exécuter `TASK-0009` : dépôt public, push,
-   vérification CI et prerelease source seulement.
+Rien d'immédiat. Observer l'alpha et n'ouvrir une tâche de phase 7 qu'à partir
+d'un besoin concret, avec critères et preuves documentés.
 
 ## Ce qui attend l'humain
 
-- **Réauthentifier le compte GitHub `Vat-faire`** : l'authentification `gh` est
-  expirée. Aucun agent ne doit tenter cette connexion.
-- Aucune nouvelle autorisation de publication source n'est requise : le GO
-  spécial est donné. Toute dépense ou signature reste interdite.
+- Rien pour la publication source terminée.
+- Une autorisation séparée resterait nécessaire pour toute signature, dépense
+  ou distribution de binaire.
 
 ## Règles à ne pas relâcher
 

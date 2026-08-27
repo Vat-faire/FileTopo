@@ -1,7 +1,7 @@
 schema: current_state
 schema_version: 1
 updated_at: "2026-08-26"
-updated_by: claude_code
+updated_by: orchestrator
 
 standing_authorization:
   granted_on: "2026-08-25"
@@ -26,7 +26,7 @@ allowed_states:
   - DEFERRED
 
 current_phase: 6
-current_phase_status: IN_PROGRESS
+current_phase_status: VERIFIED
 
 public_identity:
   approved_on: "2026-08-26"
@@ -50,11 +50,14 @@ phase_6_special_go:
   scope: "autorise la preparation et la publication controlee du code source; aucun binaire, signature ou depense"
   remote_actions_reserved_to: orchestrator
   github_account: "Vat-faire"
-  github_cli_authenticated: false
+  github_cli_authenticated: true
+  public_repository: "https://github.com/Vat-faire/FileTopo"
+  source_prerelease: "https://github.com/Vat-faire/FileTopo/releases/tag/v0.1.0-alpha.1"
+  binaries_published: false
 
 in_progress_task: null
 in_progress_count: 0
-last_delivered_task: TASK-0008
+last_delivered_task: TASK-0009
 last_delivered_status: VERIFIED
 
 tasks:
@@ -143,25 +146,28 @@ tasks:
     executor: claude_code
     file: docs/tasks/TASK-0008-phase-6-publication-readiness.md
   - id: TASK-0009
-    status: APPROVED
-    verified: false
+    status: VERIFIED
+    verified: true
     approved_via: "go_humain_special_phase_6_2026-08-26"
     opened_on: "2026-08-26"
+    delivered_on: "2026-08-26"
+    verified_on: "2026-08-26"
+    verified_by: orchestrator
     title: "Phase 6 : publication GitHub source seulement"
     file: docs/tasks/TASK-0009-phase-6-github-publication.md
 
 next_action:
-  id: ACTION-0013
-  target_task_id: TASK-0009
-  status: BLOCKED
-  title: "Reauthentifier GitHub puis publier la prerelease source seulement"
-  target_phase: 6
-  actor: human_then_orchestrator
-  awaiting: "reauthentification humaine de gh pour le compte Vat-faire"
+  id: ACTION-0014
+  target_task_id: null
+  status: DEFERRED
+  title: "Observer l'alpha avant d'ouvrir une fonction avancee"
+  target_phase: 7
+  actor: orchestrator
+  awaiting: "besoin concret ou retour sur la prerelease alpha"
   requires_human_go: false
   human_go_already_granted: "go_special_phase_6_2026-08-26"
   executes_research: false
-  network_access: "GitHub seulement apres reauthentification"
+  network_access: "lecture publique seulement tant qu'aucune tache n'est ouverte"
   commits_allowed: true
   file: docs/ai/NEXT_ACTION.md
 
@@ -381,6 +387,26 @@ verification:
     recommendation: "publier le code source seul, sans binaire ni release signee"
     ai_assistance_disclosure_added: true
     ai_assistance_file: "AI_ASSISTANCE.md"
+  task_0009:
+    performed_on: "2026-08-26"
+    performed_by: orchestrator
+    status: VERIFIED
+    public_repository: "https://github.com/Vat-faire/FileTopo"
+    default_branch: main
+    visibility: public
+    license_detected: MIT
+    github_actions_final_run: 33036847625
+    github_actions_final_conclusion: success
+    private_vulnerability_reporting: true
+    secret_scanning: true
+    secret_scanning_push_protection: true
+    dependabot_security_updates: false
+    source_release: v0.1.0-alpha.1
+    prerelease: true
+    draft: false
+    attached_assets: 0
+    binaries_published: false
+    private_corpus_accessed: false
   still_untested:
     - "Résultats exacts USPTO et WIPO"
     - "Recherche juridique exhaustive par classes et similarités"

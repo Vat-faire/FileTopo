@@ -917,3 +917,25 @@ puis commite. La recommandation reste de publier le **code source seul**.
 ### Suite
 
 `ACTION-0012` inchangée : l'orchestrateur examine, décide, commite.
+
+---
+
+## 2026-08-26 — TASK-0009 vérifiée — publication source GitHub
+
+**Agent :** orchestrateur
+**Cadre :** GO humain spécial de phase 6 et authentification humaine GitHub
+**Résultat :** `VERIFIED`
+
+- Dépôt public `Vat-faire/FileTopo` créé et branche `main` poussée.
+- Description anglaise, huit sujets, issues actives, wiki inactif.
+- Signalement privé de vulnérabilités, analyse de secrets et blocage au push
+  activés; Dependabot volontairement inactif.
+- Trois chaînes CI Windows réussies. Les actions GitHub ont été modernisées
+  après un avertissement Node.js 20; la CI finale `33036847625` est verte sans
+  cet avertissement.
+- Prerelease source seulement `v0.1.0-alpha.1` créée : non brouillon, zéro
+  actif joint, aucun binaire, installateur, journal local, signature ou dépense.
+- `SECURITY.md` pointe vers le canal privé exact.
+
+Phase 6 `VERIFIED`. `ACTION-0014` conserve la phase 7 en `DEFERRED` jusqu'à un
+besoin concret.

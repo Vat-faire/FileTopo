@@ -1,7 +1,7 @@
 # CURRENT_STATE.md — État courant
 
-**Dernière mise à jour :** 2026-08-26 — `TASK-0008` vérifiée;
-`TASK-0009` approuvée, en attente de réauthentification GitHub.
+**Dernière mise à jour :** 2026-08-26 — `TASK-0009` et phase 6 vérifiées;
+dépôt et prerelease source seulement publiés.
 
 ## Résumé
 
@@ -10,19 +10,17 @@ Tauri/Rust/React affiche une carte topographique, un index accessible, une
 interface FR/EN et un pipeline réel scanner → SQLite → DTO.
 
 Le **GO humain spécial de phase 6** a été donné par le propriétaire le
-2026-08-26. Ce GO autorise la préparation et la publication contrôlée du code
-source par l'orchestrateur, sans binaire, signature ni dépense. Le compte
-GitHub cible est `Vat-faire`; son
-authentification `gh` est **expirée**. Toute action distante — remote, push,
-dépôt public, release — reste à faire par l'orchestrateur ou l'humain **après
-réauthentification humaine**.
+2026-08-26. Après réauthentification humaine, l'orchestrateur a créé le dépôt
+public `https://github.com/Vat-faire/FileTopo`, poussé `main`, vérifié la CI
+Windows et créé la prerelease source seulement `v0.1.0-alpha.1`. Aucun binaire,
+signature, journal local ni dépense n'a été publié ou créé.
 
 `TASK-0008` s'est déroulée en trois tours : une revue de
 pré-publication, cinq décisions du propriétaire sur la langue, la détection
 de locale, la fuite de chemins de compilation et les mentions nominatives,
 puis une divulgation publique de l'assistance IA via `AI_ASSISTANCE.md`. Ces
-changements ont été vérifiés indépendamment par l'orchestrateur et attendent
-le commit local de clôture.
+changements ont été vérifiés indépendamment par l'orchestrateur. `TASK-0009`
+a ensuite réalisé et vérifié la publication contrôlée.
 
 Les tests n'ont utilisé que `tests/fixtures_synthetic/demo` et des répertoires
 temporaires. Aucun dossier utilisateur réel et aucun corpus privé n'ont été
@@ -51,7 +49,7 @@ et les métadonnées. Les mentions opérationnelles disent « le propriétaire �
 | 3 — Squelette | `VERIFIED` | `TASK-0005` |
 | 4 — MVP local | `VERIFIED` | `TASK-0006` |
 | 5 — Préparation publique | `VERIFIED` | `TASK-0007` |
-| 6 — Publication | `IN_PROGRESS` | `TASK-0008` vérifiée; `TASK-0009` approuvée |
+| 6 — Publication | `VERIFIED` | `TASK-0008`, `TASK-0009` |
 | 7 — Fonctions avancées | `DEFERRED` | — |
 
 ## Preuves vérifiées de `TASK-0008`
@@ -81,8 +79,8 @@ Preuves : `docs/ai/VALIDATION.md`, sections H et H bis.
 
 ## Tâche active
 
-Aucune tâche n'est `IN_PROGRESS`. `TASK-0008` est `VERIFIED`; `TASK-0009` est
-`APPROVED` et attend la réauthentification humaine du compte GitHub.
+Aucune tâche n'est `IN_PROGRESS`. `TASK-0008` et `TASK-0009` sont `VERIFIED`.
+La phase 7 reste optionnelle et `DEFERRED` jusqu'à un besoin concret.
 
 ## Décidé
 
@@ -105,7 +103,7 @@ Aucune tâche n'est `IN_PROGRESS`. `TASK-0008` est `VERIFIED`; `TASK-0009` est
 
 - Identité visuelle finale.
 - Paramètres UX définitifs des exclusions et du niveau de détail.
-- Exécution réelle du workflow CI sur GitHub, impossible avant le premier push.
+- Aucune autre décision ouverte liée à la publication source.
 
 ## Garde-fous
 
@@ -123,5 +121,18 @@ Aucune tâche n'est `IN_PROGRESS`. `TASK-0008` est `VERIFIED`; `TASK-0009` est
 
 ## Prochaine action
 
-`ACTION-0013` : réauthentifier GitHub, puis publier la prerelease source
-seulement selon `TASK-0009`.
+`ACTION-0014` : observer l'alpha; ne pas ouvrir une fonction avancée sans besoin
+concret et critères documentés.
+
+## Preuves vérifiées de `TASK-0009`
+
+- Dépôt public : `https://github.com/Vat-faire/FileTopo`, visibilité publique,
+  branche `main`, licence MIT détectée, issues actives, wiki inactif.
+- Sujets : `filesystem`, `offline-first`, `react`, `rust`, `tauri`,
+  `typescript`, `visualization`, `windows`.
+- Signalement privé de vulnérabilités, analyse de secrets et blocage au push
+  activés; Dependabot volontairement désactivé.
+- CI finale `33036847625` : chaîne Windows complète réussie en 2 min 30 s,
+  sans l'avertissement Node.js 20 corrigé auparavant.
+- Release : `https://github.com/Vat-faire/FileTopo/releases/tag/v0.1.0-alpha.1`,
+  prerelease, non brouillon, **0 actif joint**, archives source GitHub seulement.

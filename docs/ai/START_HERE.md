@@ -7,11 +7,11 @@ Lis ce fichier **en premier**, à chaque session, avant toute action.
 Dépôt local d'un projet public original de **cartographie topographique de
 dossiers et documents**. Nom de dossier provisoire.
 
-Le code applicatif **existe** : les phases 0 à 5 sont vérifiées et FileTopo
+Le code applicatif **existe** : les phases 0 à 6 sont vérifiées et FileTopo
 possède un MVP Windows construit et testé (Tauri 2, Rust, React/TypeScript).
-La phase 6 — publication — est ouverte depuis le **GO humain spécial du
-2026-08-26**, mais **rien n'a encore été publié** : aucun dépôt distant,
-aucune release, aucun artefact signé ou distribué.
+Le code source est public dans `Vat-faire/FileTopo` et la prerelease source
+seulement `v0.1.0-alpha.1` est publiée. Aucun binaire n'est distribué. La phase
+7 reste optionnelle et `DEFERRED`.
 
 ## 2. Ordre de lecture obligatoire
 
@@ -51,10 +51,10 @@ aucune release, aucun artefact signé ou distribué.
 
 - L'**identité visuelle** finale.
 - Les **paramètres UX définitifs** des exclusions et du niveau de détail.
-- La **destination publique** exacte du dépôt et la forme de la publication.
+- La prochaine fonction avancée éventuelle; aucune n'est actuellement ouverte.
 
-Le nom **FileTopo** reste réversible : aucun domaine, aucune marque et aucun
-dépôt distant n'a été réservé.
+Le nom **FileTopo** reste un nom de travail réversible : aucun domaine ni
+marque n'a été réservé.
 
 ## 5. Ce qui est interdit dans ce dépôt
 

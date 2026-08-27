@@ -2,25 +2,25 @@
 
 ## Supported versions
 
-FileTopo is not published yet. Until a first public version exists, only the
-current local development branch receives fixes.
+The source-only `v0.1.0-alpha.1` prerelease is supported. Security fixes are
+also applied to the current `main` branch.
 
 ## Reporting a vulnerability
 
 **Never publish vulnerability details in a public issue.**
 
-As of today **no reporting channel is active**, because the repository is not
-published. That limit is real and acknowledged; it is not an oversight.
-
-At publication, the intended channel is **GitHub private vulnerability
-reporting**, to be enabled in the repository's security settings. This section
-must then be updated with the exact link and a stated response time. Until that
-is done, contact the maintainer through the GitHub profile linked in
-[README.md](README.md), without attaching exploitable detail to the first
-message.
+Use [GitHub private vulnerability reporting](https://github.com/Vat-faire/FileTopo/security/advisories/new).
+Do not attach exploitable details to a public issue or discussion. The
+maintainer aims to acknowledge a private report within 14 days, but this is a
+best-effort target, not a service-level guarantee.
 
 The project is maintained by one person, with no service commitment: no fix
 deadline is guaranteed.
+
+If a published source prerelease must be corrected or withdrawn, the
+maintainer will mark the affected GitHub release accordingly, publish the fix
+on `main`, and create a replacement prerelease when appropriate. Security
+details remain private until disclosure is safe.
 
 A useful report states the version, the impact, the minimal reproduction steps
 **on synthetic data**, and any known mitigation. Never include a personal

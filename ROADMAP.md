@@ -1,11 +1,11 @@
 # ROADMAP.md — Roadmap
 
-> **Status.** Phases 0 to 5 are complete and verified. FileTopo has a Windows
+> **Status.** Phases 0 to 6 are complete and verified. FileTopo has a Windows
 > MVP that is built, tested and visually inspected on synthetic data. The
 > **special human go-ahead for phase 6 was granted on 2026-08-26** by the
-> project owner: phase 6 is open, but **nothing is published yet**. There is no
-> remote repository, no release and no signed artifact. Phase 7 remains
-> deferred.
+> project owner. The source is published at
+> `https://github.com/Vat-faire/FileTopo`, with the source-only prerelease
+> `v0.1.0-alpha.1`. No binary is distributed. Phase 7 remains deferred.
 
 | Phase | Title | Status |
 |-------|-------|--------|
@@ -15,7 +15,7 @@
 | 3 | Verifiable skeleton | VERIFIED (TASK-0005) |
 | 4 | Local MVP without AI | VERIFIED (TASK-0006) |
 | 5 | Public preparation | VERIFIED (TASK-0007) |
-| 6 | Publication | IN_PROGRESS (TASK-0008) |
+| 6 | Publication | VERIFIED (TASK-0008 and TASK-0009) |
 | 7 | Optional advanced features | DEFERRED |
 
 Since the standing authorisation of 2026-08-25, moving from one phase to the
@@ -133,20 +133,19 @@ privacy review, absence of real data, a contribution guide, release notes.
 
 **Goal.** Publish the project.
 
-**Status.** `IN_PROGRESS`. The **separate, special human go-ahead** required by
-section 5 of `AGENTS.md` was granted by the project owner on **2026-08-26**.
+**Status.** `VERIFIED` through `TASK-0008` and `TASK-0009` on **2026-08-26**.
 
-That go-ahead **opens the phase**; it authorises **no executing agent** to act
-outside the repository. Creating a remote repository, publishing, signing and
-releasing remain acts of the orchestrator or of a human, after the GitHub
-account is re-authenticated.
+The separate special human go-ahead required by section 5 of `AGENTS.md` was
+granted by the project owner before any remote action.
 
 **Done.** `TASK-0008` — independent pre-publication review, filling the public
 gaps, English-first documentation, system language detection, and removal of
 build-machine paths from release binaries. See
 `docs/reviews/TASK-0008-independent-review.md`.
 
-**Remaining.** Sections C and D of `docs/release-checklist.md`.
+**Published.** Public MIT repository, Windows CI, private vulnerability
+reporting and source-only prerelease `v0.1.0-alpha.1`, with no attached asset.
+Binary signing and distribution remain deliberately outside this release.
 
 ---
 
