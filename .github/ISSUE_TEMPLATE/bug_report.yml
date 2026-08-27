@@ -1,0 +1,82 @@
+name: Report a bug
+description: Report incorrect behaviour in FileTopo.
+title: "[bug] "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        **First of all: no personal data.**
+
+        Never include a real file name, a real path, document content, or a
+        screenshot showing your folders. Reproduce the problem with synthetic
+        data, or anonymise it completely.
+
+        For a **security vulnerability**, do not open an issue: follow
+        `SECURITY.md`.
+
+        FileTopo is at **alpha** status. Known limits are listed in
+        `CHANGELOG.md`; please check them before reporting.
+
+        You may write in English or French.
+
+  - type: checkboxes
+    id: data
+    attributes:
+      label: Confirmation about data
+      options:
+        - label: This report contains no real document path, name or content.
+          required: true
+
+  - type: textarea
+    id: expected-observed
+    attributes:
+      label: Expected behaviour and observed behaviour
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Minimal reproduction steps
+      description: On synthetic data only.
+      placeholder: |
+        1. ...
+        2. ...
+        3. ...
+    validations:
+      required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: FileTopo version
+      placeholder: "0.1.0-alpha.1, or the commit hash"
+    validations:
+      required: true
+
+  - type: input
+    id: environment
+    attributes:
+      label: Environment
+      placeholder: "Windows 11 26100, Node 24, Rust 1.98"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: language
+    attributes:
+      label: Interface language in use
+      options:
+        - English
+        - French
+        - Not relevant
+    validations:
+      required: false
+
+  - type: textarea
+    id: extra
+    attributes:
+      label: Logs or extra detail (anonymised)
+    validations:
+      required: false

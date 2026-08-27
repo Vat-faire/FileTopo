@@ -9,7 +9,10 @@ use domain::{
 };
 use index::Index;
 use registry::Registry;
-use scanner::{scan_tree, scan_tree_controlled};
+// `scan_tree` only serves the development-only synthetic fixture and the tests.
+#[cfg(debug_assertions)]
+use scanner::scan_tree;
+use scanner::scan_tree_controlled;
 use std::collections::HashMap;
 use std::fs;
 use std::path::{Component, Path, PathBuf};
@@ -59,6 +62,7 @@ fn health() -> AppHealth {
         app_version: env!("CARGO_PKG_VERSION").to_string(),
         sqlite_version: rusqlite::version().to_string(),
         mode: "local_offline".to_string(),
+        synthetic_fixture_available: cfg!(debug_assertions),
     }
 }
 
@@ -67,17 +71,27 @@ fn demo_snapshot() -> CollectionSnapshot {
     synthetic::demo_snapshot(96)
 }
 
+/// Locates the synthetic fixture **at run time**, relative to the current
+/// working directory.
+///
+/// Deliberately not `env!("CARGO_MANIFEST_DIR")`: that macro is expanded by the
+/// compiler into a string literal, which would bake the absolute path of the
+/// developer's checkout into every binary produced from this source.
+#[cfg(debug_assertions)]
+fn synthetic_fixture_root() -> Option<PathBuf> {
+    let cwd = std::env::current_dir().ok()?;
+    let relative = Path::new("tests").join("fixtures_synthetic").join("demo");
+    // `cargo test` and `tauri dev` run from the crate directory; a plain
+    // `cargo run` from the repository root is also accepted.
+    let candidates = [cwd.join("..").join(&relative), cwd.join(&relative)];
+    candidates.into_iter().find(|candidate| candidate.is_dir())
+}
+
+/// Development-only: runs the real scanner over the synthetic fixture.
+#[cfg(debug_assertions)]
 #[tauri::command]
 fn scan_synthetic_fixture() -> Result<CollectionSnapshot, String> {
-    let root = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .join("..")
-        .join("tests")
-        .join("fixtures_synthetic")
-        .join("demo");
-
-    if !root.is_dir() {
-        return Err("synthetic_fixture_missing".to_string());
-    }
+    let root = synthetic_fixture_root().ok_or_else(|| "synthetic_fixture_missing".to_string())?;
 
     let scan = scan_tree(&root).map_err(|error| error.to_string())?;
     let mut index = Index::in_memory().map_err(|error| error.to_string())?;
@@ -93,6 +107,14 @@ fn scan_synthetic_fixture() -> Result<CollectionSnapshot, String> {
         nodes,
         scan.diagnostics,
     ))
+}
+
+/// Release builds carry no fixture path at all, so nothing about the machine
+/// that compiled them can leak through this command.
+#[cfg(not(debug_assertions))]
+#[tauri::command]
+fn scan_synthetic_fixture() -> Result<CollectionSnapshot, String> {
+    Err("synthetic_fixture_unavailable_in_release".to_string())
 }
 
 fn registry_for(app: &tauri::AppHandle) -> Result<Registry, String> {
@@ -437,6 +459,33 @@ mod integration_tests {
         let mut hasher = DefaultHasher::new();
         visit(root, &mut hasher);
         hasher.finish()
+    }
+
+    #[test]
+    fn fixture_root_is_resolved_at_runtime_without_a_compiled_in_path() {
+        let resolved =
+            synthetic_fixture_root().expect("fixture located from the working directory");
+        let expected = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+            .join("..")
+            .join("tests")
+            .join("fixtures_synthetic")
+            .join("demo");
+
+        // Same directory, reached without baking an absolute path into the code.
+        assert!(resolved.is_dir());
+        assert_eq!(
+            resolved.canonicalize().expect("resolved fixture"),
+            expected.canonicalize().expect("expected fixture")
+        );
+    }
+
+    #[test]
+    fn health_reports_the_synthetic_fixture_only_in_development() {
+        let reported = health();
+        // The test binary is always a debug build, so the flag must follow it.
+        assert_eq!(reported.synthetic_fixture_available, cfg!(debug_assertions));
+        assert!(reported.synthetic_fixture_available);
+        assert_eq!(reported.mode, "local_offline");
     }
 
     #[test]

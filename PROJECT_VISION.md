@@ -1,118 +1,127 @@
-# PROJECT_VISION.md — Vision du projet
+# PROJECT_VISION.md — Project vision
 
-> Document d'intention. Rien de ce qui suit n'est développé à ce jour.
-> Statut : **vision initiale, non validée par la recherche de phase 1.**
+> Statement of intent, written before any code existed. It is kept as a record
+> of the original intention. Where a point has since been decided or built, the
+> note says so; nothing else has been rewritten after the fact.
 
-## 1. Idée directrice
+## 1. Guiding idea
 
-Offrir une **carte topographique** de dossiers et de documents : au lieu d'une
-arborescence en liste, une représentation en relief où la densité, le volume,
-l'ancienneté ou la parenté des contenus dessinent un paysage lisible d'un coup
-d'œil. L'utilisateur retrouve, comprend et navigue son propre corpus.
+Offer a **topographic map** of folders and documents: instead of a tree shown
+as a list, a relief in which density, volume, age and kinship of the contents
+draw a landscape readable at a glance. People find, understand and navigate
+their own corpus.
 
-## 2. Positionnement
+## 2. Positioning
 
-- **Application publique et générale.** Elle ne vise aucun métier, aucune
-  organisation et aucun corpus particulier. Tout utilisateur doit pouvoir
-  l'employer sur ses propres dossiers.
-- **Gratuite.** Aucun paiement, aucun compte requis, aucune fonction retenue
-  derrière une offre payante.
-- **MVP sans compte, sans clé, sans abonnement, sans télémétrie
-  obligatoire.** Aucun de ces éléments n'est requis pour utiliser le produit
-  local hors ligne.
-- **Licence envisagée : MIT**, *sous réserve de vérification* en phase 1
-  (compatibilité avec les composants éventuellement réutilisés, disponibilité du
-  nom, obligations d'attribution). La licence n'est **pas** figée.
+- **A public, general application.** It targets no profession, no organisation
+  and no particular corpus. Anyone must be able to use it on their own folders.
+- **Free.** No payment, no account required, no feature held back behind a paid
+  tier.
+- **An MVP with no account, no key, no subscription and no mandatory
+  telemetry.** None of these is required to use the local, offline product.
+- **Licence considered: MIT**, *subject to verification* in phase 1
+  (compatibility with any reused components, name availability, attribution
+  obligations). *Decided since: MIT, see `docs/decisions/DEC-0002-license.md`.*
 
-## 3. Principes fondateurs
+## 3. Founding principles
 
-### 3.1 Local d'abord
+### 3.1 Local first
 
-La carte est **locale**. L'analyse s'exécute sur la machine de l'utilisateur.
-Aucun envoi de contenu de document vers un service distant n'est prévu.
+The map is **local**. Analysis runs on the user's machine. No document content
+is sent to a remote service.
 
-### 3.2 Windows d'abord
+### 3.2 Windows first
 
-La première plateforme cible est **Windows**. Les autres systèmes ne sont pas
-exclus mais ne sont pas un objectif du MVP.
+The first target platform is **Windows**. Other systems are not excluded but
+are not an MVP goal.
 
-### 3.3 MVP hors ligne et sans IA
+### 3.3 An offline MVP with no AI
 
-Le premier produit utilisable fonctionne **sans connexion réseau** et **sans
-modèle d'intelligence artificielle**. Le classement, le regroupement et le
-relief reposent sur des signaux déterministes et explicables (structure,
-métadonnées, tailles, dates, extensions, similarité textuelle simple).
-Toute couche d'IA éventuelle serait postérieure, optionnelle et désactivable.
+The first usable product works **without a network connection** and **without
+any artificial intelligence model**. Ranking, grouping and relief rest on
+deterministic, explainable signals: structure, metadata, sizes, dates,
+extensions, simple textual similarity. Any AI layer would come later, be
+optional, and be switchable.
 
-### 3.4 Plusieurs cerveaux indépendants
+### 3.4 Several independent brains
 
-Un utilisateur peut créer **plusieurs cerveaux** (chacun doté d'un nom, d'une
-couleur et d'une icône), chacun associé à une **racine** choisie par
-l'utilisateur. Chaque cerveau est **indépendant** : son index, sa carte et ses
-réglages lui sont propres, et en supprimer un n'affecte pas les autres.
-Dans un cerveau, l'utilisateur **navigue**, **recherche** et **filtre** une
-carte progressive, et peut **ouvrir un fichier ou un dossier avec
-l'application Windows associée**. La carte distingue les changements récents
-et un état **vu / non vu** par élément.
+A user can create **several brains** (each with a name, a colour and an icon),
+each tied to a **root** they choose. Each brain is **independent**: its index,
+its map and its settings are its own, and deleting one does not affect the
+others. Within a brain, the user **navigates**, **searches** and **filters** a
+progressive map, and can **open a file or folder with the associated Windows
+application**. The map distinguishes recent changes and a **seen / unseen**
+state per item.
 
-### 3.5 Index reconstructible, versionné, et surveillance incrémentale
+### 3.5 A rebuildable, versioned index with incremental watching
 
-L'index d'un cerveau est **reconstructible** (il peut être régénéré à
-l'identique depuis la racine) et **versionné** (son format porte un numéro de
-version). Des **exclusions sûres** (dossiers système, temporaires, volumineux
-non pertinents, etc.) peuvent être définies pour ne pas indexer ce qui n'a pas
-lieu de l'être. Après une première analyse, les évolutions sont prises en
-compte de façon **incrémentale** : seuls les éléments modifiés sont retraités,
-sans re-parcours complet systématique. Les **fichiers en ligne seulement**
-(par exemple des espaces de stockage synchronisés à la demande) ne sont
-**jamais téléchargés automatiquement** par l'application.
+A brain's index is **rebuildable** (it can be regenerated identically from the
+root) and **versioned** (its format carries a version number). **Safe
+exclusions** — system folders, temporary files, large irrelevant trees — can be
+defined so that what should not be indexed is not. After a first analysis,
+changes are picked up **incrementally**: only modified items are reprocessed,
+without a systematic full re-walk. **Online-only files**, such as
+sync-on-demand cloud storage, are **never downloaded automatically** by the
+application.
 
-### 3.6 Robustesse Windows et accessibilité FR/EN
+*Status: rebuildable and versioned indexes are built. Incremental watching is
+not implemented in 0.1.0-alpha.1; the index is rebuilt in full.*
 
-L'application vise une **robustesse** particulière sur Windows (chemins
-longs, caractères spéciaux, verrous de fichiers, permissions, lecteurs
-amovibles ou réseau). L'interface est prévue **bilingue français / anglais**
-dès la conception, avec attention aux contrastes, à la navigation au clavier,
-aux tailles de texte et aux alternatives non purement visuelles à la carte.
+### 3.6 Windows robustness and FR/EN accessibility
 
-### 3.7 Rendu non décidé
+The application aims at particular **robustness** on Windows: long paths,
+special characters, file locks, permissions, removable and network drives. The
+interface is **bilingual French / English** by design, with attention to
+contrast, keyboard navigation, text sizes, and non-visual alternatives to the
+map.
 
-Le mode de rendu de la carte (SVG, Canvas, WebGL) n'est **pas décidé** à ce
-stade. Le choix se fait après comparaison, en phase 2 (voir `ROADMAP.md`).
+*Status: the interface is bilingual and follows the system language, with
+English as the fallback. Accessibility has been inspected visually but never
+audited by a tool or a specialist.*
 
-### 3.8 Non-destruction par défaut
+### 3.7 Rendering not decided
 
-**Par défaut, et pour tout le MVP, l'application ne modifie jamais les
-documents ni les dossiers analysés.** Aucune réorganisation physique du
-corpus n'est prévue dans le MVP : lecture seule, aucun renommage, déplacement,
-réécriture ni suppression des documents de l'utilisateur. Les artefacts
-produits (index, cache) sont stockés à part et sont supprimables sans
-conséquence sur le corpus.
+The map's rendering mode — SVG, Canvas or WebGL — is **not decided** at this
+stage. The choice follows a comparison in phase 2 (see `ROADMAP.md`).
 
-Une **fonction future et facultative** de classement pourrait proposer un
-classement **virtuel** (sans toucher aux fichiers réels), avec aperçu,
-simulation, confirmation explicite, journal des actions et possibilité de
-restauration. Une telle fonction reste hypothétique : elle n'est ni décidée ni
-développée à ce jour (voir phase 7 de `ROADMAP.md`).
+*Decided since: PixiJS/WebGL with an SVG relief fallback, see
+`docs/decisions/DEC-0005-rendering-and-relief.md`.*
 
-## 4. Hors périmètre du MVP
+### 3.8 Non-destruction by default
 
-- Synchronisation dans le nuage, comptes utilisateurs, collaboration.
-- Rangement automatique ou correction physique de l'arborescence de
-  l'utilisateur.
-- Fonctions payantes, télémétrie obligatoire, publicité.
-- **IA, OCR et connecteurs vers des services distants** : envisageables
-  seulement comme fonctions **futures**, **facultatives** et **explicitement
-  activées** par l'utilisateur (voir phase 7 de `ROADMAP.md`) ; absents du
-  MVP.
+**By default, and for the whole MVP, the application never modifies the
+documents or folders it analyses.** No physical reorganisation of the corpus is
+planned in the MVP: read-only, no renaming, moving, rewriting or deletion of
+the user's documents. The artifacts produced — index, cache — are stored
+separately and can be deleted with no consequence for the corpus.
 
-## 5. Non décidé
+A **future, optional** filing feature could propose a **virtual** arrangement,
+without touching the real files, with preview, simulation, explicit
+confirmation, an action log and the ability to restore. Such a feature remains
+hypothetical: it is neither decided nor built (see phase 7 of `ROADMAP.md`).
 
-Entrants de la **phase 1** (voir `ROADMAP.md`) :
-- **Nom public final** du projet — le nom de dossier actuel est provisoire.
-- **Licence définitive** (MIT reste l'hypothèse de travail).
+## 4. Outside the MVP scope
 
-Entrants de la **phase 2** (voir `ROADMAP.md`) :
-- **Pile technologique** (langage, format d'index).
-- **Mode de rendu** (SVG, Canvas, WebGL) et méthode de disposition.
-- Modèle de représentation du relief.
+- Cloud synchronisation, user accounts, collaboration.
+- Automatic tidying or physical correction of the user's tree.
+- Paid features, mandatory telemetry, advertising.
+- **AI, OCR and connectors to remote services**: conceivable only as
+  **future**, **optional** features that the user **explicitly enables** (see
+  phase 7 of `ROADMAP.md`); absent from the MVP.
+
+## 5. Originally undecided
+
+Inputs to **phase 1** (see `ROADMAP.md`):
+- The project's **final public name** — *decided since: FileTopo, as a
+  reversible working name, see `docs/decisions/DEC-0001-public-name.md`.*
+- The **definitive licence** — *decided since: MIT.*
+
+Inputs to **phase 2** (see `ROADMAP.md`):
+- The **technology stack** and index format — *decided since: Tauri 2, Rust,
+  React/TypeScript, Vite, and one embedded SQLite index per collection.*
+- The **rendering mode** and layout method — *decided since: PixiJS/WebGL.*
+- The relief representation model — *decided since, see
+  `docs/decisions/DEC-0005-rendering-and-relief.md`.*
+
+Still undecided today: the final visual identity, and the definitive UX for
+exclusions and level of detail.

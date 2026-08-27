@@ -1,97 +1,185 @@
 # FileTopo
 
-FileTopo transforme une arborescence de fichiers en carte topographique
-locale. Le projet cible Windows, fonctionne hors ligne et traite uniquement
-les métadonnées nécessaires : le contenu des documents n'est pas ouvert par
-le scanner.
+*Read this in [French / en français](README.fr.md).*
 
-## État actuel
+**FileTopo turns a folder tree into a local topographic map.** It targets
+Windows, runs fully offline, and reads only the metadata it needs: the scanner
+never opens document contents, and it never modifies the folders it analyses.
 
-Les phases 4 et 5 fournissent un MVP Windows local vérifié de bout en bout et
-préparé à une éventuelle publication :
+> ## Status: alpha — never released
+>
+> FileTopo is at version **0.1.0-alpha.1**. There is no release, no distributed
+> binary and no signed installer.
+>
+> The code works and is verified locally on Windows, but it has been used by
+> **nobody except its author**, on **synthetic data only**. Expect defects,
+> breaking changes and missing features. Do not make important work depend
+> on it.
 
-- interface React/TypeScript bilingue français/anglais;
-- carte PixiJS/WebGL avec relief SVG de secours;
-- index DOM accessible et synchronisé avec la sélection;
-- scanner Rust itératif qui ne suit pas les liens ou points de réanalyse;
-- SQLite 3.53.2 embarqué et accessible uniquement depuis Rust;
-- commandes IPC étroites, sans chemin arbitraire ni SQL exposé;
-- registre de collections et index SQLite persistants hors des racines;
-- choix natif explicite, indexation en arrière-plan, progression et annulation;
-- recherche et filtres paginés, états vu/non vu et fichiers en ligne seulement;
-- niveau de détail progressif et ouverture confinée dans l’Explorateur Windows;
-- fixture physique et générateur de volume entièrement synthétiques;
-- exécutable et installateur Windows construits localement.
+## Author
 
-Ce MVP n'est pas un produit publié. Une collection réelle n’est jamais
-choisie ou scannée sans les actions explicites de l’utilisateur.
+FileTopo is an **original creation by Sébastien Dubé**, conceived and directed
+from scratch. It is not derived from any other software: its only borrowings
+are the open source components listed in
+[THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
 
-## Prérequis de développement
+- Author and maintainer: **Sébastien Dubé** — <https://github.com/Vat-faire>
+- Licence: [MIT](LICENSE) — © 2026 Sébastien Dubé
+- Design, architecture and decisions: see [`docs/decisions/`](docs/decisions/)
+  and [`PROJECT_VISION.md`](PROJECT_VISION.md)
 
-- Windows 10 ou 11 avec WebView2;
-- Node.js 24 et pnpm 10;
-- Rust stable avec la cible MSVC;
-- Visual Studio Build Tools 2022, outils C++ et SDK Windows.
+## What FileTopo does
 
-## Installation et vérification
+- Several independent local **collections**, each with a name, colour and icon.
+- You pick a folder through the native dialog, then indexing starts only on an
+  **explicit** action, with progress and cancellation.
+- **Metadata-only** scanning: names, relative paths, kind, size, dates and the
+  attributes that matter.
+- A PixiJS/WebGL topographic map with an SVG relief fallback and progressive
+  level of detail.
+- An accessible DOM list, kept in sync with the map selection.
+- Text search, filters by kind, seen/unseen state and pagination.
+- Explicit, confined reveal of an item in Windows File Explorer.
+- A bilingual interface, French and English.
+
+## What FileTopo does not do
+
+These absences are **design choices**, not upcoming features:
+
+- it **writes nothing** into an analysed folder — no creation, no rename, no
+  move, no deletion;
+- it **does not read** the contents of your documents;
+- it **does not follow** symbolic links, junctions or reparse points;
+- it **does not download** cloud "online-only" files: it detects them by their
+  attributes and leaves them in the cloud;
+- it has **no network, no telemetry, no AI, no account and no automatic
+  updates**.
+
+## Language
+
+The interface follows your system or browser language: any `fr` locale gets
+French, every other locale gets English, and English is the fallback when the
+language cannot be determined. The FR/EN button overrides that at any time, and
+your explicit choice is remembered across restarts.
+
+## Exact limits of version 0.1.0-alpha.1
+
+| Limit | Detail |
+|---|---|
+| Platform | Windows 10 and 11 only. macOS and Linux are neither built nor tested. |
+| Indexing | Full rebuilds. No incremental watching of changes. |
+| Measured volume | Reproducible measurements up to **100 000 items**. One million items is an architectural goal that is **not measured**. |
+| Encryption | The index is not encrypted by the application. It relies on your Windows account and disk protections. |
+| Erasure | No built-in command erases application data; that is done with operating system tools. |
+| Distribution | The local installer is **unsigned**. Windows will show a SmartScreen warning. |
+| Real-world use | Exercised only on synthetic fixtures and temporary directories, by one person. |
+| Name | **FileTopo** is a reversible working name. No exhaustive trademark search was carried out; no domain or account has been reserved. |
+| Accessibility | An accessible DOM list is provided and was inspected visually, but it has **not been audited** by a tool or a specialist. |
+
+Limits are kept current in [CHANGELOG.md](CHANGELOG.md).
+
+## Security and privacy
+
+- No Tauri filesystem, shell, SQL or network permission is exposed to the web
+  layer: the default capability is limited to `core:default`.
+- A restrictive Content Security Policy, with no remote source.
+- The interface **never** receives the absolute path of an analysed root;
+  commands use collection and node identifiers.
+- SQLite indexes are written to the application's local data directory,
+  **outside** the analysed folders, and can be rebuilt.
+- All data in this repository is strictly synthetic.
+
+Details: [SECURITY.md](SECURITY.md), [PRIVACY.md](PRIVACY.md) and the
+[threat model](docs/security/threat-model.md).
+
+## Development prerequisites
+
+- Windows 10 or 11 with WebView2;
+- Node.js 24 and pnpm 10;
+- Rust stable with the MSVC target (verified with Rust 1.98.0);
+- Visual Studio Build Tools 2022, C++ tools and the Windows SDK.
+
+## Install and verify
 
 ```powershell
-pnpm install
+pnpm install --frozen-lockfile
 pnpm check
 pnpm test
 pnpm build
 ```
 
-Dans une console de développement Visual Studio où Rust est dans `PATH` :
+In a Visual Studio developer console where Rust is on `PATH`:
 
 ```powershell
 $env:CARGO_INCREMENTAL = "0"
+cargo fmt --manifest-path src-tauri/Cargo.toml --all -- --check
+cargo clippy --manifest-path src-tauri/Cargo.toml --all-targets -- -D warnings
 cargo test --manifest-path src-tauri/Cargo.toml
-pnpm tauri build --debug --bundles nsis
 ```
 
-La désactivation du cache incrémental contourne un défaut de cache observé
-avec Rust 1.98 sur cette machine; elle ne change pas le code produit.
+Disabling the incremental cache works around a cache defect observed with
+Rust 1.98 on the development machine; it does not change the produced code.
+The same chain runs in continuous integration on Windows — see
+[`.github/workflows/ci.yml`](.github/workflows/ci.yml).
 
-## Développement local
+### Building a release
+
+Use the dedicated script rather than `pnpm tauri build` directly:
+
+```powershell
+pwsh -File scripts/build-release-clean.ps1
+```
+
+It remaps build-machine paths out of the binary and then scans the artifact for
+personal paths. See [SECURITY.md](SECURITY.md) for why this matters.
+
+## Local development
 
 ```powershell
 pnpm tauri dev
 ```
 
-Le bouton **Démonstration** utilise un générateur déterministe. Le bouton
-**Fixture synthétique** exécute le pipeline réel scanner → SQLite → DTO sur
-`tests/fixtures_synthetic/demo`. Aucun test ne doit pointer vers un dossier
-utilisateur.
+The **Demo** button uses a deterministic generator. The **Synthetic fixture**
+button runs the real scanner → SQLite → DTO pipeline over
+`tests/fixtures_synthetic/demo`; it appears in development builds only. No test
+may ever point at a user folder.
 
-Les guides d’utilisation sont disponibles en [français](docs/user-guide-fr.md)
-et en [anglais](docs/user-guide-en.md).
+User guides: [English](docs/user-guide-en.md) · [French](docs/user-guide-fr.md).
 
-## Sécurité et confidentialité
+## Measurements
 
-- aucune télémétrie, mise à jour automatique, IA ou CDN;
-- politique de sécurité de contenu restrictive;
-- aucune permission Tauri de système de fichiers, shell, SQL ou réseau;
-- aucune écriture dans une racine analysée;
-- index reconstructible, stocké séparément de la collection;
-- fichiers en ligne seulement détectés par attributs, jamais hydratés exprès;
-- données de dépôt strictement synthétiques.
+Reproducible MVP measurements at 10 000 and 100 000 items are recorded in
+[`docs/performance/phase-4-mvp-measurements.md`](docs/performance/phase-4-mvp-measurements.md).
+Budgets and the strategy towards one million items — **not reached to date** —
+are in
+[`docs/performance/phase-2-budgets.md`](docs/performance/phase-2-budgets.md).
 
-Consultez [SECURITY.md](SECURITY.md), [PRIVACY.md](PRIVACY.md), le
-[modèle de menace](docs/security/threat-model.md) et le
-[guide de contribution](CONTRIBUTING.md).
+## Contributing
 
-## Mesures
+Read [CONTRIBUTING.md](CONTRIBUTING.md) and the
+[code of conduct](CODE_OF_CONDUCT.md). One rule outranks all the others:
+**no contribution may contain real personal data**, neither yours nor anyone
+else's.
 
-Les mesures MVP reproductibles de 10 000 et 100 000 éléments sont consignées
-dans `docs/performance/phase-4-mvp-measurements.md`. Les budgets et la stratégie vers
-un million d'éléments se trouvent dans `docs/performance/phase-2-budgets.md`.
+Issues and pull requests may be written in English or French.
 
-## Licence et auteur
+## AI-assisted development
 
-FileTopo est offert sous licence MIT. Création originale de Sébastien Dubé.
-Les composants open source verrouillés et leur méthode d'inventaire sont
-documentés dans `THIRD_PARTY_NOTICES.md`.
+FileTopo is an original project by Sébastien Dubé — idea, product vision,
+requirements, priorities, and every approval and final decision are his.
+Development was AI-assisted: the project was orchestrated with the OpenAI
+Codex desktop application, and OpenAI Codex and Anthropic Claude Code were
+used for implementation, tests, audits, documentation and reviews, under his
+direction and review. No AI tool is an author, owner or maintainer of this
+project, and using them implies no affiliation with, or endorsement by, OpenAI
+or Anthropic. Final responsibility and maintenance rest with Sébastien Dubé.
+See [AI_ASSISTANCE.md](AI_ASSISTANCE.md) for the full disclosure, which links
+to the versioned decisions, tasks, tests and reviews rather than to any
+private working notes.
 
-Le nom FileTopo demeure un nom public de travail réversible : aucune marque,
-aucun domaine et aucun dépôt distant n'ont été réservés ou publiés.
+## Repository layout
+
+Public documentation is in English. The project's internal working notes under
+[`docs/ai/`](docs/ai/) are kept in French, as is the working memory in
+[`graph/`](graph/); they record how the project was built and are not required
+reading to use or contribute to FileTopo.

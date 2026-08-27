@@ -1,0 +1,48 @@
+name: Suggest an improvement
+description: Suggest a feature or an improvement.
+title: "[idea] "
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Please read `ROADMAP.md` and `PROJECT_VISION.md` before suggesting.
+
+        Two principles are not negotiable: FileTopo **never modifies** the
+        documents it analyses, and it does **not** read their contents in the
+        MVP. A proposal involving network access, AI, OCR or physical
+        reorganisation belongs to phase 7: it must stay optional and disabled
+        by default.
+
+        You may write in English or French.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: What concrete problem does this solve?
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposal
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: principles
+    attributes:
+      label: Compatibility with the project's principles
+      options:
+        - label: This proposal requires no write inside an analysed folder.
+          required: true
+        - label: This proposal requires access to no real personal data.
+          required: true

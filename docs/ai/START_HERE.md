@@ -4,9 +4,14 @@ Lis ce fichier **en premier**, à chaque session, avant toute action.
 
 ## 1. Où tu es
 
-Dépôt local d'amorçage d'un projet public original de **cartographie
-topographique de dossiers et documents**. Nom de dossier provisoire.
-**Aucun code applicatif n'existe.**
+Dépôt local d'un projet public original de **cartographie topographique de
+dossiers et documents**. Nom de dossier provisoire.
+
+Le code applicatif **existe** : les phases 0 à 5 sont vérifiées et FileTopo
+possède un MVP Windows construit et testé (Tauri 2, Rust, React/TypeScript).
+La phase 6 — publication — est ouverte depuis le **GO humain spécial du
+2026-08-26**, mais **rien n'a encore été publié** : aucun dépôt distant,
+aucune release, aucun artefact signé ou distribué.
 
 ## 2. Ordre de lecture obligatoire
 
@@ -33,20 +38,36 @@ topographique de dossiers et documents**. Nom de dossier provisoire.
    publique). Aucun portefeuille payant Anthropic n'est activé ou utilisé
    automatiquement.
 
-## 4. Ce qui n'est pas décidé
+## 4. Ce qui est décidé, et ce qui ne l'est pas
 
-- Le **nom public final**.
-- La **pile technologique**.
-- La **licence définitive** (MIT est une hypothèse à vérifier).
+**Décidé et vérifié** — ne le remets pas en cause sans décision documentée :
 
-Ne les décide pas. Ne les suppose pas dans tes écrits.
+- Nom de travail public réversible : **FileTopo** (`DEC-0001`).
+- Licence : **MIT** (`DEC-0002`).
+- Pile : **Tauri 2 + Rust + React/TypeScript + Vite** (`DEC-0003`).
+- Index SQLite par collection (`DEC-0004`), rendu PixiJS/WebGL (`DEC-0005`).
+
+**Non décidé** — ne le décide pas, ne le suppose pas dans tes écrits :
+
+- L'**identité visuelle** finale.
+- Les **paramètres UX définitifs** des exclusions et du niveau de détail.
+- La **destination publique** exacte du dépôt et la forme de la publication.
+
+Le nom **FileTopo** reste réversible : aucun domaine, aucune marque et aucun
+dépôt distant n'a été réservé.
 
 ## 5. Ce qui est interdit dans ce dépôt
 
 - Toute **donnée réelle** (fichiers, chemins, noms, contenus d'un utilisateur).
 - Tout **secret** (clé, jeton, mot de passe) et tout **chemin local personnel**.
 - Toute référence à un projet privé quelconque.
-- Toute installation, toute dépendance, toute publication.
+- Toute **nouvelle dépendance** non décidée et non inventoriée. Les
+  dépendances existantes sont verrouillées dans `pnpm-lock.yaml` et
+  `src-tauri/Cargo.lock`; tout ajout impose de régénérer l'inventaire et de
+  corriger `THIRD_PARTY_NOTICES.md`.
+- Toute **publication**, tout dépôt distant, toute release, toute signature
+  et tout téléversement : ces actes sont réservés à l'orchestrateur ou à
+  l'humain, jamais à un agent exécuteur.
 - Tout **accès réseau au-delà de la lecture de sources publiques**. L'accès
   réseau en **lecture seule** à des sources publiques, pour une tâche de
   recherche décrite dans une fiche `docs/tasks/TASK-XXXX-*.md`, est couvert

@@ -1,38 +1,37 @@
-# Politique de confidentialité locale
+# Local privacy policy
 
-FileTopo est conçu pour fonctionner hors ligne. Le MVP n'envoie aucune donnée
-à un serveur, ne contient aucune télémétrie, publicité, IA distante ou mise à
-jour automatique.
+FileTopo is designed to work offline. The MVP sends no data to any server and
+contains no telemetry, advertising, remote AI or automatic updates.
 
-## Données traitées
+## Data processed
 
-Une collection n'est ajoutée qu'après choix explicite d'un dossier. Son
-indexation ne commence qu'après une autre action explicite. Le scanner traite
-des métadonnées de système de fichiers : noms, chemins relatifs, type,
-taille, dates, attributs utiles et état en ligne seulement. Il ne lit pas le
-contenu des documents et ne force pas le téléchargement d'un fichier en
-ligne seulement.
+A collection is added only after you explicitly choose a folder. Indexing
+starts only after another explicit action. The scanner processes filesystem
+metadata: names, relative paths, kind, size, dates, useful attributes and
+online-only status. It does not read document contents and never forces the
+download of an online-only file.
 
-## Stockage
+## Storage
 
-Le chemin racine est conservé localement dans un registre natif; sous
-Windows, sa représentation est stockée comme données UTF-16LE. L'interface
-web n'en reçoit pas la valeur absolue. Les index SQLite sont enregistrés dans
-le dossier de données local de FileTopo, séparément des collections. L'état
-vu/non vu est également local.
+The root path is kept locally in a native registry; on Windows its
+representation is stored as UTF-16LE data. The web interface never receives the
+absolute value. SQLite indexes are written to FileTopo's local application data
+directory, separately from the collections. Seen/unseen state is local too.
 
-## Contrôle de l'utilisateur
+The interface language is the only preference stored in the web layer, under a
+single `localStorage` key, `filetopo.locale`. It holds `fr` or `en` and nothing
+else.
 
-L'utilisateur choisit les dossiers, déclenche l'indexation, peut annuler un
-scan et décide d'ouvrir un élément dans l'Explorateur. Une annulation ne
-remplace pas l'index valide par un index partiel. La suppression manuelle des
-données d'application relève actuellement des outils du système
-d'exploitation; le MVP ne fournit pas encore une commande intégrée d'effacement.
+## Your control
 
-## Limites
+You choose the folders, you trigger indexing, you can cancel a scan, and you
+decide whether to reveal an item in File Explorer. Cancelling never replaces a
+valid index with a partial one. Erasing application data is currently done with
+operating system tools; the MVP does not yet provide a built-in erase command.
 
-Les noms et chemins relatifs peuvent eux-mêmes contenir de l'information
-sensible. Toute personne ayant accès au compte Windows et aux données locales
-de l'application peut potentiellement les voir. FileTopo n'ajoute pas de
-chiffrement applicatif et dépend des protections du compte, du disque et du
-système d'exploitation.
+## Limits
+
+Names and relative paths can themselves carry sensitive information. Anyone
+with access to the Windows account and to the application's local data can
+potentially read them. FileTopo adds no application-level encryption and relies
+on the protections of the account, the disk and the operating system.

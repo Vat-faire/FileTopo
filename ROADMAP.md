@@ -1,153 +1,162 @@
-# ROADMAP.md — Feuille de route
+# ROADMAP.md — Roadmap
 
-> **État.** Les phases 0 à 5 sont exécutées et vérifiées. FileTopo possède un
-> MVP Windows construit, testé et inspecté visuellement sur données
-> synthétiques et un dossier de publication préparé localement. Les phases 6 et
-> 7 demeurent différées et aucune publication n'est autorisée sans le GO
-> humain spécial prévu pour la phase 6.
+> **Status.** Phases 0 to 5 are complete and verified. FileTopo has a Windows
+> MVP that is built, tested and visually inspected on synthetic data. The
+> **special human go-ahead for phase 6 was granted on 2026-08-26** by the
+> project owner: phase 6 is open, but **nothing is published yet**. There is no
+> remote repository, no release and no signed artifact. Phase 7 remains
+> deferred.
 
-| Phase | Intitulé | Statut |
-|-------|----------|--------|
-| 0 | Isolation et démarrage | VERIFIED (TASK-0001) |
-| 1 | Recherche et positionnement | VERIFIED (TASK-0002 et TASK-0003) |
+| Phase | Title | Status |
+|-------|-------|--------|
+| 0 | Isolation and bootstrap | VERIFIED (TASK-0001) |
+| 1 | Research and positioning | VERIFIED (TASK-0002 and TASK-0003) |
 | 2 | Architecture | VERIFIED (TASK-0004) |
-| 3 | Squelette vérifiable | VERIFIED (TASK-0005) |
-| 4 | MVP local sans IA | VERIFIED (TASK-0006) |
-| 5 | Préparation publique | VERIFIED (TASK-0007) |
-| 6 | Publication | DEFERRED |
-| 7 | Fonctions avancées facultatives | DEFERRED |
+| 3 | Verifiable skeleton | VERIFIED (TASK-0005) |
+| 4 | Local MVP without AI | VERIFIED (TASK-0006) |
+| 5 | Public preparation | VERIFIED (TASK-0007) |
+| 6 | Publication | IN_PROGRESS (TASK-0008) |
+| 7 | Optional advanced features | DEFERRED |
 
-Depuis l'autorisation permanente du 2026-08-25, le passage d'une phase à la
-suivante se fait de façon **autonome** dès lors que les critères d'acceptation
-et les preuves de la phase précédente sont satisfaits, sans GO répété. Un
-agent s'arrête et demande un GO humain uniquement en cas d'ambiguïté
-importante, de secret/identifiant manquant, de dépense, d'action destructive
-sur des documents utilisateur, ou d'action externe hors objectif. La phase 6
-(publication) reste l'exception : elle exige, en plus du régime général, un
-**GO humain spécial et distinct**, après audits, et ne peut être abordée que
-si les phases précédentes sont vérifiées.
-
----
-
-## Phase 0 — Isolation et démarrage
-
-**But.** Créer un dépôt local isolé, doté d'une mémoire écrite, stable et
-vérifiable, et s'assurer de l'absence de toute donnée privée avant toute
-recherche et tout code.
-
-**Contenu.** Nouveau dépôt local, mémoire du projet (règles pour agents,
-vision, feuille de route, dossier `docs/`, graphe d'état minimal, dossier de
-jeux d'essai synthétiques), contrôle d'absence de données privées.
-
-**Sortie.** Un dépôt local documenté, sans code, sans dépendance, sans commit.
-
-**Statut.** `VERIFIED` le 2026-08-25, vérifié par l'orchestrateur sur preuves
-(voir `docs/ai/VALIDATION.md`).
+Since the standing authorisation of 2026-08-25, moving from one phase to the
+next happens **autonomously** once the previous phase's acceptance criteria and
+evidence are satisfied, without a repeated go-ahead. An agent stops and asks
+for a human decision only on significant ambiguity, a missing secret or
+credential, any spending, a destructive action on user documents, or an
+external action outside the project's goal. Phase 6 — publication — remains the
+exception: on top of the general regime it requires a **separate, special human
+go-ahead**, after audits, and can only be approached once the preceding phases
+are verified.
 
 ---
 
-## Phase 1 — Recherche et positionnement
+## Phase 0 — Isolation and bootstrap
 
-**But.** Savoir ce qui existe déjà, ce que ce projet apporterait, et trancher
-les questions de nom public et de licence.
+**Goal.** Create an isolated local repository with a written, stable and
+verifiable memory, and confirm the absence of any private data before any
+research or code.
 
-**Contenu envisagé.**
-- Comparaison des solutions existantes de visualisation de dossiers et de
-  documents (forces, limites, licences, plateformes).
-- Étude de *GraphRAG Workbench* et des approches de graphe documentaire :
-  ce qui est transposable, ce qui ne l'est pas pour un MVP sans IA.
-- Recherche de noms publics candidats et vérification de disponibilité.
-- Analyse des licences (dont MIT) et de leurs implications.
+**Content.** A new local repository, the project memory (agent rules, vision,
+roadmap, `docs/` directory, minimal state graph, synthetic fixtures directory),
+and a check for the absence of private data.
 
-**Sortie attendue.** Un rapport de recherche daté, avec sources, et une liste
-d'options tranchables, dont le **nom public** et la **licence**.
+**Output.** A documented local repository, with no code, no dependency and no
+commit.
 
-**Statut.** `VERIFIED` le 2026-08-25, sur preuves indépendantes de
-l'orchestrateur — voir `docs/ai/VALIDATION.md`, section A.7. Livrable :
-`docs/research/phase-1-research-and-positioning.md`. Le rapport
-recommandait un nom et une licence. `TASK-0003` a ensuite retenu **FileTopo**
-comme nom de travail public réversible dans
-`docs/decisions/DEC-0001-public-name.md`; cette décision a été vérifiée avant
-l'ouverture de la phase 2. Aucun nom n'est réservé et aucune licence n'est
-apposée.
+**Status.** `VERIFIED` on 2026-08-25, verified on evidence (see
+`docs/ai/VALIDATION.md`).
+
+---
+
+## Phase 1 — Research and positioning
+
+**Goal.** Know what already exists, what this project would add, and settle the
+questions of public name and licence.
+
+**Planned content.**
+- A comparison of existing folder and document visualisation tools: strengths,
+  limits, licences, platforms.
+- A study of *GraphRAG Workbench* and of document-graph approaches: what
+  transfers, and what does not, to an MVP without AI.
+- A search for candidate public names and a check of their availability.
+- An analysis of licences, MIT included, and their implications.
+
+**Expected output.** A dated research report, with sources, and a list of
+decidable options including the **public name** and the **licence**.
+
+**Status.** `VERIFIED` on 2026-08-25, on independent evidence — see
+`docs/ai/VALIDATION.md`, section A.7. Deliverable:
+`docs/research/phase-1-research-and-positioning.md`. The report recommended a
+name and a licence. `TASK-0003` then settled on **FileTopo** as a reversible
+public working name in `docs/decisions/DEC-0001-public-name.md`; that decision
+was verified before phase 2 opened. No name is reserved.
 
 ---
 
 ## Phase 2 — Architecture
 
-**But.** Décrire le système avant de l'écrire, et trancher la pile
-technologique et la méthode de rendu.
+**Goal.** Describe the system before writing it, and settle the technology
+stack and the rendering method.
 
-**Statut.** `VERIFIED` via `TASK-0004` le 2026-08-25.
+**Status.** `VERIFIED` through `TASK-0004` on 2026-08-25.
 
-**Contenu envisagé.** Modèle de données (cerveau, racine, élément, relation,
-relief), pile technologique, comparaison des méthodes de rendu (SVG, Canvas,
-WebGL) avant décision, format d'index reconstructible et versionné, garanties
-de lecture seule, budget de performance. Chaque décision est consignée dans
-`docs/decisions/` sous forme de fiche datée avec alternatives écartées.
-
----
-
-## Phase 3 — Squelette vérifiable
-
-**But.** Poser un squelette minimal démontrant la faisabilité technique, sans
-fonctionnalité complète.
-
-**Contenu envisagé.** Structure de projet, chaîne de construction minimale,
-preuve de bout en bout (lecture seule → index → rendu minimal) sur jeux
-d'essai synthétiques.
-
-**Statut.** `VERIFIED` via `TASK-0005` le 2026-08-26. TypeScript, Vitest,
-Vite, cinq tests Rust, l'exécutable Tauri et l'installateur NSIS ont réussi.
-Les mesures 10 k/100 k et l'inspection visuelle sont consignées dans
-`docs/performance/phase-3-measurements.md` et `docs/ai/VALIDATION.md`.
+**Planned content.** Data model (brain, root, item, relation, relief),
+technology stack, a comparison of rendering methods (SVG, Canvas, WebGL) before
+deciding, a rebuildable and versioned index format, read-only guarantees, and a
+performance budget. Each decision is recorded in `docs/decisions/` as a dated
+note listing the alternatives that were rejected.
 
 ---
 
-## Phase 4 — MVP local sans IA
+## Phase 3 — Verifiable skeleton
 
-**But.** Un produit utilisable, local, hors ligne, sans intelligence
-artificielle.
+**Goal.** Lay down a minimal skeleton demonstrating technical feasibility,
+without complete functionality.
 
-**Statut.** `VERIFIED` via `TASK-0006` le 2026-08-26.
+**Planned content.** Project structure, a minimal build chain, and end-to-end
+proof (read-only → index → minimal rendering) on synthetic fixtures.
 
-**Contenu envisagé.** Plusieurs cerveaux indépendants (nom, couleur, icône),
-choix d'une racine, index incrémental reconstructible et versionné,
-exclusions sûres, carte progressive navigable, cherchable et filtrable,
-ouverture des fichiers et dossiers via Windows, distinction vu/non vu, gestion
-des fichiers en ligne seulement (non téléchargés automatiquement), robustesse
-sur Windows, accessibilité et bilinguisme FR/EN.
+**Status.** `VERIFIED` through `TASK-0005` on 2026-08-26. TypeScript, Vitest,
+Vite, five Rust tests, the Tauri executable and the NSIS installer all
+succeeded. The 10 k/100 k measurements and the visual inspection are recorded in
+`docs/performance/phase-3-measurements.md` and `docs/ai/VALIDATION.md`.
 
 ---
 
-## Phase 5 — Préparation publique
+## Phase 4 — Local MVP without AI
 
-**But.** Rendre le projet publiable sans risque.
+**Goal.** A usable product: local, offline, without artificial intelligence.
 
-**Statut.** `VERIFIED` via `TASK-0007` le 2026-08-26.
+**Status.** `VERIFIED` through `TASK-0006` on 2026-08-26.
 
-**Contenu envisagé.** Licence apposée, mentions de tiers, relecture de
-sécurité et de confidentialité, absence de donnée réelle, guide de
-contribution, notes de version.
+**Planned content.** Several independent brains (name, colour, icon), a chosen
+root, a rebuildable and versioned incremental index, safe exclusions, a
+progressive map that can be navigated, searched and filtered, opening files and
+folders through Windows, a seen/unseen distinction, handling of online-only
+files without automatic download, Windows robustness, accessibility and FR/EN
+bilingualism.
+
+---
+
+## Phase 5 — Public preparation
+
+**Goal.** Make the project publishable without risk.
+
+**Status.** `VERIFIED` through `TASK-0007` on 2026-08-26.
+
+**Planned content.** Licence applied, third-party notices, a security and
+privacy review, absence of real data, a contribution guide, release notes.
 
 ---
 
 ## Phase 6 — Publication
 
-**But.** Publier le projet.
+**Goal.** Publish the project.
 
-**Contenu envisagé.** Dépôt public, release. **Exige un GO humain spécial et
-distinct**, en plus du régime général de GO, avant toute publication.
+**Status.** `IN_PROGRESS`. The **separate, special human go-ahead** required by
+section 5 of `AGENTS.md` was granted by the project owner on **2026-08-26**.
+
+That go-ahead **opens the phase**; it authorises **no executing agent** to act
+outside the repository. Creating a remote repository, publishing, signing and
+releasing remain acts of the orchestrator or of a human, after the GitHub
+account is re-authenticated.
+
+**Done.** `TASK-0008` — independent pre-publication review, filling the public
+gaps, English-first documentation, system language detection, and removal of
+build-machine paths from release binaries. See
+`docs/reviews/TASK-0008-independent-review.md`.
+
+**Remaining.** Sections C and D of `docs/release-checklist.md`.
 
 ---
 
-## Phase 7 — Fonctions avancées facultatives
+## Phase 7 — Optional advanced features
 
-**But.** Envisager des fonctions futures, optionnelles et explicites,
-au-delà du MVP.
+**Goal.** Consider future features that are optional and explicit, beyond the
+MVP.
 
-**Contenu envisagé.** IA, OCR, connecteurs distants — toujours facultatifs,
-désactivés par défaut, et déclenchés explicitement par l'utilisateur. Éventuel
-classement virtuel du corpus, soumis à aperçu, simulation, confirmation,
-journal et restauration ; jamais de réorganisation physique automatique des
-documents de l'utilisateur.
+**Planned content.** AI, OCR, remote connectors — always optional, disabled by
+default, and explicitly triggered by the user. Possibly a virtual arrangement
+of the corpus, subject to preview, simulation, confirmation, logging and
+restoration; never an automatic physical reorganisation of the user's
+documents.

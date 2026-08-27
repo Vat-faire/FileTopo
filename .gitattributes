@@ -1,0 +1,26 @@
+# Line ending normalisation.
+#
+# The repository contained a mix of CRLF and LF files. Without this file, a
+# contributor working from Linux or macOS would produce whole-file diffs where
+# only one line actually changed.
+#
+# Text files are stored as LF in Git and checked out as LF. Git, Node, Rust,
+# Vite and PowerShell 7 all accept LF on Windows.
+* text=auto eol=lf
+
+# Binary files: never converted, never diffed as text.
+*.png   binary
+*.ico   binary
+*.icns  binary
+*.svg   text eol=lf
+*.exe   binary
+*.sqlite binary
+
+# Generated lockfiles: excluded from language statistics and collapsed by
+# default in diffs shown by GitHub.
+pnpm-lock.yaml        linguist-generated=true
+src-tauri/Cargo.lock  linguist-generated=true
+
+# Documentation counts as documentation, not as code, in GitHub's language
+# statistics.
+docs/**   linguist-documentation=true

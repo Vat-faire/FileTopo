@@ -1,5 +1,11 @@
 [CmdletBinding()]
-param()
+param(
+  # Avant la publication, la presence d'un depot distant est une anomalie et
+  # fait echouer l'audit. Une fois le depot publie -- ou lors d'une execution
+  # dans l'integration continue, ou GitHub configure toujours 'origin' -- ce
+  # commutateur transforme l'assertion en simple constat informatif.
+  [switch] $AllowRemotes
+)
 
 $ErrorActionPreference = 'Stop'
 $projectRoot = Split-Path -Parent $PSScriptRoot
@@ -59,11 +65,18 @@ try {
   }
 
   $remotes = @(& git remote)
-  if ($remotes.Count -gt 0) {
+  if ($remotes.Count -gt 0 -and -not $AllowRemotes) {
     throw "Audit public: dépôt distant configuré ($($remotes -join ', '))."
   }
 
-  Write-Host ("Audit public réussi: {0} fichiers versionnés, aucun motif sensible, aucun fichier > 5 Mio, aucun remote." -f $tracked.Count)
+  $remoteState = if ($remotes.Count -eq 0) {
+    'aucun remote'
+  }
+  else {
+    "remotes tolérés via -AllowRemotes ($($remotes -join ', '))"
+  }
+
+  Write-Host ("Audit public réussi: {0} fichiers versionnés, aucun motif sensible, aucun fichier > 5 Mio, {1}." -f $tracked.Count, $remoteState)
 }
 finally {
   Pop-Location

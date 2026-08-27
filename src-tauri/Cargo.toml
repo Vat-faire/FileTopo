@@ -1,8 +1,8 @@
 [package]
 name = "filetopo"
-version = "0.1.0"
+version = "0.1.0-alpha.1"
 description = "Local-first topographic map for folders and documents"
-authors = ["Sebastien Dube"]
+authors = ["Sébastien Dubé"]
 license = "MIT"
 edition = "2024"
 
@@ -29,3 +29,19 @@ uuid = { version = "1", features = ["v4"] }
 
 [dev-dependencies]
 tempfile = "3"
+
+# Publication hygiene: strip build-machine paths from the shipped binary.
+#
+# Cargo's `trim-paths` profile option would be the natural place for this, but
+# it is NOT stabilized in Cargo 1.98 (verified: "feature `trim-paths` is
+# required ... not stabilized in this version of Cargo"). Enabling it here makes
+# the manifest unparsable on stable, so it is deliberately absent.
+#
+# The stable equivalent is rustc's `--remap-path-prefix`, which cannot be
+# hardcoded here because its arguments are machine-specific absolute paths that
+# must never be committed. It is applied at build time instead, by
+# `scripts/build-release-clean.ps1`, which computes the prefixes locally.
+#
+# Neither mechanism rewrites `env!("CARGO_MANIFEST_DIR")`, which the compiler
+# expands into a string literal; that macro is therefore kept out of shipped
+# code entirely (see `scan_synthetic_fixture` in `src/lib.rs`).

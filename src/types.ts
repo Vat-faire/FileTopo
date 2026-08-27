@@ -37,7 +37,13 @@ export interface CollectionSnapshot {
   terrain: TerrainPoint[];
 }
 
-export interface AppHealth { appVersion: string; sqliteVersion: string; mode: string; }
+export interface AppHealth {
+  appVersion: string;
+  sqliteVersion: string;
+  mode: string;
+  /** Development builds only: the synthetic fixture button is hidden otherwise. */
+  syntheticFixtureAvailable: boolean;
+}
 
 export interface CollectionSummary {
   id: string;

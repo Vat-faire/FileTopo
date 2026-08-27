@@ -701,3 +701,219 @@ Aucun dossier utilisateur choisi par l’agent, aucun corpus privé, aucun conte
 - Aucun remote, compte, secret, achat, signature, téléversement, release ou
   publication.
 - La phase 6 et `ACTION-0011` restent `DEFERRED` jusqu'au GO humain spécial.
+---
+
+## 2026-08-26 — TASK-0008 — Revue indépendante de pré-publication
+
+**Agent :** Claude Code, exécuteur
+**Cadre :** GO humain spécial de phase 6, donné par le propriétaire le 2026-08-26
+**Résultat :** `IMPLEMENTED`, non commité, en attente de vérification indépendante
+
+### Fait
+
+- Ouverture de `TASK-0008` et passage de la mémoire en `IN_PROGRESS`
+  (`CURRENT_STATE.md`, `NEXT_ACTION.md`, `graph/current_state.yaml`,
+  `graph/history.jsonl`).
+- Chaîne de vérification réexécutée sur l'arbre modifié : 10 étapes, 0 échec —
+  TypeScript, 4 tests d'interface, Vite, `pnpm audit --prod`, `cargo fmt`,
+  Clippy strict, 11 tests Rust, inventaire de dépendances, audit de
+  publiabilité.
+- Formats validés par analyseur réel : 6 YAML, 3 JSON stricts, 2 JSONC,
+  54 lignes JSONL sans erreur, UTF-8 sans BOM sur tous les fichiers touchés.
+- Documentation : 0 lien relatif cassé et 0 chemin cité introuvable sur
+  46 fichiers `.md`.
+- Historique Git complet audité : 143 blobs, objets non atteignables compris.
+  0 secret, 0 chemin personnel, 0 référence à un projet privé, 0 remote.
+  Les 5 blobs non atteignables sont d'anciennes versions de documents, lues et
+  identifiées une par une.
+- Ajouts publics justifiés : `CODE_OF_CONDUCT.md`, `CHANGELOG.md` public,
+  `.github/workflows/ci.yml` (Windows), `.gitattributes`, modèles d'issues et
+  de demande de fusion, `README.md` réécrit avec paternité, lien
+  `https://github.com/Vat-faire`, statut alpha et limites exactes.
+- Corrections : `SECURITY.md` nomme le canal prévu, `CONTRIBUTING.md` renvoie
+  au code de conduite et à la CI, `scripts/audit-public-readiness.ps1` reçoit
+  `-AllowRemotes` pour rester utilisable après publication, `package.json`
+  reçoit ses métadonnées publiques, `docs/ai/START_HERE.md` perd trois
+  affirmations devenues fausses.
+- Rapport factuel : `docs/reviews/TASK-0008-independent-review.md`.
+
+### Constat de sécurité
+
+Le binaire release compilé — **non versionné** — contient 336 occurrences de
+chemins de la machine de compilation et le chemin absolu du dossier de
+développement, issu de `env!("CARGO_MANIFEST_DIR")`. Le **code source du dépôt
+est propre**. Les correctifs sont décrits mais **non appliqués** : ils
+modifient un comportement vérifié en phase 4 et invalident des empreintes
+consignées. Inscrits comme bloquants en section B de la checklist.
+
+### Recommandation
+
+Publier le **code source seul**, sans binaire ni release signée. Réversible
+dans un sens, pas dans l'autre.
+
+### Non fait, volontairement
+
+- Aucune connexion, authentification, ni appel réseau.
+- Aucun remote, push, branche publique, dépôt distant, release, signature ou
+  téléversement.
+- Aucune nouvelle dépendance; PyYAML utilisé est un module de l'interpréteur
+  déjà présent sur la machine, hors du dépôt.
+- Aucun corpus utilisateur ou privé consulté.
+- **Aucun `git commit`** : l'arbre est laissé à l'examen de l'orchestrateur.
+- Aucun statut `VERIFIED` auto-attribué.
+
+### Non testé
+
+Construction Tauri release et NSIS non refaites; workflow CI jamais exécuté
+sur un exécuteur GitHub; branche `-AllowRemotes` non testée avec un remote
+réel; liens externes non résolus sur le réseau; aucune inspection visuelle de
+l'application.
+
+### Suite
+
+`ACTION-0012` : l'orchestrateur examine, décide de la forme de publication,
+puis commite. Les actions distantes attendent la réauthentification humaine du
+compte GitHub `Vat-faire`.
+
+---
+
+## 2026-08-26 — Vérification indépendante de TASK-0008
+
+**Agent :** orchestrateur
+**Résultat :** `TASK-0008` → `VERIFIED`; `TASK-0009` ouverte
+
+- Identité publique minimale et divulgation IA approuvées par le propriétaire.
+- Version harmonisée à `0.1.0-alpha.1`; identifiant technique remplacé par
+  `io.github.vat-faire.filetopo`.
+- Détection de langue corrigée pour suivre la première préférence valide.
+- 36 tests interface, 13 tests Rust, TypeScript, Vite, fmt, Clippy strict
+  debug/release, audit de vulnérabilités et inventaires réussis.
+- Release/NSIS reconstruits avec remappage de quatre préfixes; scan de trois
+  artefacts sur cinq motifs et deux encodages : zéro fuite.
+- Publication décidée : prerelease GitHub source seulement, aucun binaire.
+- Aucun remote, push, tag ou publication pendant cette vérification.
+---
+
+## 2026-08-26 — TASK-0008, second tour — anglais, langue système, fuite de chemins
+
+**Agent :** Claude Code, exécuteur
+**Cadre :** cinq décisions du propriétaire, dans le prolongement du GO de phase 6
+**Résultat :** `IMPLEMENTED`, non commité, en attente de vérification indépendante
+
+### Identité publique approuvée
+
+Le propriétaire a approuvé une identité publique **minimale** : nom
+« Sébastien Dubé », copyright 2026 et profil GitHub
+`https://github.com/Vat-faire`, afin que le projet soit attribuable dans un
+portfolio professionnel. Ne sont **jamais** publiables : courriel réel, nom de
+compte Windows, chemin local absolu, document privé ou autre donnée
+personnelle.
+
+### Fait
+
+- **Anglais comme langue principale.** `README.md` entièrement anglais et
+  `README.fr.md` complet et équivalent, avec liens croisés. `CONTRIBUTING.md`,
+  `CODE_OF_CONDUCT.md`, `SECURITY.md`, `PRIVACY.md`, `CHANGELOG.md`,
+  `THIRD_PARTY_NOTICES.md`, `ROADMAP.md`, `PROJECT_VISION.md`, `.github/**`,
+  `.gitattributes` et `index.html` traduits. `docs/ai/**`, `graph/**`,
+  `AGENTS.md`, `CLAUDE.md` et la checklist restent en français.
+- **Langue de l'application.** Nouveau module `src/lib/locale.ts` : choix
+  explicite mémorisé d'abord, puis langue système ou navigateur — toute locale
+  `fr` donne le français —, puis anglais en repli. Bouton FR/EN conservé avec
+  `aria-label`, `document.documentElement.lang` synchronisé, une seule clé de
+  stockage `filetopo.locale`, protégée contre un stockage indisponible.
+- **32 tests réels ajoutés** : 24 dans `src/lib/locale.test.ts` et 8 dans
+  `src/App.test.tsx`. `en-FR` reste anglais, `af-ZA`, `fy-NL` et `frr` ne sont
+  pas confondus avec le français, un choix corrompu est ignoré, et un choix
+  explicite survit au remontage dans les deux sens.
+- **Fuite de chemins de compilation corrigée.**
+  `env!("CARGO_MANIFEST_DIR")` a quitté le code livré en release; la fixture
+  synthétique est résolue à l'exécution et compilée sous
+  `#[cfg(debug_assertions)]`; `health` expose `syntheticFixtureAvailable` et
+  l'interface masque le bouton hors développement.
+- **Mécanisme stable de nettoyage des chemins.**
+  `scripts/build-release-clean.ps1` applique `--remap-path-prefix` avec des
+  préfixes calculés à l'exécution, jamais écrits dans le dépôt.
+  `scripts/scan-binary-for-personal-paths.ps1` vérifie l'artefact.
+- **Deux tests Rust ajoutés** pour la résolution de la fixture à l'exécution et
+  pour le drapeau de `health`.
+- **Mentions nominatives opérationnelles réduites** dans huit documents publics
+  mutables; le nom reste pour la paternité, la licence et les métadonnées.
+  `graph/history.jsonl` **n'a pas** été réécrit.
+
+### Correction d'une hypothèse fausse
+
+`trim-paths` avait été ajouté au profil `release` en supposant sa stabilité.
+C'était **faux** pour Cargo 1.98 : le manifeste devenait impossible à analyser
+(`feature 'trim-paths' is required ... not stabilized in this version of
+Cargo`). L'option a été retirée; le manifeste documente son absence.
+
+### Preuves
+
+- Chaîne de vérification : **12 étapes, 0 échec**. Tests d'interface 4 → **36**,
+  tests Rust 11 → **13**, Clippy strict en debug **et** release.
+- Fuite mesurée dans `filetopo.exe` : **336 occurrences → 0**, sur cinq motifs,
+  deux encodages et deux artefacts.
+- Nouvelles empreintes SHA-256 dans `docs/releases/0.1.0.md`; celles de la
+  phase 5 sont périmées.
+- Formats : 6 YAML, 3 JSON, 2 JSONC, 57 lignes JSONL sans erreur, UTF-8 sans
+  BOM. 49 fichiers `.md`, 0 lien cassé.
+
+### Non fait, volontairement
+
+- Aucune connexion, authentification, réseau, remote, push, release,
+  signature, téléversement ou publication.
+- Aucune nouvelle dépendance.
+- Aucun corpus utilisateur ou privé consulté.
+- **Aucun `git commit`**; aucun statut `VERIFIED` auto-attribué.
+
+### Non testé
+
+Workflow CI jamais exécuté sur un exécuteur GitHub; branche `-AllowRemotes` non
+testée avec un remote réel; liens externes non résolus; aucune inspection
+visuelle de l'application; charge utile NSIS non analysée après décompression.
+Le journal de construction contient toujours le chemin, via un message de
+l'éditeur de liens MSVC : c'est signalé dans `SECURITY.md`.
+
+### Suite
+
+`ACTION-0012` : l'orchestrateur examine, décide de la forme de publication,
+puis commite. La recommandation reste de publier le **code source seul**.
+---
+
+## 2026-08-26 — TASK-0008, troisième tour — transparence sur l'assistance IA
+
+**Agent :** Claude Code, exécuteur
+**Cadre :** décision du propriétaire, transparence publique sur l'assistance IA
+**Résultat :** `IMPLEMENTED`, non commité
+
+### Fait
+
+- `AI_ASSISTANCE.md` créé, bilingue anglais/français. Sens exact préservé :
+  Sébastien Dubé détient l'idée, la vision produit, les exigences, les
+  priorités et toutes les décisions finales; orchestration avec l'application
+  de bureau OpenAI Codex; implémentation, tests, audits, documentation et
+  revues par OpenAI Codex et Anthropic Claude Code; aucun outil n'est auteur,
+  propriétaire ou mainteneur; aucune affiliation ni approbation d'OpenAI ou
+  Anthropic; responsabilité et maintenance finales à Sébastien Dubé. Renvoie
+  aux décisions, tâches, tests et revues versionnés — aucune chaîne de pensée
+  ni journal privé publié.
+- Section courte ajoutée dans `README.md` et `README.fr.md`, renvoyant vers
+  `AI_ASSISTANCE.md`.
+- `CHANGELOG.md` mis à jour.
+
+### Non fait, volontairement
+
+- Aucun changement de code : aucune reconstruction refaite.
+- Aucun commit, remote, connexion ou publication.
+
+### Preuves
+
+- `scripts/audit-public-readiness.ps1` : 118 fichiers versionnés, 0 motif
+  sensible.
+- Liens relatifs sur 50 fichiers `.md` : 0 cassé.
+- `AI_ASSISTANCE.md`, `README.md`, `README.fr.md` : UTF-8, sans BOM.
+
+### Suite
+
+`ACTION-0012` inchangée : l'orchestrateur examine, décide, commite.

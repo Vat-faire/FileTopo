@@ -88,9 +88,10 @@ phases:
     tasks: [TASK-0007]
   - id: 6
     name: "Publication"
-    status: DEFERRED
+    status: IN_PROGRESS
     requires_special_human_go: true
-    tasks: []
+    special_human_go_granted_on: "2026-08-26"
+    tasks: [TASK-0008, TASK-0009]
   - id: 7
     name: "Fonctions avancees facultatives"
     status: DEFERRED
@@ -194,6 +195,26 @@ tasks:
     verified_by: orchestrator
     requires_human_go: false
     approved_via: "autorisation_permanente_2026-08-25"
+  - id: TASK-0008
+    title: "Phase 6 : revue independante et preparation locale a la publication"
+    phase: 6
+    status: VERIFIED
+    file: docs/tasks/TASK-0008-phase-6-publication-readiness.md
+    opened_on: "2026-08-26"
+    delivered_on: "2026-08-26"
+    verified: true
+    verified_on: "2026-08-26"
+    verified_by: orchestrator
+    executor: claude_code
+    approved_via: "go_humain_special_phase_6_2026-08-26"
+  - id: TASK-0009
+    title: "Phase 6 : publication GitHub source seulement"
+    phase: 6
+    status: APPROVED
+    file: docs/tasks/TASK-0009-phase-6-github-publication.md
+    opened_on: "2026-08-26"
+    verified: false
+    approved_via: "go_humain_special_phase_6_2026-08-26"
 
 open_questions:
   - id: Q-001
@@ -251,9 +272,9 @@ standing_authorization:
   no_automatic_paid_wallet_usage: true
 
 constraints:
-  scope: "Depot local uniquement"
-  network_access: "lecture seule de sources publiques, couverte par l'autorisation permanente pour une tache de recherche documentee"
+  scope: "Depot local et publication GitHub source seulement autorisee en phase 6"
+  network_access: "GitHub autorise pour TASK-0009 apres reauthentification humaine"
   dependencies: true
-  commits: "commits locaux autorises par l'autorisation permanente ; depot distant/publication hors perimetre"
-  publication: false
+  commits: "commits locaux et push GitHub source autorises pour TASK-0009"
+  publication: "source_only_authorized"
   real_data: false

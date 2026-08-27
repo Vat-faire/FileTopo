@@ -1,0 +1,4 @@
+# Blank issues are disabled: both templates explicitly remind people not to
+# include real personal data. No external contact link is declared while the
+# public repository and its security reporting channel do not exist.
+blank_issues_enabled: false

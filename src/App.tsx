@@ -3,9 +3,9 @@ import { useEffect, useMemo, useState } from "react";
 import "./App.css";
 import TerrainMap from "./components/TerrainMap";
 import { createDemoSnapshot } from "./lib/demo";
+import { resolveInitialLocale, storeLocale, type Locale } from "./lib/locale";
 import type { AppHealth, CollectionSnapshot, CollectionSummary, IndexProgress, NodeDto, NodePage } from "./types";
 
-type Locale = "fr" | "en";
 const PAGE_SIZE = 120;
 
 const copy = {
@@ -60,7 +60,7 @@ function formatBytes(bytes: number, locale: Locale) {
 }
 
 function App() {
-  const [locale, setLocale] = useState<Locale>("fr");
+  const [locale, setLocale] = useState<Locale>(() => resolveInitialLocale());
   const [snapshot, setSnapshot] = useState<CollectionSnapshot | null>(null);
   const [health, setHealth] = useState<AppHealth | null>(null);
   const [collections, setCollections] = useState<CollectionSummary[]>([]);
@@ -77,6 +77,17 @@ function App() {
   const [loading, setLoading] = useState(true);
   const [notice, setNotice] = useState<string | null>(null);
   const t = copy[locale];
+
+  // An explicit choice outranks the system language and survives restarts.
+  const chooseLocale = (next: Locale) => {
+    setLocale(next);
+    storeLocale(next);
+  };
+
+  // Assistive technologies rely on the document language, not on the button.
+  useEffect(() => {
+    document.documentElement.lang = locale;
+  }, [locale]);
 
   useEffect(() => {
     let active = true;
@@ -265,7 +276,13 @@ function App() {
         </a>
         <div className="topbar-actions">
           <span className="privacy-chip"><span aria-hidden="true">●</span> {t.local}</span>
-          <button className="language-button" type="button" onClick={() => setLocale(locale === "fr" ? "en" : "fr")}>
+          <button
+            className="language-button"
+            type="button"
+            lang={locale === "fr" ? "en" : "fr"}
+            aria-label={locale === "fr" ? "Switch to English" : "Afficher l’interface en français"}
+            onClick={() => chooseLocale(locale === "fr" ? "en" : "fr")}
+          >
             {locale === "fr" ? "EN" : "FR"}
           </button>
         </div>
@@ -279,7 +296,9 @@ function App() {
         </div>
         <div className="hero-actions" aria-label={t.sourcePicker}>
           <button className="primary-button" type="button" onClick={() => loadCollection("demo_snapshot")}>{t.demo}</button>
-          <button className="secondary-button" type="button" onClick={() => loadCollection("scan_synthetic_fixture")}>{t.fixture}</button>
+          {health?.syntheticFixtureAvailable && (
+            <button className="secondary-button" type="button" onClick={() => loadCollection("scan_synthetic_fixture")}>{t.fixture}</button>
+          )}
           <button className="secondary-button" type="button" onClick={chooseCollection}>{t.add}</button>
         </div>
       </section>

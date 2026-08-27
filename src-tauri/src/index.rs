@@ -8,6 +8,9 @@ pub struct Index {
 }
 
 impl Index {
+    /// Unused in a release build: only the development fixture and the tests
+    /// need an index that never touches the disk.
+    #[cfg_attr(not(debug_assertions), allow(dead_code))]
     pub fn in_memory() -> Result<Self> {
         let connection = Connection::open_in_memory()?;
         let index = Self { connection };
@@ -107,6 +110,9 @@ impl Index {
         transaction.commit()
     }
 
+    /// Unused in a release build: the application reads through the paged and
+    /// filtered query instead.
+    #[cfg_attr(not(debug_assertions), allow(dead_code))]
     pub fn list_nodes(&self, limit: usize, offset: usize) -> Result<Vec<NodeDto>> {
         let bounded_limit = limit.clamp(1, 50_000) as i64;
         let bounded_offset = offset as i64;

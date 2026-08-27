@@ -1,12 +1,20 @@
-# Contribuer à FileTopo
+# Contributing to FileTopo
 
-Merci de préserver le principe central : aucune contribution ne doit exiger
-l'accès à des documents personnels ou modifier une collection indexée.
+Thank you for keeping the central principle intact: **no contribution may
+require access to personal documents, and none may modify an indexed
+collection.**
 
-## Environnement et vérification
+By taking part you accept the [code of conduct](CODE_OF_CONDUCT.md). FileTopo
+is at **alpha** status: read the known limits in [CHANGELOG.md](CHANGELOG.md)
+before reporting something as missing.
 
-Sous Windows, installez Node.js 24, pnpm 10, Rust stable MSVC, WebView2 et les
-Visual Studio Build Tools 2022. Puis exécutez :
+Issues and pull requests may be written in English or French. Public
+documentation is written in English, with a French translation of the README.
+
+## Environment and verification
+
+On Windows, install Node.js 24, pnpm 10, Rust stable MSVC, WebView2 and the
+Visual Studio Build Tools 2022. Then run:
 
 ```powershell
 pnpm install --frozen-lockfile
@@ -21,28 +29,61 @@ pwsh -File scripts/dependency-inventory.ps1
 pwsh -File scripts/audit-public-readiness.ps1
 ```
 
-## Données de test
+The publishability audit fails when a Git remote is configured. That is
+deliberate while the project is unpublished. On a clone from GitHub, or in
+continuous integration, pass `-AllowRemotes`: the checks for secrets, personal
+paths and large files stay strict.
 
-- Utilisez uniquement `tests/fixtures_synthetic` ou un dossier temporaire
-  créé et détruit par le test.
-- N'ajoutez jamais un chemin absolu personnel, une copie de fichier réel, un
-  nom de client, un secret ou une capture contenant des données privées.
-- Ne pointez jamais un test, une démonstration ou un benchmark vers un dossier
-  utilisateur.
-- Les fixtures doivent être petites, déterministes et manifestement fictives.
+The same chain runs automatically on Windows through
+[`.github/workflows/ci.yml`](.github/workflows/ci.yml), except for the NSIS
+bundle build.
 
-## Changements sensibles
+## Building a release
 
-Toute modification du scanner, de la résolution des chemins, de l'ouverture
-Explorer, du stockage ou des commandes Tauri doit inclure des tests de refus :
-traversée, lien symbolique/point de réanalyse, identifiant inconnu, annulation
-et absence d'écriture dans la racine. Une fonctionnalité réseau, d'IA, d'OCR
-ou de réorganisation physique est hors du MVP et doit rester facultative,
-désactivée par défaut et faire l'objet d'une décision documentée.
+Do not run `pnpm tauri build` directly for anything you intend to share. Use:
 
-## Dépendances et publication
+```powershell
+pwsh -File scripts/build-release-clean.ps1
+```
 
-Les deux fichiers de verrouillage doivent être mis à jour avec tout changement
-de dépendance. Relancez l'inventaire et mettez à jour
-`THIRD_PARTY_NOTICES.md`. Un commit local n'autorise ni dépôt distant, ni
-signature, ni distribution, ni publication.
+It remaps build-machine paths out of the binary, then scans the artifact with
+`scripts/scan-binary-for-personal-paths.ps1` and fails if anything leaked. You
+can run that scan on its own at any time:
+
+```powershell
+pwsh -File scripts/scan-binary-for-personal-paths.ps1
+```
+
+## Test data
+
+- Use only `tests/fixtures_synthetic` or a temporary directory created and
+  destroyed by the test.
+- Never add a personal absolute path, a copy of a real file, a client name, a
+  secret, or a screenshot containing private data.
+- Never point a test, a demo or a benchmark at a user folder.
+- Fixtures must be small, deterministic and obviously fictional.
+
+## Sensitive changes
+
+Any change to the scanner, path resolution, the File Explorer reveal, storage
+or the Tauri commands must come with refusal tests: traversal, symbolic
+link or reparse point, unknown identifier, cancellation, and absence of writes
+inside the root.
+
+Network, AI, OCR or physical reorganisation features are outside the MVP. They
+must stay optional, disabled by default, and be covered by a documented
+decision.
+
+## Interface language
+
+The interface resolves its language in this order: an explicit choice stored by
+the user, then the system or browser language (any `fr` locale gets French),
+then English as the fallback. When you add a user-facing string, add it to
+**both** dictionaries in `src/App.tsx`. Language behaviour is covered by
+`src/lib/locale.test.ts` and `src/App.test.tsx`.
+
+## Dependencies and publication
+
+Both lockfiles must be updated with any dependency change. Re-run the inventory
+and update `THIRD_PARTY_NOTICES.md`. A local commit authorises neither a
+remote, nor signing, nor distribution, nor publication.

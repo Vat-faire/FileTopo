@@ -1,7 +1,11 @@
 {
   "name": "filetopo",
   "private": true,
-  "version": "0.1.0",
+  "version": "0.1.0-alpha.1",
+  "description": "Local, offline and read-only topographic map for folders and documents.",
+  "license": "MIT",
+  "author": "Sébastien Dubé",
+  "packageManager": "pnpm@10.31.0",
   "type": "module",
   "scripts": {
     "dev": "vite",

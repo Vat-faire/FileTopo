@@ -83,6 +83,9 @@ pub struct AppHealth {
     pub app_version: String,
     pub sqlite_version: String,
     pub mode: String,
+    /// True only in development builds. The synthetic fixture is a developer
+    /// aid; a release binary must not know where the repository lives.
+    pub synthetic_fixture_available: bool,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]

@@ -1,7 +1,7 @@
 schema: current_state
 schema_version: 1
 updated_at: "2026-08-26"
-updated_by: orchestrator
+updated_by: claude_code
 
 standing_authorization:
   granted_on: "2026-08-25"
@@ -25,11 +25,37 @@ allowed_states:
   - REJECTED
   - DEFERRED
 
-current_phase: 5
-current_phase_status: VERIFIED
+current_phase: 6
+current_phase_status: IN_PROGRESS
+
+public_identity:
+  approved_on: "2026-08-26"
+  approved_by: owner
+  purpose: "rendre le projet attribuable dans un portfolio professionnel"
+  publishable:
+    - "nom : Sébastien Dubé"
+    - "copyright 2026"
+    - "profil GitHub : https://github.com/Vat-faire"
+  never_publishable:
+    - courriel_reel
+    - nom_de_compte_windows
+    - chemin_local_absolu
+    - document_prive
+    - toute_autre_donnee_personnelle
+  operational_mentions_use: "le proprietaire"
+
+phase_6_special_go:
+  granted_on: "2026-08-26"
+  granted_by: owner
+  scope: "autorise la preparation et la publication controlee du code source; aucun binaire, signature ou depense"
+  remote_actions_reserved_to: orchestrator
+  github_account: "Vat-faire"
+  github_cli_authenticated: false
 
 in_progress_task: null
 in_progress_count: 0
+last_delivered_task: TASK-0008
+last_delivered_status: VERIFIED
 
 tasks:
   - id: TASK-0001
@@ -104,17 +130,39 @@ tasks:
     verified_by: orchestrator
     title: "Phase 5 : preparation publique"
     file: docs/tasks/TASK-0007-phase-5-public-preparation.md
+  - id: TASK-0008
+    status: VERIFIED
+    verified: true
+    approved_via: "go_humain_special_phase_6_2026-08-26"
+    opened_on: "2026-08-26"
+    started_on: "2026-08-26"
+    delivered_on: "2026-08-26"
+    verified_on: "2026-08-26"
+    verified_by: orchestrator
+    title: "Phase 6 : revue independante et preparation locale a la publication"
+    executor: claude_code
+    file: docs/tasks/TASK-0008-phase-6-publication-readiness.md
+  - id: TASK-0009
+    status: APPROVED
+    verified: false
+    approved_via: "go_humain_special_phase_6_2026-08-26"
+    opened_on: "2026-08-26"
+    title: "Phase 6 : publication GitHub source seulement"
+    file: docs/tasks/TASK-0009-phase-6-github-publication.md
 
 next_action:
-  id: ACTION-0011
-  target_task_id: null
-  status: DEFERRED
-  title: "Attendre le GO special avant toute publication"
+  id: ACTION-0013
+  target_task_id: TASK-0009
+  status: BLOCKED
+  title: "Reauthentifier GitHub puis publier la prerelease source seulement"
   target_phase: 6
-  actor: human_then_codex
-  requires_human_go: true
+  actor: human_then_orchestrator
+  awaiting: "reauthentification humaine de gh pour le compte Vat-faire"
+  requires_human_go: false
+  human_go_already_granted: "go_special_phase_6_2026-08-26"
   executes_research: false
-  network_access: "interdit avant GO special"
+  network_access: "GitHub seulement apres reauthentification"
+  commits_allowed: true
   file: docs/ai/NEXT_ACTION.md
 
 decided:
@@ -254,9 +302,86 @@ verification:
     signed: false
     published: false
     private_corpus_accessed: false
+  task_0008:
+    performed_on: "2026-08-26"
+    performed_by: claude_code
+    independent_verification: false
+    status: IMPLEMENTED
+    note: "Preuves d'execution sur deux tours. VERIFIED reste a poser par l'orchestrateur ou l'humain. Voir docs/ai/VALIDATION.md section H."
+    verification_steps_run: 12
+    verification_steps_failed: 0
+    typescript_check: true
+    frontend_tests_passed: 36
+    frontend_tests_before: 4
+    rust_tests_passed: 13
+    rust_tests_before: 11
+    rust_fmt_check: true
+    rust_clippy_strict_debug: true
+    rust_clippy_strict_release: true
+    vite_build: true
+    dependency_audit_known_vulnerabilities: 0
+    rust_all_target_packages: 456
+    rust_missing_licenses: 0
+    yaml_parsed_by_tool: true
+    yaml_files_parsed: 6
+    json_files_parsed: 3
+    jsonc_files_parsed: 2
+    jsonl_parsed_by_tool: true
+    jsonl_lines: 56
+    jsonl_invalid_lines: 0
+    utf8_without_bom: true
+    markdown_files_checked: 49
+    broken_relative_links: 0
+    external_links_declared: 4
+    external_links_resolved: false
+    git_history_blobs_audited: 143
+    git_unreachable_blobs_identified: 5
+    secrets_found: 0
+    personal_paths_in_repo: 0
+    personal_emails_found: 0
+    private_project_references: 0
+    git_remotes: 0
+    git_tags: 0
+    git_commits: 3
+    dependencies_added: 0
+    network_access: false
+    remote_actions: false
+    commits_made: false
+    signed: false
+    published: false
+    private_corpus_accessed: false
+    documentation_primary_language: en
+    french_readme_equivalent: README.fr.md
+    internal_docs_language: fr
+    locale_detection_implemented: true
+    locale_fallback: en
+    locale_explicit_choice_persisted: true
+    locale_storage_key: "filetopo.locale"
+    locale_tests_added: 32
+    binary_leak_before_occurrences: 336
+    binary_leak_after_occurrences: 0
+    binary_leak_needles_checked: 5
+    binary_leak_encodings_checked: 2
+    binary_leak_artifacts_scanned: 2
+    cargo_trim_paths_stabilized: false
+    cargo_trim_paths_rejected_on_evidence: true
+    path_cleanup_mechanism: "rustc --remap-path-prefix via scripts/build-release-clean.ps1"
+    cargo_manifest_dir_removed_from_release: true
+    tauri_release_build_rerun: true
+    nsis_bundle_build_rerun: true
+    release_sha256_updated: true
+    stale_phase5_hashes_superseded: true
+    build_log_still_contains_path: true
+    nsis_payload_decompressed_scan: false
+    ci_workflow_executed_on_github: false
+    allow_remotes_branch_tested_with_real_remote: false
+    visual_inspection_rerun: false
+    named_operational_mentions_reduced: true
+    git_history_rewritten: false
+    recommendation: "publier le code source seul, sans binaire ni release signee"
+    ai_assistance_disclosure_added: true
+    ai_assistance_file: "AI_ASSISTANCE.md"
   still_untested:
-    - "Fins de ligne sur le disque"
-    - "Coherence des liens relatifs entre documents"
     - "Résultats exacts USPTO et WIPO"
     - "Recherche juridique exhaustive par classes et similarités"
   known_residual_nonconformity:

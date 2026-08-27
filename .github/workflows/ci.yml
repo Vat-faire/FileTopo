@@ -1,0 +1,126 @@
+# Continuous verification for FileTopo.
+#
+# This chain reproduces, on a Windows runner, exactly the commands documented
+# in CONTRIBUTING.md. It adds no dependency to the project and uses only
+# actions published by GitHub.
+#
+# Deliberately absent:
+#   - the NSIS bundle build, which is slow and adds no verification value over
+#     `cargo test`;
+#   - any signing, publication, release or artifact upload.
+#
+# A release intended for distribution must be built with
+# `scripts/build-release-clean.ps1`, which remaps build-machine paths out of
+# the binary and scans the result.
+
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  # Works around a cache defect observed with Rust 1.98, as documented in
+  # README.md and CONTRIBUTING.md.
+  CARGO_INCREMENTAL: '0'
+  CARGO_TERM_COLOR: always
+
+jobs:
+  windows:
+    name: Windows — full chain
+    runs-on: windows-latest
+    timeout-minutes: 45
+
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v4
+
+      - name: Install Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+
+      - name: Enable corepack
+        run: corepack enable
+        shell: pwsh
+
+      - name: Install locked JavaScript dependencies
+        run: pnpm install --frozen-lockfile
+        shell: pwsh
+
+      - name: TypeScript check
+        run: pnpm check
+        shell: pwsh
+
+      - name: Interface tests
+        run: pnpm test
+        shell: pwsh
+
+      - name: Frontend build
+        run: pnpm build
+        shell: pwsh
+
+      - name: Production dependency audit
+        run: pnpm audit --prod
+        shell: pwsh
+
+      - name: Install Rust components
+        run: rustup component add rustfmt clippy
+        shell: pwsh
+
+      - name: Print toolchain versions
+        run: |
+          node --version
+          pnpm --version
+          rustc --version
+          cargo --version
+        shell: pwsh
+
+      - name: Cargo cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry/index
+            ~/.cargo/registry/cache
+            ~/.cargo/git/db
+            src-tauri/target
+          key: cargo-${{ runner.os }}-${{ hashFiles('src-tauri/Cargo.lock') }}
+          restore-keys: cargo-${{ runner.os }}-
+
+      - name: Rust formatting
+        run: cargo fmt --manifest-path src-tauri/Cargo.toml --all -- --check
+        shell: pwsh
+
+      - name: Clippy, strict
+        run: cargo clippy --manifest-path src-tauri/Cargo.toml --all-targets -- -D warnings
+        shell: pwsh
+
+      - name: Clippy, strict, release profile
+        # The synthetic fixture is compiled out of release builds; this catches
+        # anything that only warns once it is gone.
+        run: cargo clippy --manifest-path src-tauri/Cargo.toml --release -- -D warnings
+        shell: pwsh
+
+      - name: Rust tests
+        run: cargo test --manifest-path src-tauri/Cargo.toml
+        shell: pwsh
+
+      - name: Dependency and licence inventory
+        run: pwsh -NoProfile -File scripts/dependency-inventory.ps1
+        shell: pwsh
+
+      - name: Publishability audit
+        # -AllowRemotes: on GitHub, `origin` always exists. The checks for
+        # secrets, personal paths and large files stay strict.
+        run: pwsh -NoProfile -File scripts/audit-public-readiness.ps1 -AllowRemotes
+        shell: pwsh

@@ -446,3 +446,261 @@ publication.
 `TASK-0007` et la phase 5 passent à `VERIFIED`; `ACTION-0010` est close.
 `ACTION-0011` est `DEFERRED`. La phase 6 ne peut commencer qu'après un GO
 humain spécial et distinct.
+---
+
+## H. TASK-0008 — Revue indépendante de pré-publication (2026-08-26)
+
+**Exécutant :** Claude Code. **Statut livré :** `IMPLEMENTED`.
+Cette section consigne des **preuves d'exécution**, pas une vérification
+indépendante. `VERIFIED` reste à poser par l'orchestrateur ou l'humain.
+
+### H.1 Chaîne de vérification, réexécutée après modifications
+
+| Étape | Code de sortie | Détail |
+|---|---:|---|
+| `pnpm install --frozen-lockfile` | 0 | lockfile inchangé |
+| `pnpm check` | 0 | TypeScript |
+| `pnpm test` | 0 | 4 tests d'interface |
+| `pnpm build` | 0 | Vite |
+| `pnpm audit --prod` | 0 | *No known vulnerabilities found* |
+| `cargo fmt --all -- --check` | 0 | Rust 1.98.0 |
+| `cargo clippy --all-targets -- -D warnings` | 0 | strict |
+| `cargo test` | 0 | 11 tests |
+| `scripts/dependency-inventory.ps1` | 0 | 456 paquets Rust, 0 licence absente |
+| `scripts/audit-public-readiness.ps1` | 0 | 112 fichiers candidats, 0 motif |
+
+### H.2 Formats
+
+- YAML analysés par PyYAML 6.0.3 : `graph/current_state.yaml`,
+  `graph/project_graph.yaml`, `.github/workflows/ci.yml` et les trois modèles
+  d'issues — 6/6.
+- JSON strict : `package.json`, `src-tauri/tauri.conf.json`,
+  `src-tauri/capabilities/default.json` — 3/3.
+- JSONC : `tsconfig.json`, `tsconfig.node.json` — 2/2, commentaires normaux.
+- JSONL : `graph/history.jsonl`, **55 lignes, 0 invalide**, saut de ligne final.
+- Encodage : tous les fichiers ajoutés ou modifiés sont en UTF-8, sans BOM.
+- Documentation : 46 fichiers `.md`, **0 lien relatif cassé**, **0 chemin cité
+  introuvable**. Ceci lève deux entrées de `still_untested`.
+
+### H.3 Audit de l'historique Git
+
+| Contrôle | Résultat |
+|---|---|
+| Blobs analysés, objets non atteignables compris | **143** |
+| Secrets, clés, jetons | 0 |
+| Chemins personnels absolus | 0 |
+| Adresses de messagerie personnelles | 0 |
+| Références à un projet privé | 0 |
+| Dépôts distants, étiquettes, remisages | 0, 0, 0 |
+| Commits, branches | 3, 1 (`main`) |
+| Auteur | `Sébastien Dubé <filetopo@local.invalid>` — domaine non routable |
+
+Les 5 blobs non atteignables sont d'anciennes versions de quatre documents et
+de `src-tauri/Cargo.toml`; lus intégralement, sans donnée sensible.
+
+Les occurrences de « GraphRAG Workbench » renvoient au dépôt **public**
+`ChristopherLyon/graphrag-workbench`, comparé en phase 1. Ce n'est pas un
+projet privé.
+
+### H.4 Constat de sécurité sur le binaire compilé
+
+`src-tauri/target/release/filetopo.exe`, **non versionné**, contient
+**336 occurrences** de chemins de la machine de compilation — 240 fragments
+distincts, issus des métadonnées de panique des dépendances Cargo — et
+**1 occurrence** du chemin absolu du dossier de développement, provenant de
+`env!("CARGO_MANIFEST_DIR")` dans `scan_synthetic_fixture`.
+
+L'installateur NSIS ne montre aucune occurrence en ASCII ni en UTF-16LE, mais
+sa charge utile est **compressée** : l'absence n'est **pas** une preuve. Non
+vérifié après décompression.
+
+**Le code source versionné est propre.** Les correctifs sont décrits dans
+`docs/reviews/TASK-0008-independent-review.md` et **non appliqués**.
+
+### H.5 Non testé dans cette tâche
+
+- Construction Tauri release et paquet NSIS non refaites; empreintes SHA-256
+  de `docs/releases/0.1.0.md` non recalculées.
+- Workflow CI jamais exécuté sur un exécuteur GitHub; syntaxe validée, logique
+  non validée.
+- Branche `-AllowRemotes` non testée avec un remote réel : créer un remote est
+  interdit, créer un dépôt de test hors du dossier violerait la section 1
+  d'`AGENTS.md`.
+- Les quatre liens externes du dépôt n'ont pas été résolus sur le réseau.
+- Aucune inspection visuelle de l'application.
+- Recherche de marque USPTO/WIPO toujours non levée.
+
+### H.6 Conclusion
+
+`TASK-0008` est livrée en `IMPLEMENTED`, non commitée. Le dépôt est publiable
+sous forme de **code source**; il ne l'est pas sous forme de **binaire** tant
+que H.4 n'est pas traité.
+---
+
+## H bis. TASK-0008, second tour (2026-08-26)
+
+**Exécutant :** Claude Code. **Statut livré :** `IMPLEMENTED`.
+Preuves d'exécution, **pas** une vérification indépendante.
+
+### H bis.1 Chaîne complète, réexécutée après toutes les modifications
+
+| Étape | Code de sortie | Détail |
+|---|---:|---|
+| `pnpm install --frozen-lockfile` | 0 | lockfile inchangé |
+| `pnpm check` | 0 | TypeScript |
+| `pnpm test` | 0 | **36 tests** (4 auparavant) |
+| `pnpm build` | 0 | Vite |
+| `pnpm audit --prod` | 0 | aucune vulnérabilité connue |
+| `cargo fmt --all -- --check` | 0 | Rust 1.98.0 |
+| `cargo clippy --all-targets -- -D warnings` | 0 | profil debug |
+| `cargo clippy --release -- -D warnings` | 0 | profil release, nouveau |
+| `cargo test` | 0 | **13 tests** (11 auparavant) |
+| `scripts/dependency-inventory.ps1` | 0 | 456 paquets Rust, 0 licence absente |
+| `scripts/audit-public-readiness.ps1` | 0 | aucun motif sensible |
+| `scripts/scan-binary-for-personal-paths.ps1` | 0 | **aucune fuite** |
+
+**12 étapes, 0 échec.**
+
+### H bis.2 Fuite de chemins de compilation
+
+Mesures réelles, par `scripts/scan-binary-for-personal-paths.ps1`, sur
+`filetopo.exe` :
+
+| Motif | Avant | Après |
+|---|---:|---:|
+| Nom de compte Windows | 336 | 0 |
+| Profil utilisateur | 336 | 0 |
+| Racine du dépôt | 1 | 0 |
+| Nom du dossier du dépôt | 1 | 0 |
+| `CARGO_HOME` | 335 | 0 |
+
+Cinq motifs, deux encodages — ASCII et UTF-16LE —, deux artefacts.
+
+**`trim-paths` rejeté sur preuve.** Ajouté au profil `release`, il rend le
+manifeste impossible à analyser : *feature `trim-paths` is required ... not
+stabilized in this version of Cargo (1.98.0)*. Remplacé par
+`--remap-path-prefix`, stable, appliqué par `scripts/build-release-clean.ps1`
+avec des préfixes calculés à l'exécution.
+
+`env!("CARGO_MANIFEST_DIR")` retiré du code livré : le remappage seul ne
+l'aurait pas corrigé, la macro étant une expansion textuelle.
+
+Nouvelles empreintes SHA-256 :
+
+- `filetopo.exe`, 11 195 904 octets :
+  `71BEA4EFC76AAB8C66FBCF315BD903981450851FAED67972E45AE5BD712CB7B6`;
+- `FileTopo_0.1.0_x64-setup.exe`, 2 927 778 octets :
+  `BF71FF7EA6CA4DF178CF1F459E4891A422D047B5BA23A7E2D0826CF748124A72`.
+
+Les empreintes de la phase 5 sont **périmées**; leurs artefacts contenaient les
+chemins et ne doivent pas être distribués.
+
+### H bis.3 Langue
+
+Règle implémentée dans `src/lib/locale.ts` : choix explicite mémorisé, puis
+langue système ou navigateur — toute locale `fr` donne le français —, puis
+anglais en repli. **32 tests réels** couvrent la détection, la persistance, les
+cas limites (`en-FR` reste anglais; `af-ZA`, `fy-NL`, `frr` ne sont pas
+confondus avec le français), une valeur stockée corrompue et un stockage qui
+lève une exception.
+
+Documentation publique en anglais, avec `README.fr.md` complet et équivalent.
+`docs/ai/**`, `graph/**`, `AGENTS.md`, `CLAUDE.md` et la checklist restent en
+français.
+
+### H bis.4 Formats et documentation
+
+6 YAML, 3 JSON stricts, 2 JSONC, **57 lignes JSONL sans erreur**, UTF-8 sans
+BOM sur les 43 fichiers touchés. 49 fichiers `.md`, **0 lien relatif cassé**,
+4 liens externes déclarés et non résolus sur le réseau.
+
+### H bis.5 Non testé
+
+- Workflow CI jamais exécuté sur un exécuteur GitHub.
+- Branche `-AllowRemotes` non testée avec un remote réel.
+- Liens externes non résolus sur le réseau.
+- Aucune inspection visuelle de l'application; la détection de langue est
+  couverte sous jsdom, pas dans l'application Tauri réelle.
+- Charge utile NSIS non analysée après décompression.
+- Le **journal de construction** contient toujours le chemin, via un message de
+  l'éditeur de liens MSVC remonté en `linker_messages`. C'est dans la sortie
+  console, pas dans l'artefact; `SECURITY.md` l'indique.
+
+### H bis.6 Conclusion
+
+`TASK-0008` est livrée en `IMPLEMENTED`, non commitée. Le dépôt est publiable
+sous forme de **code source**. La distribution d'un binaire reste déconseillée,
+non plus pour un défaut technique mais par prudence : installateur non signé,
+coût et responsabilité d'un certificat, statut alpha.
+---
+
+## H ter. TASK-0008, troisième tour (2026-08-26)
+
+**Exécutant :** Claude Code. **Statut livré :** `IMPLEMENTED`.
+
+Transparence publique sur l'assistance IA, décision du propriétaire.
+`AI_ASSISTANCE.md` créé (bilingue), sections ajoutées dans `README.md` et
+`README.fr.md`, `CHANGELOG.md` mis à jour. Sens préservé exactement, voir
+`docs/tasks/TASK-0008-phase-6-publication-readiness.md`.
+
+**Aucun changement de code** : pas de reconstruction. Ré-audits documentaires
+seulement :
+
+| Étape | Résultat |
+|---|---|
+| `scripts/audit-public-readiness.ps1` | 118 fichiers, 0 motif sensible |
+| Liens relatifs, 50 fichiers `.md` | 0 cassé |
+| Encodage des 3 fichiers touchés | UTF-8, sans BOM |
+
+Non commité. `TASK-0008` reste `IMPLEMENTED`.
+
+---
+
+## H quater. Vérification indépendante de TASK-0008 (2026-08-26)
+
+**Vérificateur :** orchestrateur, après les trois tours Claude Code.
+
+### Décisions finales
+
+- Identité publique minimale approuvée : nom, copyright et profil GitHub.
+- Assistance IA divulguée en anglais et en français.
+- Documentation publique anglaise avec README français complet.
+- Version harmonisée à `0.1.0-alpha.1`.
+- Identifiant d'application : `io.github.vat-faire.filetopo`.
+- Publication retenue : prerelease GitHub **source seulement**, sans binaire.
+
+### Preuves rejouées indépendamment
+
+| Contrôle | Résultat |
+|---|---|
+| `pnpm install --frozen-lockfile` | réussi, verrou inchangé |
+| TypeScript et Vite | réussis |
+| Vitest | **36/36** |
+| `pnpm audit --prod` | 0 vulnérabilité connue |
+| Inventaire | 172 entrées JS, 456 paquets Rust, 0 licence Rust absente |
+| Rustfmt | réussi |
+| Clippy strict debug et release | réussi |
+| Tests Rust | **13/13** |
+| Audit public | 118 fichiers, 0 motif sensible, 0 remote |
+| Historique Git atteignable | 0 secret, chemin personnel ou référence privée |
+| Build release/NSIS propre | réussi pour `0.1.0-alpha.1` |
+| Scan binaire | 3 artefacts, 5 motifs, ASCII + UTF-16LE, **0 fuite** |
+
+La détection de langue a été corrigée lors de cette revue pour suivre la
+première préférence système valide; un français secondaire ne remplace plus
+une préférence anglaise principale. Le script de build utilise
+`CARGO_ENCODED_RUSTFLAGS`, compatible avec les chemins Windows contenant des
+espaces, et remappe l'ensemble du profil utilisateur.
+
+Empreintes de la candidate locale non distribuée :
+
+- `filetopo.exe` :
+  `9721613541E1430D83246DAF3087942A0BE97260C1C8E0688A6B34C2D74D92C0`;
+- `FileTopo_0.1.0-alpha.1_x64-setup.exe` :
+  `628EAB32AFFED631041A69F96EB4610A9CD444360BFE72C40C02C20D9201DA20`.
+
+### Conclusion
+
+Les huit critères locaux de `TASK-0008` sont conformes. `TASK-0008` passe à
+`VERIFIED`. La phase 6 reste `IN_PROGRESS`; `TASK-0009` attend uniquement la
+réauthentification humaine GitHub avant la publication source contrôlée.
