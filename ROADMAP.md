@@ -4,6 +4,38 @@ Cette feuille de route remplace l'interprétation trop étroite des anciennes
 phases. Les preuves historiques restent valides dans leur portée d'origine,
 mais aucune phase future ci-dessous n'est déclarée terminée.
 
+## Les quatre étapes courantes — A à D
+
+**Établies le 2026-08-31 par `TASK-0015`**, sur l'instruction produit de
+Sébastien enregistrée dans
+[DEC-0015](docs/decisions/DEC-0015-product-parity-and-layout-scope.md).
+
+Ces quatre étapes **ordonnent** les phases 2 à 9 du tableau ci-dessous; elles
+ne les remplacent pas. **Elles se franchissent dans l'ordre**, et chacune
+attend un contrôle indépendant avant la suivante.
+
+| Étape | Objet | État | Ce qui doit être vrai à sa sortie |
+|---|---|---|---|
+| **A** | **Parité fonctionnelle MVP** | **PROPOSED** — première tranche spécifiée par [TASK-0016](docs/tasks/TASK-0016-p4-vertical-slice.md), `PROPOSED` | Les **22 exigences** `P-01` à `P-22` du [contrat de parité](docs/product/CARTETOPO_FUNCTIONAL_PARITY.md) sont satisfaites et **prouvées sur fixtures synthétiques**, avec contrôle indépendant. Les **trois invariants** `I-1` à `I-3` tiennent. **L'apparence n'est pas jugée à cette étape** : seule la fonction l'est |
+| **B** | **Finition visuelle moderne** | PROPOSED | Le style est refondu — formes, couleurs, typographie, panneaux, animations, organisation. **Aucune exigence de parité n'a disparu ni n'est devenue inatteignable**, contrôlé en rejouant l'intégralité des critères de l'étape **A**. L'accessibilité **WCAG 2.2 AA** et le bilinguisme tiennent après refonte |
+| **C** | **Validation Windows / WebView2 réelle** | PROPOSED | Un **véritable hôte Tauri** existe et l'application s'exécute dans **WebView2**, sur Windows. Les mesures de performance sont refaites **dans ce moteur** : elles remplacent, pour toute communication, les mesures Edge et Chrome des spikes. **La réserve `R8` ne peut être levée qu'ici.** Le **budget adaptatif est réévalué ici**, et pas avant — `DEC-0015` F |
+| **D** | **Empaquetage et publication** | PROPOSED | Application empaquetée, audit, tests, documentation FR/EN, notes de version. **La décision de publier appartient à Sébastien** : fusion vers `main`, PR, release, étiquette et annonce sont des **points d'arrêt réservés**, jamais délégués |
+
+**Trois règles de passage propres à ces étapes :**
+
+1. **La parité précède l'esthétique.** L'étape **B** ne peut pas commencer
+   avant que **A** soit contrôlée. L'inverse — moderniser puis rattraper la
+   fonction — est exactement la dérive que `TASK-0010` a documentée sur le
+   prototype.
+2. **Aucun chiffre de performance publié avant C.** Les mesures de `B2`,
+   `B2 bis` et `B2 ter` sont des mesures de **spike**, sur Edge et Chrome,
+   **jamais WebView2**. Réserve `R8`, en vigueur.
+3. **Aucune exigence ne disparaît par refonte.** Toute suppression passe par
+   une fiche `DEC` écrite, jamais par omission silencieuse — contrat de parité
+   §3.
+
+## Phases historiques
+
 | Phase | Objet | État | Sortie attendue |
 |---|---|---|---|
 | 0 | Rebaseline et mémoire | VERIFIED | TASK-0010 vérifiée le 2026-08-31 |
@@ -36,6 +68,25 @@ infonuagiques, **avant** le premier code de production. La phase 2 ne peut pas
 démarrer avant que TASK-0012 soit approuvée (porte P3), exécutée, et ses
 verdicts lus.
 
+**Mise à jour du 2026-08-31, fin de journée.** La phase 1 bis a eu lieu :
+`TASK-0012`, `TASK-0013` et `TASK-0014` sont toutes trois **`VERIFIED`** sur
+contrôle indépendant — `ACTION-0021`, `ACTION-0023`, `ACTION-0024`. Les portes
+**P3** et **P3 bis** sont franchies; la porte **P4 reste ouverte et non
+franchie**, et **aucune ligne de code de production n'a encore été écrite**.
+
+**Deux contrôleurs de budget auto-régulé ont été éprouvés et rejetés.** Le
+principe **reste une piste** mais **cesse d'être un prérequis à P4** : il sera
+réévalué à l'étape **C**, dans le véritable hôte Tauri/WebView2 —
+[DEC-0015](docs/decisions/DEC-0015-product-parity-and-layout-scope.md) F.
+
+**La référence produit a été corrigée.** CarteTopo est la **référence
+fonctionnelle**; l'ancienne version publique de FileTopo est un **prototype et
+audit technique**. Le
+[contrat de parité](docs/product/CARTETOPO_FUNCTIONAL_PARITY.md) est le contrat
+produit courant, et quatre fonctions — `F-013`, `F-017`, `F-018`, `F-019` —
+sont remontées d'`ULTÉRIEUR` à `MVP`. **IA, OCR, extraction de contenu, RAG et
+GraphRAG restent DIFFÉRÉ.**
+
 ## Règles de passage
 
 Chaque phase exige une tâche approuvée, des critères d'acceptation, des données
@@ -43,3 +94,8 @@ synthétiques et des preuves. IMPLEMENTED ne devient VERIFIED qu'après contrôl
 indépendant. Une phase ultérieure ne justifie jamais de contourner la lecture
 seule, la confidentialité, la validation humaine des relations ou les points
 d'arrêt de [AGENTS.md](AGENTS.md).
+
+**S'y ajoutent, depuis le 2026-08-31 :** aucune amélioration visuelle ne peut
+supprimer une exigence de parité; toute suppression passe par une fiche `DEC`
+écrite; et une tranche de production qui n'embarque pas de budget adaptatif
+**doit borner sa charge autrement et le déclarer** dans sa fiche.

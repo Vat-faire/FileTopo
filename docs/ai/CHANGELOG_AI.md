@@ -1748,3 +1748,119 @@ et clôture uniquement), et la mémoire obligatoire.
 
 **`ACTION-0024`** — contrôle indépendant de `TASK-0014`, par une instance
 **distincte de l'exécuteur**. La porte **P4 reste ouverte et non franchie**.
+
+---
+
+## 2026-08-31 — ACTION-0024 et TASK-0015 — Clôture de B2 ter et réalignement produit sur CarteTopo
+
+**Agent :** Claude Code, session `filetopo-task-0015-product-parity`
+**Autorisations :** **GO technique de l'orchestrateur** pour la clôture
+`ACTION-0024` et pour l'exécution documentaire de `TASK-0015`;
+**instruction produit autoritative de Sébastien** pour la direction produit,
+point **non délégué**
+**Statut à l'issue :** `TASK-0014` → **`VERIFIED`**; `TASK-0015` →
+**`IMPLEMENTED`**, jamais auto-déclarée `VERIFIED`; `TASK-0016` →
+**`PROPOSED`**, non exécutée
+
+### Fait — ACTION-0024, clôture de TASK-0014
+
+- Contrôle indépendant des preuves de `B2 ter`, par une instance **distincte de
+  l'exécuteur**, **sans rejouer aucune mesure**.
+- **`TASK-0014` passe à `VERIFIED`**, avec **quatre réserves `W1` à `W4`**.
+  `VERIFIED` porte sur la **qualité des preuves**, pas sur le succès du
+  mécanisme.
+- **La correction minimale du budget est REJETÉE** : `G1` et `G2` réfutées,
+  éprouvées sur des critères écrits avant mesure.
+- **`G3` bloqué accepté** : la mesure était **vacueuse par construction**;
+  **aucune stabilité n'est prouvée** — réserve `W2`.
+- **`G9` accepté** : rien n'a changé après mesure; le geste sur la ligne de
+  verdict de `G3` **retire une fausse confirmation et n'en ajoute aucune**.
+- **`G8` accepté avec la réserve `W1`** : grandeur fragile, mais échantillons
+  réels et corroboration sur toute la période.
+- **Le budget adaptatif reste une piste mais cesse d'être un prérequis à
+  `P4`** : réévalué dans le véritable hôte Tauri/WebView2. **Aucun contrôleur
+  de `TASK-0013` ni de `TASK-0014` ne devient du code de production.**
+
+### Fait — TASK-0015, réalignement produit
+
+- **La référence produit est corrigée.** CarteTopo est la **référence
+  fonctionnelle**; l'ancienne version publique de FileTopo est un **prototype
+  et un audit technique**. « L'ancienne version ne le faisait pas » cesse
+  d'être un argument recevable.
+- **Contrat de parité créé** — `docs/product/CARTETOPO_FUNCTIONAL_PARITY.md` :
+  **22 exigences `P-01` à `P-22`** avec critères falsifiables, **trois
+  invariants** `I-1` à `I-3`, **règle de liberté visuelle** et sa
+  subordination, **règle complète des relations transversales**, **cinq manques
+  déclarés** `M-1` à `M-5`.
+- **L'interface visuelle est déclarée entièrement libre** — formes, couleurs,
+  typographie, panneaux, animations, organisation —, **sans copie pixel pour
+  pixel**, une nouvelle UX étant **encouragée**; **mais aucune amélioration
+  visuelle ne peut supprimer la parité**. En cas de conflit, **la parité
+  gagne**, et une suppression exige une fiche `DEC`.
+- **Quatre fonctions reclassées** d'`ULTÉRIEUR` à **`MVP`** : `F-013` panneau
+  latéral, `F-017` relations transversales, `F-018` mise en évidence, `F-019`
+  relations entrantes/sortantes. Répartition courante : **`MVP` 35,
+  `ULTÉRIEUR` 0, `DIFFÉRÉ` 4**, sur **39** lignes inchangées.
+- **`DEC-0015` créée**, qui supplante `DEC-0014` **sur deux points seulement** :
+  la **lecture produit** de son point `B` — `CAL-B` est une **primitive
+  technique**, pas un contrat visuel ni comportemental — et le **statut de
+  prérequis** de son point `E`. **`DEC-0014` n'a pas été réécrite** : un
+  **renvoi** est ajouté en tête de fiche.
+- **Feuille de route en quatre étapes** : **A** parité fonctionnelle MVP,
+  **B** finition visuelle moderne, **C** validation Windows/WebView2 réelle,
+  **D** empaquetage et publication. **La parité précède l'esthétique.**
+- **`TASK-0016` rédigée, `PROPOSED`** : une **tranche verticale de production
+  minimale** — racine synthétique → scan → index persistant → calepinage →
+  carte en blocs → sélection → détails, dans un **véritable hôte
+  Tauri/WebView2**. Six exigences de parité couvertes, le reste explicitement
+  hors périmètre. **Sans budget adaptatif, avec une borne de charge à déclarer
+  avant exécution.**
+
+### Non fait, volontairement
+
+- **Aucune ligne de code de production.** La porte **`P4` reste ouverte et non
+  franchie**, et **`TASK-0016` n'a pas été exécutée**.
+- **Aucune mesure, aucune exécution, aucun test, aucune dépendance.**
+  `TASK-0015` est **strictement documentaire** : les 22 critères de parité sont
+  des **cibles à falsifier**, **non testées**.
+- **Aucune réserve levée.** `V1` à `V4`, `W1` à `W4`, `R2` à `R9` restent en
+  vigueur; `R1` reste levée depuis `ACTION-0023`.
+- **Aucune fonction inventée** dans la matrice, même pour combler le manque
+  `M-1` sur la persistance des préférences.
+- **IA, OCR, extraction de contenu, RAG et GraphRAG restent `DIFFÉRÉ`** :
+  `DEC-0012` est inchangée, et **aucune exigence de parité ne peut être
+  satisfaite au moyen de l'une de ces couches**.
+- **Aucun paragraphe de `DEC-0014` modifié**, aucune preuve de `TASK-0012` à
+  `TASK-0014` retouchée, **`PROJECT_VISION.md` inchangé**.
+- **Aucune tentative WebView2**, ni Canvas 2D, ni WebGL.
+- **Aucune donnée, aucun nom privé, aucun chemin privé, aucune métadonnée ni
+  aucun code de la référence privée.** Aucune lecture ni écriture hors du
+  dépôt. Aucune donnée réelle. Aucune dépense.
+- **Aucune fusion, PR, release, étiquette, `force push`**, aucune réécriture
+  d'historique, aucun push vers `main`.
+
+### Fichiers
+
+**Créés :** `docs/reviews/ACTION-0024-independent-control.md`;
+`docs/tasks/TASK-0015-cartetopo-functional-parity.md`;
+`docs/product/CARTETOPO_FUNCTIONAL_PARITY.md`;
+`docs/decisions/DEC-0015-product-parity-and-layout-scope.md`;
+`docs/tasks/TASK-0016-p4-vertical-slice.md`.
+
+**Modifiés :** `docs/tasks/TASK-0014-b2-ter-budget-controller.md` (statut et
+historique uniquement); `docs/decisions/DEC-0014-layout-baseline-and-budget-direction.md`
+(**renvoi ajouté en tête, texte d'origine intact**);
+`docs/decisions/README.md`; `docs/product/REQUIREMENTS_BASELINE.md`;
+`docs/product/FEATURE_MATRIX.md`; `docs/product/REFERENCE_INTERFACE.md`
+(renvoi uniquement); `ROADMAP.md`; et la mémoire obligatoire —
+`CURRENT_STATE.md`, `NEXT_ACTION.md`, `HANDOFF.md`, `VALIDATION.md`,
+`CHANGELOG_AI.md`.
+
+**Inchangés, contrôlés par `git diff` : `src/`, `src-tauri/`, `tests/`,
+`public/`, `scripts/`, `.github/`, `spikes/`, `graph/` — sortie vide.**
+
+### Prochaine action unique
+
+**`ACTION-0025`** — contrôle indépendant du **réalignement produit** de
+`TASK-0015`, par une instance **distincte de l'exécuteur**, **puis décision de
+franchir la porte `P4`**. La porte **`P4` reste ouverte et non franchie**.

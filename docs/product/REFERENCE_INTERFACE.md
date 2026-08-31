@@ -3,6 +3,20 @@
 Cette référence traduit le comportement souhaité sans reprendre code, données
 ou catégories d'une interface privée de référence. Elle ne constitue pas une maquette finale.
 
+> **Renvoi ajouté le 2026-08-31 par `TASK-0015`. Le tableau ci-dessous est
+> inchangé.**
+>
+> Le contrat **exigible** qui découle de ces comportements est
+> [CARTETOPO_FUNCTIONAL_PARITY.md](CARTETOPO_FUNCTIONAL_PARITY.md) : il porte
+> les **22 exigences de parité** `P-01` à `P-22`, chacune avec un critère
+> d'acceptation falsifiable, les **trois invariants** `I-1` à `I-3`, la
+> **règle de liberté visuelle** et la **règle complète des relations
+> transversales**.
+>
+> Ce document-ci décrit **ce qui est souhaité**; le contrat de parité dit **ce
+> qui est exigible et comment le falsifier**. En cas de divergence de
+> formulation, **le contrat de parité prime**.
+
 | Domaine | Comportement cible | Mode |
 |---|---|---|
 | Création | Choisir une racine crée ou enregistre un cerveau et lance un flux guidé | Automatique avec confirmation |

@@ -38,6 +38,25 @@ septième fiche enregistre les arbitrages qui en découlent :
 atteints, après le contrôle indépendant
 [`ACTION-0023`](../reviews/ACTION-0023-independent-control.md).
 
+**Mise à jour du 2026-08-31 — réalignement produit.** Après le contrôle
+indépendant [`ACTION-0024`](../reviews/ACTION-0024-independent-control.md), qui
+clôt `TASK-0014` et **rejette** la correction minimale du budget, une huitième
+fiche enregistre l'instruction produit de Sébastien et ses suites techniques :
+
+| Fiche | État | Ce qui est retenu |
+|---|---|---|
+| [DEC-0015](DEC-0015-product-parity-and-layout-scope.md) | `APPROVED` | **CarteTopo est la référence fonctionnelle**; l'ancienne version publique de FileTopo est un **prototype et audit technique**, pas la référence produit; le [contrat de parité](../product/CARTETOPO_FUNCTIONAL_PARITY.md) devient le **contrat produit courant**; **`F-013`, `F-017`, `F-018`, `F-019` passent d'`ULTÉRIEUR` à `MVP`**; **`CAL-B` reste une primitive technique, pas un contrat visuel ni comportemental**; HTML/SVG accessible reste une **technologie candidate autorisée**, validée dans Tauri/WebView2; le **budget adaptatif reste une piste mais cesse d'être un prérequis à `P4`** |
+
+`DEC-0015` **supplante `DEC-0014` sur deux points seulement** — la lecture
+produit du point `B` et le statut de prérequis du point `E`. **Le texte de
+`DEC-0014` n'a pas été modifié** : elle reçoit un **renvoi** en tête de fiche.
+Ses mesures et ses trois restrictions obligatoires — `V1`, `V2`, `R8` —
+demeurent entières. **`DEC-0012` est inchangée** : IA, OCR, extraction, RAG et
+GraphRAG restent `DIFFÉRÉ`.
+
+Les points `A`, `B` et `C` de `DEC-0015` relèvent de la **direction produit de
+Sébastien**, que la délégation d'orchestration technique **ne couvre pas**.
+
 `DEC-0013` **complète** `DEC-0008`, `DEC-0009` et `DEC-0011` sans les
 remplacer : chacune porte un **amendement en fin de fiche**, et leur texte
 d'origine est conservé intact. Le paragraphe ci-dessus reste vrai **au moment

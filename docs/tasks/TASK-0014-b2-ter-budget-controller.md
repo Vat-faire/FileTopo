@@ -5,7 +5,9 @@
   budget auto-régulé, sur `CAL-B` comme calepin de référence, avec de
   **vraies** variations du seuil de visibilité et le **coût mesuré** des
   reconstructions DOM qu'elles provoquent
-- **Statut :** `IMPLEMENTED`
+- **Statut :** `VERIFIED` — attribué le 2026-08-31 par le contrôle indépendant
+  [ACTION-0024](../reviews/ACTION-0024-independent-control.md), **avec quatre
+  réserves `W1` à `W4`**. **La correction minimale du budget est REJETÉE.**
 - **Phase :** 1 ter — après
   [DEC-0014](../decisions/DEC-0014-layout-baseline-and-budget-direction.md) et
   le contrôle indépendant
@@ -324,6 +326,16 @@ conformément à [AGENTS.md](../../AGENTS.md).
   ont été **publiés**, sans changer le protocole ni rejouer une mesure.
   **`VERIFIED` n'est pas attribuée** : elle appartient à un contrôle
   indépendant.
+- 2026-08-31 — `VERIFIED` : contrôle indépendant
+  [`ACTION-0024`](../reviews/ACTION-0024-independent-control.md) **accepté**,
+  par une instance **distincte de l'exécuteur**, sur preuves, **avec quatre
+  réserves `W1` à `W4`**. `VERIFIED` porte sur la **qualité des preuves**, pas
+  sur le succès du mécanisme : **la correction minimale du budget est
+  REJETÉE**, `G3` bloqué est **accepté** — aucune stabilité n'est prouvée —,
+  `G9` est **accepté**, `G8` est **accepté avec la réserve `W1`**. Le principe
+  du budget adaptatif **reste une piste** mais **cesse d'être un prérequis à
+  `P4`** : il sera réévalué dans le véritable hôte Tauri/WebView2. **Aucun
+  contrôleur de `TASK-0013` ou `TASK-0014` ne devient du code de production.**
 
 ## 13. Rapport d'exécution
 
@@ -332,7 +344,9 @@ conformément à [AGENTS.md](../../AGENTS.md).
   depuis `933bd0d5e7e05e4e7fe233c5fc6b9320a194264d`
 - **Commit de préséance :** `4a5520b` — critères, configuration, matériel et
   protocole, **avant toute mesure**
-- **Statut à l'issue :** **`IMPLEMENTED`, jamais `VERIFIED`.**
+- **Statut à l'issue de l'exécution :** **`IMPLEMENTED`, jamais auto-déclarée
+  `VERIFIED`.** Passée à **`VERIFIED`** le 2026-08-31 par
+  [`ACTION-0024`](../reviews/ACTION-0024-independent-control.md)
 - **Journal, preuves et verdicts :**
   [TASK-0014-b2-ter-results.md](../research/TASK-0014-b2-ter-results.md)
 - **Mesures :** [PERF-0005](../performance/PERF-0005-b2ter-budget-controller.md)

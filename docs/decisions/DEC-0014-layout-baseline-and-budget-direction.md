@@ -12,6 +12,31 @@
   produit et les points d'arrêt réservés.
 - **Approuvée le :** 2026-08-31
 - **replaced_by :** —
+- **Supplantée en partie par :**
+  [DEC-0015](DEC-0015-product-parity-and-layout-scope.md), 2026-08-31, **sur
+  deux points seulement**
+
+> **Renvoi ajouté le 2026-08-31 par `TASK-0015`. Aucun paragraphe de cette
+> fiche n'a été modifié : le texte ci-dessous est celui du 2026-08-31, tel
+> qu'approuvé.**
+>
+> [`DEC-0015`](DEC-0015-product-parity-and-layout-scope.md) supplante cette
+> fiche **sur deux points, et deux seulement** :
+>
+> - **Point `B`** — sa **lecture produit** est supplantée. `CAL-B` reste un
+>   **candidat technique performant** et une **primitive de calepinage
+>   possible**; il **n'est ni le contrat visuel, ni le contrat comportemental**
+>   de FileTopo. **Ses mesures et ses trois restrictions obligatoires — `V1`,
+>   `V2`, `R8` — demeurent entières.**
+> - **Point `E`** — le principe du budget auto-régulé **reste conservé**, mais
+>   **cesse d'être un prérequis à la porte `P4`**. Il sera réévalué dans le
+>   véritable hôte Tauri/WebView2.
+>
+> **Le point `D` est étendu** par `DEC-0015` : le contrôleur de `TASK-0014`
+> rejoint celui de `TASK-0013` parmi les mécanismes **non adoptés**.
+> **Le point `C` est précisé** : HTML/SVG accessible devient « technologie
+> candidate autorisée » plutôt que « direction »; Canvas 2D et WebGL restent
+> fermés. **Les points `A` et `F` sont inchangés.**
 
 > **Cette fiche ne remplace ni `DEC-0008`, ni `DEC-0013`.** Elle les
 > **complète** sur les points que `B2 bis` a atteints. Leur texte est conservé

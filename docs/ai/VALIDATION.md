@@ -1685,3 +1685,132 @@ L'exécuteur les déclare et ne se donne pas quitus.
 tâche n'est `IN_PROGRESS`. La porte **P4 reste ouverte et non franchie**.
 L'action unique suivante est **`ACTION-0024`** — le contrôle indépendant de
 `TASK-0014`, par une instance **distincte de l'exécuteur**.
+
+## T. ACTION-0024 — contrôle indépendant de TASK-0014, et clôture (2026-08-31)
+
+**Contrôleur :** orchestrateur technique, instance **distincte de l'exécuteur**
+de `B2 ter`, sous la délégation de Sébastien du 2026-08-31.
+
+**Nature :** contrôle **sur preuves déjà publiées**. **Aucune mesure n'a été
+rejouée, aucune preuve nouvelle n'a été produite**, aucun fichier de spike n'a
+été retouché.
+
+**Résultat :** contrôle **accepté**. `TASK-0014` passe de `IMPLEMENTED` à
+**`VERIFIED`**, avec **quatre réserves `W1` à `W4`**.
+
+### T.1 Ce qui a été jugé, point par point
+
+| Point | Verdict du contrôle |
+|---|---|
+| `G1` et `G2` réfutées, publiées sans atténuation | **Accepté.** Publiées telles quelles partout, avec la **pire exécution** citée. Les trois lectures supplémentaires sont étiquetées comme n'établissant aucun verdict |
+| **Correction minimale du budget** | **REJETÉE.** Éprouvée sur ses propres critères écrits avant mesure, elle en manque les deux principaux |
+| `G3` bloqué | **Accepté.** Mesure **vacueuse par construction** : la fenêtre stable commence au dernier changement de niveau. **Aucune stabilité n'est prouvée** |
+| `G9` | **Accepté.** Aucun critère, seuil, configuration, contrôleur, page ni pilote n'a changé après mesure. Le geste sur `G3` **retire une fausse confirmation et n'en ajoute aucune** |
+| `G8` | **Accepté avec réserve `W1`** : la grandeur est fragile, mais la mesure possède des échantillons — 11 à 384 images sur Edge, 14 à 137 sur Chrome — et est corroborée par la médiane sur toute la période |
+| Contrôle ponctuel `CAL-A` / `SYN-WIDE` | **Ne valide rien** — réserve `W3`. Il tient sur Edge, pas sur Chrome |
+
+### T.2 Les quatre réserves du contrôle
+
+`W1` — `ips régime stable` reste fragile : toute citation de `G8` porte le
+nombre d'échantillons et la corroboration sur toute la période.
+
+`W2` — **aucune stabilité n'est prouvée.** Interdit d'écrire que le contrôleur
+corrigé est stable ou qu'il n'oscille pas.
+
+`W3` — le contrôle ponctuel ne valide rien, et rien n'en est déductible pour
+WebView2.
+
+`W4` — aucune marge alternative n'a été mesurée : ni hystérésis, ni marge
+intermédiaire, ni fenêtre désalignée du pas de synchronisation verticale.
+
+### T.3 Sort des réserves antérieures
+
+`V1` à `V4` d'`ACTION-0023` : **inchangées, en vigueur**. `R1` : **levée**
+depuis `ACTION-0023`. `R8` : **en vigueur, renforcée**. `R2` à `R7` et `R9` :
+inchangées. **Aucune réserve n'est levée par cette clôture.**
+
+### T.4 Conséquence
+
+Le **budget adaptatif reste une piste** mais **cesse d'être un prérequis à
+`P4`** : il sera réévalué dans le véritable hôte Tauri/WebView2. **Aucun
+contrôleur de `TASK-0013` ni de `TASK-0014` ne devient du code de production.**
+La porte **`P4` reste ouverte et non franchie**.
+
+## U. TASK-0015 — Réalignement produit sur la référence fonctionnelle (2026-08-31)
+
+**Nature du livrable :** **strictement documentaire. Aucune exécution, aucune
+mesure, aucun test, aucune dépendance, aucune ligne de code.** Les contrôles
+ci-dessous sont des **contrôles de contenu et de périmètre**, vérifiables par
+lecture et par `git diff`, **jamais des résultats d'exécution**.
+
+**Autorisations :** **instruction produit autoritative de Sébastien** pour la
+direction — point **non délégué**, `AGENTS.md` réservant les changements
+importants de portée produit —; **GO technique de l'orchestrateur** pour
+l'exécution documentaire et le push vers la branche de travail publiée.
+
+### U.1 Ce que l'instruction produit établit
+
+1. **CarteTopo est la référence fonctionnelle.**
+2. **L'ancienne version publique de FileTopo est un prototype et un audit
+   technique**, pas la référence produit.
+3. **FileTopo doit généraliser le bon fonctionnement de CarteTopo** à
+   n'importe quelle arborescence.
+4. **L'interface visuelle est entièrement libre**, sans copie pixel pour pixel;
+   une nouvelle UX est encouragée.
+5. **Aucune amélioration visuelle ne supprime la parité fonctionnelle.**
+
+### U.2 Livrables produits
+
+| # | Livrable | État |
+|---|---|---|
+| `L1` | `docs/product/CARTETOPO_FUNCTIONAL_PARITY.md` — 22 exigences `P-01` à `P-22`, 3 invariants, règle visuelle, règle des relations, 5 manques déclarés | **produit** |
+| `L2` | Reclassement de `F-013`, `F-017`, `F-018`, `F-019` d'`ULTÉRIEUR` à `MVP`, dans `REQUIREMENTS_BASELINE.md` et `FEATURE_MATRIX.md` | **produit** |
+| `L3` | `DEC-0015`, qui supplante `DEC-0014` sur **deux points seulement** | **produit** |
+| `L4` | Feuille de route `A` à `D` dans `ROADMAP.md` | **produit** |
+| `L5` | `TASK-0016`, première tâche `P4`, **`PROPOSED`, non exécutée** | **produit** |
+| `L6` | Mémoire obligatoire à jour | **produit** |
+
+### U.3 Contrôles de périmètre
+
+- **`git diff` sur `src/`, `src-tauri/`, `tests/`, `public/`, `scripts/`,
+  `.github/`, `spikes/` et `graph/` : sortie vide.** Aucun fichier de
+  production, de test, de spike ni de graphe n'a changé.
+- **`DEC-0014` n'a pas été réécrite** : un **renvoi** est ajouté en tête de
+  fiche; **aucun de ses paragraphes existants n'a été modifié**.
+- **La classification d'origine de `TASK-0011` est conservée et visible** pour
+  les quatre fonctions reclassées, ainsi que la répartition d'origine.
+- **La matrice reste à 39 lignes.** Aucune fonction n'a été inventée, même pour
+  combler le manque `M-1`.
+- **`F-021`, `F-037`, `F-038`, `F-039` restent `DIFFÉRÉ`.** `DEC-0012` est
+  inchangée.
+- **Aucune donnée, aucun nom privé, aucun chemin privé, aucune métadonnée et
+  aucun code de la référence privée** n'apparaît dans le contrat de parité ni
+  ailleurs. Toutes les exigences sont **génériques** et destinées à des
+  **fixtures synthétiques**. Le nom « CarteTopo » est employé parce que
+  **Sébastien l'a lui-même nommé** et a nommé le fichier.
+- **Aucune lecture, aucun listage et aucune écriture hors du dépôt.**
+- **Aucune dépense**, aucune donnée réelle, aucune publication externe.
+- **Aucune fusion, PR, release, étiquette, `force push`**, aucune réécriture
+  d'historique, aucun push vers `main`.
+- **Aucune tentative WebView2**, aucun Canvas 2D, aucun WebGL.
+- **`PROJECT_VISION.md` inchangé.**
+
+### U.4 Ce qui n'est pas prouvé, et doit être dit
+
+- **Aucun des 22 critères de parité n'a été exécuté.** Ce sont des **cibles à
+  falsifier**, pas des résultats.
+- **Aucune estimation d'effort** n'accompagne le reclassement, qui **augmente**
+  la charge du MVP de quatre fonctions dont un **modèle de provenance
+  entièrement à écrire**.
+- **Le manque `M-1` est déclaré, pas comblé** : la persistance des préférences
+  n'a pas de fonction propre dans la matrice.
+- **`R8` reste en vigueur** : aucune mesure de production n'existe, et aucun
+  chiffre de spike ne borne ce que FileTopo rendra.
+
+### U.5 Conséquence
+
+`TASK-0015` est **`IMPLEMENTED`**, jamais auto-déclarée `VERIFIED`. Aucune
+tâche n'est `IN_PROGRESS`. La porte **`P4` reste ouverte et non franchie** et
+**`TASK-0016` n'a pas été exécutée**. L'action unique suivante est
+**`ACTION-0025`** — contrôle indépendant du réalignement, **puis décision de
+franchir `P4`**.
