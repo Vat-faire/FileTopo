@@ -36,9 +36,38 @@ Lire, dans cet ordre :
 - Avant de terminer : mettre à jour CURRENT_STATE.md, NEXT_ACTION.md, HANDOFF.md, VALIDATION.md et CHANGELOG_AI.md. Ne modifier graph/ que si la tâche l'autorise explicitement.
 - NEXT_ACTION.md contient exactement une action.
 
-## Points d'arrêt
+## Délégation d'orchestration technique
 
-GO explicite de Sébastien requis avant toute publication ou écriture distante non déjà autorisée, dépense, achat, usage payant, opération destructive, accès hors dépôt, ou changement important de portée. Ne jamais modifier les documents analysés.
+Depuis le 2026-08-31, Sébastien délègue à un **orchestrateur technique** le
+choix des suites techniques, le franchissement des **portes techniques** et
+l'émission des **GO** à l'exécuteur. Sébastien conserve la **direction
+produit**. La délégation est **révocable par Sébastien à tout moment** et ne
+s'étend jamais aux points réservés ci-dessous.
+
+- Un GO technique n'autorise **que ce qu'il nomme**, et seulement du travail
+  écrit dans une fiche de tâche du dépôt, avec périmètre écrit.
+- Un GO technique peut attribuer `VERIFIED`, à condition que l'instance qui le
+  fait soit **distincte de l'exécuteur** et se prononce **sur preuves**. La
+  règle « l'exécuteur ne s'attribue pas `VERIFIED` » est inchangée.
+- Sous GO technique, l'écriture distante autorisée se limite au **push de
+  commits vers une branche de travail déjà publiée** de ce dépôt public, **sans
+  réécriture d'historique**.
+
+## Points d'arrêt — réservés à Sébastien, sans délégation
+
+GO explicite de **Sébastien** requis avant :
+
+- toute **dépense**, tout achat, tout usage payant, tout engagement financier;
+- toute **donnée réelle ou personnelle**, sous quelque forme que ce soit;
+- toute **publication externe exceptionnelle** : fusion vers `main`, pull
+  request, release, étiquette, annonce, nouveau dépôt ou nouveau distant;
+- toute **opération destructive ou hors dépôt** présentant un risque réel :
+  lecture, listage ou écriture hors du dépôt public, suppression, `reset`
+  destructif, `clean`, `force push`, réécriture d'historique, suppression de
+  branche distante;
+- tout **changement important de portée produit**.
+
+Ne jamais modifier les documents analysés.
 
 ## Rapport final minimal
 
