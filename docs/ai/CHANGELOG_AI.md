@@ -1542,3 +1542,105 @@ Aucune fusion, PR, release, étiquette, `force push`, ni push vers `main` ou
 ligne de code de production. La porte suivante est **P3 bis** — approuver ou
 corriger `TASK-0013`. Aucune tâche n'est `IN_PROGRESS`. L'action unique
 suivante est `ACTION-0022`.
+
+---
+
+## 2026-08-31 — TASK-0013 — B2 bis : calepins comparés, budget de rendu, SYN-100K
+
+**Agent :** exécuteur Claude Code, sous **GO technique de l'orchestrateur**,
+porte **P3 bis franchie**
+**Statut à l'issue :** **`IMPLEMENTED`** — `VERIFIED` **non attribuée**,
+l'exécuteur ne juge pas ses propres preuves
+**Branche :** `spike/v0.2-render-budget`, créée depuis `746f1b5` et publiée
+
+### Fait, avant la campagne
+
+- **Annexe jointe à `ACTION-0021`** : le **texte intégral des neuf réserves
+  `R1` à `R9`** du contrôle indépendant, sans changement de sens. La lacune
+  déclarée en section 3 point 3 et section 6 point 3 est **comblée**; **aucune
+  réserve n'est levée**. Commité et poussé sur
+  `spike/v0.2-technical-risk-gates` (`746f1b5`).
+- Branche dédiée créée depuis cette pointe contrôlée, racine, HEAD, distant et
+  arbre propre vérifiés.
+- `TASK-0013` passée `APPROVED` puis `IN_PROGRESS`.
+- **Banc d'essai écrit et commité AVANT toute mesure** (`85a4a05`) : les huit
+  critères `F1` à `F8` étaient déjà dans la fiche; le **plancher de lisibilité**
+  du budget et le **matériel de référence** sont commités dans le même point de
+  contrôle. **La préséance est vérifiable dans l'historique Git.**
+
+### Fait, pendant la campagne
+
+- **WebView2 tenté en premier**, comme §5.4 l'exige. Six tentatives conservées
+  avec commandes, codes de sortie et sorties d'erreur.
+- **Quatre phases mesurées, cinq exécutions par mesure**, sur **Microsoft Edge
+  152.0.4191.53**, avec **contrôle de continuité** sur **Google Chrome
+  151.0.7922.175**.
+- `SYN-100K` — 100 000 nœuds, graine fixe — **réellement joué**.
+- Déterminisme du budget vérifié par **rejeu hors navigateur de 80 traces
+  réelles**.
+- Verdicts `F1` à `F8` **calculés par script**, appliquant les énoncés à la
+  lettre.
+
+### Résultats
+
+| # | Verdict |
+|---|---|
+| `F1` calepin squarifié corrige `SYN-WIDE` | **CONFIRMÉE** — 119,05 ips et 14,1 ms p95 contre 21,79 et 43,5, **à nœuds DOM identiques** |
+| `F2` la géométrie explique l'avantage | **CONFIRMÉE** — aspect médian 1,01 contre 3 987,79 |
+| `F3` le squarifié ne coûte rien ailleurs | **CONFIRMÉE** — +20,2 % à +97,6 % |
+| `F4` le budget tient la cible | **RÉFUTÉE** — 26,60 ips en régime stable, convergence jusqu'à 6 065 ms |
+| `F5` le budget reste lisible | **CONFIRMÉE** — plancher atteint, tenu, **jamais franchi** |
+| `F6` `SYN-100K` tient `DEC-0008` | **CONFIRMÉE** — 120,48 ips, 8,2 ms p95, **3 461 blocs pour 100 000 indexés** |
+| `F7` l'accessibilité ne régresse pas | **CONFIRMÉE** — 32 / 32 |
+| `F8` le moteur est WebView2 | **RÉFUTÉE** — non instrumentable sans hôte embarqueur |
+
+**Deux réfutations sur huit, publiées telles quelles.** Les deux causes de
+`F4` sont mesurées et nommées : une zone morte qui tolère **26,1 ips** alors
+que la cible est 30, et un refroidissement qui rend la descente vers le détail
+trop lente. **Aucune constante n'a été retouchée** pour faire passer le critère.
+
+Deux constats de méthode : **le moteur pèse plus lourd que le calepin sur deux
+formes** — Chrome rend 0,50 à 0,71 fois les ips d'Edge sur la même machine — et
+**le banc reproduit `B2`** — 13,32 ips contre 14,08 publiées, même calepin,
+même moteur.
+
+### Non fait, volontairement
+
+- **Aucun fichier de production, de test, de dépendance, de verrou ni de
+  `graph/`** touché; quatre empreintes SHA-256 **inchangées**.
+- **Aucune dépendance** installée. **Ni Canvas 2D ni WebGL.**
+- **Aucune fiche `DEC` modifiée, aucune décision prise** : `TASK-0013` §6.1
+  interdit de choisir le calepin du produit ou d'adopter un budget.
+- **Aucune réserve levée.** `R1` est déclarée *comblée quant au protocole*, pas
+  levée : c'est au contrôle indépendant de trancher.
+- **Aucune correction de `B0`**, aucune suppression dans `src-tauri/target/`,
+  **aucun test inter-volume**.
+- **Aucune donnée réelle**, **aucune écriture hors du dépôt**, **aucune
+  dépense**.
+- **Aucune fusion, PR, release, étiquette, `force push`**, aucun push vers
+  `main`.
+
+### Correction de protocole, déclarée
+
+La phase de contrainte du plancher, d'abord jouée à 240 ips, s'est révélée
+**atteignable** en mode sans affichage sur écran 240 Hz et n'exerçait donc pas
+le plancher. Elle a été rejouée à **1 000 ips**, physiquement inatteignable.
+**Le protocole de cette phase a changé; aucun des huit critères n'a bougé.**
+
+### Fichiers
+
+**Créés :** `spikes/fixtures/synthetic-shapes.mjs`;
+`spikes/b2bis-layout-and-budget/` — `README.md`, `calepins.mjs`, `budget.mjs`,
+`map2.html`, `run-b2bis.mjs`, `detect-webview2.mjs`, `describe-shapes.mjs`,
+`replay-budget.mjs`, `verdicts.mjs`, `tables.mjs`;
+`docs/performance/PERF-0004-b2bis-layout-and-budget.md`;
+`docs/research/TASK-0013-b2-bis-results.md`.
+
+**Modifiés :** `docs/reviews/ACTION-0021-independent-control.md` (annexe
+`R1`–`R9`, sur la branche de départ); `docs/tasks/TASK-0013-*.md`; la mémoire
+obligatoire.
+
+### Prochaine action unique
+
+`ACTION-0023` — **contrôle indépendant de `TASK-0013`**, par une instance
+**distincte de l'exécuteur**. La porte **P4 reste ouverte et non franchie**.

@@ -1,17 +1,18 @@
 # État courant
 
 - **Dernière mise à jour :** 2026-08-31
-- **Branche active :** **`spike/v0.2-technical-risk-gates`**, publiée sur
-  origin, créée depuis `db8d3de0b20e7efbfe463a17c218cc14face39a8`
+- **Branche active :** **`spike/v0.2-render-budget`**, publiée sur origin,
+  créée depuis `746f1b5f93c9d7085516c0e56473a95dc2c2d178`
+- **`spike/v0.2-technical-risk-gates` :** `746f1b5…`, publiée — un seul commit
+  ajouté depuis la clôture d'`ACTION-0021` : l'**annexe `R1` à `R9`**
 - **`rebuild/v0.2-project-brain` :** inchangée, `db8d3de0…`, **non touchée**
 - **`main` :** inchangée, `91bbe90f0f99026c28cd345784d4f579a0016db2`, **non
   touchée**
 - **Dernière tâche vérifiée :** **`TASK-0012`, `VERIFIED` le 2026-08-31**, sur
   contrôle indépendant [`ACTION-0021`](../reviews/ACTION-0021-independent-control.md),
   **avec neuf réserves `R1` à `R9` maintenues**
-- **Tâche livrée, NON vérifiée :** aucune
-- **Tâche préparée, NON exécutée :** **`TASK-0013`, `PROPOSED`** — `B2 bis`,
-  calepin squarifié, budget de rendu auto-régulé, `SYN-100K`
+- **Tâche livrée, NON vérifiée :** **`TASK-0013`, `IMPLEMENTED` le
+  2026-08-31** — `B2 bis`, calepin squarifié, budget de rendu, `SYN-100K`
 - **Tâche IN_PROGRESS :** aucune
 - **Code applicatif :** **inchangé.** 0 fichier modifié sous `src/`,
   `src-tauri/`, `tests/`, `public/`, `scripts/`, `.github/` ou `graph/`. Les
@@ -19,205 +20,164 @@
   `src-tauri/Cargo.toml` et `src-tauri/Cargo.lock` sont **identiques avant et
   après**
 
-## Clôture d'ACTION-0021 — TASK-0012 est VERIFIED, six arbitrages sont pris
+## TASK-0013 est exécutée : huit verdicts, deux réfutations
 
-Le **contrôle indépendant est accepté**. `TASK-0012` passe de `IMPLEMENTED` à
-**`VERIFIED`**, **avec ses neuf réserves `R1` à `R9` maintenues** : `VERIFIED`
-ne les lève pas. La question 3 de `B4` ne bloque pas ce passage.
+`B2 bis` a été joué de bout en bout. Preuves :
+[journal et verdicts](../research/TASK-0013-b2-bis-results.md),
+[PERF-0004](../performance/PERF-0004-b2bis-layout-and-budget.md).
 
-Les verdicts deviennent enfin des décisions, dans une fiche dédiée :
-**[DEC-0013](../decisions/DEC-0013-post-risk-gate-technical-arbitration.md)**.
+| # | Énoncé | Verdict |
+|---|---|---|
+| `F1` | Le calepin squarifié corrige l'effondrement de `SYN-WIDE` | **CONFIRMÉE** |
+| `F2` | L'avantage du squarifié s'explique par la géométrie | **CONFIRMÉE** |
+| `F3` | Le squarifié ne coûte rien ailleurs | **CONFIRMÉE** |
+| `F4` | Le budget auto-régulé tient la cible | **RÉFUTÉE** |
+| `F5` | Le budget reste lisible | **CONFIRMÉE** |
+| `F6` | `SYN-100K` tient le protocole de `DEC-0008` | **CONFIRMÉE** |
+| `F7` | L'accessibilité ne régresse pas | **CONFIRMÉE** |
+| `F8` | Le moteur de référence est WebView2 | **RÉFUTÉE** |
 
-| # | Ce qui est arrêté |
-|---|---|
-| **B** | **`M-B` est la baseline de migration** : copie de sûreté **de fichier** sur base **quiescée**, migration transactionnelle **en place**, restauration si échec. `M-C` naïve **réfutée**; `M-C` durcie **documentée** comme alternative défensive, jamais baseline. **Le `M-B` mesuré n'exerçait pas l'API SQLite Online Backup** — c'était une copie de fichier |
-| **C** | **Canvas 2D n'est pas ouvert.** HTML/SVG accessible reste la direction. Le **plafond universel de 3 000 blocs est abandonné** comme règle de conception, au profit d'un **budget de rendu auto-régulé** et de l'**étude d'un calepin squarifié**. Les valeurs de `B2` **ne sont pas des plafonds universels**. **Réserve `SYN-100K` maintenue** : `B2` ne falsifie pas littéralement `DEC-0008` selon son protocole complet |
-| **D** | Inter-volume **non testé maintenant**, rien hors dépôt, point conservé **NON TESTÉ**. Invariant obligatoire : **`VolumeSerialNumber` + `FileId`**; **`FileId` seul interdit** |
-| **E** | **Aucune suppression** : le cache incrémental fautif de `src-tauri/target/` devra être **conservé ou renommé avant** renouvellement, dans une tâche distincte, pour préserver la reproduction de la panique du compilateur |
-| **F** | Identité après hydratation **ouverte**, risque **requalifié** : **perte potentielle d'état utilisateur non reconstructible, possiblement en masse**. À **fermer avant** l'implémentation de l'identité persistante et de l'état vu/non vu |
+**Aucun des huit énoncés n'a été modifié après la première mesure.** Le commit
+`85a4a05` porte les critères, le plancher de lisibilité et le matériel de
+référence; il **précède** toute mesure publiée. La préséance est vérifiable
+dans l'historique Git.
 
-Les trois fiches touchées — `DEC-0008`, `DEC-0009`, `DEC-0011` — portent
-désormais un **amendement en fin de fiche** qui renvoie à `DEC-0013`. **Leur
-texte d'origine est intact**; rien n'a été réécrit ni supprimé. Les documents de
-preuve — rapport de `TASK-0012`, `PERF-0001` à `PERF-0003` — sont **inchangés**.
+### Le calepin est la variable qui décide, pas le nombre de blocs
 
-**Gouvernance.** `AGENTS.md` et `CLAUDE.md` enregistrent la **délégation
-d'orchestration technique** du 2026-08-31 : l'orchestrateur technique donne les
-GO techniques; Sébastien conserve la direction produit et les points d'arrêt
-réservés — dépense, donnée réelle ou personnelle, publication externe
-exceptionnelle, opération destructive ou hors dépôt, changement important de
-portée.
+Sur `SYN-WIDE`, à **nombre de nœuds DOM identique** — 5 714 dans les deux cas :
 
-## Porte P3 franchie le 2026-08-31, TASK-0012 exécutée
+| | `CAL-A`, alterné | `CAL-B`, squarifié |
+|---|---:|---:|
+| Images par seconde, déplacement | **21,79** | **119,05** |
+| Sélection, p95 | 43,5 ms | 14,1 ms |
+| **Rapport d'aspect médian** | **3 987,79** | **1,01** |
 
-Sébastien a donné un **GO P3 explicite**, assorti d'une correction des
-livrables : `B1`, `B2` et `B3` portent désormais **chacun** sa fiche de
-performance distincte.
+`B2` avait *supposé* que l'effondrement de `SYN-WIDE` venait du calepin.
+**C'est mesuré, et c'est exact.** Ailleurs, le squarifié ne coûte rien : il
+gagne de **+20 %** à **+98 %** d'images par seconde sur `SYN-DEEP` et
+`SYN-EQUILIBRE`, à nombre de blocs égal.
 
-**Pour la première fois depuis `TASK-0010`, des choses ont été exécutées et
-mesurées.** Les cinq bancs d'essai ont rendu leurs verdicts.
+**Son prix est au calcul, pas à l'image** : jusqu'à **5,9 fois** le temps de
+calepinage sur `SYN-100K`, payé une fois par arborescence.
 
-| Banc | Verdict |
-|---|---|
-| `B0` | **SUCCÈS** — l'état réel est connu et écrit, échec compris |
-| `B1` | **`M-C` RÉFUTÉE telle qu'écrite**; confirmée seulement durcie |
-| `B2` | **Étude Canvas 2D autorisée**; plafonds réels mesurés |
-| `B3` | **`I-E` confirmée sur 5 points sur 6**; inter-volume non observé |
-| `B4` | **SUCCÈS** — 3 réponses sourcées, 1 déclarée non résolue |
+### SYN-100K a été joué — la réserve de volumétrie est comblée quant au protocole
 
-Preuves : [TASK-0012-risk-gate-results.md](../research/TASK-0012-risk-gate-results.md),
-[PERF-0001](../performance/PERF-0001-b2-rendering.md),
-[PERF-0002](../performance/PERF-0002-b1-sqlite-migration.md),
-[PERF-0003](../performance/PERF-0003-b3-windows-identity.md).
+100 000 nœuds, graine fixe, profondeur 6, branchement moyen 8,96. Avec `CAL-B`
+et budget actif : **120,48 ips** et **8,2 ms** au 95<sup>e</sup> centile — les
+**deux** seuils de §3.6 de `BASELINE_TARGETS`, tenus sur les cinq exécutions.
 
-### B0 — le prototype, tel qu'il est
+**3 461 blocs construits pour 100 000 éléments indexés**, soit **29 pour 1**.
+C'est exactement l'argument de fond de `DEC-0008` : le volume indexé n'est pas
+le volume dessiné.
 
-**Ce qui passe :** `pnpm install --frozen-lockfile`; **36 / 36** cas Vitest;
-`tsc --noEmit`; `vite build`; **13 / 13** tests Rust. Le décompte annoncé par
-l'ancien état est donc exact, **et il passe**.
+**L'exécuteur ne déclare pas la réserve `R1` levée.** Il écrit qu'elle est
+comblée **quant au protocole** — `SYN-100K` a été joué — et laisse le contrôle
+indépendant trancher.
 
-**Ce qui échoue, et n'a pas été corrigé :** `cargo build --locked` échoue avec
-une **panique interne du compilateur** `rustc 1.98.0`, **4 fois sur 4**. Un
-diagnostic complémentaire — `CARGO_INCREMENTAL=0`, sans rien supprimer —
-**réussit**. La cause est donc le **cache de compilation incrémentale** de
-`src-tauri/target/`, ignoré par Git, **et non le code source**.
+### Le budget fonctionne en principe; le contrôleur écrit ne tient pas F4
 
-**« Le dépôt ne se construit pas » serait faux.** « Sur cette machine,
-`cargo build` échoue tant que le cache incrémental hérité n'est pas
-renouvelé » est ce qui a été observé. La correction est **interdite** sans une
-autorisation distincte.
+Ce qui tient : **zéro oscillation** sur les huit lignes et les cinq exécutions;
+**plancher de lisibilité jamais franchi** sur seize lignes; sous une contrainte
+volontairement inatteignable, le budget monte au **niveau 13 sur 13**, atteint
+exactement **2 400 px²**, **s'y arrête et y reste** — il refuse d'agréger
+davantage alors qu'il n'atteint pas sa cible; **déterminisme vérifié** par
+rejeu hors navigateur de **80 traces réelles**, zéro divergence.
 
-### B1 — le résultat le plus important
+Ce qui ne tient pas, et pourquoi :
 
-La bascule `M-C` **telle que `DEC-0011` la décrit produit une base corrompue**.
-Un `-wal` orphelin, laissé par un écrivain tué, survit au `rename` : son nom
-étant dérivé du chemin cible, il devient mécaniquement le `-wal` de la
-**nouvelle** base, que SQLite détruit en le rejouant. `integrity_check` échoue,
-la base est illisible. **Ce n'est pas théorique : c'est reproduit.**
+1. **La zone morte tolère un régime stable sous la cible.** La marge haute de
+   1,15 place le déclenchement à 38,33 ms, soit **26,1 ips**. `CAL-A` sur
+   `SYN-WIDE` se stabilise à **26,60 ips**, sous les 30 exigées, sans même
+   approcher le plancher.
+2. **La descente vers le détail est trop lente.** Le refroidissement impose
+   trois fenêtres par niveau affiné : environ **3,6 s** pour revenir au détail
+   maximal, ce qui dépasse mécaniquement les 2 s dès que la machine a de la
+   marge.
 
-Une variante **durcie** — replier le WAL de l'ancienne base, puis supprimer les
-annexes de la cible avant la permutation, **dans cet ordre** — passe le même
-scénario, pour un **coût en temps nul** (776,9 ms contre 778,4 ms).
+**Ce qui est réfuté est le contrôleur écrit, pas le principe du budget.** Les
+deux causes sont des constantes déclarées avant mesure, et **elles n'ont pas
+été retouchées** pour faire passer le critère.
 
-Par ailleurs : **20 arrêts brutaux sur 20** laissent la cible soit ancienne
-intacte, soit nouvelle complète, jamais un mélange; le disque plein simulé
-échoue proprement dans les trois stratégies; le retour en arrière fonctionne.
-`M-B` est plus rapide de 15 % mais laisse une base 3,0 % plus grosse, et
-**l'argument du double espace disque ne se vérifie pas** (2,6 % d'écart).
+### WebView2 n'a pas pu être instrumenté — F8 réfutée, §5.4 appliqué
 
-### B2 — l'hypothèse de 3 000 blocs est remplacée
+WebView2 a été tenté **en premier**, comme la fiche l'exige. Le runtime
+**151.0.4129.107 est installé**. Sans `--embedded-browser-webview=1`,
+`msedgewebview2.exe` sort en **code 13** en 14 à 32 ms. Avec, il démarre,
+annonce un point d'accès DevTools, puis **s'arrête seul en 236 ms** : sans hôte
+embarqueur, le processus n'a rien à afficher. Une sonde toutes les 50 ms ne l'a
+**jamais** joint.
 
-À 3 000 blocs visibles, `SYN-WIDE` plafonne à **14,08 ips** contre 30 exigées.
-Le seuil est manqué, donc **l'étude de Canvas 2D est autorisée — l'étude, pas
-l'adoption**.
+Écrire un hôte embarqueur exigerait une **dépendance nouvelle** non préparée
+d'avance — ce que §4.3 rend **bloquant, jamais contournable** — et du **code
+d'hôte applicatif**, que la porte **P4** protège.
 
-Plafonds **réels**, mesurés par dichotomie : `SYN-EQUILIBRE` **3 743**,
-`SYN-DEEP` **3 063**, `SYN-WIDE` **entre 939 et 1 795**. L'hypothèse de 3 000
-était prudente sur une forme, juste sur une autre, **optimiste d'un facteur 3**
-sur la troisième. **Un plafond exprimé en nombre de blocs ne décrit pas ce qui
-détermine le coût** : la géométrie produite compte autant.
+**Substitut de référence : Microsoft Edge 152.0.4191.53** — WebView2 *est* Edge
+en mode embarqué, mais **une version majeure d'écart** les sépare.
+**Contrôle de continuité : Google Chrome 151.0.7922.175**, le moteur de `B2`,
+dont la version majeure est celle du runtime WebView2 installé.
 
-ARIA et clavier sont **conformes dans les 18 scénarios**, jusqu'à 5 002 blocs —
-un acquis que Canvas 2D devrait entièrement reconstruire.
+**L'écart avec WebView2 est déclaré NON MESURÉ.** Ni estimé, ni borné, ni
+réputé négligeable.
 
-### B3 — l'identité, et son coût
+### Deux constats de méthode qui pèsent sur toute lecture future
 
-`VolumeSerialNumber` + `FileId` 128 bits sont **obtenables sur Rust stable**,
-via `windows-sys =0.61.2` (`MIT OR Apache-2.0`, licence vérifiée), sur un
-descripteur ouvert en **accès nul**. L'identité **survit au renommage et au
-déplacement intra-volume**, pour un fichier comme pour un dossier.
+**1. Le moteur pèse plus lourd que le calepin sur deux formes.** Sur les 18
+couples non butés contre la synchronisation verticale, Chrome rend entre
+**0,50 et 0,71** fois les images par seconde d'Edge — médiane **0,60** — sur la
+**même machine**, la **même page**, le **même jour**. Sur `SYN-DEEP` et
+`SYN-EQUILIBRE`, cet écart est du même ordre que le gain du calepin. **La
+réserve `R8` sort renforcée de cette campagne, pas levée.**
 
-Coût : **28,3 µs par élément**, linéaire. Cela multiplie un parcours par 38,
-mais ne pèse que **2,83 s**, soit **3,1 %** du budget de 90 s de §3.2 de
-`BASELINE_TARGETS.md`.
-
-**Le comportement inter-volume n'a pas été observé** : le tester exigerait
-d'écrire hors du dépôt, condition d'arrêt de §13.2. Rien n'a été contourné.
-
-### B4 — trois réponses, une question ouverte
-
-Sur sources **Microsoft uniquement**. L'attribut normatif est
-`FILE_ATTRIBUTE_RECALL_ON_DATA_ACCESS`. Une **ambiguïté réelle** a été trouvée
-dans la source officielle : `FILE_ATTRIBUTE_EA` et
-`FILE_ATTRIBUTE_RECALL_ON_OPEN` portent **la même valeur**, et seul le contexte
-d'énumération les distingue.
-
-Règle retenue, **inconditionnelle** : **FileTopo ne lit jamais le contenu d'un
-fichier de l'utilisateur.** Ne pas faire dépendre la sûreté d'un bit ambigu
-supprime la classe entière de défauts.
-
-**Question non résolue, déclarée telle :** aucune source Microsoft trouvée sur
-la survie de l'identité à une hydratation. La recherche par moteur a été
-**interrompue par une limite de dépense du compte**.
+**2. Le banc reproduit `B2`.** `B2` avait mesuré `SYN-WIDE` à **14,08 ips** dans
+Chrome 151; `B2 bis` mesure **13,32 ips** avec le même calepin, le même moteur.
+L'instrument est vérifié.
 
 ## Ce qui n'a pas changé
 
-La baseline documentaire de `TASK-0011` reste approuvée et **intacte**. **Aucune
-fiche `DEC-0001` à `DEC-0012` n'a été modifiée** : les verdicts **alimentent**
-des décisions futures, ils ne les prennent pas.
-
-> **Précision du 2026-08-31, après `ACTION-0021`.** Le paragraphe ci-dessus
-> décrit l'état **à la fin de `TASK-0012`**, et il était exact : la tâche
-> s'interdisait de toucher une fiche `DEC`. À la clôture, les arbitrages ont
-> été pris dans **`DEC-0013`**, et `DEC-0008`, `DEC-0009` et `DEC-0011` ont
-> reçu un **amendement ajouté en fin de fiche**. Aucun texte antérieur n'a été
-> modifié ni supprimé.
+- **Aucune décision n'est prise.** `TASK-0013` §6.1 : la tâche ne choisit pas
+  le calepin du produit et n'adopte pas un budget. **Aucune fiche `DEC` n'a été
+  modifiée.**
+- **Aucune réserve n'est levée.** `R1` à `R9` d'`ACTION-0021` restent en
+  vigueur; leur texte intégral est désormais **joint en annexe** de cette fiche.
+- **Canvas 2D n'est pas ouvert**, ni WebGL. Rien n'a été prototypé de ce côté.
+- **L'échec de `B0` n'est pas corrigé** et le cache incrémental fautif est
+  **conservé**, conformément à `DEC-0013` E.
+- **L'inter-volume de `B3` reste NON TESTÉ**, la **question 3 de `B4` reste
+  ouverte**.
 
 ## Limites et risques
 
-- **`SIGKILL` n'est pas une coupure de courant.** Les 20 arrêts brutaux de `B1`
-  ne disent **rien** de la résistance à une panne d'alimentation.
-- **Le disque plein de `B1` est simulé** par injection `SQLITE_FULL`, pas réel.
-  Les échecs de copie et de renommage par manque d'espace ne sont pas couverts.
-- **Une seule machine, un seul volume NTFS, un seul système.** Aucune mesure
-  reproduite ailleurs. Le matériel est **au-dessus d'un poste ordinaire** : les
-  chiffres de `B2` sont un plafond favorable.
-- **Moteurs différents de la production.** `B1` mesure SQLite via `node:sqlite`,
-  pas `rusqlite`. `B2` mesure Chrome, **pas WebView2**.
-- **Ni Canvas 2D ni WebGL n'ont été mesurés.**
-- **Aucun lecteur d'écran réel** n'a été essayé; la conformité ARIA porte sur
-  les attributs produits.
-- **L'application n'a jamais été empaquetée ni lancée.** `tauri build` exigerait
-  de télécharger des empaqueteurs, interdit par §7.1.2.
-- **Aucune couverture de code mesurée.** « 36 tests passent » ne dit rien de ce
-  qu'ils couvrent.
-- Les cibles de `BASELINE_TARGETS.md` restent **non testées dans leur
-  ensemble** : `B3` n'en mesure qu'un poste.
-- Le dossier `graph/` n'a été ni lu ni modifié; ses fichiers restent
-  contradictoires.
-- `docs/tasks/TASK-0008-*.md` demeure `IMPLEMENTED` et se décrit comme « non
-  commitée » : incohérence historique connue, hors périmètre.
+- **Aucune mesure de production.** Ni WebView2, ni `rusqlite`, ni application
+  empaquetée. `B2 bis` mesure Edge et Chrome.
+- **Une seule machine**, nettement au-dessus d'un poste ordinaire, écran
+  **240 Hz**, **mode sans affichage**. Les valeurs sont un **plafond
+  favorable**.
+- **Les images par seconde sont quantifiées** par la synchronisation verticale,
+  en marches de 4,17 ms. Aucun écart ne doit être lu plus finement qu'une
+  marche. Les valeurs de **238,10** sont **butées**, pas mesurées.
+- **`revirtualisations = 0`** sur toutes les mesures à seuil imposé : le mode
+  `transform` est mesuré dans son cas **le plus favorable**. Réserve de `B2`
+  **non levée**.
+- **`F2` n'établit pas la causalité** : `CAL-B` gagne sur les deux grandeurs et
+  les trois formes, donc aucune expérience n'a pu faire diverger les deux
+  classements.
+- **Le plancher de lisibilité est un choix, pas une mesure.** 2 400 px² :
+  **aucun essai avec des personnes** ne l'a établi.
+- **Aucun lecteur d'écran réel.** La conformité ARIA porte sur les attributs
+  produits et sur `document.activeElement`.
+- Toutes les limites publiées par `TASK-0012` **restent entières** : `SIGKILL`
+  n'est pas une coupure de courant, disque plein simulé, une seule machine,
+  moteurs différents de la production.
 
 ## Porte humaine
 
-La porte **P3 est franchie**. La porte **P4 est ouverte et non franchie**.
+Les portes **P3** et **P3 bis** sont **franchies**. La porte **P4 est ouverte
+et non franchie**.
 
-`TASK-0012` a été livrée **`IMPLEMENTED`, jamais auto-déclarée `VERIFIED`** :
-l'exécuteur ne juge pas ses propres preuves. **`VERIFIED` a été attribuée le
-2026-08-31 par le contrôle indépendant `ACTION-0021`**, mené par une instance
-distincte de l'exécuteur.
+`TASK-0013` a été livrée **`IMPLEMENTED`, jamais auto-déclarée `VERIFIED`**.
+L'action unique suivante est **`ACTION-0023`** : un contrôle indépendant, mené
+par une instance **distincte de l'exécuteur**.
 
-**Aucune ligne de code de production ne peut être écrite avant P4.** La branche
-de spike n'est ni fusionnée, ni destinée à l'être automatiquement : la
-conserver, la fusionner ou la supprimer appartient à Sébastien.
-
-La porte suivante est **P3 bis** : approuver, ou corriger, `TASK-0013` —
-`B2 bis`. Elle est **ouverte et non franchie**; la fiche est `PROPOSED` et
-**aucun banc d'essai n'a été relancé**.
-
-## Réserves qui restent en vigueur à la clôture
-
-- **`R1` à `R9`** du contrôle indépendant. Leur **texte intégral n'est pas
-  encore dans le dépôt** : la lacune est déclarée en section 3 d'`ACTION-0021`
-  plutôt que comblée par une reformulation de mémoire.
-- **Réserve `SYN-100K`** : `B2` n'a pas joué `SYN-100K`, donc il **ne falsifie
-  pas littéralement `DEC-0008`** selon son protocole complet. `TASK-0013` doit
-  fermer ce trou.
-- **Inter-volume de `B3` : NON TESTÉ**, par décision, pas par oubli.
-- **Question 3 de `B4` : ouverte**, avec son risque **requalifié** en perte
-  potentielle d'état utilisateur non reconstructible, possiblement en masse.
-- **Échec de `B0` : non corrigé**, et le cache fautif est **conservé
-  volontairement** pour préserver la reproduction.
-- Toutes les limites déjà publiées par `TASK-0012` — `SIGKILL` n'est pas une
-  coupure de courant, disque plein simulé, une seule machine, moteurs
-  différents de la production — **restent entières**.
+**Aucune ligne de code de production ne peut être écrite avant P4.** Les deux
+branches de spike ne sont ni fusionnées, ni destinées à l'être automatiquement :
+les conserver, les fusionner ou les supprimer appartient à Sébastien.

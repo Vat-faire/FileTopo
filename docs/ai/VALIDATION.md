@@ -1469,3 +1469,110 @@ Arbitrages :
 `IN_PROGRESS`. La porte **P4 reste ouverte et non franchie** : aucune ligne de
 code de production. La porte suivante est **P3 bis** — approuver ou corriger
 `TASK-0013`. L'action unique suivante est `ACTION-0022`.
+
+---
+
+## Q. TASK-0013 — B2 bis : calepins, budget de rendu, SYN-100K (2026-08-31)
+
+**Statut : `TASK-0013` → `IMPLEMENTED`, jamais `VERIFIED`.** L'exécuteur ne
+juge pas ses propres preuves. Journal complet :
+[TASK-0013-b2-bis-results.md](../research/TASK-0013-b2-bis-results.md).
+Mesures : [PERF-0004](../performance/PERF-0004-b2bis-layout-and-budget.md).
+
+### Q.1 Ce qui a été exécuté, et ce qui a été seulement affirmé
+
+| Élément | Qualificatif | Preuve |
+|---|---|---|
+| Les deux calepins ont été mesurés sur les mêmes données et la même trajectoire | **mesuré** | 24 scénarios, 5 exécutions, `rapport-b2bis-edge.json` |
+| `SYN-100K` a été **réellement joué**, 100 000 nœuds | **mesuré** | phases B et C, `describe-shapes.mjs` confirme 100 000 nœuds obtenus |
+| Les deux seuils de §3.6 sont tenus sur `SYN-100K` sous budget et `CAL-B` | **mesuré** | 120,48 ips, 8,2 ms p95, 5 exécutions |
+| Le nombre de blocs simultanément visibles est **compté**, pas supposé | **mesuré** | `querySelectorAll` et longueur de l'ensemble visible, dans la page |
+| Le budget ne franchit jamais son plancher de lisibilité | **mesuré** | 16 lignes, dont 8 sous contrainte inatteignable |
+| Le plancher est **réellement atteint et tenu** sous contrainte | **mesuré** | niveau 13/13, seuil exactement 2 400 px², 8 lignes sur 8 |
+| Le contrôleur de budget est déterministe à entrées égales | **mesuré** | **80 traces réelles** rejouées hors navigateur, 0 divergence |
+| Le contrôleur n'écrit rien | **mesuré**, contrôle statique | 89 lignes de code examinées, commentaires retirés, aucun motif interdit |
+| Aucune régression d'accessibilité | **mesuré** | 32 / 32 scénarios, ARIA et clavier, `document.activeElement` inclus |
+| WebView2 n'est pas instrumentable sans hôte embarqueur | **mesuré** | 6 tentatives, codes de sortie et sorties d'erreur conservés |
+| Le banc reproduit `B2` | **mesuré** | 13,32 ips contre 14,08 publiées par `B2`, même calepin, même moteur |
+| L'écart entre WebView2 et les moteurs mesurés | **NON MESURÉ**, déclaré | §3.6 du journal |
+| Le comportement dans une fenêtre visible | **NON MESURÉ** | tout est en `--headless=new` |
+| Le seuil de lisibilité de 2 400 px² | **choisi, non mesuré** | aucun essai avec des personnes |
+| La causalité géométrique de `F2` | **non établie** | les deux classements coïncident, ils n'ont pas pu diverger |
+| Le comportement avec un lecteur d'écran réel | **NON TESTÉ** | conformité sur les attributs produits |
+
+### Q.2 Verdicts, tels que calculés par script
+
+| # | Verdict | Ce qui le fonde |
+|---|---|---|
+| `F1` | **CONFIRMÉE** | 119,05 ips et 14,1 ms p95 à 2 856 blocs, seuils tenus sur les 5 exécutions |
+| `F2` | **CONFIRMÉE** | aspect médian 1,01 contre 3 987,79; classements coïncidents sur 3 formes |
+| `F3` | **CONFIRMÉE** | `CAL-B` ne perd jamais; +20,2 % à +97,6 % |
+| `F4` | **RÉFUTÉE** | 4 lignes sur 8 échouent : 26,60 ips en régime stable, convergence jusqu'à 6 065 ms |
+| `F5` | **CONFIRMÉE** | plancher jamais franchi sur 16 lignes, atteint et tenu sous contrainte |
+| `F6` | **CONFIRMÉE** | `SYN-100K` joué, deux seuils tenus, 3 461 blocs relevés |
+| `F7` | **CONFIRMÉE** | 32 / 32 |
+| `F8` | **RÉFUTÉE** | serveur CDP jamais joignable, §5.4 appliqué intégralement |
+
+**Aucun critère n'a été modifié après la première mesure.** Le commit `85a4a05`
+porte les huit critères, le plancher de lisibilité et le matériel de référence;
+il précède toute mesure publiée. **La préséance est vérifiable dans
+l'historique Git**, elle n'est pas seulement affirmée.
+
+### Q.3 Une correction de protocole, déclarée et non dissimulée
+
+La phase de contrainte du plancher a d'abord été jouée à **240 ips**, cible qui
+s'est révélée **atteignable** en mode sans affichage sur un écran à 240 Hz :
+elle n'exerçait donc pas le plancher. La contrainte publiée a été portée à
+**1 000 ips**. **Ce changement porte sur le protocole de cette seule phase; les
+huit critères sont inchangés.** Déclaré en §2.2 de `PERF-0004`.
+
+### Q.4 Ce que l'étape n'a PAS fait
+
+- **Aucun fichier de production, de test, de dépendance, de verrou ni de
+  `graph/`** touché. `git diff` restreint à ces chemins : **vide**. Quatre
+  empreintes SHA-256 **inchangées**.
+- **Aucune dépendance installée**, ni dans le dépôt, ni sur le système.
+- **Ni Canvas 2D ni WebGL** prototypés, mesurés ou comparés.
+- **Aucune fiche `DEC` modifiée.** Aucune décision prise : `TASK-0013` §6.1
+  l'interdit.
+- **Aucune réserve levée.** `R1` à `R9` restent en vigueur; leur texte intégral
+  a été **joint en annexe** d'`ACTION-0021`, ce qui comble une lacune sans lever
+  aucune réserve.
+- **Aucune correction de `B0`**, aucune suppression dans `src-tauri/target/`.
+- **Aucun test inter-volume.**
+- **Aucune donnée réelle**, aucun fichier ni dossier de l'utilisateur.
+- **Aucune écriture hors du dépôt** : les profils de navigateur sont créés sous
+  `spikes/.work/b2bis/`, à l'intérieur du dépôt — contrairement à `B2`, qui les
+  plaçait dans le répertoire temporaire du système.
+- **Aucune fusion, PR, release, étiquette, `force push`**, aucune réécriture
+  d'historique, aucun push vers `main` ni vers `rebuild/v0.2-project-brain`.
+- **Aucune dépense.**
+
+### Q.5 Une précision de périmètre, déclarée
+
+`TASK-0013` §5.4 **impose** de tenter WebView2 en premier, ce qui suppose de
+**localiser puis lancer un exécutable installé sur le système** — ce que `B2`
+avait déjà fait pour Chrome sous le GO P3.
+
+Ce qui a été fait, exactement : lecture d'**une** valeur de version dans le
+registre, contrôle d'existence de **trois** chemins d'exécutables, et
+**lancement** de ces programmes. Ce qui n'a **pas** été fait : aucune lecture
+de document, de dossier utilisateur, de donnée personnelle ou de contenu hors
+du dépôt; **aucune écriture** hors du dépôt.
+
+Cette précision est écrite pour qu'un contrôle indépendant la juge, plutôt que
+de la découvrir.
+
+### Q.6 Rappel de la réserve `R9`, toujours applicable
+
+**Aucune dépense** n'a été engagée par cette étape. La précision de `R9` reste
+valable : la limite de dépense rencontrée par `B4` avait **refusé** la dépense,
+rien n'a été facturé.
+
+### Q.7 Conséquence
+
+`TASK-0013` est **`IMPLEMENTED`**. Aucune tâche n'est `IN_PROGRESS`. Les portes
+**P3** et **P3 bis** sont franchies; la porte **P4 reste ouverte et non
+franchie** : aucune ligne de code de production. L'action unique suivante est
+**`ACTION-0023`** — le contrôle indépendant de `TASK-0013`, par une instance
+**distincte de l'exécuteur**.
