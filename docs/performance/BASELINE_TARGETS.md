@@ -152,7 +152,7 @@ donc pas un facteur limitant du MVP.
 | Images par seconde pendant un déplacement continu, `SYN-100K` | ≥ 30 ips soutenues | **non testé** |
 | Latence entre un clic de sélection et l'affichage des détails | ≤ 150 ms au 95<sup>e</sup> centile | **non testé** |
 | Latence d'une requête de recherche, `SYN-100K` | ≤ 500 ms au 95<sup>e</sup> centile | **non testé** |
-| Nombre de primitives dessinées simultanément | Plafond déclaré et respecté, valeur à fixer par [DEC-0008](../decisions/DEC-0008-hierarchical-rendering.md) | **non testé** |
+| Blocs DOM/SVG construits et simultanément visibles | Plafond initial **proposé** de 3 000, à falsifier; voir [DEC-0008](../decisions/DEC-0008-hierarchical-rendering.md), section « Plafond initial proposé ». **Ce plafond n'est pas une capacité déclarée du produit.** | **non testé** |
 
 **Protocole.** Trajectoire de déplacement et de zoom scriptée, identique entre
 exécutions. Les images par seconde sont relevées par l'horloge de rendu du

@@ -418,6 +418,10 @@ appartient à Sébastien.
 - 2026-08-31 — `IMPLEMENTED` : les sept livrables `L1` à `L7` sont produits et
   les validations de la section 10 exécutées. **L'exécuteur ne s'attribue pas
   `VERIFIED`**; la vérification indépendante appartient à Sébastien (porte P2).
+- 2026-08-31 — `IMPLEMENTED`, **révisé** : quatre corrections motivées de
+  l'orchestrateur appliquées aux livrables. La baseline générale est acceptée,
+  **la porte P2 n'est pas franchie**. La tâche **reste `IMPLEMENTED`** et
+  n'est toujours pas `VERIFIED`. Voir section 17.
 
 ## 16. Rapport d'exécution — 2026-08-31
 
@@ -495,3 +499,124 @@ tranchée.
 `PROPOSED`. `DEC-0001` à `DEC-0006` sont inchangées. Aucune tâche n'est
 `IN_PROGRESS`. Action unique suivante : `ACTION-0018`, examen humain de la
 baseline et des six décisions par Sébastien.
+
+---
+
+## 17. Révision du 2026-08-31 — corrections de l'orchestrateur
+
+### 17.1 Cadre
+
+La baseline générale a été **acceptée**. Sébastien **n'approuve pas encore la
+porte P2**. Quatre corrections motivées ont été demandées et appliquées. Cette
+révision ne change ni l'état de la tâche — qui **reste `IMPLEMENTED`** — ni
+celui des six décisions — qui **restent toutes `PROPOSED`**. Aucun code, test,
+dépendance, fichier de `graph/`, fiche `VERIFIED` antérieure ni tâche suivante
+n'a été touché.
+
+### 17.2 Vérifications Git préalables — toutes réussies
+
+| Contrôle | Attendu | Constaté |
+|---|---|---|
+| Racine du dépôt | racine du dépôt public FileTopo | conforme |
+| Branche | `rebuild/v0.2-project-brain` | conforme |
+| HEAD au démarrage | `d7d9118ea66c63cd9ae8e18b406c6c0facb87689` | conforme |
+| Arbre de travail | propre | conforme, `git status --porcelain` vide |
+| SHA local = SHA distant | oui | `origin/rebuild/v0.2-project-brain` = `d7d9118e...` |
+| `main` local et distant | `91bbe90f0f99026c28cd345784d4f579a0016db2` | conforme, inchangée |
+| Tâches `IN_PROGRESS` | 0 | conforme |
+
+### 17.3 Correction 1 — périmètre MVP
+
+`F-024` « Copier le chemin » et `F-033` « Personnalisation du cerveau »
+passent de `ULTÉRIEUR` à **`MVP`**. Motif retenu : ces fonctions font partie
+de l'expérience explicitement demandée, pour reproduire de façon **générique**
+les options essentielles de l'interface de référence et pour **distinguer
+plusieurs cerveaux**.
+
+La portée `MVP` de `F-033` couvre cinq points : nom modifiable, couleur
+modifiable, icône modifiable, persistance indépendante par cerveau, et valeurs
+par défaut utilisables **sans configuration obligatoire**.
+
+Répartition révisée : **31 `MVP`**, **4 `ULTÉRIEUR`** (`F-013`, `F-017`,
+`F-018`, `F-019`), **4 `DIFFÉRÉ`** (`F-021`, `F-037`, `F-038`, `F-039`),
+total **39**. Les écarts déclarés avec la colonne « Priorité » passent de 9 à
+**11**.
+
+### 17.4 Correction 2 — rendu hiérarchique
+
+Dans `DEC-0008`, la recommandation principale devient :
+
+1. **HTML/SVG avec virtualisation et niveaux de détail** pour le MVP;
+2. **Canvas 2D seulement si** un banc d'essai synthétique démontre que
+   HTML/SVG ne tient pas les objectifs;
+3. **WebGL différé** jusqu'à ce qu'un besoin **mesuré** le justifie.
+
+Un **plafond initial proposé** de blocs DOM/SVG simultanément visibles est
+ajouté, explicitement marqué **« non testé »** et à falsifier par un banc
+d'essai. **Ce plafond n'est pas une capacité déclarée du produit.**
+
+### 17.5 Correction 3 — identité des fichiers
+
+Dans `DEC-0009`, la recommandation `I-D` — repli **automatique** sur
+l'heuristique — est remplacée par une stratégie sûre, `I-E` : identité Windows
+`VolumeSerialNumber` + `FileId` lorsqu'elle est disponible; repli
+**déterministe** par empreinte versionnée du chemin relatif sinon; heuristique
+**uniquement** comme « déplacement possible » ou suggestion visible et
+révocable. Aucune heuristique ne peut préserver automatiquement l'identité,
+l'état vu/non vu ou le journal comme s'il s'agissait d'un fait. Un déplacement
+inter-volume non prouvable reste **création + suppression**, avec suggestion
+facultative. La **provenance obligatoire de l'identité** et la recommandation
+`R-C` pour les relations sont conservées.
+
+### 17.6 Correction 4 — migration
+
+Dans `DEC-0011`, `S-C` reste la recommandation de stockage. `M-C` reste la
+**direction proposée**, mais ne pourra être approuvée pour implémentation
+qu'**après** un banc d'essai synthétique **Windows** démontrant : bascule
+sûre; traitement de `.wal` et `.shm`; arrêt brutal; espace disque
+insuffisant; retour à l'ancienne base. **`M-B` demeure le repli** si `M-C`
+n'est pas démontrée.
+
+### 17.7 Points acceptés sans correction
+
+`DEC-0007` (conserver Tauri 2, Rust, React, TypeScript et SQLite, en
+remplaçant le rendu); `DEC-0010` (`W-B` avec repli `W-C`, application `U-B`);
+`DEC-0012` (frontière `F-D`, IA entièrement facultative). L'absence de source
+externe dans `DEC-0012` est acceptée : c'est une décision de périmètre produit
+fondée sur la vision approuvée. Le journal USN reste une piste **différée**.
+La lacune WebGL n'est **pas** bloquante. L'ambiguïté des attributs
+infonuagiques reste un point à résoudre **avant leur implémentation**.
+
+### 17.8 Fichiers touchés par la révision
+
+| Fichier | Nature de la modification |
+|---|---|
+| `docs/product/REQUIREMENTS_BASELINE.md` | Correction 1 : classifications, répartition, écarts, critères |
+| `docs/product/FEATURE_MATRIX.md` | Correction 1 : colonne « Baseline TASK-0011 » de F-024 et F-033 |
+| `docs/product/USER_JOURNEY.md` | Correction 1 : E2 et E6 |
+| `docs/architecture/ARCHITECTURE_BASELINE.md` | Correction 3 : §3.2 et §5.2 |
+| `docs/architecture/TEST_STRATEGY.md` | Corrections 2 et 4 : R10, R11 et §6.1 |
+| `docs/performance/BASELINE_TARGETS.md` | Correction 2 : §3.6 |
+| `docs/decisions/DEC-0008-hierarchical-rendering.md` | Correction 2 |
+| `docs/decisions/DEC-0009-data-model-and-relations.md` | Correction 3 |
+| `docs/decisions/DEC-0011-brain-isolation-and-migrations.md` | Correction 4 |
+| `docs/decisions/DEC-0012-ai-architectural-boundary.md` | Correction 1 : compte de fonctions `MVP` |
+| `docs/tasks/TASK-0011-functional-architecture-baseline.md` | Cette section |
+| `docs/ai/CURRENT_STATE.md`, `NEXT_ACTION.md`, `HANDOFF.md`, `VALIDATION.md`, `CHANGELOG_AI.md` | Mémoire obligatoire |
+
+`ROADMAP.md`, `FORMAT_MATRIX.md`, `DEC-0007` et `DEC-0010` n'ont **pas** été
+modifiés : aucune correction ne les touche.
+
+### 17.9 Non testé
+
+Cette révision est **entièrement documentaire**. Aucun test, build,
+installation, essai Windows ni mesure. Les deux bancs d'essai qu'elle
+introduit — `B1` pour la bascule de migration, `B2` pour le plafond DOM/SVG —
+**n'ont pas été exécutés** et ne peuvent être cités comme des résultats.
+
+### 17.10 État à l'issue de la révision
+
+`TASK-0011` reste **`IMPLEMENTED`**, jamais `VERIFIED`. `DEC-0007` à
+`DEC-0012` restent toutes **`PROPOSED`**. `DEC-0001` à `DEC-0006` sont
+inchangées. Aucune tâche n'est `IN_PROGRESS`. La porte **P2 reste ouverte et
+non franchie**.

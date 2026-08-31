@@ -127,6 +127,8 @@ le 2026-08-31); le cas n'est donc pas hypothétique.
 | R7 | Racine supprimée entre deux lancements | Cerveau consultable en lecture; avertissement; aucune suppression de fichier |
 | R8 | Copie de sûreté impossible (écritures concurrentes permanentes) | Migration **différée**, pas forcée; cerveau ouvert en lecture seule; avertissement |
 | R9 | Version de schéma inconnue et plus récente | Refus d'ouvrir en écriture; aucune migration à rebours tentée |
+| R10 | Bascule de migration interrompue à chaque étape (base neuve, `.wal`, `.shm`, permutation) | Soit l'ancienne base intacte et ouvrable, soit la nouvelle complète; **jamais un mélange**; aucun `.wal` orphelin réassocié à la mauvaise base |
+| R11 | Retour à l'ancienne base après une bascule réussie | Retour effectif tant que l'ancienne base n'est pas supprimée; procédure de retour écrite et exécutée |
 
 **R8 est directement issu d'une source officielle.** L'API de sauvegarde en
 ligne redémarre à chaque écriture externe et « if the backup process is
@@ -134,6 +136,24 @@ restarted frequently enough it may never run to completion »
 ([SQLite Online Backup API](https://www.sqlite.org/backup.html), consultée le
 2026-08-31). Un plan de tests qui ignorerait ce cas laisserait passer un
 blocage documenté par l'éditeur.
+
+### 6.1 Bancs d'essai conditionnant deux décisions
+
+Deux décisions `PROPOSED` ne peuvent pas être approuvées pour implémentation
+sans un banc d'essai synthétique préalable. Ces bancs d'essai ne sont pas des
+tests de non-régression : ce sont les **preuves manquantes** de ces décisions.
+Aucun n'a été exécuté.
+
+| Banc d'essai | Conditionne | Doit démontrer | Statut |
+|---|---|---|---|
+| **B1 — Bascule de migration sur Windows** | [DEC-0011](../decisions/DEC-0011-brain-isolation-and-migrations.md), option M-C | Bascule sûre; traitement de `.wal` et `.shm`; arrêt brutal (R2, R10); espace disque insuffisant (R4); retour à l'ancienne base (R11) | **non exécuté** |
+| **B2 — Plafond de blocs DOM/SVG simultanément visibles** | [DEC-0008](../decisions/DEC-0008-hierarchical-rendering.md), option A | Sur `SYN-100K`, `SYN-DEEP` et `SYN-WIDE` : nombre réel de nœuds DOM construits, images par seconde soutenues, latence de sélection, sous le plafond initial proposé | **non exécuté** |
+
+**Conséquence pour B1.** Si l'un des cinq points de B1 n'est pas démontré,
+M-C n'est pas approuvable et **M-B demeure le repli**. **Conséquence pour
+B2.** Si A ne tient pas les objectifs de §3.6 de
+[BASELINE_TARGETS.md](../performance/BASELINE_TARGETS.md), alors — et seulement
+alors — Canvas 2D devient justifiée, mesure jointe.
 
 ## 7. T5 — Tests de performance
 
@@ -156,7 +176,7 @@ devient un test, avec son protocole. Règles :
 | T1 | Chaque invariant de sûreté a un test **négatif** qui échoue si l'invariant est violé, et chaque cas limite de §3 est couvert. |
 | T2 | Tous les scénarios de §4 passent, **et** l'empreinte des sources est identique avant et après dans chacun. |
 | T3 | Les 15 scénarios de §5 sont exécutés et consignés sur au moins une machine Windows réelle, M13 inclus. |
-| T4 | Les 9 scénarios de §6 laissent l'index ouvrable ou reconstructible et les sources intactes, sans exception. |
+| T4 | Les 11 scénarios de §6 laissent l'index ouvrable ou reconstructible et les sources intactes, sans exception, **et** les deux bancs d'essai de §6.1 ont été exécutés et publiés avant que les décisions qu'ils conditionnent changent d'état. |
 | T5 | Chaque cible de `BASELINE_TARGETS.md` a un fichier `PERF-XXXX` correspondant, réussite ou échec. |
 
 **Aucune catégorie ne compense une autre.** Une couverture unitaire élevée ne

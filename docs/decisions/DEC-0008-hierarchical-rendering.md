@@ -47,12 +47,17 @@ démontré par volumétrie et interactions attendues ». Aucune volumétrie n'ay
 
 **Aucune.** Le classement recommandé, soumis à Sébastien :
 
-1. **D — Canvas 2D au MVP, montée vers WebGL sur seuil mesuré** (recommandé);
-2. **A — HTML/SVG** (recommandé si la volumétrie visible réelle s'avère
-   faible; c'est l'option la plus sûre pour l'accessibilité);
-3. **B — Canvas 2D seul** (équivalent à D sans la porte de sortie);
-4. **C — WebGL** (non justifié à ce jour, faute de besoin de volumétrie
-   démontré, et pénalisé par l'absence de repli).
+1. **A — HTML/SVG avec virtualisation et niveaux de détail, pour le MVP**
+   (recommandé);
+2. **B ou D — Canvas 2D**, **seulement si** un banc d'essai synthétique
+   démontre que HTML/SVG ne tient pas les objectifs de
+   [BASELINE_TARGETS.md](../performance/BASELINE_TARGETS.md) §3.6;
+3. **C — WebGL, différé** jusqu'à ce qu'un besoin **mesuré** le justifie.
+
+Ce classement inverse celui d'une première rédaction de cette fiche, qui
+plaçait D en tête. Le motif du changement est écrit ci-dessous : aucune mesure
+ne justifie aujourd'hui d'imposer une seconde représentation DOM synchronisée,
+et la carte visée n'affiche jamais 100 000 blocs simultanément.
 
 **Élément commun à toutes les options, non négociable.** La représentation
 sémantique DOM — arbre ou liste virtuelle suivant le motif ARIA « Tree View » —
@@ -62,31 +67,66 @@ rester synchronisée. Aucune option ne permet de s'en passer.
 
 ## Motif
 
-**Pourquoi C recule.** Le seul argument de C est le plafond de primitives, et
-ce plafond n'est requis que si la carte affiche simultanément beaucoup plus
-d'éléments qu'une carte en blocs à niveau de détail n'en affiche. Cette
-volumétrie n'est **pas mesurée**. En face, l'absence de repli Canvas 2D dans
-PixiJS 8 est un fait vérifié : une machine sans WebGL utilisable n'a alors
-aucune carte, et la spécification HTML établit que `getContext()` peut
-renvoyer `null`. Retenir C aujourd'hui, ce serait accepter un risque
-d'indisponibilité totale du rendu pour un gain non démontré.
+**Pourquoi A est premier.** Cinq raisons, dont aucune ne dépend d'une mesure
+absente :
 
-**Pourquoi A n'est pas premier.** SVG place chaque bloc dans le DOM, ce qui
-est exactement ce qu'il faut pour l'accessibilité — mais la spécification SVG
-précise aussi que les éléments non rendus ne figurent pas dans l'arbre
-d'accessibilité, et le coût DOM par élément reste le facteur limitant à
-100 000 éléments indexés. A devient premier si la mesure montre que le nombre
-de blocs **simultanément visibles** reste de l'ordre du millier.
+1. **La carte n'affiche jamais 100 000 blocs simultanément.** Les 100 000
+   éléments visés par §3.6 de `BASELINE_TARGETS.md` sont un volume **indexé**,
+   pas un volume **dessiné**. Une carte hiérarchique à niveaux de détail
+   n'affiche que les niveaux pertinents et agrège le reste; le raisonnement qui
+   plaçait Canvas en tête confondait ces deux grandeurs.
+2. **Seuls les niveaux pertinents sont visibles.** Avec virtualisation — ne
+   construire que les blocs intersectant la fenêtre — et niveaux de détail —
+   remplacer un sous-arbre par un bloc agrégé sous un seuil de surface — le
+   nombre de nœuds DOM simultanés est borné par la surface de l'écran, pas par
+   la taille de l'index.
+3. **L'accessibilité est native, pas reconstruite.** Le clavier, les libellés,
+   le focus, le contraste élevé de Windows et `prefers-reduced-motion` sont
+   fournis par le DOM et le CSS. Sous B, C et D, chacun de ces points doit être
+   réimplémenté ou porté par une couche parallèle.
+4. **Le repli sans GPU est acquis par construction.** Il n'y a aucun contexte
+   de rendu à obtenir, donc aucun `null` à traiter : la spécification HTML
+   établit que `getContext()` peut échouer (P2), et A est la seule option qui
+   ne dépend d'aucun contexte.
+5. **Canvas imposerait immédiatement une deuxième représentation.** La
+   représentation sémantique DOM étant obligatoire dans tous les cas, choisir
+   Canvas revient à écrire et à **maintenir synchronisées** deux structures
+   décrivant le même arbre. C'est un coût certain contre un gain non mesuré.
 
-**Pourquoi D plutôt que B.** D est B, plus une porte de sortie explicitement
-conditionnée à une mesure. Le coût supplémentaire est celui d'écrire le seuil,
-pas d'écrire deux moteurs.
+**Pourquoi B et D reculent sans être rejetées.** Leur seul argument est le
+coût par primitive, qui ne devient décisif que si le nombre de blocs
+simultanément visibles dépasse ce que le DOM absorbe. Cette grandeur n'est
+**pas mesurée**. B et D restent donc des options légitimes, mais leur adoption
+est conditionnée à un **banc d'essai synthétique** qui falsifie A, jamais à une
+intuition. D conserve sur B l'avantage d'écrire son seuil.
+
+**Pourquoi C est différée.** Le seul argument de C est le plafond de
+primitives, et ce plafond n'est requis que si la carte affiche simultanément
+beaucoup plus d'éléments qu'une carte en blocs à niveaux de détail n'en
+affiche. En face, l'absence de repli Canvas 2D dans PixiJS 8 est un fait
+vérifié : une machine sans WebGL utilisable n'a alors aucune carte. Retenir C
+aujourd'hui, ce serait accepter un risque d'indisponibilité totale du rendu
+pour un gain non démontré. C n'est pas rejetée : elle est **différée jusqu'à ce
+qu'un besoin mesuré la justifie**.
+
+**Limite honnête de A.** La spécification SVG précise que les éléments non
+rendus ne figurent pas dans l'arbre d'accessibilité (P3) : une virtualisation
+qui retire des blocs du DOM doit donc porter `aria-level`, `aria-setsize` et
+`aria-posinset`, comme le motif ARIA « Tree View » l'exige quand l'ensemble des
+nœuds n'est pas dans le DOM (P6). Ce n'est pas un obstacle : c'est une
+obligation d'écriture.
 
 ## Conséquences
 
-- Le **plafond de primitives simultanées** doit être déclaré et mesuré
-  (§3.6 de `BASELINE_TARGETS.md`). Sans ce chiffre, aucune des options ne peut
-  être départagée par autre chose qu'une opinion.
+- Le **plafond de blocs DOM/SVG simultanément visibles** doit être déclaré,
+  puis falsifié par un banc d'essai (§3.6 de `BASELINE_TARGETS.md`). Un
+  plafond initial est proposé ci-dessous, explicitement **non testé**.
+- **La virtualisation et les niveaux de détail ne sont pas des optimisations
+  ultérieures** : ils sont la condition qui rend A tenable, donc ils
+  appartiennent au premier rendu écrit.
+- **B, C et D ne peuvent être adoptées que sur preuve.** Le banc d'essai
+  synthétique décrit ci-dessous est la condition d'un changement de moteur;
+  sans lui, le MVP reste en A.
 - Le test manuel **M13** de [TEST_STRATEGY.md](../architecture/TEST_STRATEGY.md)
   — « machine sans WebGL utilisable, le produit reste entièrement utilisable »
   — devient un **test de rejet** de cette décision.
@@ -98,6 +138,36 @@ pas d'écrire deux moteurs.
 - La question du relief composite de `DEC-0005` (six signaux pondérés) est
   **hors du MVP** : une carte en blocs n'en a pas besoin. Cette fiche ne
   modifie pas `DEC-0005`; elle propose de la considérer caduque pour le MVP.
+
+## Plafond initial proposé — **non testé**, à falsifier
+
+**Ce n'est pas une capacité déclarée du produit.** C'est une hypothèse de
+travail écrite pour être **réfutée** par un banc d'essai synthétique, au même
+titre que toute ligne de
+[BASELINE_TARGETS.md](../performance/BASELINE_TARGETS.md). Aucune
+communication, aucune documentation d'utilisateur et aucune fiche ultérieure
+ne peut la citer comme une performance atteinte.
+
+| Grandeur | Plafond initial proposé | Statut |
+|---|---:|---|
+| Blocs DOM/SVG construits et simultanément visibles, toutes profondeurs confondues | **≤ 3 000** | **non testé** |
+| Blocs DOM/SVG conservés hors fenêtre par la virtualisation (marge de défilement) | **≤ 1 000** | **non testé** |
+| Profondeur de niveaux de détail dessinée simultanément | **≤ 6 niveaux** sous la racine visible | **non testé** |
+
+**Origine du chiffre.** Il ne dérive d'aucune mesure. Il est posé comme une
+borne basse plausible, afin qu'un banc d'essai ait une hypothèse précise à
+contredire; il est volontairement inférieur à ce qu'un DOM moderne absorbe,
+pour qu'un dépassement constaté soit un signal et non une surprise.
+
+**Banc d'essai qui doit le falsifier.** Sur `SYN-100K`, `SYN-DEEP` et
+`SYN-WIDE`, avec une trajectoire de déplacement et de zoom scriptée identique
+entre exécutions : relever le nombre réel de nœuds DOM construits, les images
+par seconde soutenues et la latence de sélection. **Si A ne tient pas les
+objectifs de §3.6 de `BASELINE_TARGETS.md` sous ce plafond, alors — et
+seulement alors — B ou D devient justifiée**, mesure jointe. Tant que ce banc
+d'essai n'a pas été exécuté, la présente fiche ne prouve rien sur les
+performances : elle argumente sur des coûts d'architecture.
+
 
 ## Preuves
 

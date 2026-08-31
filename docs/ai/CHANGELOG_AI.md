@@ -1200,3 +1200,120 @@ fichiers autorisés de la section 5. Aucune tâche suivante créée ni démarré
 Aucune tâche n'est `IN_PROGRESS`. L'action unique suivante, `ACTION-0018`,
 appartient à Sébastien : examiner la baseline et les six décisions (porte P2).
 Aucune ligne de code ne peut être écrite avant P2 puis P3.
+
+---
+
+## 2026-08-31 — TASK-0011 — Révision de la baseline après corrections
+
+**Agent :** exécuteur Claude Code
+**GO :** corrections motivées de l'orchestrateur, 2026-08-31; le GO couvre la
+révision documentaire et le push du commit vers
+`origin/rebuild/v0.2-project-brain`, à l'exclusion de toute publication de
+produit, release, fusion, tag ou accès privé
+**Statut à l'issue :** `IMPLEMENTED`, **inchangé** — la baseline générale est
+acceptée mais la porte **P2 n'est pas franchie**; l'exécuteur ne s'attribue pas
+`VERIFIED`
+
+### Fait
+
+- Vérifications Git préalables : racine, branche `rebuild/v0.2-project-brain`,
+  HEAD `d7d9118e`, arbre propre, SHA local égal au SHA distant, `main` à
+  `91bbe90f` et **inchangée**, aucune tâche `IN_PROGRESS`. Toutes conformes.
+- **Correction 1 — périmètre MVP.** `F-024` « Copier le chemin » et `F-033`
+  « Personnalisation du cerveau » reclassées `ULTÉRIEUR` → **`MVP`**. Motif :
+  ces fonctions font partie de l'expérience explicitement demandée, pour
+  reproduire de façon générique les options essentielles de l'interface de
+  référence et pour distinguer plusieurs cerveaux. La portée `MVP` de `F-033`
+  couvre nom modifiable, couleur modifiable, icône modifiable, persistance
+  indépendante par cerveau, et valeurs par défaut utilisables sans
+  configuration obligatoire. Répartition : **31 `MVP`, 4 `ULTÉRIEUR`
+  (F-013, F-017, F-018, F-019), 4 `DIFFÉRÉ` (F-021, F-037, F-038, F-039)**,
+  total 39; écarts déclarés portés de 9 à **11**. Comptes, tableaux,
+  dépendances, parcours et références mis à jour dans
+  `REQUIREMENTS_BASELINE.md`, `FEATURE_MATRIX.md`, `USER_JOURNEY.md` et
+  `DEC-0012`.
+- **Correction 2 — rendu hiérarchique.** Dans `DEC-0008`, la recommandation
+  principale devient : HTML/SVG avec virtualisation et niveaux de détail pour
+  le MVP; Canvas 2D **seulement si** un banc d'essai synthétique démontre que
+  HTML/SVG ne tient pas les objectifs; WebGL **différé** jusqu'à un besoin
+  mesuré. Motifs écrits : la carte n'affiche jamais 100 000 blocs
+  simultanément; seuls les niveaux pertinents sont visibles; accessibilité,
+  clavier, libellés, focus et repli sans GPU sont natifs ou plus simples en
+  HTML/SVG; Canvas imposerait immédiatement une deuxième représentation DOM
+  synchronisée; aucune mesure actuelle ne justifie cette complexité. Un
+  **plafond initial proposé** de blocs DOM/SVG simultanément visibles est
+  ajouté, marqué **« non testé »** et à falsifier — **ce n'est pas une
+  capacité déclarée du produit**.
+- **Correction 3 — identité des fichiers.** Dans `DEC-0009`, la recommandation
+  `I-D` (repli **automatique** sur l'heuristique) est remplacée par `I-E` :
+  identité Windows `VolumeSerialNumber` + `FileId` lorsqu'elle est disponible;
+  repli **déterministe** par empreinte versionnée du chemin relatif sinon;
+  heuristique **uniquement** comme « déplacement possible » ou suggestion
+  visible et révocable. **Aucune heuristique ne peut préserver automatiquement
+  l'identité, le vu/non-vu ou le journal comme s'il s'agissait d'un fait.** Un
+  déplacement inter-volume non prouvable reste **création + suppression**, avec
+  suggestion facultative. La provenance obligatoire de l'identité et la
+  recommandation `R-C` pour les relations sont **conservées**.
+  `ARCHITECTURE_BASELINE.md` §3.2 et §5.2 alignées.
+- **Correction 4 — migration.** Dans `DEC-0011`, `S-C` **conservée** comme
+  recommandation de stockage. `M-C` **conservée comme direction proposée**,
+  avec mention explicite qu'elle ne pourra être approuvée pour implémentation
+  qu'après un banc d'essai synthétique **Windows** démontrant : bascule sûre;
+  traitement de `.wal` et `.shm`; arrêt brutal; espace disque insuffisant;
+  retour à l'ancienne base. **`M-B` demeure le repli** si `M-C` n'est pas
+  démontrée. `TEST_STRATEGY.md` reçoit les scénarios `R10` et `R11` et une
+  section §6.1 décrivant les bancs d'essai `B1` et `B2`, **tous deux non
+  exécutés**.
+- Mémoire obligatoire mise à jour : `CURRENT_STATE.md`, `NEXT_ACTION.md`
+  (`ACTION-0019`, action unique), `HANDOFF.md`, `VALIDATION.md` (section M) et
+  ce journal.
+
+### Points acceptés sans correction
+
+`DEC-0007` (conserver Tauri 2, Rust, React, TypeScript et SQLite, en
+remplaçant le rendu); `DEC-0010` (`W-B` avec repli `W-C`, application `U-B`);
+`DEC-0012` (frontière `F-D`, IA entièrement facultative). L'absence de source
+externe dans `DEC-0012` est acceptable : c'est une décision de périmètre
+produit fondée sur la vision approuvée. Le journal USN reste une piste
+**différée**. La lacune WebGL n'est **pas** bloquante. L'ambiguïté des
+attributs infonuagiques demeure un point à résoudre **avant leur
+implémentation**.
+
+### Vérifié
+
+Douze contrôles exécutés, **douze réussis** : 39 fonctions sans trou ni
+doublon; 31 / 4 / 4; 11 écarts justifiés; 0 divergence entre la baseline et la
+colonne de la matrice fonctionnelle; 0 état hors vocabulaire; 6 décisions sur 6
+à `PROPOSED`; `DEC-0001` à `DEC-0006` intactes; 217 liens locaux vérifiés, 0
+cassé; 1 action dans `NEXT_ACTION.md`; 0 tâche `IN_PROGRESS`; 0 donnée
+sensible sur 751 lignes ajoutées; 16 fichiers modifiés, tous dans le périmètre
+autorisé; 0 fichier de code, de test, de dépendance ou de `graph/`;
+`git diff --check` réussi. Détail en section M de [VALIDATION.md](VALIDATION.md).
+
+Un faux positif est déclaré : le motif `sk-` a d'abord signalé quinze
+correspondances, toutes issues de la chaîne « TASK-0011 » lue sans distinction
+de casse. Motif resserré : 0 correspondance.
+
+### Non testé
+
+Aucun test automatisé, build, installation, test manuel d'interface, essai
+physique Windows ni mesure de performance. Les tests du prototype n'ont pas été
+rejoués. Les deux bancs d'essai introduits, `B1` et `B2`, **n'ont pas été
+exécutés** : ce sont des preuves exigées, pas des résultats. Le plafond de
+blocs DOM/SVG est une hypothèse à réfuter, jamais une capacité.
+
+### Non fait, volontairement
+
+Aucun code, test, dépendance, fichier généré, `graph/`, tag, release ni
+historique modifié. `ROADMAP.md`, `FORMAT_MATRIX.md`, `DEC-0007`, `DEC-0010`,
+`docs/decisions/README.md` et `DEC-0001` à `DEC-0006` non modifiés. Aucune
+tâche suivante créée ni démarrée. Aucun push vers `main`, aucune fusion,
+aucune pull request, aucune release, aucun tag, aucun accès privé.
+
+### Conséquence
+
+`TASK-0011` reste `IMPLEMENTED`, jamais `VERIFIED`. `DEC-0007` à `DEC-0012`
+restent toutes `PROPOSED`. Aucune tâche n'est `IN_PROGRESS`. La porte **P2
+reste ouverte et non franchie**. L'action unique suivante, `ACTION-0019`,
+appartient à Sébastien : examen humain final et décision P2 après corrections.
+Aucune ligne de code ne peut être écrite avant P2 puis P3.

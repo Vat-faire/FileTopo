@@ -35,7 +35,7 @@ Les preuves et constats ci-dessous sont inchangés.
 | F-021 | Recherche sujet/rôle | Exploiter contenu/enrichissement | Non présente | aucun extracteur | Future | P2 | 10 | DEFERRED | Sources citées, fonctionnement local | `DIFFÉRÉ` |
 | F-022 | Filtres dynamiques | Tout, nouveaux, non vus et facettes | Type, en ligne, non vus | App.tsx:366 | Nouveaux et facettes manquent | P1 | 5 | PROPOSED | Filtres dérivés des données et combinables | `MVP` |
 | F-023 | Détails | Chemin, dates, parent, enfants, état | Type, taille, nombre d'enfants | App.tsx:389 | Panneau insuffisant | P0 | 5 | PROPOSED | Toutes propriétés essentielles cohérentes | `MVP` |
-| F-024 | Copier le chemin | Presse-papiers explicite | Aucune preuve trouvée | App.tsx | Manquant | P1 | 5 | PROPOSED | Copie exacte sans journal sensible | `ULTÉRIEUR` |
+| F-024 | Copier le chemin | Presse-papiers explicite | Aucune preuve trouvée | App.tsx | Manquant | P1 | 5 | PROPOSED | Copie exacte sans journal sensible | `MVP` |
 | F-025 | Ouvrir dans Explorateur | Dossier ouvert/fichier sélectionné | Présent, confinement vérifié par code | lib.rs:310 | Non rejoué dans TASK-0010 | P0 | 5 | IMPLEMENTED | Essai Windows synthétique et erreurs gérées | `MVP` |
 | F-026 | Contenu du dossier | Enfants directs consultables | Liste globale filtrée | App.tsx:378 | Vue contextuelle manque | P1 | 5 | PROPOSED | Liste exacte, paginée et navigable | `MVP` |
 | F-027 | Journal de changements | Créations, modifications, mouvements, renommages, suppressions | Absent | replace_nodes dans index.rs | Manquant | P0 | 6 | PROPOSED | Événements synthétiques complets et ordonnés | `MVP` |
@@ -44,7 +44,7 @@ Les preuves et constats ci-dessous sont inchangés.
 | F-030 | Surveillance automatique | Observer sans rescanner inutilement | Absente | aucune commande watcher dans lib.rs | Manquant | P0 | 6 | PROPOSED | Rafales, pertes et reprise testées | `MVP` |
 | F-031 | Mise à jour incrémentale | Modifier seulement les éléments touchés | DELETE puis réinsertion | index.rs:75-110 | À remplacer | P0 | 6 | PROPOSED | Coût proportionnel aux changements | `MVP` |
 | F-032 | Indisponibilité temporaire | Conserver le dernier état fiable | Diagnostics de lecture | scanner.rs:92 | Reprise complète non prouvée | P0 | 6 | PROPOSED | Lecteur absent ne vide pas l'index | `MVP` |
-| F-033 | Personnalisation | Nom, couleur, icône, préférences | Nom/couleur générés, pas d'icône | registry.rs:99-115 | Non configurable | P1 | 7 | PROPOSED | Valeurs éditables et persistantes | `ULTÉRIEUR` |
+| F-033 | Personnalisation | Nom, couleur, icône, préférences | Nom/couleur générés, pas d'icône | registry.rs:99-115 | Non configurable | P1 | 7 | PROPOSED | Valeurs éditables et persistantes | `MVP` |
 | F-034 | Plusieurs cerveaux | Sélection et chargement indépendants | Onglets enregistrés | App.tsx:148,310 | Onglet ne charge pas l'index | P0 | 7 | PROPOSED | Redémarrage et bascule restaurent chaque carte | `MVP` |
 | F-035 | FR/EN | Interface bilingue persistante | Présente | App.tsx; lib/locale.ts | Revalidation requise | P1 | 8 | IMPLEMENTED | Tests des deux langues et repli | `MVP` |
 | F-036 | Accessibilité | Clavier, contraste, alternatives | Liste DOM et attributs partiels | App.tsx; TerrainMap.tsx | Audit absent | P1 | 8 | PROPOSED | Audit automatisé, clavier et manuel | `MVP` |

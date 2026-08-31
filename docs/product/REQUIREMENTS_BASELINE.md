@@ -31,9 +31,12 @@ incrémentale robuste ».
 
 **Inférence.** La coupe est donc **conservatrice sur la chaîne structurelle**
 (racine → index → carte → navigation → surveillance) : rien n'y est retiré,
-parce qu'un maillon manquant y rend les autres mensongers. Elle est
-**agressive au-dessus** : relations transversales, personnalisation,
-enrichissement, extraction et IA sortent du MVP.
+parce qu'un maillon manquant y rend les autres mensongers. Elle retient
+aussi les gestes que la vision décrit comme essentiels et que la
+reconstruction doit reproduire de façon générique : agir sur l'élément
+sélectionné (F-024, F-025) et distinguer un cerveau d'un autre par son nom, sa
+couleur et son icône (F-033). Elle reste **agressive au-dessus** : relations
+transversales, enrichissement, extraction et IA sortent du MVP.
 
 **Incertitude.** Cette coupe est un jugement de projet, pas un résultat
 mesuré. Elle est falsifiable par la phase de développement : si un critère
@@ -44,8 +47,8 @@ décision écrite, jamais par omission silencieuse.
 
 | Classification | Nombre | Fonctions |
 |---|---:|---|
-| `MVP` | 29 | F-001 à F-012, F-014 à F-016, F-020, F-022, F-023, F-025 à F-032, F-034 à F-036 |
-| `ULTÉRIEUR` | 6 | F-013, F-017, F-018, F-019, F-024, F-033 |
+| `MVP` | 31 | F-001 à F-012, F-014 à F-016, F-020, F-022 à F-036 |
+| `ULTÉRIEUR` | 4 | F-013, F-017, F-018, F-019 |
 | `DIFFÉRÉ` | 4 | F-021, F-037, F-038, F-039 |
 | **Total** | **39** | `F-001` à `F-039`, sans trou ni doublon |
 
@@ -69,7 +72,7 @@ des correspondances attendues et ne constituent pas un écart.
 | F-009 | Panoramique | `MVP` | Une carte plus grande que l'écran et non déplaçable n'est pas navigable. | F-007 | Déplacement à la souris, au pavé tactile et au clavier; après déplacement, la position du bloc sélectionné dans l'index est inchangée. | **Oui** : P1 → `MVP`, car la navigation est nommée dans le paragraphe MVP de la vision et une carte immobile rend F-007 inutile. |
 | F-010 | Zoom | `MVP` | Sans zoom, les niveaux profonds d'un arbre réel sont inatteignables. | F-009 | Zoom borné (facteur minimal et maximal déclarés), centré sur le pointeur ou sur la sélection, accessible au clavier; aucun état de vue hors bornes atteignable. | **Oui** : P1 → `MVP`, même motif que F-009. |
 | F-011 | Ajuster à l'écran | `MVP` | Sans recadrage, un utilisateur qui s'est perdu n'a aucun moyen de revenir à une vue utile. | F-010 | Depuis n'importe quel état de vue atteignable, la commande rend la carte complète — ou la sélection — entièrement visible en une action. | **Oui** : P1 → `MVP`, sortie de secours indispensable dès que F-009 et F-010 existent. |
-| F-012 | Réinitialiser la vue | `MVP` | Une commande déterministe de retour à l'état initial est le filet de sécurité minimal du parcours. | F-010 | La commande produit exactement la même vue que l'ouverture du cerveau, vérifiée par comparaison des paramètres de vue; elle est atteignable au clavier. | **Oui** : P1 → `MVP`. Le rappel d'une vue *enregistrée* dépend de F-033 et reste hors du critère MVP. |
+| F-012 | Réinitialiser la vue | `MVP` | Une commande déterministe de retour à l'état initial est le filet de sécurité minimal du parcours. | F-010 | La commande produit exactement la même vue que l'ouverture du cerveau, vérifiée par comparaison des paramètres de vue; elle est atteignable au clavier. | **Oui** : P1 → `MVP`. Le rappel d'une vue *enregistrée* n'appartient pas à la portée MVP de F-033 et reste hors du critère. |
 | F-013 | Panneau latéral | `ULTÉRIEUR` | Masquer le panneau est un gain d'espace, pas une condition de véracité de la carte. | F-023 | Masquer puis afficher conserve la sélection, le défilement et les filtres; l'état survit au redémarrage. | — (P1) |
 | F-014 | Légende | `MVP` | Un codage couleur non expliqué contrevient au critère WCAG 1.4.1 et rend la carte indéchiffrable. | F-007 | Chaque couleur ou motif employé sur la carte figure dans la légende avec son sens; la légende est atteignable au clavier et lisible sans distinction de couleur. | **Oui** : P1 → `MVP`, exigence d'accessibilité de niveau A, pas un ornement (voir §5). |
 | F-015 | Sélection | `MVP` | Sans sélection, ni le panneau de détails ni l'ouverture Windows n'ont d'objet. | F-007 | Sélection à la souris et au clavier; la carte et la liste sémantique désignent le même nœud à tout instant, contrôlé sur une fixture synthétique. | — (P0) |
@@ -81,7 +84,7 @@ des correspondances attendues et ne constituent pas un écart.
 | F-021 | Recherche sujet/rôle | `DIFFÉRÉ` | Elle suppose une couche d'extraction de contenu explicitement hors du MVP structurel. | F-037 | Chaque résultat cite le fichier et l'emplacement extrait; fonctionnement entièrement local. | — (P2) |
 | F-022 | Filtres dynamiques | `MVP` | « Tout / Nouveaux / Non vus » est le mécanisme par lequel l'utilisateur consomme le journal de changements. | F-027, F-028 | Les trois filtres de base plus type et disponibilité sont combinables et dérivés de l'index; le total filtré égale le compte issu d'une requête indépendante. Les **facettes dynamiques dérivées des données** restent hors du critère MVP. | — (P1) |
 | F-023 | Détails | `MVP` | Sans chemin, dates, parent, enfants et état, la sélection n'apprend rien à l'utilisateur. | F-015 | Pour chaque nœud d'une fixture, les propriétés essentielles affichées égalent celles de l'index; les diagnostics d'accès sont affichés au lieu d'être masqués. | — (P0) |
-| F-024 | Copier le chemin | `ULTÉRIEUR` | L'ouverture dans l'Explorateur (F-025) couvre déjà le besoin d'agir sur un élément au MVP. | F-023 | La copie reproduit le chemin réel exact; aucun chemin n'est écrit dans un journal exportable. | — (P1) |
+| F-024 | Copier le chemin | `MVP` | Transporter un chemin vers un autre outil est un geste essentiel de l'interface de référence, que l'ouverture dans l'Explorateur (F-025) ne remplace pas. | F-023 | La copie reproduit le chemin réel exact du nœud sélectionné et est atteignable au clavier; contrôlée sur une fixture synthétique à noms longs et à caractères non ASCII; aucun chemin n'est écrit dans un journal exportable. | **Oui** : P1 → `MVP`, geste essentiel repris de l'interface de référence et reproduit de façon générique. |
 | F-025 | Ouvrir dans Explorateur | `MVP` | C'est la seule action sortante du produit et un critère de succès explicite de la vision. | F-023 | Sur une fixture synthétique Windows, un dossier s'ouvre et un fichier est sélectionné; une cible hors racine ou disparue produit une erreur explicite sans modification de la source. | — (P0) |
 | F-026 | Contenu du dossier | `MVP` | Descendre dans un dossier est le geste central d'une carte hiérarchique; sans lui, la carte ne se parcourt pas. | F-016 | La liste affiche exactement les enfants directs du nœud, paginée, et chaque entrée est sélectionnable au clavier. | **Oui** : P1 → `MVP`, parce que F-007 et F-016 ne produisent une navigation qu'accompagnés de ce geste. |
 | F-027 | Journal de changements | `MVP` | Sans journal, « Nouveaux », « Non vus » et la surveillance n'ont rien à afficher. | F-004, F-006 | Un scénario synthétique de créations, modifications, déplacements, renommages et suppressions produit exactement les événements attendus, ordonnés et attribués au bon nœud. | — (P0) |
@@ -90,7 +93,7 @@ des correspondances attendues et ne constituent pas un écart.
 | F-030 | Surveillance automatique | `MVP` | La vision promet une carte « maintenue à jour »; sans surveillance, la promesse est fausse. | F-027, F-031 | Rafale de 10 000 événements synthétiques, perte simulée d'événements et reprise après interruption aboutissent tous à un index égal à celui d'un scan complet de référence. | — (P0) |
 | F-031 | Mise à jour incrémentale | `MVP` | Le `DELETE` puis réinsertion du prototype rend toute surveillance inutilisable en coût. | F-004 | Le coût d'une mise à jour est proportionnel au nombre de changements, non à la taille de l'index : mesuré sur 1 000, 10 000 et 100 000 nœuds avec 10 changements, l'écart de durée reste sous un facteur déclaré. | — (P0) |
 | F-032 | Indisponibilité temporaire | `MVP` | Un lecteur débranché ne doit jamais être interprété comme une suppression massive. | F-030 | Racine rendue inaccessible : l'index et les préférences sont intacts, l'état est signalé, et aucun événement de suppression n'est journalisé. | — (P0) |
-| F-033 | Personnalisation | `ULTÉRIEUR` | Nom, couleur et icône améliorent le repérage sans conditionner l'exactitude de la carte. | F-002 | Les valeurs éditées persistent par cerveau au redémarrage et n'apparaissent dans aucun document analysé. | — (P1) |
+| F-033 | Personnalisation du cerveau | `MVP` | Sans nom, couleur et icône propres, l'isolation promise par F-002 et F-034 n'est pas perceptible : plusieurs cerveaux deviennent indiscernables pour l'utilisateur. | F-002 | **Portée MVP : nom modifiable, couleur modifiable, icône modifiable, persistance indépendante par cerveau, valeurs par défaut utilisables sans configuration obligatoire.** Sur trois cerveaux synthétiques : éditer l'un n'altère aucun autre; les valeurs éditées persistent au redémarrage; un cerveau créé sans aucune édition reste pleinement utilisable; aucune de ces valeurs n'apparaît dans un document analysé. | **Oui** : P1 → `MVP`, condition pour distinguer plusieurs cerveaux et reproduire génériquement les options essentielles de l'interface de référence. |
 | F-034 | Plusieurs cerveaux | `MVP` | Le défaut connu du prototype — l'onglet ne charge pas son index — est traité ici comme exigence, pas comme bogue reporté. | F-002 | Basculer d'onglet charge l'index, la carte, les filtres et la vue du cerveau visé; après redémarrage, chaque cerveau retrouve son état, vérifié sur trois cerveaux synthétiques. | — (P0) |
 | F-035 | FR/EN | `MVP` | Le bilinguisme persistant existe déjà dans le prototype; le perdre serait une régression visible. | — | Les deux langues couvrent l'intégralité des libellés de l'interface, le choix persiste au redémarrage, et un libellé manquant est détecté par un contrôle automatisé. | **Oui** : P1 → `MVP`, la vision exige FR/EN persistants et le prototype le fournit déjà. |
 | F-036 | Accessibilité | `MVP` | Le clavier (WCAG 2.1.1, niveau A) et le non-recours à la seule couleur (1.4.1, niveau A) sont des exigences, pas des ajouts. | F-009, F-014, F-015 | Niveau visé **WCAG 2.2 AA** : parcours complet au clavier sans piège, contraste ≥ 4,5:1 pour le texte, alternative non colorée pour chaque codage, `prefers-reduced-motion` respecté; audit automatisé plus contrôle clavier manuel. | **Oui** : P1 → `MVP`, motif ci-dessus et §5. |
@@ -105,15 +108,18 @@ des correspondances attendues et ne constituent pas un écart.
 
 - 39 lignes, identifiants `F-001` à `F-039`, aucun manquant, aucun dupliqué;
 - chaque ligne porte exactement une valeur parmi `MVP`, `ULTÉRIEUR`, `DIFFÉRÉ`;
-- **9 écarts** avec la colonne « Priorité » de la matrice fonctionnelle sont
-  déclarés et justifiés : F-009, F-010, F-011, F-012, F-014, F-026, F-028,
-  F-035, F-036. Tous vont de `P1` vers `MVP`; aucun n'abaisse une fonction
-  `P0`.
+- **11 écarts** avec la colonne « Priorité » de la matrice fonctionnelle sont
+  déclarés et justifiés : F-009, F-010, F-011, F-012, F-014, F-024, F-026,
+  F-028, F-033, F-035, F-036. Tous vont de `P1` vers `MVP`; aucun n'abaisse
+  une fonction `P0`.
 
-**Inférence.** Ces 9 écarts se concentrent tous dans « la navigation et les
+**Inférence.** Ces 11 écarts se concentrent dans « la navigation et les
 détails essentiels » que la vision place explicitement dans le MVP, plus
 l'accessibilité et le bilinguisme, qui sont des exigences de niveau A ou déjà
-acquises. Aucun écart n'élargit le MVP vers l'enrichissement ou l'IA.
+acquises, plus les deux gestes essentiels repris de l'interface de référence
+et reproduits de façon générique : agir sur l'élément sélectionné (F-024) et
+distinguer un cerveau d'un autre (F-033). Aucun écart n'élargit le MVP vers
+l'enrichissement, l'extraction ou l'IA.
 
 ## 5. Sources officielles citées par ce document
 

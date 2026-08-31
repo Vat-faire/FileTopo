@@ -110,21 +110,32 @@ bibliothèque standard : `volume_serial_number()` et `file_index()` sont
 
 **Conséquence, à trancher par [DEC-0009](../decisions/DEC-0009-data-model-and-relations.md).**
 Soit le projet ajoute une dépendance d'API Windows pour appeler
-`GetFileInformationByHandleEx(FileIdInfo)`, soit il renonce à l'identifiant
-système et corrèle par heuristique. Les deux options ont un coût réel; aucune
-n'est gratuite. **`TASK-0011` ne tranche pas.**
+`GetFileInformationByHandleEx(FileIdInfo)`, soit il s'en passe et retombe sur
+une empreinte **déterministe et versionnée** du chemin relatif. Les deux
+options ont un coût réel; aucune n'est gratuite. **`TASK-0011` ne tranche
+pas.**
 
-Tableau de survie visé (**cible, non testée**) :
+**Règle de sûreté proposée par `DEC-0009` (option I-E).** La ressemblance —
+nom, taille, dates, type — n'est **jamais** une source d'identité. Elle ne
+produit qu'un **« déplacement possible »**, affiché comme suggestion visible et
+révocable. Aucune heuristique ne peut préserver automatiquement l'identité,
+l'état vu/non vu ou le journal comme s'il s'agissait d'un fait. Un déplacement
+inter-volume non prouvable reste une **création plus une suppression**, avec
+suggestion facultative.
 
-| Événement sur la source | Identité système (C4) | Corrélation heuristique (nom + taille + dates + type) |
+Tableau de survie visé (**cible, non testée**). La troisième colonne décrit ce
+que la ressemblance permettrait de **suggérer**, jamais ce qu'elle autorise à
+écrire :
+
+| Événement sur la source | Identité système (C4) | Empreinte de chemin versionnée (repli déterministe) | Ressemblance — **suggestion seulement** |
 |---|---|---|
-| Renommage dans le même dossier | Survit | Survit probablement (taille et dates inchangées) |
-| Déplacement dans le même volume | Survit | Survit probablement |
-| Déplacement vers un autre volume | **Ne survit pas** (le numéro de série change) | Peut survivre |
-| Copie puis suppression de l'original | **Ne survit pas** (nouvel identifiant) | Peut survivre à tort — faux positif possible |
-| Modification du contenu seul | Survit | Fragile (taille et date changent) |
-| Restauration depuis une sauvegarde | **Ne survit généralement pas** | Peut survivre |
-| Reformatage ou changement de lettre de lecteur | **Ne survit pas** | Peut survivre |
+| Renommage dans le même dossier | Survit | **Ne survit pas** | Suggestion probable |
+| Déplacement dans le même volume | Survit | **Ne survit pas** | Suggestion probable |
+| Déplacement vers un autre volume | **Ne survit pas** (le numéro de série change) | **Ne survit pas** | Suggestion possible; sinon création + suppression |
+| Copie puis suppression de l'original | **Ne survit pas** (nouvel identifiant) | **Ne survit pas** | Suggestion possible, **faux positif possible** |
+| Modification du contenu seul | Survit | Survit (le chemin est inchangé) | Sans objet |
+| Restauration depuis une sauvegarde | **Ne survit généralement pas** | Survit si les chemins sont identiques | Suggestion possible |
+| Reformatage ou changement de lettre de lecteur | **Ne survit pas** | Survit si les chemins relatifs sont identiques | Suggestion possible |
 
 **Incertitude déclarée.** Aucune de ces lignes n'a été mesurée. Les
 fournisseurs de synchronisation infonuagique peuvent invalider l'identité
@@ -212,8 +223,8 @@ illustre, elle ne prouve pas le comportement de Windows.*
 | Rafale d'événements | Coalescence par clé stable, application par lots bornés. L'interface reste réactive; le compteur « Nouveautés » peut être en retard, jamais faux. |
 | Débordement de tampon (C1) | Le cerveau passe à **« à vérifier »**, une réénumération du sous-arbre concerné est planifiée, et l'index existant reste servi pendant ce temps. |
 | `ERROR_NOTIFY_ENUM_DIR` (C2) | Traité **identiquement** au débordement. |
-| Renommage | Corrélé par clé stable (§3.2). Non corrélable : journalisé comme une suppression **plus** une création, avec une mention explicite « non corrélé ». |
-| Déplacement | Idem renommage. Un déplacement inter-volume est attendu comme non corrélable par identité système. |
+| Renommage | Corrélé par clé stable (§3.2). Non corrélable : journalisé comme une suppression **plus** une création, avec une mention explicite « non corrélé » et, le cas échéant, une suggestion de « déplacement possible » que l'utilisateur accepte ou refuse. Une suggestion non acceptée n'écrit rien. |
+| Déplacement | Idem renommage. Un déplacement **inter-volume non prouvable** reste une création **plus** une suppression : il n'est jamais requalifié automatiquement en déplacement sur la seule foi d'une ressemblance. |
 | Suppression | Journalisée. **Jamais** déduite d'une absence d'événement ni d'une racine devenue illisible. |
 | Lecteur absent ou déconnecté | Cerveau « indisponible ». Aucune suppression journalisée. L'index et les préférences sont intacts (F-032). |
 | Système de fichiers non NTFS (C3) | Surveillance déclarée indisponible; repli sur parcours périodique explicite. Le cerveau ne s'affiche **jamais** « à jour » sur la seule foi d'un mécanisme absent. |

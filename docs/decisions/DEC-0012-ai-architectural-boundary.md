@@ -86,7 +86,8 @@ intention en critère de rejet.
 - **Ce qui reste dans le MVP structurel :** métadonnées (couche L-META),
   index reconstructible, carte hiérarchique, navigation, détails, recherche
   sur noms et chemins, filtres, journal de changements, surveillance, cerveaux
-  isolés, accessibilité, bilinguisme. Soit les 29 fonctions classées `MVP`
+  isolés, personnalisation du cerveau, accessibilité, bilinguisme. Soit les 31
+  fonctions classées `MVP`
   par [REQUIREMENTS_BASELINE.md](../product/REQUIREMENTS_BASELINE.md).
 - **Ce qui est au-delà de la frontière :** L-TEXT, L-MAIL, L-OCR, L-ENRICH,
   embeddings, recherche vectorielle, RAG, GraphRAG, et **toute relation

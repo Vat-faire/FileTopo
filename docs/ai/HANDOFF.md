@@ -3,8 +3,8 @@
 - **Date :** 2026-08-31
 - **Branche :** rebuild/v0.2-project-brain
 - **Base de la branche :** 91bbe90f0f99026c28cd345784d4f579a0016db2
-- **Commit livré :** celui portant le message « docs: establish functional architecture baseline », publié sur origin
-- **Tâches :** TASK-0010 VERIFIED le 2026-08-31; TASK-0011 IMPLEMENTED le 2026-08-31, non vérifiée
+- **Commit livré :** celui portant le message « docs: revise functional architecture baseline », publié sur origin; il révise le commit « docs: establish functional architecture baseline »
+- **Tâches :** TASK-0010 VERIFIED le 2026-08-31; TASK-0011 IMPLEMENTED le 2026-08-31 puis **révisée** le 2026-08-31, toujours non vérifiée
 - **Tâche IN_PROGRESS :** aucune
 
 ## Livré et pourquoi
@@ -14,8 +14,9 @@ exécutée intégralement. Elle produit la baseline qui manquait pour qu'une
 phase de développement puisse démarrer sans redécouvrir la conception :
 
 - **L1** — les 39 fonctions `F-001` à `F-039` sont classées `MVP`,
-  `ULTÉRIEUR` ou `DIFFÉRÉ` (29 / 6 / 4), chacune avec un motif, une dépendance
-  amont et un critère d'acceptation mesurable;
+  `ULTÉRIEUR` ou `DIFFÉRÉ` (**31 / 4 / 4** après la révision du 2026-08-31),
+  chacune avec un motif, une dépendance amont et un critère d'acceptation
+  mesurable;
 - **L2** — le parcours utilisateur va de la sélection d'une racine à une carte
   construite automatiquement, sans aucune configuration manuelle de la carte;
 - **L3** — la synthèse d'architecture relie modèle de données, indexation,
@@ -32,6 +33,30 @@ phase de développement puisse démarrer sans redécouvrir la conception :
 Aucune décision n'est arrêtée. `DEC-0001` à `DEC-0006` sont inchangées. Le
 prototype alpha reste intact : **aucun fichier de code, de test, de dépendance
 ni de `graph/` n'a été modifié.**
+
+## Révision du 2026-08-31 — quatre corrections appliquées
+
+La baseline générale a été **acceptée**; la porte **P2 n'est pas franchie**.
+Quatre corrections motivées ont été appliquées aux livrables, sans changer
+l'état de la tâche ni celui des décisions :
+
+1. **Périmètre MVP** — `F-024` et `F-033` passent à `MVP`; répartition
+   **31 / 4 / 4**, 11 écarts déclarés. La portée `MVP` de `F-033` couvre nom,
+   couleur, icône, persistance par cerveau et valeurs par défaut sans
+   configuration obligatoire.
+2. **Rendu (`DEC-0008`)** — HTML/SVG avec virtualisation et niveaux de détail
+   au MVP; Canvas 2D seulement sur banc d'essai; WebGL différé. Plafond initial
+   de blocs DOM/SVG proposé et marqué **« non testé »**.
+3. **Identité (`DEC-0009`)** — stratégie `I-E` : identité Windows si
+   disponible, repli déterministe par chemin relatif versionné sinon,
+   heuristique réduite à une **suggestion** révocable. Aucune heuristique ne
+   préserve automatiquement l'identité, le vu/non-vu ni le journal.
+4. **Migration (`DEC-0011`)** — `S-C` conservée; `M-C` conditionnée à un banc
+   d'essai synthétique Windows; `M-B` demeure le repli.
+
+Détail complet en section 17 de la
+[fiche TASK-0011](../tasks/TASK-0011-functional-architecture-baseline.md) et
+en section M de [VALIDATION.md](VALIDATION.md).
 
 ## Fichiers essentiels
 
@@ -62,6 +87,10 @@ six fiches de décision.
   `DEC-0003`/`DEC-0004` sur l'identité de fichier en Rust stable, et l'absence
   de repli Canvas 2D dans PixiJS 8. Voir
   [CURRENT_STATE.md](CURRENT_STATE.md).
+- Les deux bancs d'essai introduits par la révision — `B1` (bascule de
+  migration Windows) et `B2` (plafond de blocs DOM/SVG) — **n'ont pas été
+  exécutés**. Ils conditionnent respectivement `M-C` de `DEC-0011` et tout
+  passage à Canvas 2D dans `DEC-0008`.
 - `graph/` reste ancien et contradictoire; sa normalisation est toujours
   reportée.
 - `docs/tasks/TASK-0008-*.md` demeure `IMPLEMENTED` et se décrit encore comme
@@ -70,8 +99,8 @@ six fiches de décision.
 
 ## Prochaine action unique
 
-Sébastien examine la baseline et les six décisions `DEC-0007` à `DEC-0012`,
-puis les corrige, les approuve ou les rejette (porte P2). Aucune tâche
+Sébastien examine la baseline **corrigée** et les six décisions `DEC-0007` à
+`DEC-0012`, puis franchit ou refuse la porte P2 (`ACTION-0019`). Aucune tâche
 d'implémentation ne démarre avant P2 **et** P3.
 
 ## Commandes sûres
@@ -85,7 +114,8 @@ d'implémentation ne démarre avant P2 **et** P3.
 ## Message court pour Claude Code
 
 Lis seulement CLAUDE.md, docs/ai/START_HERE.md, docs/ai/CURRENT_STATE.md et
-docs/ai/NEXT_ACTION.md. La baseline de TASK-0011 existe mais n'est pas
-approuvée : ses six décisions sont `PROPOSED` et n'autorisent rien. Ne modifie
+docs/ai/NEXT_ACTION.md. La baseline de TASK-0011 existe, a été corrigée
+le 2026-08-31, mais n'est **pas** approuvée : ses six décisions sont `PROPOSED`
+et n'autorisent rien. Ne modifie
 rien, et n'écris aucune ligne de code, avant un GO explicite de Sébastien sur
 les portes P2 puis P3.

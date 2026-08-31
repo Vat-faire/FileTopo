@@ -60,8 +60,32 @@ aucune copie de sûreté, aucun contrôle d'intégrité et aucun retour arrière
 **Stockage :** 1. **S-C** (recommandé) — 2. S-A — 3. S-B (rejetée :
 l'isolation par discipline de requête est exactement le défaut à éliminer).
 
-**Migrations :** 1. **M-C** (recommandé) — 2. M-B — 3. M-D en **repli** de
-M-C, jamais seul — 4. M-A (rejetée : pas de retour arrière).
+**Migrations :** 1. **M-C** (direction proposée, **conditionnelle**) —
+2. **M-B** (repli, applicable sans condition préalable) — 3. M-D en **repli**
+de M-C, jamais seul — 4. M-A (rejetée : pas de retour arrière).
+
+**Condition explicite attachée à M-C.** M-C est proposée comme **direction**,
+et rien de plus. Elle **ne pourra être approuvée pour implémentation
+qu'après** un banc d'essai synthétique exécuté sur une machine **Windows**
+réelle, démontrant les cinq points suivants — chacun observé, pas supposé :
+
+| # | Ce que le banc d'essai doit démontrer |
+|---|---|
+| 1 | **Bascule sûre** : la permutation ancienne base → nouvelle base est observée comme atomique du point de vue de l'application, sans état intermédiaire ouvrable |
+| 2 | **Traitement de `.wal` et `.shm`** : les fichiers annexes de l'ancienne et de la nouvelle base sont traités correctement à la bascule; aucun `.wal` orphelin n'est réassocié à la mauvaise base |
+| 3 | **Arrêt brutal** : une interruption du processus à chaque étape de la bascule laisse soit l'ancienne base intacte et ouvrable, soit la nouvelle complète — jamais un mélange |
+| 4 | **Espace disque insuffisant** : la construction de la nouvelle base échoue proprement, l'ancienne reste intacte et ouvrable, et l'échec est signalé à l'utilisateur |
+| 5 | **Retour à l'ancienne base** : après une bascule, le retour à la base précédente est effectivement possible tant que celle-ci n'a pas été supprimée, et la procédure de retour est écrite |
+
+**Tant que ce banc d'essai n'a pas été exécuté et publié, M-C reste
+`PROPOSED` et ne peut pas être implémentée.** Si l'un des cinq points n'est pas
+démontré, **M-B demeure la stratégie de repli** : copie de sûreté, migration en
+place, restauration si échec — avec sa limite documentée par l'éditeur (P1),
+qui doit alors être traitée par suspension des écritures et délai maximal.
+
+Ce banc d'essai est décrit comme scénarios de récupération dans
+[TEST_STRATEGY.md](../architecture/TEST_STRATEGY.md) §6 (R2, R4, R10, R11) et
+§6.1.
 
 ## Motif
 
@@ -84,6 +108,15 @@ documente qu'elle peut ne jamais terminer sous écritures concurrentes. M-C
 n'a pas ce problème : l'ancienne base n'est pas copiée, elle est **laissée
 telle quelle** pendant que la nouvelle se construit. Le retour arrière n'est
 pas une opération de restauration, c'est l'absence de bascule.
+
+**Pourquoi cet avantage reste néanmoins conditionnel.** L'argument ci-dessus
+est un raisonnement, pas une observation. La mécanique de bascule sous Windows
+— renommage de la base **et** de ses fichiers `.wal` et `.shm`, comportement
+sous arrêt brutal, comportement à disque plein — n'a été vérifiée sur **aucune
+source primaire** et n'a été **essayée sur aucune machine**. Recommander M-C
+sans cette réserve reviendrait à traiter une inférence comme une preuve, ce
+que la baseline interdit ailleurs. D'où la condition écrite ci-dessus, et le
+maintien de M-B comme repli applicable immédiatement.
 
 **M-D en repli, jamais seul.** Quand M-C échoue — schéma trop divergent,
 espace insuffisant, corruption — la reconstruction depuis les sources reste
@@ -137,8 +170,12 @@ acceptable que si S-C est retenue.
   mesurée.
 - La mécanique exacte de bascule atomique sous Windows — renommage de la base
   **et** de ses fichiers `.wal`/`.shm` associés — n'a **pas** été vérifiée sur
-  source primaire. C'est une incertitude qui pèse directement sur M-C et qui
-  doit être levée avant approbation.
+  source primaire et n'a été essayée sur aucune machine. C'est l'incertitude
+  qui rend M-C **conditionnelle** : elle doit être levée par le banc d'essai
+  décrit en section « Décision » avant toute approbation pour implémentation.
+- **Le banc d'essai lui-même n'a pas été exécuté.** Les cinq points qu'il doit
+  démontrer sont des exigences écrites, pas des résultats. Aucun ne peut être
+  cité comme acquis.
 - Le comportement d'un antivirus vis-à-vis d'un renommage de base pendant une
   bascule n'est pas connu.
 - Cette fiche dépend de [DEC-0009](DEC-0009-data-model-and-relations.md) pour

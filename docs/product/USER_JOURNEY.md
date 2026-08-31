@@ -78,10 +78,10 @@ E8  Retour : redémarrage, bascule de cerveau, indisponibilité temporaire
 
 | Aspect | Comportement cible |
 |---|---|
-| Ce que l'utilisateur voit | Un écran de confirmation : le nom du dossier choisi, un nom de cerveau pré-rempli et modifiable, une couleur par défaut. Un bouton « Créer ». |
-| Ce qu'il ne fait pas | Il ne choisit **ni** disposition, **ni** algorithme, **ni** métrique de carte. La carte n'est pas configurable : elle est dérivée. |
+| Ce que l'utilisateur voit | Un écran de confirmation : le nom du dossier choisi, un nom de cerveau pré-rempli et modifiable, une couleur et une icône par défaut, l'une et l'autre modifiables. Un bouton « Créer ». |
+| Ce qu'il ne fait pas | Il ne choisit **ni** disposition, **ni** algorithme, **ni** métrique de carte. La carte n'est pas configurable : elle est dérivée. La personnalisation du cerveau reste **facultative** : les valeurs par défaut sont utilisables telles quelles, sans configuration obligatoire. |
 | Effet | Le cerveau est enregistré, son espace de données est créé **dans l'espace applicatif**, jamais dans la racine analysée. |
-| Fonctions | F-001, F-002, F-033 (nom modifiable : `ULTÉRIEUR`, valeur par défaut au MVP) |
+| Fonctions | F-001, F-002, F-033 (nom, couleur et icône modifiables au `MVP`; valeurs par défaut utilisables sans édition) |
 
 ### E3 — Lecture de la structure
 
@@ -139,6 +139,7 @@ l'indexation à sa place surestimerait l'attente perçue.
 | Chercher | Recherche locale sur nom et chemin, résultats paginés et bornés, limités au cerveau actif. | F-020 |
 | Filtrer | « Tout », « Nouveaux », « Non vus », plus type et disponibilité, combinables. | F-022 |
 | Agir | « Ouvrir dans l'Explorateur » ouvre le dossier ou sélectionne le fichier, après revalidation du confinement sous la racine. Pour un fichier en ligne seulement, un avertissement d'hydratation possible précède l'action. | F-025 |
+| Copier | « Copier le chemin » place le chemin réel exact de l'élément sélectionné dans le presse-papiers, sans l'écrire dans un journal exportable. | F-024 |
 | Marquer | Marquer un élément vu, un changement vu, ou tout marquer vu. | F-028 |
 
 **Règle de comportement, reprise de

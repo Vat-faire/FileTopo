@@ -1073,3 +1073,124 @@ listées en L.5. Aucune écriture distante autre que le push autorisé.
 `DEC-0001` à `DEC-0006` sont inchangées. Aucune tâche n'est `IN_PROGRESS`.
 L'action unique suivante, `ACTION-0018`, appartient à Sébastien : examiner la
 baseline et les six décisions (porte P2).
+
+---
+
+## M. TASK-0011 — Révision après corrections de l'orchestrateur (2026-08-31)
+
+**Statut à l'issue : `IMPLEMENTED`, inchangé.** La baseline générale a été
+acceptée; la porte **P2 n'est pas franchie**. L'agent exécuteur ne s'attribue
+pas `VERIFIED`. Cette section valide **l'application des quatre corrections**,
+pas la baseline elle-même.
+
+**Portée :** quatre corrections motivées, décrites en section 17 de
+[TASK-0011](../tasks/TASK-0011-functional-architecture-baseline.md). Aucun
+code, test, dépendance, `graph/`, fiche `VERIFIED` antérieure ni tâche suivante
+n'a été touché.
+
+### M.1 Vérifications Git préalables — toutes réussies
+
+| Contrôle | Attendu | Constaté |
+|---|---|---|
+| Racine du dépôt | racine du dépôt public FileTopo | conforme |
+| Branche | `rebuild/v0.2-project-brain` | conforme |
+| HEAD au démarrage | `d7d9118ea66c63cd9ae8e18b406c6c0facb87689` | conforme |
+| Arbre de travail | propre | conforme, `git status --porcelain` vide |
+| SHA local = SHA distant | oui | `git ls-remote origin` = `d7d9118e...` |
+| `main` local et distant | `91bbe90f0f99026c28cd345784d4f579a0016db2` | conforme, **inchangée** |
+| Tâches `IN_PROGRESS` | 0 | conforme |
+
+Aucune condition d'arrêt de la section 12 de la fiche n'a été rencontrée.
+
+### M.2 Contrôles exécutés — résultats réels
+
+| Contrôle | Attendu | **Résultat réel** |
+|---|---|---|
+| Couverture fonctionnelle | 39 lignes `F-001` à `F-039` | **réussi** — 39 lignes; 0 manquante; 0 dupliquée; ordre `F-001`…`F-039` conforme |
+| Classification | 31 `MVP`, 4 `ULTÉRIEUR`, 4 `DIFFÉRÉ` | **réussi** — 31 / 4 / 4, total 39; 0 valeur hors vocabulaire. `ULTÉRIEUR` = F-013, F-017, F-018, F-019. `DIFFÉRÉ` = F-021, F-037, F-038, F-039 |
+| Écarts déclarés | tous justifiés | **réussi** — 11 écarts : F-009, F-010, F-011, F-012, F-014, **F-024**, F-026, F-028, **F-033**, F-035, F-036; tous de `P1` vers `MVP` |
+| Cohérence baseline ↔ matrice | colonne « Baseline TASK-0011 » identique aux 39 classifications | **réussi** — 39 lignes comparées une à une; **0 divergence** |
+| Vocabulaire d'états | seuls les huit états permis | **réussi** — états rencontrés dans les fichiers modifiés : `PROPOSED`, `APPROVED`, `IN_PROGRESS`, `BLOCKED`, `IMPLEMENTED`, `VERIFIED`, `DEFERRED`; 0 hors liste |
+| Statut des décisions | `DEC-0007` à `DEC-0012` toutes `PROPOSED` | **réussi** — 6 sur 6 à `PROPOSED` |
+| `DEC-0001` à `DEC-0006` | inchangées | **réussi** — 0 fichier modifié |
+| Liens Markdown locaux | aucun cassé | **réussi** — 217 liens locaux vérifiés sur l'ensemble des fichiers Markdown du dépôt; **0 cassé** |
+| Action unique | `NEXT_ACTION.md` contient exactement une action | **réussi** — 1 action, `ACTION-0019` |
+| Tâches `IN_PROGRESS` | 0 à la clôture | **réussi** — 0 |
+| Recherche de données sensibles | aucun chemin personnel, secret, jeton ni donnée réelle | **réussi** — 751 lignes ajoutées analysées; 0 chemin absolu local, 0 courriel, 0 jeton, 0 clé privée, 0 adresse IP |
+| Portée du diff | aucun fichier hors de la section 5 de la fiche | **réussi** — 16 fichiers modifiés, 0 création, tous prévus; liste en M.3 |
+| Code, dépendances, `graph/` | 0 fichier modifié | **réussi** — 0 fichier sous `src/`, `src-tauri/`, `tests/`, `public/`, `scripts/`, `.github/`, `graph/`; 0 fichier de dépendances; 0 fichier non suivi créé |
+| `git diff --check` | réussi | **réussi** — code de retour 0, aucune sortie |
+
+**Douze contrôles sur douze réussis.** Le contrôle « sources officielles »
+n'est pas rejoué : cette révision n'ajoute aucune source primaire et ne modifie
+la section « Preuves » d'aucune fiche. Le verdict partiel de la section L.4
+sur `DEC-0012` **reste valable et inchangé**; l'orchestrateur l'a explicitement
+accepté comme décision de périmètre produit.
+
+**Faux positif écarté et déclaré.** Un premier passage de la recherche de
+données sensibles a signalé quinze correspondances au motif `sk-`. Contrôle
+manuel : toutes proviennent de la chaîne « **TASK**-0011 » lue sans
+distinction de casse. Un second passage, motif resserré, retourne **0
+correspondance**. Le contrôle est rapporté réussi sur la base du second
+passage.
+
+### M.3 Fichiers touchés — 16 modifiés, 0 créé
+
+| Fichier | Correction |
+|---|---|
+| `docs/product/REQUIREMENTS_BASELINE.md` | 1 |
+| `docs/product/FEATURE_MATRIX.md` | 1 |
+| `docs/product/USER_JOURNEY.md` | 1 |
+| `docs/decisions/DEC-0012-ai-architectural-boundary.md` | 1 (compte de fonctions `MVP` seulement) |
+| `docs/decisions/DEC-0008-hierarchical-rendering.md` | 2 |
+| `docs/performance/BASELINE_TARGETS.md` | 2 |
+| `docs/decisions/DEC-0009-data-model-and-relations.md` | 3 |
+| `docs/architecture/ARCHITECTURE_BASELINE.md` | 3 |
+| `docs/decisions/DEC-0011-brain-isolation-and-migrations.md` | 4 |
+| `docs/architecture/TEST_STRATEGY.md` | 2 et 4 |
+| `docs/tasks/TASK-0011-functional-architecture-baseline.md` | section 17, historique d'état |
+| `docs/ai/CURRENT_STATE.md`, `NEXT_ACTION.md`, `HANDOFF.md`, `VALIDATION.md`, `CHANGELOG_AI.md` | mémoire obligatoire |
+
+**Non modifiés, volontairement :** `ROADMAP.md`, `FORMAT_MATRIX.md`,
+`DEC-0007`, `DEC-0010`, `docs/decisions/README.md`, `DEC-0001` à `DEC-0006`,
+et l'intégralité du code, des tests, des dépendances et de `graph/`.
+
+### M.4 Ce que les corrections changent, en substance
+
+| # | Avant | Après |
+|---|---|---|
+| 1 | 29 `MVP`, 6 `ULTÉRIEUR`, 9 écarts | **31 `MVP`, 4 `ULTÉRIEUR`, 11 écarts**; `F-024` et `F-033` au MVP, portée `MVP` de `F-033` écrite en cinq points |
+| 2 | `DEC-0008` recommandait **D** (Canvas 2D, montée WebGL sur seuil) | **A** (HTML/SVG, virtualisation et niveaux de détail); Canvas 2D **sur banc d'essai seulement**; WebGL **différé**; plafond DOM/SVG initial proposé et marqué **non testé** |
+| 3 | `DEC-0009` recommandait **I-D** (repli **automatique** sur l'heuristique) | **I-E** : identité Windows si disponible, repli **déterministe** par chemin relatif versionné sinon, heuristique réduite à une **suggestion** révocable; aucune heuristique ne préserve identité, vu/non-vu ni journal; déplacement inter-volume non prouvable = création + suppression. `R-C` et la provenance obligatoire **conservées** |
+| 4 | `DEC-0011` recommandait **M-C** sans condition | `S-C` **conservée**; **M-C conditionnée** à un banc d'essai synthétique Windows en cinq points; **M-B demeure le repli** |
+
+### M.5 Non testé — déclaration explicite
+
+Cette révision est **entièrement documentaire**. Aucun test automatisé, build,
+installation, test manuel d'interface, essai physique Windows ni mesure de
+performance n'a été exécuté. Les tests existants du prototype n'ont **pas** été
+rejoués.
+
+Les **deux bancs d'essai introduits** par la révision — `B1`, bascule de
+migration Windows; `B2`, plafond de blocs DOM/SVG — sont décrits en
+[TEST_STRATEGY.md](../architecture/TEST_STRATEGY.md) §6.1 et **n'ont pas été
+exécutés**. Le plafond de 3 000 blocs DOM/SVG proposé par `DEC-0008` est une
+hypothèse à réfuter : **ce n'est pas une capacité déclarée du produit** et il
+ne peut être cité comme telle.
+
+### M.6 Confidentialité
+
+Aucun accès à l'interface privée de référence : ni lecture, ni listage, ni
+recherche, ni citation. Aucune donnée réelle. Aucun accès hors du dépôt
+public — **aucune source externe n'a été consultée pendant cette révision**,
+qui ne repose que sur les documents du dépôt et sur les corrections reçues.
+Aucune écriture distante autre que le push autorisé vers
+`origin/rebuild/v0.2-project-brain`.
+
+### M.7 Conséquence
+
+`TASK-0011` **reste `IMPLEMENTED`**, jamais `VERIFIED`. `DEC-0007` à
+`DEC-0012` restent toutes `PROPOSED`. `DEC-0001` à `DEC-0006` sont inchangées.
+Aucune tâche n'est `IN_PROGRESS`. La porte **P2 reste ouverte et non
+franchie**. L'action unique suivante, `ACTION-0019`, appartient à Sébastien :
+examen humain final et décision P2 après corrections.
