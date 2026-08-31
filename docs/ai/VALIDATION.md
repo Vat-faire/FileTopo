@@ -5,8 +5,8 @@
 `VERIFIED` le 2026-08-25, sur preuves indépendantes de l'orchestrateur
 (section A.7) ; TASK-0010 (rebaseline et mémoire) — `VERIFIED` le 2026-08-31,
 sur preuves indépendantes (section J bis) ; TASK-0011 (baseline fonctionnelle
-et architecture) — `PROPOSED`, non exécutée, contrôles de la fiche en
-section K
+et architecture) — `IMPLEMENTED` le 2026-08-31, contrôles d'exécution en
+section L, **en attente de vérification indépendante**
 
 Trois qualificatifs seulement : **vérifié**, **non testé**, **inconnu**.
 
@@ -922,3 +922,154 @@ baseline qu'elle décrit.
 `TASK-0011` existe au statut `PROPOSED`. Aucune tâche n'est `IN_PROGRESS`.
 L'action unique suivante, `ACTION-0017`, appartient à Sébastien : examiner,
 corriger, approuver ou rejeter la fiche.
+
+---
+
+## L. TASK-0011 — Exécution de la baseline fonctionnelle et d'architecture (2026-08-31)
+
+**Statut à l'issue : `IMPLEMENTED`.** L'agent exécuteur ne s'attribue pas
+`VERIFIED`. Une vérification indépendante reste requise (porte P2).
+
+**GO :** Sébastien, 2026-08-31, porte P1 franchie. Le GO couvrait l'exécution
+documentaire et le push du commit documentaire vers
+`origin/rebuild/v0.2-project-brain`. Il ne couvrait ni publication du produit,
+ni release, ni fusion, ni tag.
+
+### L.1 Vérifications Git préalables — toutes réussies
+
+| Contrôle | Attendu | Constaté |
+|---|---|---|
+| Racine du dépôt | racine du dépôt public FileTopo | conforme |
+| Branche | `rebuild/v0.2-project-brain` | conforme |
+| HEAD au démarrage | `01e6860fbbe68b98da8a28bec7b65ba796090cf1` | conforme |
+| Arbre de travail | propre | conforme, `git status --porcelain` vide |
+| SHA local = SHA distant | oui | `origin/rebuild/v0.2-project-brain` = `01e6860f...` |
+| `main` | `91bbe90f0f99026c28cd345784d4f579a0016db2` | conforme, local et distant |
+| Tâches `IN_PROGRESS` au démarrage | 0 | conforme |
+
+Aucune condition d'arrêt de la section 12 de la fiche n'a été rencontrée.
+
+### L.2 Contrôles de la section 10 de TASK-0011 — résultats réels
+
+| Contrôle | Attendu | **Résultat réel** |
+|---|---|---|
+| Couverture fonctionnelle | 39 lignes `F-001` à `F-039`, aucune manquante, aucune dupliquée | **réussi** — 39 lignes; 0 manquante; 0 dupliquée |
+| Classification | `MVP`, `ULTÉRIEUR` ou `DIFFÉRÉ` uniquement | **réussi** — 29 `MVP`, 6 `ULTÉRIEUR`, 4 `DIFFÉRÉ`, total 39; 0 valeur hors vocabulaire |
+| Vocabulaire d'états | seuls les huit états permis dans les fiches créées | **réussi** — seuls `PROPOSED` et `VERIFIED` apparaissent; 0 état hors liste |
+| Statut des décisions | `DEC-0007` à `DEC-0012` toutes `PROPOSED` | **réussi** — 6 fiches sur 6 à `PROPOSED` |
+| Liens Markdown locaux | tous contrôlés, aucun cassé | **réussi** — 184 liens locaux vérifiés sur 74 fichiers Markdown suivis ou nouveaux; 0 cassé |
+| Action unique | `NEXT_ACTION.md` contient exactement une action | **réussi** — 1 action, `ACTION-0018` |
+| Tâches `IN_PROGRESS` | 0 à la clôture | **réussi** — 0 après passage de TASK-0011 à `IMPLEMENTED` |
+| Recherche de données sensibles | aucun chemin personnel, secret, jeton ni donnée réelle | **réussi** — 0 chemin absolu local, 0 courriel, 0 identité personnelle, 0 secret. Les seules correspondances du motif « secret/jeton » sont les **interdictions elles-mêmes** rédigées dans les documents |
+| Portée du diff | aucun fichier hors de la section 5 | **réussi** — 12 créations et 8 modifications, toutes listées en L.3, toutes prévues par la section 5 |
+| Code, dépendances, `graph/` | 0 fichier modifié | **réussi** — `git status --porcelain` sur `src/`, `src-tauri/`, `tests/`, `public/`, `scripts/`, `.github/`, `graph/`, `package.json`, `pnpm-lock.yaml`, `Cargo.toml`, `Cargo.lock` : sortie vide |
+| `git diff --check` | réussi | **réussi** — aucun problème d'espaces |
+| Sources officielles | chaque décision cite au moins une source primaire datée | **partiellement réussi — voir L.4** |
+
+### L.3 Fichiers touchés
+
+**Créés (12)**
+
+- `docs/product/REQUIREMENTS_BASELINE.md`
+- `docs/product/USER_JOURNEY.md`
+- `docs/architecture/ARCHITECTURE_BASELINE.md`
+- `docs/architecture/FORMAT_MATRIX.md`
+- `docs/architecture/TEST_STRATEGY.md`
+- `docs/performance/BASELINE_TARGETS.md`
+- `docs/decisions/DEC-0007-rebuild-tech-stack.md`
+- `docs/decisions/DEC-0008-hierarchical-rendering.md`
+- `docs/decisions/DEC-0009-data-model-and-relations.md`
+- `docs/decisions/DEC-0010-indexing-and-watching.md`
+- `docs/decisions/DEC-0011-brain-isolation-and-migrations.md`
+- `docs/decisions/DEC-0012-ai-architectural-boundary.md`
+
+**Modifiés (8, tous prévus par la section 5)**
+
+- `docs/tasks/TASK-0011-functional-architecture-baseline.md` — GO, états,
+  rapport d'exécution
+- `docs/ai/CURRENT_STATE.md`, `docs/ai/NEXT_ACTION.md`, `docs/ai/HANDOFF.md`,
+  `docs/ai/VALIDATION.md`, `docs/ai/CHANGELOG_AI.md`
+- `docs/product/FEATURE_MATRIX.md` — **ajout d'une seule colonne**
+  « Baseline TASK-0011 » et d'un paragraphe de renvoi. Contrôle mécanique
+  exécuté : les 39 lignes conservent leur contenu d'origine **caractère pour
+  caractère** avant la nouvelle cellule; 0 ligne altérée. Les 41 lignes de
+  tableau portent 11 colonnes
+- `ROADMAP.md` — phase 0 `IMPLEMENTED` vers `VERIFIED`, phase 1 `PROPOSED`
+  vers `IMPLEMENTED`, plus une section « État réel au 2026-08-31 »
+
+`docs/decisions/README.md` **n'a pas été modifié** : il n'appartient pas à la
+liste de la section 5, bien qu'il énumère les décisions vérifiées. Sa mise à
+jour relève d'une tâche ultérieure.
+
+### L.4 Contrôle « sources officielles » — résultat partiel, détaillé
+
+| Fiche | URL de sources primaires citées | Verdict |
+|---|---:|---|
+| `DEC-0007` | 8 | réussi |
+| `DEC-0008` | 7 | réussi |
+| `DEC-0009` | 6 | réussi |
+| `DEC-0010` | 4 | réussi |
+| `DEC-0011` | 4 | réussi |
+| `DEC-0012` | **0** | **échec au sens strict** |
+
+`DEC-0012` ne cite aucune source primaire **externe** : elle ne s'appuie que
+sur des documents du dépôt (`PROJECT_VISION.md`, `DATA_PIPELINE_VISION.md`,
+`threat-model.md`, `DEC-0006`). C'est une décision de périmètre de produit,
+non contrainte par une plateforme ou une spécification. Conformément à la
+section 8 de la fiche — « Une décision sans source officielle est déclarée
+**incertaine** et son risque est écrit » — elle porte cette déclaration et son
+risque écrit. **Le contrôle est donc rapporté comme partiellement réussi, et
+non comme réussi.**
+
+### L.5 Recherches officielles — sources réellement consultées le 2026-08-31
+
+Vingt-deux pages de sources primaires ont été consultées en lecture seule :
+`ReadDirectoryChangesExW`, `FILE_ID_INFO`, `GetFileInformationByHandleEx`,
+File Attribute Constants, Handling placeholders, Reparse Points, Maximum Path
+Length Limitation et Change Journals (Microsoft); WAL, FTS5, PRAGMA, Online
+Backup API et Limits (SQLite); Security, Capabilities et Prerequisites
+(Tauri 2); WCAG 2.2, Media Queries Level 5 et ARIA APG Tree View (W3C);
+Canvas (WHATWG); SVG 2 (W3C); `symlink_metadata` et `MetadataExt` Windows
+(Rust); Renderers (PixiJS). Une source de bibliothèque, `docs.rs/notify`, est
+citée et **explicitement marquée comme secondaire**.
+
+**Échec de consultation déclaré :** les spécifications WebGL 1.0 et 2.0 du
+registre Khronos ont renvoyé **HTTP 403** aux tentatives du 2026-08-31 et
+n'ont **pas** pu être lues. `DEC-0008` le déclare et s'appuie sur la
+spécification HTML du WHATWG à la place. Aucune source secondaire n'a été
+substituée pour combler cette lacune.
+
+**Lacune déclarée :** le journal USN n'a été instruit sur aucune source
+primaire quant aux privilèges requis, à sa troncature et à son support.
+`DEC-0010` classe l'option correspondante « non instruite » plutôt que de la
+noter sans preuve.
+
+### L.6 Non testé — déclaration explicite
+
+Aucun test automatisé, aucun build, aucune installation, aucun test manuel
+d'interface, aucun essai physique Windows, aucune mesure de performance réelle
+n'ont été exécutés. Les tests existants du prototype — 36 cas Vitest et 13
+tests Rust déclarés — **n'ont pas été rejoués**.
+
+Toutes les valeurs de
+[BASELINE_TARGETS.md](../performance/BASELINE_TARGETS.md) sont des **cibles à
+falsifier**, portant chacune la mention « non testé »; aucune n'est un
+résultat. Les constats sur le prototype proviennent d'une **lecture statique**
+du code au commit `01e6860f` : l'absence d'un symbole recherché ne prouve pas
+l'absence de tout comportement indirect.
+
+### L.7 Confidentialité
+
+Aucun accès à l'interface privée de référence : ni lecture, ni listage, ni
+recherche, ni citation de ses noms, chemins, données, métadonnées ou code.
+Aucune donnée réelle employée. Toutes les arborescences et volumétries citées
+sont synthétiques et décrites comme telles. Aucun accès hors du dépôt public,
+hormis la consultation en lecture seule des sources officielles publiques
+listées en L.5. Aucune écriture distante autre que le push autorisé.
+
+### L.8 Conséquence
+
+`TASK-0011` est `IMPLEMENTED`. `DEC-0007` à `DEC-0012` sont toutes `PROPOSED`.
+`DEC-0001` à `DEC-0006` sont inchangées. Aucune tâche n'est `IN_PROGRESS`.
+L'action unique suivante, `ACTION-0018`, appartient à Sébastien : examiner la
+baseline et les six décisions (porte P2).

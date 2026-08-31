@@ -3,7 +3,7 @@
 - **Identifiant :** `TASK-0011`
 - **Titre :** Établir la baseline fonctionnelle et les décisions d'architecture
   de reconstruction, avant toute écriture de code
-- **Statut :** `PROPOSED`
+- **Statut :** `IMPLEMENTED`
 - **Phase :** 1 — Exigences, matrice fonctionnelle et architecture
   ([ROADMAP.md](../../ROADMAP.md))
 - **Proposée le :** 2026-08-31
@@ -11,9 +11,10 @@
 - **Exécuteur prévu :** non assigné; tout agent capable, après GO séparé
 - **Effort recommandé :** une à deux sessions documentaires. Aucun
   développement, aucun prototype, aucune dépendance.
-- **GO humain :** **requis et non acquis.** Cette fiche est une proposition.
-  Le passage à `APPROVED` appartient à Sébastien seul et n'est pas un début
-  d'exécution.
+- **GO humain :** **acquis le 2026-08-31.** Sébastien a franchi la porte P1 et
+  a explicitement approuvé cette fiche pour exécution documentaire, y compris
+  le push final du commit documentaire vers `origin/rebuild/v0.2-project-brain`.
+  Le GO ne couvre ni publication du produit, ni release, ni fusion.
 
 > Cette fiche **prépare** la baseline. Elle ne la produit pas. Toute case
 > « Résultat », « Décision retenue » ou « Mesure » reste vide tant que
@@ -398,8 +399,8 @@ Puis l'exécuteur s'arrête et attend l'examen humain.
 
 | Porte | Objet | État |
 |---|---|---|
-| P1 | Approuver cette fiche : `TASK-0011` passe de `PROPOSED` à `APPROVED` | **Ouverte, non franchie** |
-| P2 | Approuver la baseline livrée et les six décisions `PROPOSED` | Ultérieure |
+| P1 | Approuver cette fiche : `TASK-0011` passe de `PROPOSED` à `APPROVED` | **Franchie le 2026-08-31** |
+| P2 | Approuver la baseline livrée et les six décisions `PROPOSED` | **Ouverte, non franchie** |
 | P3 | Autoriser la tâche d'implémentation qui suivra, avec périmètre écrit | Ultérieure |
 | P4 | GO explicite pour toute publication, écriture distante, dépense ou opération destructive | Permanente |
 
@@ -411,3 +412,86 @@ appartient à Sébastien.
 
 - 2026-08-31 — `PROPOSED` : fiche rédigée sous `ACTION-0016`, soumise à
   Sébastien. Aucune exécution, aucun code, aucune décision arrêtée.
+- 2026-08-31 — `APPROVED` : GO explicite de Sébastien, porte P1 franchie.
+- 2026-08-31 — `IN_PROGRESS` : exécution documentaire démarrée après
+  vérifications Git préalables réussies.
+- 2026-08-31 — `IMPLEMENTED` : les sept livrables `L1` à `L7` sont produits et
+  les validations de la section 10 exécutées. **L'exécuteur ne s'attribue pas
+  `VERIFIED`**; la vérification indépendante appartient à Sébastien (porte P2).
+
+## 16. Rapport d'exécution — 2026-08-31
+
+### 16.1 Résultat
+
+La baseline fonctionnelle et d'architecture est livrée : 39 fonctions
+classées, parcours utilisateur, synthèse d'architecture, matrice de formats,
+objectifs mesurables, plan de tests et six décisions toutes `PROPOSED`, sans
+qu'une seule ligne de code, de test ou de dépendance soit modifiée.
+
+### 16.2 Vérifications Git préalables
+
+Racine du dépôt conforme; branche `rebuild/v0.2-project-brain`; HEAD au
+démarrage `01e6860fbbe68b98da8a28bec7b65ba796090cf1`; arbre propre; SHA local
+égal au SHA distant; `main` à `91bbe90f0f99026c28cd345784d4f579a0016db2` en
+local et sur origin; aucune tâche `IN_PROGRESS`. Toutes réussies. Aucune
+condition d'arrêt de la section 12 n'a été rencontrée.
+
+### 16.3 Couverture des seize points de la section 7.1
+
+| Point | Traité dans |
+|---|---|
+| 1 — Baseline des 39 fonctions | `L1` §3 |
+| 2 — Parcours utilisateur | `L2` §2 et §3 |
+| 3 — Pile technologique | `DEC-0007` |
+| 4 — Rendu hiérarchique | `DEC-0008` |
+| 5 — Modèle de données | `L3` §3, `DEC-0009` |
+| 6 — Indexation | `L3` §4, `DEC-0010` |
+| 7 — Surveillance Windows | `L3` §5, `DEC-0010` |
+| 8 — Exclusions et fichiers infonuagiques | `L3` §6, `L4` §2 |
+| 9 — Relations | `L3` §7, `DEC-0009` |
+| 10 — Cerveaux multiples isolés | `L3` §8, `DEC-0011` |
+| 11 — Accessibilité et langues | `L1` F-035 et F-036, `L2` §4; niveau visé **WCAG 2.2 AA** |
+| 12 — Objectifs mesurables | `L5` §3, tous « non testé » |
+| 13 — Matrice de formats | `L4` §3 |
+| 14 — Limite architecturale de l'IA | `DEC-0012` |
+| 15 — Migrations, sauvegarde, intégrité, retour arrière | `L3` §9, `DEC-0011` |
+| 16 — Plan de tests | `L6` §2 à §8 |
+
+### 16.4 Validations de la section 10
+
+Douze contrôles exécutés : **onze réussis**, **un partiellement réussi**. Les
+résultats réels, chiffres compris, sont consignés en section L de
+[VALIDATION.md](../ai/VALIDATION.md). Le contrôle partiellement réussi est
+« sources officielles » : `DEC-0012` ne cite aucune source primaire externe,
+étant une décision de périmètre de produit; elle est déclarée **incertaine**
+avec son risque écrit, conformément à la section 8 de cette fiche.
+
+### 16.5 Non testé et limites
+
+Aucun test automatisé, build, installation, test manuel d'interface, essai
+physique Windows ni mesure de performance réelle. Les tests existants du
+prototype n'ont pas été rejoués. Les constats sur le prototype proviennent
+d'une lecture statique au commit `01e6860f`.
+
+Trois lacunes de recherche sont déclarées et non comblées : les spécifications
+WebGL de Khronos ont renvoyé HTTP 403 et n'ont pas pu être consultées; le
+journal USN n'a pas été instruit sur source primaire; l'ambiguïté de valeur
+entre `FILE_ATTRIBUTE_RECALL_ON_OPEN` et `FILE_ATTRIBUTE_EA` reste non
+tranchée.
+
+### 16.6 Points appelant l'attention de Sébastien
+
+1. La tension entre `DEC-0003` (Rust stable) et `DEC-0004` (identité de
+   fichier Windows), exposée par `DEC-0009` : sur le canal stable, la clé
+   stable préférée n'est pas accessible par la bibliothèque standard.
+2. L'absence de repli Canvas 2D dans PixiJS 8, exposée par `DEC-0008` : sans
+   WebGL utilisable, il n'y aurait aucune carte.
+3. Le placement des relations transversales déterministes dans `DEC-0012`,
+   signalé comme la frontière la moins nette de cette fiche.
+
+### 16.7 État final
+
+`TASK-0011` est `IMPLEMENTED`. `DEC-0007` à `DEC-0012` sont toutes
+`PROPOSED`. `DEC-0001` à `DEC-0006` sont inchangées. Aucune tâche n'est
+`IN_PROGRESS`. Action unique suivante : `ACTION-0018`, examen humain de la
+baseline et des six décisions par Sébastien.

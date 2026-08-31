@@ -1094,3 +1094,109 @@ avant toute écriture de code.
 
 `ACTION-0017` : Sébastien examine `TASK-0011`, puis la corrige, l'approuve ou
 la rejette. Aucun agent ne démarre cette tâche avant ce GO.
+
+---
+
+## 2026-08-31 — TASK-0011 — Baseline fonctionnelle et décisions d'architecture
+
+**Agent :** exécuteur Claude Code
+**GO :** Sébastien, 2026-08-31, porte P1 franchie; le GO couvrait l'exécution
+documentaire et le push du commit documentaire vers
+`origin/rebuild/v0.2-project-brain`, à l'exclusion de toute publication de
+produit, release, fusion ou tag
+**Statut à l'issue :** `IMPLEMENTED` — l'exécuteur ne s'attribue pas `VERIFIED`
+
+### Fait
+
+- Vérifications Git préalables : racine, branche `rebuild/v0.2-project-brain`,
+  HEAD `01e6860f`, arbre propre, SHA local égal au SHA distant, `main` à
+  `91bbe90f`, aucune tâche `IN_PROGRESS`. Toutes conformes.
+- TASK-0011 passée de `PROPOSED` à `APPROVED` puis `IN_PROGRESS`, le GO daté
+  étant inscrit dans la fiche.
+- **L1** — `docs/product/REQUIREMENTS_BASELINE.md` : les 39 fonctions `F-001`
+  à `F-039` classées `MVP` (29), `ULTÉRIEUR` (6) ou `DIFFÉRÉ` (4), chacune
+  avec motif, dépendance amont et critère d'acceptation mesurable. Neuf écarts
+  avec la colonne « Priorité » déclarés et justifiés, tous de `P1` vers `MVP`,
+  aucun abaissant une fonction `P0`.
+- **L2** — `docs/product/USER_JOURNEY.md` : parcours E0 à E8, de la sélection
+  d'une racine à la carte construite automatiquement, sans aucune étape de
+  configuration manuelle de la carte; annulation, reprise, erreurs,
+  indisponibilité et accessibilité couvertes.
+- **L3** — `docs/architecture/ARCHITECTURE_BASELINE.md` : dix-sept contraintes
+  établies par sources officielles, puis modèle de données, indexation,
+  surveillance, exclusions, relations, cerveaux isolés et migrations.
+- **L4** — `docs/architecture/FORMAT_MATRIX.md` : le MVP lit des métadonnées
+  et n'ouvre aucun contenu; extraction et courriels ultérieurs; OCR désactivé
+  par défaut et soumis à consentement.
+- **L5** — `docs/performance/BASELINE_TARGETS.md` : objectifs à 1 000, 10 000
+  et 100 000 fichiers synthétiques, chacun avec protocole reproductible et
+  mention **« non testé »**.
+- **L6** — `docs/architecture/TEST_STRATEGY.md` : cinq catégories T1 à T5,
+  quinze scénarios manuels Windows, neuf scénarios de récupération, tous sur
+  données synthétiques, avec le critère rendant chaque catégorie
+  satisfaisante.
+- **L7** — `DEC-0007` à `DEC-0012` créées, **toutes `PROPOSED`**, chacune
+  comparant au moins deux options réelles avec avantages, inconvénients et
+  motif de classement.
+- `docs/product/FEATURE_MATRIX.md` : ajout d'une seule colonne
+  « Baseline TASK-0011 » et d'un paragraphe de renvoi; les 39 lignes
+  conservent leur contenu d'origine caractère pour caractère avant la nouvelle
+  cellule, contrôlé mécaniquement.
+- `ROADMAP.md` : phase 0 `IMPLEMENTED` vers `VERIFIED`, phase 1 `PROPOSED`
+  vers `IMPLEMENTED`, plus une section « État réel au 2026-08-31 ».
+- Mémoire obligatoire mise à jour : `CURRENT_STATE.md`, `NEXT_ACTION.md`
+  (`ACTION-0018`, action unique), `HANDOFF.md`, `VALIDATION.md` (section L) et
+  ce journal.
+
+### Deux constats touchant des fiches déjà `VERIFIED`
+
+Aucune de ces fiches n'a été modifiée; les révisions sont **proposées**.
+
+1. **`DEC-0003` (Rust stable) et `DEC-0004` (clé stable = identité de volume +
+   identifiant de fichier Windows) sont en tension.** La documentation
+   officielle de Rust indique que `volume_serial_number()`, `file_index()`,
+   `number_of_links()` et `change_time()` sont `nightly-only`, et renvoient
+   `None` depuis `DirEntry::metadata`. Traité par `DEC-0009`.
+2. **PixiJS 8 n'offre aucun repli Canvas 2D** : le renderer Canvas est listé
+   « Coming-soon » par l'éditeur. Sans WebGL utilisable, il n'y aurait aucune
+   carte. Traité par `DEC-0008`.
+
+### Vérifié
+
+Les douze contrôles de la section 10 de la fiche ont été exécutés. Onze
+réussissent. Le douzième — « chaque décision cite au moins une source primaire
+datée » — est **partiellement réussi** : `DEC-0012` ne cite aucune source
+primaire externe, étant une décision de périmètre de produit; elle est déclarée
+**incertaine** avec son risque écrit, comme la section 8 de la fiche l'exige.
+Résultats détaillés en section L de [VALIDATION.md](VALIDATION.md).
+
+### Non testé
+
+Aucun test automatisé, aucun build, aucune installation, aucun test manuel
+d'interface, aucun essai physique Windows, aucune mesure de performance réelle.
+Les tests existants du prototype n'ont pas été rejoués. Tous les objectifs de
+performance sont des cibles à falsifier, jamais des résultats.
+
+### Lacunes de recherche déclarées
+
+- Les spécifications WebGL 1.0 et 2.0 du registre Khronos ont renvoyé
+  **HTTP 403** et n'ont pas pu être consultées; aucune source secondaire n'a
+  été substituée.
+- Le journal USN n'a pas été instruit sur source primaire; l'option
+  correspondante de `DEC-0010` est classée « non instruite ».
+- L'ambiguïté de valeur entre `FILE_ATTRIBUTE_RECALL_ON_OPEN` et
+  `FILE_ATTRIBUTE_EA` (0x00040000 pour les deux dans la table Microsoft) est
+  signalée comme incertitude à lever par un test Windows, non tranchée.
+
+### Non fait, volontairement
+
+Aucun code, test, dépendance, fichier généré, `graph/`, tag, release ni
+historique modifié. `DEC-0001` à `DEC-0006` inchangées.
+`docs/decisions/README.md` non modifié, faute d'appartenir à la liste des
+fichiers autorisés de la section 5. Aucune tâche suivante créée ni démarrée.
+
+### Conséquence
+
+Aucune tâche n'est `IN_PROGRESS`. L'action unique suivante, `ACTION-0018`,
+appartient à Sébastien : examiner la baseline et les six décisions (porte P2).
+Aucune ligne de code ne peut être écrite avant P2 puis P3.
