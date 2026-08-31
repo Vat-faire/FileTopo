@@ -82,7 +82,7 @@ part, conformément à §10.1.1 de `TASK-0012`.
 | `B0` | Santé du prototype | **SUCCÈS** — état réel connu et écrit; 36/36 Vitest et 13/13 Rust réussis; `cargo build` en échec déterministe (ICE de cache incrémental), non corrigé | §1 |
 | `B1` | Migration SQLite Windows | **`M-C` RÉFUTÉE telle qu'elle est écrite** (un `-wal` orphelin survit à la permutation et corrompt la base neuve); **`M-C` durcie** — avec repli du WAL et suppression des annexes — et **`M-B`** observent tous deux les points 2 à 7 | §2 |
 | `B2` | Rendu HTML/SVG | **Étude Canvas 2D autorisée** — seuil d'images par seconde manqué à 3 000 blocs sur `SYN-WIDE` (14,08 ips contre 30). Plafonds réels mesurés : 3 743 / 3 063 / 939 blocs selon la forme | §3 |
-| `B3` | Identité Windows | *en attente* | §4 |
+| `B3` | Identité Windows | **`I-E` confirmée sur 5 des 6 points**, coût mesuré à 28,3 µs/élément soit 3,1 % du budget d'indexation. **Point 4, inter-volume : NON OBSERVÉ**, bloqué par §13.2 | §4 |
 | `B4` | Attributs infonuagiques | *en attente* | §5 |
 
 ---
@@ -785,3 +785,232 @@ enfants construits — et les 18 scénarios sont conformes.
    longue.
 8. **Ni Canvas 2D ni WebGL n'ont été mesurés.** `B2` ne dit **rien** de leurs
    performances : il ne fait qu'ouvrir le droit d'étudier Canvas 2D.
+
+---
+
+# 4. B3 — Identité Windows
+
+- **Spike :** `spikes/b3-windows-identity/`, projet Cargo **isolé**
+- **Chaîne :** `stable-x86_64-pc-windows-msvc`, `rustc 1.98.0`. **Le canal
+  `nightly` n'a été employé nulle part**, conformément à §10.1.1.
+- **Données :** arborescences **entièrement synthétiques** créées sous
+  `spikes/.work/b3/`. Aucun fichier de l'utilisateur lu, ouvert, déplacé ni
+  énuméré.
+- **Verdict :** **`I-E` confirmée sur cinq des six points, avec un coût
+  compatible avec la cible.** Le **point 4 — comportement inter-volume — n'a
+  pas été observé** : il est **bloqué** par §13.2. Voir §4.6.
+
+## 4.1 Point 1 — l'identité est obtenable sur le canal stable
+
+**Oui, observé.** Le programme compile et s'exécute sur `stable` et rend :
+
+    28a4a87da4a84ede:27ec010000004b000000000000000000
+
+soit `VolumeSerialNumber` (64 bits) suivi du `FileId` 128 bits, obtenus par
+`GetFileInformationByHandleEx` avec la classe `FileIdInfo`, qui remplit la
+structure `FILE_ID_INFO`.
+
+**Le descripteur est ouvert en accès NUL.** `CreateFileW` est appelé avec
+`dwDesiredAccess = 0` — un « attribute-only open » au sens de la documentation
+Microsoft citée en §5.3. Ni `GENERIC_READ`, ni lecture de flux. C'est ce qui
+rend l'opération compatible avec la règle de non-hydratation de `B4`.
+`FILE_FLAG_BACKUP_SEMANTICS` est nécessaire pour ouvrir un **dossier**.
+
+## 4.2 Point 2 — la dépendance candidate
+
+| Élément | Valeur |
+|---|---|
+| Nom, version épinglée | `windows-sys` **`=0.61.2`** |
+| Licence **vérifiée** | **`MIT OR Apache-2.0`**, relevée le 2026-08-31 sur `crates.io/api/v1/crates/windows-sys/0.61.2` |
+| Dépendance transitive | `windows-link` **0.2.1**, **`MIT OR Apache-2.0`**, vérifiée à la même date et à la même source |
+| Compatibilité MIT | **compatible** — licence au choix, branche MIT retenable |
+| Confinement | `spikes/b3-windows-identity/` **uniquement** |
+
+Fiche complète : `spikes/b3-windows-identity/LICENCE.md`.
+
+**`B3` établit une candidature; il n'adopte pas la dépendance.** §6 l'interdit
+explicitement. Les quatre empreintes des manifestes et verrous de la racine
+sont **inchangées** — vérifiées après l'exécution.
+
+Deux points d'honnêteté :
+
+1. **Une seconde caisse est apparue à la compilation.** `windows-link 0.2.1`,
+   tirée transitivement. Elle est compilée et liée dans le binaire, donc elle
+   compte : sa licence a été vérifiée à la même source et à la même date.
+2. **Le manifeste initial ne compilait pas.** `CreateFileW` référence
+   `SECURITY_ATTRIBUTES`; la fonctionnalité `Win32_Security` a dû être ajoutée.
+   C'est une fonctionnalité, pas un paquet : aucune dépendance nouvelle.
+
+## 4.3 Point 3 — renommage et déplacement intra-volume
+
+**L'identité survit, pour un fichier comme pour un dossier.**
+
+| Scénario | Identité | Conservée ? |
+|---|---|---|
+| Fichier, avant | `28a4…4ede:29ec010000003c00…` | — |
+| Fichier, **après renommage** | `28a4…4ede:29ec010000003c00…` | **oui** |
+| Fichier, **après déplacement** intra-volume | `28a4…4ede:29ec010000003c00…` | **oui** |
+| Dossier, avant | `28a4…4ede:2bec010000001900…` | — |
+| Dossier, **après renommage** | `28a4…4ede:2bec010000001900…` | **oui** |
+| Dossier, **après déplacement** intra-volume | `28a4…4ede:2bec010000001900…` | **oui** |
+
+Ce résultat concorde avec la documentation officielle (S7 de §5.1) : « In the
+NTFS file system, a file keeps the same file ID **until it is deleted**. »
+
+**Copie puis suppression — l'identité change.**
+
+| | Identité |
+|---|---|
+| Source | `28a4…4ede:3bec010000001400…` |
+| Destination copiée | `28a4…4ede:43ec010000004300…` |
+| **Identités différentes** | **oui** |
+
+C'est le résultat attendu, et il porte une conséquence directe : **une copie
+n'est pas un déplacement**. Un fichier copié est un fichier **neuf**.
+
+## 4.4 Point 4 — inter-volume : NON OBSERVÉ, et voici pourquoi
+
+**Ce point n'a pas été testé. Il n'est ni contourné, ni simulé, ni déduit en
+douce.**
+
+Observer le comportement inter-volume exige d'écrire une arborescence
+synthétique sur un **second volume**. La machine en possède (`E:`, `F:`), mais
+§13.2 de `TASK-0012` fait de cette action une **condition d'arrêt immédiat** :
+« une action sortirait du dépôt public en lecture, en listage ou en
+écriture ». `AGENTS.md` est du même ordre : « ne jamais lire, lister ou écrire
+ailleurs ». La règle dit aussi quoi faire : « l'agent **s'arrête et demande**.
+Il ne contourne pas. »
+
+**Ce qui a été mesuré à la place, et ce que cela vaut.** Le scénario
+copie-puis-suppression de §4.3 est le **mécanisme** d'un déplacement
+inter-volume : Windows ne peut pas déplacer un fichier entre volumes autrement
+qu'en le recopiant puis en supprimant l'original. La mesure montre que ce
+mécanisme **produit une identité différente**.
+
+**Mais ce n'est pas une observation du cas inter-volume.** Deux choses
+resteraient à constater et **ne l'ont pas été** :
+
+1. la valeur de `VolumeSerialNumber` sur un **autre** volume, et donc le fait
+   qu'elle diffère effectivement;
+2. le risque de **collision de `FileId` entre deux volumes** — deux fichiers
+   distincts, sur deux volumes, peuvent porter le même `FileId`, ce qui rend la
+   comparaison du seul `FileId` **trompeuse**. La documentation impose de
+   combiner les deux champs; cela n'a pas été **vérifié** ici.
+
+**Autorisation demandée.** Lever ce point suppose un GO explicite de Sébastien
+pour créer un répertoire de travail synthétique sur un second volume. C'est un
+travail court. Il n'est pas fait.
+
+## 4.5 Points 5 et 6 — coût, et repli déterministe
+
+### Coût de l'identité
+
+Cinq exécutions par volumétrie, médiane et écart min–max. Arborescences
+synthétiques de 200 fichiers par dossier.
+
+| Éléments | Parcours **sans** identité (médiane) | Parcours **avec** identité (médiane) | Surcoût | Surcoût relatif | **Coût par élément** |
+|---|---|---|---|---|---|
+| 1 000 | 0,872 ms | 33,674 ms | +32,80 ms | +3 762 % | **32,80 µs** |
+| 10 000 | 7,613 ms | 291,148 ms | +283,54 ms | +3 724 % | **28,35 µs** |
+| 100 000 | 73,665 ms | 2 903,309 ms | +2 829,64 ms | +3 841 % | **28,30 µs** |
+
+**100 000 identités sur 100 000 ont été obtenues**, à chaque volumétrie : aucun
+échec, aucun élément sauté.
+
+Deux lectures opposées du même chiffre, et il faut donner les deux :
+
+- **En relatif, le coût est énorme** : obtenir l'identité multiplie la durée du
+  parcours par **environ 38**. Ce n'est pas un détail d'optimisation; c'est le
+  poste dominant de l'indexation.
+- **En absolu, le coût est petit devant la cible.** §3.2 de
+  `BASELINE_TARGETS.md` fixe l'indexation complète de `SYN-100K` à **≤ 90 s**.
+  Le surcoût d'identité y pèse **2,83 s**, soit **3,1 %** du budget.
+
+Le coût par élément est **stable** — 28,3 µs à 10 000 comme à 100 000 — donc
+**linéaire**. Il n'y a pas d'effondrement à l'échelle.
+
+**Le critère de §10.2 est donc satisfait** : « le coût mesuré à 100 000
+éléments reste compatible avec §3.2 ».
+
+**Ce que ce chiffre ne dit pas.** Le parcours mesuré ne fait **que** parcourir
+et ouvrir; il n'écrit dans aucune base, ne calcule aucune empreinte de contenu
+et ne construit aucun index. L'indexation réelle fera davantage, et les 90 s de
+budget devront couvrir le tout. **2,83 s n'est pas « négligeable » dans
+l'absolu : c'est 3,1 % d'un budget qui n'a jamais été mesuré en entier.**
+
+### Repli déterministe par chemin
+
+L'empreinte versionnée `v1:` du chemin relatif est reproductible :
+
+| Entrée | Empreinte |
+|---|---|
+| `racine-synthetique/alpha/bravo.txt` | `v1:2125a54fc3bd9ca1` |
+| `racine-synthetique/alpha/bravo.txt` *(répétée)* | `v1:2125a54fc3bd9ca1` |
+| `racine-synthetique/charlie/delta.dat` | `v1:18b1d0160f2afe30` |
+| *(chaîne vide)* | `v1:cbf29ce484222325` |
+
+**Même entrée, même sortie : oui.**
+
+§10.3 demandait une reproductibilité « entre deux machines si possible ». Une
+seule machine était disponible. À la place, un contrôle **plus fort qu'une
+simple répétition** a été fait : l'empreinte a été calculée par **deux mises en
+œuvre indépendantes**, celle en **Rust** de `B3` et celle en **JavaScript** de
+`B1`, écrites séparément. **Les trois valeurs concordent exactement.** Cela
+démontre que l'algorithme ne dépend ni du langage, ni de la représentation
+interne — mais **cela ne remplace pas** un essai sur une seconde machine, qui
+reste **non fait**.
+
+### Point 7 — aucune heuristique comme identité
+
+Le spike ne contient **aucun** appariement par ressemblance, aucune suggestion
+de déplacement, aucun rapprochement par nom ou par taille. L'identité provient
+**exclusivement** de l'API du système; le repli par chemin est **étiqueté comme
+un repli** et n'est jamais présenté comme une identité prouvée.
+
+## 4.6 Verdict de B3
+
+| Point | Objet | Résultat |
+|---|---|---|
+| 1 | Identité sur Rust stable | **observé** |
+| 2 | Dépendance, version, licence vérifiée | **observé**, transitive comprise |
+| 3 | Renommage et déplacement intra-volume | **observé**, fichier et dossier |
+| 4 | Comportement inter-volume | **NON OBSERVÉ — bloqué par §13.2** |
+| 5 | Coût à 1 000 / 10 000 / 100 000 | **observé**, compatible avec §3.2 |
+| 6 | Repli déterministe par chemin | **observé** |
+| 7 | Aucune heuristique comme identité | **respecté** |
+
+§10.2 conditionne « `I-E` confirmée » à ce que **les points 1 à 6** soient
+observés. **Le point 4 ne l'est pas.** Le verdict honnête n'est donc pas
+« confirmée » :
+
+> **`I-E` est confirmée sur les points 1, 2, 3, 5 et 6, avec un coût mesuré
+> compatible avec la cible d'indexation. Le point 4 reste ouvert, bloqué par la
+> règle de périmètre de la tâche, et demande une autorisation distincte.**
+
+Ce n'est **pas** « `I-E` sous réserve » au sens de §10.2 — cette catégorie vise
+un coût qui dégraderait la cible, et le coût, lui, est compatible. C'est un
+verdict **incomplet par périmètre**, pas par performance.
+
+## 4.7 Non testé et limites de B3
+
+1. **Le comportement inter-volume n'a pas été observé** (§4.4), y compris le
+   risque de collision de `FileId` entre volumes.
+2. **Aucun essai sur un second poste.** La reproductibilité inter-machines du
+   repli par chemin reste **non testée**; seule la concordance entre deux mises
+   en œuvre a été vérifiée.
+3. **NTFS seulement.** Rien sur ReFS, FAT32, exFAT, volume réseau ou support
+   amovible. C'est une limite sérieuse : la documentation officielle avertit
+   qu'« un identifiant FAT peut changer au fil du temps » et que
+   « l'identifiant 64 bits n'est pas garanti unique sur ReFS » (S7).
+4. **Aucun fichier infonuagique.** L'effet d'une hydratation sur l'identité
+   n'est ni mesuré ici, ni résolu par `B4` (§5.6).
+5. **Aucune réutilisation d'identifiant observée.** La documentation prévient
+   que les identifiants « ne sont pas garantis uniques dans le temps, les
+   systèmes de fichiers étant libres de les réutiliser ». Ce banc d'essai ne
+   met **rien** en place contre cette réutilisation et ne l'a pas provoquée.
+6. **Aucune écriture en base.** Le coût mesuré est celui de l'obtention de
+   l'identité, pas d'une indexation complète.
+7. **Aucun accès concurrent, aucun fichier verrouillé, aucun refus de
+   permission.** Tous les éléments étaient accessibles; `identite()` rend
+   `None` en cas d'échec d'ouverture, mais **ce chemin de code n'a jamais été
+   emprunté** pendant les mesures.

@@ -1,0 +1,32 @@
+# B3 — spike d'identité Windows. PROJET ISOLÉ, JETABLE.
+#
+# Ce manifeste est INDÉPENDANT de src-tauri/Cargo.toml. La table `[workspace]`
+# vide, ci-dessous, empêche Cargo de rattacher ce paquet à un espace de travail
+# parent : ni le manifeste ni le verrou de la racine ne sont lus ni écrits.
+#
+# Dépendance, conforme aux cinq exigences de §6 de TASK-0012 :
+#   1. Nom et version exacts   : windows-sys, épinglée à =0.61.2
+#   2. Licence vérifiée        : MIT OR Apache-2.0 (voir LICENCE.md, ce dossier)
+#   3. Compatible MIT          : oui, DEC-0002
+#   4. Justification           : sans elle, VolumeSerialNumber + FileId 128 bits
+#                                sont inatteignables sur Rust STABLE — les
+#                                méthodes de la bibliothèque standard sont
+#                                `nightly-only`, canal interdit par §10.1.1
+#   5. Confinement             : présente ICI uniquement, jamais dans la racine
+
+[package]
+name = "b3-windows-identity"
+version = "0.0.0"
+edition = "2021"
+publish = false
+
+# Isole ce paquet de tout espace de travail parent.
+[workspace]
+
+[dependencies]
+windows-sys = { version = "=0.61.2", features = [
+    "Win32_Foundation",
+    "Win32_Security",
+    "Win32_Storage_FileSystem",
+    "Win32_System_IO",
+] }
