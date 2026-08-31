@@ -1032,3 +1032,65 @@ reconstruction. La branche de secours a été publiée au SHA vérifié
 `ACTION-0016` : rédiger et soumettre à Sébastien la spécification `TASK-0011`
 sur la baseline des exigences fonctionnelles et les décisions d'architecture,
 avant toute écriture de code.
+
+---
+
+## 2026-08-31 — ACTION-0016 — Proposition de TASK-0011
+
+**Agent :** Claude Code
+**Cadre :** GO explicite de Sébastien pour exécuter `ACTION-0016` uniquement
+**Résultat :** `TASK-0011` créée au statut `PROPOSED`
+
+### Fait
+
+- Création de `docs/tasks/TASK-0011-functional-architecture-baseline.md` :
+  objectif unique, contexte et problème réel, fichiers à lire, fichiers
+  modifiables pendant l'exécution future, douze interdictions, sept livrables
+  documentaires, recherches officielles requises, six décisions à comparer,
+  tests et preuves, treize critères d'acceptation, conditions d'arrêt, format
+  du rapport et quatre portes d'approbation de Sébastien.
+- La fiche exige, si elle est approuvée : la classification des 39 fonctions
+  `F-001` à `F-039` en MVP, ultérieur ou différé; le parcours de la sélection
+  d'une racine à la carte construite automatiquement; la comparaison
+  conserver/faire évoluer Tauri 2, Rust, React, TypeScript et SQLite sans
+  supposer de réécriture; la comparaison HTML/SVG, Canvas et WebGL pour un
+  rendu hiérarchique; le modèle de données complet; l'indexation sûre,
+  reconstructible, incrémentale et non destructive; la surveillance Windows
+  avec rafales, renommages, déplacements, suppressions, lecteurs absents et
+  reprise; les exclusions sûres et les fichiers infonuagiques sans
+  téléchargement automatique; les relations hiérarchiques automatiques et
+  transversales à provenance explicite; l'isolation réelle de plusieurs
+  cerveaux; l'accessibilité, le français/anglais et le clavier; des objectifs
+  mesurables à 1 000, 10 000 et 100 000 fichiers synthétiques; la matrice de
+  formats avec OCR désactivé par défaut; la limite architecturale gardant IA,
+  embeddings, RAG et GraphRAG facultatifs et hors du MVP structurel; les
+  migrations, sauvegarde, intégrité et retour arrière; et le plan de tests
+  unitaires, intégration, Windows manuel, récupération et performance.
+- Les décisions `DEC-0007` à `DEC-0012` restent à créer plus tard et devront
+  demeurer `PROPOSED` jusqu'au GO de Sébastien. La fiche rappelle que
+  `DEC-0003`, `DEC-0004` et `DEC-0005`, étant `VERIFIED`, sont remplacées et
+  jamais modifiées.
+- Mémoire mise à jour : `CURRENT_STATE.md`, `NEXT_ACTION.md`, `HANDOFF.md`,
+  `VALIDATION.md` (section K) et ce journal.
+
+### Non fait, volontairement
+
+- `TASK-0011` n'est ni approuvée, ni démarrée; aucun de ses livrables n'existe.
+- Aucune décision n'est prise, aucune fiche `DEC` n'est créée.
+- Aucun code, test, dépendance, `graph/`, `ROADMAP.md`, fusion, PR, release,
+  tag ou force push. `main` n'est pas touchée.
+- `TASK-0008` n'est pas corrigée, conformément au mandat.
+- Aucun test applicatif, build, test manuel ou essai physique.
+- Aucun accès à l'interface privée de référence, aucune donnée réelle.
+
+### Preuves
+
+- Contrôles Git préalables réussis; HEAD `1096fafa482b4e0f98cfb58c02bb5a258c7e9d23`,
+  arbre propre, SHA local égal au SHA distant, `main` inchangée à
+  `91bbe90f0f99026c28cd345784d4f579a0016db2`, 0 tâche `IN_PROGRESS`.
+- Contrôles documentaires détaillés en section K de `docs/ai/VALIDATION.md`.
+
+### Suite
+
+`ACTION-0017` : Sébastien examine `TASK-0011`, puis la corrige, l'approuve ou
+la rejette. Aucun agent ne démarre cette tâche avant ce GO.

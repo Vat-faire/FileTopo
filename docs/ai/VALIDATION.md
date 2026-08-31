@@ -4,7 +4,9 @@
 **Portée :** TASK-0001 (phase 0) — `VERIFIED` ; TASK-0002 (phase 1) —
 `VERIFIED` le 2026-08-25, sur preuves indépendantes de l'orchestrateur
 (section A.7) ; TASK-0010 (rebaseline et mémoire) — `VERIFIED` le 2026-08-31,
-sur preuves indépendantes (section J bis)
+sur preuves indépendantes (section J bis) ; TASK-0011 (baseline fonctionnelle
+et architecture) — `PROPOSED`, non exécutée, contrôles de la fiche en
+section K
 
 Trois qualificatifs seulement : **vérifié**, **non testé**, **inconnu**.
 
@@ -851,3 +853,72 @@ inconnu tant qu'aucun essai physique Windows n'a été mené.
 `TASK-0010` passe de `IMPLEMENTED` à `VERIFIED`. Aucune tâche n'est
 `IN_PROGRESS`. L'action unique suivante porte sur la spécification `TASK-0011`,
 qui n'est ni créée ni démarrée.
+
+---
+
+## K. TASK-0011 — Fiche proposée, baseline fonctionnelle et architecture (2026-08-31)
+
+**Statut de la tâche : `PROPOSED`.** Rien n'a été exécuté de son contenu.
+Cette section valide **l'existence et la conformité de la fiche**, pas la
+baseline qu'elle décrit.
+
+**Agent :** Claude Code, sous `ACTION-0016` et GO explicite de Sébastien du
+2026-08-31.
+
+### K.1 Vérifications Git préalables — réussies
+
+| Contrôle | Commande | Résultat |
+|---|---|---|
+| Racine | `git rev-parse --show-toplevel` | dépôt public autorisé |
+| Branche | `git rev-parse --abbrev-ref HEAD` | `rebuild/v0.2-project-brain` |
+| HEAD avant modification | `git rev-parse HEAD` | `1096fafa482b4e0f98cfb58c02bb5a258c7e9d23` |
+| Arbre de travail | `git status --porcelain` | vide |
+| SHA local et distant | `git rev-parse HEAD` / `origin/rebuild/v0.2-project-brain` | identiques |
+| `main` local et distant | `git rev-parse main` / `origin/main` | `91bbe90f0f99026c28cd345784d4f579a0016db2` |
+| Tâches `IN_PROGRESS` | recherche dans `docs/tasks/` | 0 |
+
+### K.2 Contrôles documentaires exécutés sur la fiche
+
+| Contrôle | Résultat réel |
+|---|---|
+| Fichier créé | `docs/tasks/TASK-0011-functional-architecture-baseline.md` |
+| Statut de TASK-0011 | `PROPOSED`, jamais `APPROVED` ni `IN_PROGRESS` |
+| Sections obligatoires du mandat | 13 présentes : objectif, contexte, fichiers à lire, fichiers modifiables, interdictions, livrables, recherches officielles, décisions à comparer, tests et preuves, critères d'acceptation, conditions d'arrêt, format du rapport, portes d'approbation |
+| Points de portée future exigés | 16 énumérés en section 7.1 |
+| Références `F-001` à `F-039` | portée déclarée sur les 39 fonctions, sans exception |
+| Décisions à comparer | 6 fiches futures, `DEC-0007` à `DEC-0012`, toutes exigées `PROPOSED` |
+| Fiches `DEC-0001` à `DEC-0006` | inchangées |
+| Tâches `IN_PROGRESS` après modification | 0 |
+| Actions dans `NEXT_ACTION.md` | 1 |
+| Fichiers modifiés hors des six autorisés | 0 |
+| Fichiers de code, tests, dépendances ou `graph/` | 0 |
+| Liens Markdown locaux de la fiche | tous contrôlés, 0 cassé |
+| Recherche de chemins personnels, secrets et données réelles | 0 correspondance |
+| `git diff --check` | réussi |
+
+### K.3 Non testé
+
+- **Aucune partie du contenu de TASK-0011 n'a été exécutée** : pas de baseline
+  des 39 fonctions, pas de parcours utilisateur, pas de comparaison de pile ni
+  de rendu, pas de modèle de données, pas d'objectifs mesurés, pas de plan de
+  tests appliqué. La fiche décrit un travail à faire.
+- Aucun test automatisé, build, installation, test manuel ou essai physique
+  Windows.
+- La pertinence technique des options à comparer n'est pas démontrée; elle
+  relève de l'exécution future.
+
+### K.4 Écarts connus, hors périmètre de cette intervention
+
+- `docs/tasks/TASK-0008-phase-6-publication-readiness.md` demeure `IMPLEMENTED`
+  et se décrit encore comme « non commitée ». Correction explicitement exclue
+  du mandat courant.
+- `ROADMAP.md` décrit encore la phase 0 comme `IMPLEMENTED` avec « validation
+  humaine en attente », alors que TASK-0010 est `VERIFIED` depuis le
+  2026-08-31. `ROADMAP.md` n'était pas modifiable dans ce mandat; sa mise à
+  jour est prévue par TASK-0011, section 5.
+
+### K.5 Conséquence
+
+`TASK-0011` existe au statut `PROPOSED`. Aucune tâche n'est `IN_PROGRESS`.
+L'action unique suivante, `ACTION-0017`, appartient à Sébastien : examiner,
+corriger, approuver ou rejeter la fiche.

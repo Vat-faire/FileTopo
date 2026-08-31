@@ -1,9 +1,9 @@
 # Prochaine action
 
-## ACTION-0016 — Spécification de la baseline fonctionnelle et architecturale
+## ACTION-0017 — Examen humain de TASK-0011
 
 - **Statut :** PROPOSED
-- **Responsable :** agent exécuteur, sous approbation de Sébastien
-- **Action unique :** créer et soumettre à Sébastien une spécification TASK-0011 portant sur la baseline des exigences fonctionnelles et les décisions d'architecture nécessaires avant tout code.
-- **Résultat attendu :** une fiche TASK-0011 au statut PROPOSED, périmètre écrit, prête pour décision humaine.
-- **Interdit :** ne pas démarrer TASK-0011, ne pas écrire de code, de test ni de dépendance avant son approbation.
+- **Responsable :** Sébastien
+- **Action unique :** examiner la fiche `docs/tasks/TASK-0011-functional-architecture-baseline.md`, puis la corriger, l'approuver ou la rejeter.
+- **Résultat attendu :** TASK-0011 passe à APPROVED, reçoit des corrections motivées, ou est REJECTED.
+- **Interdit :** ne pas démarrer TASK-0011, ne pas créer les décisions DEC-0007 à DEC-0012, ne pas écrire de code, de test ni de dépendance avant ce GO.
