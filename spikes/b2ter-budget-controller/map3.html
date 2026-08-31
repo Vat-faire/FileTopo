@@ -1,0 +1,647 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>B2 ter — contrôleur de budget corrigé, reconstructions réelles</title>
+<style>
+  html, body { margin: 0; height: 100%; background: #10131a; color: #e8ecf4;
+               font: 13px/1.4 system-ui, sans-serif; overflow: hidden; }
+  #scene { display: block; width: 100vw; height: 100vh; }
+  .bloc rect { stroke: #10131a; stroke-width: 1; vector-effect: non-scaling-stroke; }
+  .bloc text { pointer-events: none; fill: #0b0e14; font-size: 11px; }
+  .bloc[aria-selected="true"] rect { stroke: #ffd166; stroke-width: 3; }
+  .bloc:focus { outline: none; }
+  .bloc:focus rect { stroke: #4cc9f0; stroke-width: 3; }
+  #hud { position: fixed; left: 8px; top: 8px; background: #0008; padding: 6px 9px;
+         border-radius: 6px; white-space: pre; }
+</style>
+</head>
+<body>
+<div id="hud">prêt</div>
+<svg id="scene" role="tree" aria-label="Carte topographique synthétique" tabindex="0"><g id="monde"></g></svg>
+<script>
+"use strict";
+// ==========================================================================
+// B2 ter — page de mesure du contrôleur de budget CORRIGÉ. CODE JETABLE.
+//
+// Écrite à partir des seuls documents publics du dépôt. Aucune capture, aucune
+// structure, aucun nom et aucune métrique ne provient d'une interface privée.
+// Toutes les données sont générées par un générateur à graine fixe.
+//
+// Ce prototype n'est lié à AUCUN composant de src/. Il ne sera pas livré.
+//
+// LE RENDU, LA VIRTUALISATION, LA RÉCONCILIATION, LES CONTRÔLES ARIA ET
+// CLAVIER SONT REPRIS SANS MODIFICATION de `spikes/b2bis-layout-and-budget/
+// map2.html` (banc `B2 bis`), lui-même repris de `B2`. La SEULE variable de
+// cette campagne est le CONTRÔLEUR DE BUDGET.
+//
+// CE QUI EST NOUVEAU, ET POURQUOI — TASK-0014 §5.4 :
+//   1. la trajectoire du banc de budget a une amplitude SUFFISANTE, en
+//      déplacement ET en zoom, pour provoquer de VRAIES revirtualisations.
+//      `B2 bis` mesurait `revirtualisations = 0`, c'est-à-dire le mode
+//      `transform` dans son cas le PLUS FAVORABLE. Cette page ne le fait plus.
+//   2. chaque changement de seuil décidé par le contrôleur est CHRONOMÉTRÉ,
+//      avec le nombre de blocs et de nœuds DOM avant et après. Ce coût est
+//      payé DANS l'image, donc il est INCLUS dans les temps d'image que le
+//      contrôleur observe. Il n'est jamais mesuré à part puis retranché.
+//
+// Trois sources externes sont INJECTÉES avant ce script par `run-b2ter.mjs` :
+//   spikes/fixtures/synthetic-shapes.mjs        -> construireArbre, decrireArbre
+//   spikes/b2bis-layout-and-budget/calepins.mjs -> appliqueCalepin
+//   spikes/b2ter-budget-controller/budget2.mjs  -> creerBudget2, CONFIG_BUDGET_2
+// ==========================================================================
+
+const svg = document.getElementById('scene');
+const monde = document.getElementById('monde');
+const hud = document.getElementById('hud');
+const NS = 'http://www.w3.org/2000/svg';
+
+const COTE_MONDE = 4000;   // même monde carré que B2 et B2 bis
+
+// --------------------------------------------------------------------- état
+const S = {
+  racine: null, vue: { x: 0, y: 0, k: 1 }, seuilAire: 400,
+  elems: new Map(), visibles: [], selection: null, focus: null,
+  W: 0, H: 0, ordre: [],
+  mode: 'transform', ancre: null, marge: 0.25,
+  calepin: 'CAL-B', forme: null,
+};
+
+const teinte = (d) => 'hsl(' + ((d * 47) % 360) + ' 55% ' + (72 - Math.min(d, 8) * 4) + '%)';
+
+/** Virtualisation + niveau de détail. Repris de B2 bis sans modification. */
+function collecteVisibles(vue) {
+  const { x: vx, y: vy, k } = vue || S.vue;
+  const mx = S.mode === 'transform' ? S.W * S.marge : 0;
+  const my = S.mode === 'transform' ? S.H * S.marge : 0;
+  const out = [];
+  const pile = [S.racine];
+  while (pile.length) {
+    const n = pile.pop();
+    const sx = (n.x - vx) * k, sy = (n.y - vy) * k, sw = n.w * k, sh = n.h * k;
+    if (sx > S.W + mx || sy > S.H + my || sx + sw < -mx || sy + sh < -my) continue;
+    if (sw * sh < S.seuilAire) continue;
+    out.push(n);
+    for (let i = 0; i < n.enfants.length; i++) pile.push(n.enfants[i]);
+  }
+  return out;
+}
+
+/** Réconciliation par clé. Reprise de B2 bis sans modification. */
+function dessine() {
+  const vis = collecteVisibles();
+  S.visibles = vis;
+  const vus = new Set();
+  const { x: vx, y: vy, k } = S.vue;
+  const brut = S.mode === 'transform';
+  if (brut) {
+    S.ancre = { x: vx, y: vy, k };
+    appliqueTransform(S.vue);
+  } else {
+    monde.removeAttribute('transform');
+  }
+
+  const parent = new Map();
+  for (const n of vis) for (const c of n.enfants) parent.set(c.id, n);
+
+  for (const n of vis) {
+    vus.add(n.id);
+    let g = S.elems.get(n.id);
+    const sx = (n.x - vx) * k, sy = (n.y - vy) * k, sw = n.w * k, sh = n.h * k;
+    if (!g) {
+      g = document.createElementNS(NS, 'g');
+      g.setAttribute('class', 'bloc');
+      g.setAttribute('role', 'treeitem');
+      g.dataset.id = String(n.id);
+      const rect = document.createElementNS(NS, 'rect');
+      g.appendChild(rect);
+      S.elems.set(n.id, g);
+      monde.appendChild(g);
+    }
+    const rect = g.firstChild;
+    const rx = brut ? n.x : sx, ry = brut ? n.y : sy;
+    const rw = brut ? n.w : sw, rh = brut ? n.h : sh;
+    rect.setAttribute('x', rx.toFixed(2));
+    rect.setAttribute('y', ry.toFixed(2));
+    rect.setAttribute('width', Math.max(0, rw).toFixed(2));
+    rect.setAttribute('height', Math.max(0, rh).toFixed(2));
+    rect.setAttribute('fill', teinte(n.depth));
+
+    g.setAttribute('aria-level', String(n.depth + 1));
+    g.setAttribute('aria-selected', S.selection === n.id ? 'true' : 'false');
+    g.setAttribute('aria-label', n.nom);
+    if (n.enfants.length) {
+      const deploye = n.enfants.some((c) => vus.has(c.id) || S.elems.has(c.id));
+      g.setAttribute('aria-expanded', deploye ? 'true' : 'false');
+    } else {
+      g.removeAttribute('aria-expanded');
+    }
+    const p = parent.get(n.id);
+    const fratrie = p ? p.enfants : [n];
+    g.setAttribute('aria-setsize', String(fratrie.length));
+    g.setAttribute('aria-posinset', String(fratrie.indexOf(n) + 1));
+    g.setAttribute('tabindex', S.focus === n.id ? '0' : '-1');
+
+    const veutTexte = sw > 60 && sh > 16;
+    let t = g.querySelector('text');
+    if (veutTexte && !t) {
+      t = document.createElementNS(NS, 'text');
+      g.appendChild(t);
+    } else if (!veutTexte && t) {
+      t.remove(); t = null;
+    }
+    if (t) {
+      t.setAttribute('x', (rx + (brut ? 4 / k : 4)).toFixed(2));
+      t.setAttribute('y', (ry + (brut ? 11 / k : 11)).toFixed(2));
+      if (brut) t.setAttribute('font-size', (11 / k).toFixed(3));
+      t.textContent = n.nom;
+    }
+  }
+
+  for (const [id, el] of S.elems) {
+    if (!vus.has(id)) { el.remove(); S.elems.delete(id); }
+  }
+  S.ordre = vis;
+}
+
+function appliqueTransform(vue) {
+  const a = S.ancre;
+  if (!a) return;
+  const k = vue.k;
+  monde.setAttribute('transform',
+    'translate(' + (-vue.x * k).toFixed(3) + ',' + (-vue.y * k).toFixed(3) + ') scale(' + k.toFixed(6) + ')');
+}
+
+function besoinRevirtualiser(vue) {
+  const a = S.ancre;
+  if (!a) return true;
+  if (Math.abs(vue.k / a.k - 1) > 0.10) return true;
+  const dx = Math.abs(vue.x - a.x) * vue.k, dy = Math.abs(vue.y - a.y) * vue.k;
+  return dx > S.W * S.marge * 0.8 || dy > S.H * S.marge * 0.8;
+}
+
+function compteDom() {
+  return svg.querySelectorAll('*').length;
+}
+
+// ------------------------------------------------------- rapports d'aspect
+/** Repris de B2 bis sans modification. */
+window.aspects = function () {
+  const k = S.vue.k;
+  const rs = [];
+  let degeneres = 0;
+  for (const n of S.visibles) {
+    const w = n.w * k, h = n.h * k;
+    if (w <= 0 || h <= 0) { degeneres++; continue; }
+    rs.push(Math.max(w, h) / Math.min(w, h));
+  }
+  rs.sort((a, b) => a - b);
+  const q = (p) => (rs.length ? +rs[Math.min(rs.length - 1, Math.floor(rs.length * p))].toFixed(4) : null);
+  const moy = rs.length ? rs.reduce((a, b) => a + b, 0) / rs.length : null;
+  return {
+    n: rs.length, degeneres,
+    median: q(0.5), p90: q(0.90), p99: q(0.99),
+    max: rs.length ? +rs[rs.length - 1].toFixed(4) : null,
+    moyenne: moy === null ? null : +moy.toFixed(4),
+  };
+};
+
+// ------------------------------------------------------------ mise en place
+window.setup = function (opts) {
+  const { shape, count, seed, cible, calepin } = opts;
+  S.mode = 'transform';
+  S.calepin = calepin === 'CAL-A' ? 'CAL-A' : 'CAL-B';
+  S.forme = shape;
+  S.W = window.innerWidth; S.H = window.innerHeight;
+  const t0 = performance.now();
+  S.racine = construireArbre(shape, count, seed);
+  const tArbre = performance.now() - t0;
+  const t1 = performance.now();
+  appliqueCalepin(S.calepin, S.racine, 0, 0, COTE_MONDE, COTE_MONDE);
+  const tCalepin = performance.now() - t1;
+  S.vue = { x: 0, y: 0, k: Math.min(S.W / COTE_MONDE, S.H / COTE_MONDE) };
+  S.elems.forEach((e) => e.remove());
+  S.elems.clear();
+  S.selection = null; S.focus = null;
+  S.ancre = null;
+
+  // `cible = 0` : aucun seuil imposé, c'est le budget qui décide. Le seuil de
+  // départ est alors celui du niveau initial du contrôleur, posé par
+  // `runBudget2`. On le fixe ici de façon déterministe pour que l'état d'avant
+  // la campagne ne fuite pas d'une exécution à l'autre.
+  if (cible > 0) {
+    let lo = 1, hi = 200000, best = S.seuilAire, bestN = -1;
+    for (let i = 0; i < 40; i++) {
+      const mid = Math.sqrt(lo * hi);
+      S.seuilAire = mid;
+      const n = collecteVisibles().length;
+      if (bestN < 0 || Math.abs(n - cible) < Math.abs(bestN - cible)) { best = mid; bestN = n; }
+      if (n > cible) lo = mid; else hi = mid;
+      if (hi / lo < 1.0005) break;
+    }
+    S.seuilAire = best;
+  } else {
+    S.seuilAire = echelleSeuils(CONFIG_BUDGET_2)[CONFIG_BUDGET_2.niveauInitial];
+  }
+  dessine();
+  const desc = decrireArbre(S.racine);
+  hud.textContent = shape + ' ' + S.calepin + '  visibles=' + S.visibles.length + '  dom=' + compteDom();
+  return {
+    forme: shape, calepin: S.calepin, mode: S.mode, noeudsTotal: count, graine: seed,
+    description: desc,
+    blocsVisibles: S.visibles.length, noeudsDom: compteDom(),
+    seuilAire: +S.seuilAire.toFixed(2),
+    constructionArbreMs: +tArbre.toFixed(2), calepinMs: +tCalepin.toFixed(2),
+    fenetre: { w: S.W, h: S.H }, dpr: window.devicePixelRatio,
+    aspects: window.aspects(),
+  };
+};
+
+// ------------------------------------------------------ trajectoire scriptée
+/** Reprise de B2 bis sans modification, pour les mesures hors budget. */
+function trajectoire(i, n) {
+  const t = i / n;
+  return {
+    dx: Math.sin(t * Math.PI * 2) * 900,
+    dy: Math.cos(t * Math.PI * 2) * 700,
+    k: 1 + Math.sin(t * Math.PI * 4) * 0.35,
+  };
+}
+
+function mesureImages(frames, applique) {
+  return new Promise((resolve) => {
+    const ts = [];
+    let i = 0;
+    let revirt = 0;
+    const base = { ...S.vue };
+    function pas(now) {
+      ts.push(now);
+      if (i >= frames) {
+        S.vue = base; dessine();
+        const dts = [];
+        for (let j = 1; j < ts.length; j++) dts.push(ts[j] - ts[j - 1]);
+        dts.sort((a, b) => a - b);
+        const ips = 1000 / dts[(dts.length - 1) >> 1];
+        const p95 = dts[Math.min(dts.length - 1, Math.floor(dts.length * 0.95))];
+        resolve({
+          images: ts.length,
+          dureeMs: +(ts[ts.length - 1] - ts[0]).toFixed(2),
+          ipsMedian: +ips.toFixed(2),
+          imageMedianeMs: +dts[(dts.length - 1) >> 1].toFixed(3),
+          imageP95Ms: +p95.toFixed(3),
+          imagePireMs: +dts[dts.length - 1].toFixed(3),
+          blocsVisibles: S.visibles.length,
+          noeudsDom: compteDom(),
+          revirtualisations: revirt,
+          seuilAire: +S.seuilAire.toFixed(2),
+        });
+        return;
+      }
+      applique(base, i, frames);
+      if (besoinRevirtualiser(S.vue)) { revirt++; dessine(); }
+      else appliqueTransform(S.vue);
+      i++;
+      requestAnimationFrame(pas);
+    }
+    requestAnimationFrame(pas);
+  });
+}
+
+window.runPan = function (frames) {
+  return mesureImages(frames || 120, (base, i, n) => {
+    const p = trajectoire(i, n);
+    S.vue = { x: base.x + p.dx, y: base.y + p.dy, k: base.k };
+  });
+};
+
+window.runSelect = function (n) {
+  n = n || 40;
+  const lat = [];
+  const cibles = S.visibles.slice(0, Math.max(1, Math.min(n, S.visibles.length)));
+  return new Promise((resolve) => {
+    let i = 0;
+    function suivant() {
+      if (i >= n) {
+        const s = lat.slice().sort((a, b) => a - b);
+        resolve({
+          n: s.length,
+          medianMs: +s[(s.length - 1) >> 1].toFixed(3),
+          p95Ms: +s[Math.min(s.length - 1, Math.floor(s.length * 0.95))].toFixed(3),
+          maxMs: +s[s.length - 1].toFixed(3),
+          minMs: +s[0].toFixed(3),
+        });
+        return;
+      }
+      const cible = cibles[i % cibles.length];
+      const el = S.elems.get(cible.id);
+      const t0 = performance.now();
+      el.dispatchEvent(new MouseEvent('mousedown', { bubbles: true }));
+      requestAnimationFrame(() => {
+        void svg.getBoundingClientRect().width;
+        lat.push(performance.now() - t0);
+        i++;
+        suivant();
+      });
+    }
+    suivant();
+  });
+};
+
+// ==========================================================================
+// BANC DU CONTRÔLEUR CORRIGÉ — protocole de mesure de G1 à G8
+// ==========================================================================
+//
+// Déroulement d'une exécution, identique entre formes et entre exécutions :
+//   1. la vue part de l'ajustement au contenu, budget au niveau initial;
+//   2. à `chocApresMs`, CHANGEMENT BRUSQUE DE VUE : saut vers une région dense
+//      et zoom × 3,5 en une seule image;
+//   3. ensuite, déplacement continu déterministe fonction du TEMPS écoulé,
+//      d'amplitude SUFFISANTE POUR PROVOQUER DE VRAIES REVIRTUALISATIONS, en
+//      translation ET en zoom;
+//   4. le budget n'observe que les images postérieures au choc;
+//   5. chaque changement de seuil est chronométré, avec blocs et nœuds DOM
+//      avant et après.
+//
+// Aucun état n'est conservé d'une exécution à l'autre : le contrôleur est
+// recréé à chaque appel.
+//
+// AMPLITUDES, DÉCLARÉES AVANT MESURE. Le seuil de revirtualisation est
+// `|k/k_ancre - 1| > 0,10` en zoom, et un déplacement d'écran supérieur à
+// `0,8 × marge` de la fenêtre en translation. Les amplitudes ci-dessous
+// dépassent LES DEUX, donc les revirtualisations sont garanties, pas espérées.
+const RAYON_MONDE = 600;      // unités de monde, translation circulaire
+const AMPLITUDE_ZOOM = 0.18;  // ± 18 % — supérieur au seuil de 10 %
+const PERIODE_MS = 4000;      // une révolution complète
+
+window.runBudget2 = function (opts) {
+  const o = opts || {};
+  const dureeMs = o.dureeMs || 14000;
+  const chocApresMs = o.chocApresMs || 600;
+  const b = creerBudget2(o.config || {});
+
+  S.seuilAire = b.seuilCourant();
+  S.vue = { x: 0, y: 0, k: Math.min(S.W / COTE_MONDE, S.H / COTE_MONDE) };
+  S.selection = null; S.focus = null;
+  S.ancre = null;
+  dessine();
+
+  // Région dense visée par le choc. Déterministe, identique partout.
+  const kChoc = S.vue.k * 3.5;
+  const cx = COTE_MONDE * 0.30, cy = COTE_MONDE * 0.30;
+  const vueChoc = { x: cx - S.W / (2 * kChoc), y: cy - S.H / (2 * kChoc), k: kChoc };
+
+  return new Promise((resolve) => {
+    const traceDt = [];        // temps d'image observés APRÈS le choc
+    const echantillons = [];
+    const decisions = [];
+    const reconstructions = [];
+    let tPremier = null, tChoc = null, precedent = null;
+    let revirtualisations = 0;
+
+    function pas(now) {
+      if (tPremier === null) { tPremier = now; precedent = now; requestAnimationFrame(pas); return; }
+      const dt = now - precedent;
+      precedent = now;
+      const t = now - tPremier;
+
+      if (tChoc === null && t >= chocApresMs) {
+        tChoc = t;
+        S.vue = { ...vueChoc };
+        dessine();
+        requestAnimationFrame(pas);
+        return;   // l'image du choc elle-même n'est pas observée par le budget
+      }
+
+      if (tChoc !== null) {
+        traceDt.push(+dt.toFixed(3));
+        const d = b.observe(dt);
+        if (d) {
+          decisions.push({ ...d, tMs: +(t - tChoc).toFixed(1) });
+          if (d.changement) {
+            // RECONSTRUCTION RÉELLE. Chronométrée, et payée DANS cette image :
+            // son coût se retrouve donc dans le temps de l'image suivante, que
+            // le contrôleur observe. Il n'est jamais retranché.
+            const blocsAvant = S.visibles.length;
+            const domAvant = compteDom();
+            const tr0 = performance.now();
+            S.seuilAire = d.seuilApres;
+            dessine();
+            const coutMs = performance.now() - tr0;
+            const blocsApres = S.visibles.length;
+            const domApres = compteDom();
+            reconstructions.push({
+              tMs: +(t - tChoc).toFixed(1),
+              action: d.action,
+              seuilAvant: d.seuilAvant, seuilApres: d.seuilApres,
+              blocsAvant, blocsApres, deltaBlocs: blocsApres - blocsAvant,
+              domAvant, domApres, deltaDom: domApres - domAvant,
+              coutMs: +coutMs.toFixed(3),
+              changeBlocs: blocsApres !== blocsAvant,
+            });
+          }
+        }
+        echantillons.push({ tMs: +(t - tChoc).toFixed(1), dtMs: +dt.toFixed(3),
+                            niveau: b.niveau(), seuil: b.seuilCourant(),
+                            blocs: S.visibles.length, dom: compteDom() });
+        // Déplacement continu, fonction du TEMPS, pas du numéro d'image.
+        // Translation ET zoom, d'amplitude suffisante pour revirtualiser.
+        const ang = ((t - tChoc) / PERIODE_MS) * Math.PI * 2;
+        S.vue = {
+          x: vueChoc.x + Math.cos(ang) * RAYON_MONDE,
+          y: vueChoc.y + Math.sin(ang) * RAYON_MONDE,
+          k: kChoc * (1 + AMPLITUDE_ZOOM * Math.sin(ang * 2)),
+        };
+        if (besoinRevirtualiser(S.vue)) { revirtualisations++; dessine(); }
+        else appliqueTransform(S.vue);
+      }
+
+      if (t >= dureeMs) { resolve(bilan()); return; }
+      requestAnimationFrame(pas);
+    }
+
+    function med(xs) { const s = [...xs].sort((a, b2) => a - b2); return s.length ? s[(s.length - 1) >> 1] : null; }
+
+    function bilan() {
+      // Convergence : instant de la DERNIÈRE décision qui change le niveau.
+      const chg = decisions.filter((d) => d.changement);
+      const tDernierChangementMs = chg.length ? chg[chg.length - 1].tMs : 0;
+      const debutStable = tDernierChangementMs;
+      const stables = echantillons.filter((e) => e.tMs > debutStable + 200);
+      const dtsStables = stables.map((e) => e.dtMs);
+      const ipsStable = dtsStables.length ? 1000 / med(dtsStables) : null;
+
+      // G3 — inversions sur TOUTE fenêtre glissante de 10 s du régime stable.
+      // On prend le MAXIMUM sur toutes les fenêtres, pas une fenêtre choisie.
+      const decStables = decisions.filter((d) => d.tMs > debutStable);
+      const sensDe = (d) => (d.niveauApres > d.niveauAvant ? 1 : (d.niveauApres < d.niveauAvant ? -1 : 0));
+      let pireInversions10s = 0;
+      for (let i = 0; i < decStables.length; i++) {
+        const t0 = decStables[i].tMs;
+        let inv = 0, precSens = 0;
+        for (let j = i; j < decStables.length && decStables[j].tMs <= t0 + 10000; j++) {
+          const s = sensDe(decStables[j]);
+          if (s !== 0) { if (precSens !== 0 && s !== precSens) inv++; precSens = s; }
+        }
+        if (inv > pireInversions10s) pireInversions10s = inv;
+      }
+
+      const seuilMaxObserve = Math.max(...echantillons.map((e) => e.seuil), b.seuils[0]);
+      const dtsTous = echantillons.map((e) => e.dtMs);
+      const recChangeantBlocs = reconstructions.filter((r) => r.changeBlocs);
+      const couts = reconstructions.map((r) => r.coutMs).sort((a, b2) => a - b2);
+      return {
+        calepin: S.calepin, forme: S.forme,
+        config: b.config,
+        seuils: b.seuils, plancherLisibilite: b.plancherLisibilite,
+        seuilLentMs: +b.seuilLentMs.toFixed(4), seuilRapideMs: b.seuilRapideMs,
+        dureeObserveeMs: echantillons.length ? echantillons[echantillons.length - 1].tMs : 0,
+        images: echantillons.length,
+        niveauFinal: b.niveau(), seuilFinal: b.seuilCourant(),
+        blocsFinal: S.visibles.length, domFinal: compteDom(),
+        tDernierChangementMs,
+        convergenceSous2s: tDernierChangementMs <= 2000,
+        ipsGlobalMedian: dtsTous.length ? +(1000 / med(dtsTous)).toFixed(2) : null,
+        ipsRegimeStable: ipsStable === null ? null : +ipsStable.toFixed(2),
+        imagesRegimeStable: dtsStables.length,
+        inversionsTotales: b.inversions(),
+        pireInversionsSurFenetreGlissante10s: pireInversions10s,
+        seuilMaxObserve: +seuilMaxObserve.toFixed(2),
+        plancherFranchi: seuilMaxObserve > b.plancherLisibilite + 1e-9,
+        plancherAtteintSansCible: decisions.some((d) => d.action === 'plancher-lisibilite'),
+        fenetresAuPlancher: decisions.filter((d) => d.action === 'plancher-lisibilite').length,
+        // ------------------------------------------ reconstructions réelles
+        revirtualisations,
+        nbReconstructions: reconstructions.length,
+        nbReconstructionsChangeantBlocs: recChangeantBlocs.length,
+        coutReconstructionMedianMs: couts.length ? +couts[(couts.length - 1) >> 1].toFixed(3) : null,
+        coutReconstructionMaxMs: couts.length ? +couts[couts.length - 1].toFixed(3) : null,
+        coutReconstructionTotalMs: couts.length ? +couts.reduce((a, b2) => a + b2, 0).toFixed(3) : 0,
+        deltaBlocsMax: recChangeantBlocs.length
+          ? Math.max(...recChangeantBlocs.map((r) => Math.abs(r.deltaBlocs))) : 0,
+        reconstructions,
+        nbDecisions: decisions.length,
+        decisions,
+        signature: b.signature(),
+        traceDt,
+        echantillonsAlleges: echantillons.filter((_, i) => i % 6 === 0),
+      };
+    }
+
+    requestAnimationFrame(pas);
+  });
+};
+
+// --------------------------------------------------------------- sélection
+svg.addEventListener('mousedown', (e) => {
+  const g = e.target.closest('.bloc');
+  if (!g) return;
+  const id = Number(g.dataset.id);
+  const prec = S.selection;
+  S.selection = id; S.focus = id;
+  if (prec != null && S.elems.has(prec)) S.elems.get(prec).setAttribute('aria-selected', 'false');
+  g.setAttribute('aria-selected', 'true');
+  g.setAttribute('tabindex', '0');
+});
+
+// ----------------------------------------------------------------- clavier
+// Repris de B2 bis sans modification.
+function indexFocus() {
+  return Math.max(0, S.ordre.findIndex((n) => n.id === S.focus));
+}
+function poseFocus(n) {
+  if (!n) return;
+  const prec = S.focus;
+  if (prec != null && S.elems.has(prec)) S.elems.get(prec).setAttribute('tabindex', '-1');
+  S.focus = n.id;
+  const el = S.elems.get(n.id);
+  if (el) { el.setAttribute('tabindex', '0'); el.focus(); }
+}
+svg.addEventListener('keydown', (e) => {
+  if (!S.ordre.length) return;
+  if (S.focus == null) { poseFocus(S.ordre[0]); e.preventDefault(); return; }
+  const i = indexFocus();
+  const cur = S.ordre[i];
+  let cible = null;
+  switch (e.key) {
+    case 'ArrowDown': cible = S.ordre[Math.min(S.ordre.length - 1, i + 1)]; break;
+    case 'ArrowUp': cible = S.ordre[Math.max(0, i - 1)]; break;
+    case 'ArrowRight': cible = cur.enfants.find((c) => S.elems.has(c.id)) || null; break;
+    case 'ArrowLeft': {
+      for (const n of S.ordre) if (n.enfants.includes(cur)) { cible = n; break; }
+      break;
+    }
+    case 'Home': cible = S.ordre[0]; break;
+    case 'End': cible = S.ordre[S.ordre.length - 1]; break;
+    default: return;
+  }
+  e.preventDefault();
+  if (cible) poseFocus(cible);
+});
+
+/** Vérification de la STRUCTURE produite. Reprise de B2 bis sans modification. */
+window.checkAria = function () {
+  const items = svg.querySelectorAll('[role="treeitem"]');
+  const req = ['aria-level', 'aria-selected', 'aria-setsize', 'aria-posinset'];
+  const manquants = {};
+  for (const a of req) manquants[a] = 0;
+  let sansExpanded = 0, avecEnfantsConstruits = 0;
+  for (const el of items) {
+    for (const a of req) if (!el.hasAttribute(a)) manquants[a]++;
+    const id = Number(el.dataset.id);
+    const n = S.ordre.find((x) => x.id === id);
+    if (n && n.enfants.length) {
+      avecEnfantsConstruits++;
+      if (!el.hasAttribute('aria-expanded')) sansExpanded++;
+    }
+  }
+  return {
+    roleConteneur: svg.getAttribute('role'),
+    nbTreeitem: items.length,
+    attributsManquants: manquants,
+    noeudsAvecEnfants: avecEnfantsConstruits,
+    sansAriaExpanded: sansExpanded,
+    conforme: Object.values(manquants).every((v) => v === 0) && sansExpanded === 0
+      && svg.getAttribute('role') === 'tree',
+  };
+};
+
+/** Reprise de B2 bis sans modification. */
+window.checkKeyboard = function () {
+  const trace = [];
+  const envoie = (key) => {
+    const avant = S.focus;
+    svg.dispatchEvent(new KeyboardEvent('keydown', { key, bubbles: true, cancelable: true }));
+    trace.push({ touche: key, focusAvant: avant, focusApres: S.focus,
+                 aBouge: avant !== S.focus,
+                 focusDom: document.activeElement === S.elems.get(S.focus) });
+  };
+  S.focus = null;
+  envoie('ArrowDown');
+  envoie('ArrowDown');
+  envoie('ArrowDown');
+  envoie('ArrowUp');
+  envoie('ArrowRight');
+  envoie('ArrowLeft');
+  envoie('End');
+  envoie('Home');
+  const idx = trace.findIndex((t) => t.touche === 'ArrowRight');
+  const avantDroite = S.ordre.find((n) => n.id === trace[idx].focusAvant);
+  const droiteAttendue = !!(avantDroite && avantDroite.enfants.some((c) => S.elems.has(c.id)));
+  const verdicts = trace.slice(1).map((t) => ({
+    touche: t.touche,
+    attendu: t.touche === 'ArrowRight' ? droiteAttendue : true,
+    obtenu: t.aBouge,
+    conforme: (t.touche === 'ArrowRight' ? droiteAttendue : true) === t.aBouge,
+  }));
+  return {
+    trace, verdicts,
+    droiteAvaitDesEnfantsConstruits: droiteAttendue,
+    toutesLesTouchesConformes: verdicts.every((v) => v.conforme),
+    focusDomSuit: trace.every((t) => t.focusDom),
+  };
+};
+
+window.pret = true;
+</script>
+</body>
+</html>
