@@ -546,7 +546,7 @@ Le tableau ci-dessous n'en donne que l'état d'avancement.
 
 | Banc | État | Verdict |
 |---|---|---|
-| `B0` | en attente | — |
+| `B0` | **exécuté** le 2026-08-31 | **SUCCÈS** — état réel connu et écrit, échec inclus, aucune correction |
 | `B1` | en attente | — |
 | `B2` | en attente | — |
 | `B3` | en attente | — |
