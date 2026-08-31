@@ -1,0 +1,6 @@
+# Espace de travail des bancs d'essai : bases, arborescences et artefacts
+# synthétiques générés à l'exécution. Jamais commité, jamais réutilisé.
+.work/
+
+# Artefacts de compilation des spikes isolés.
+b3-windows-identity/target/

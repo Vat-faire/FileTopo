@@ -3,22 +3,25 @@
 - **Identifiant :** `TASK-0012`
 - **Titre :** Exécuter des bancs d'essai synthétiques permettant de lever les
   risques techniques avant le premier code de production
-- **Statut :** `PROPOSED`
+- **Statut :** `IN_PROGRESS`
 - **Phase :** 1 bis — porte technique entre la baseline approuvée et la
   phase 2 de [ROADMAP.md](../../ROADMAP.md)
 - **Proposée le :** 2026-08-31
 - **Rédacteur de la fiche :** Claude Code, sous le GO P2 de Sébastien du
   2026-08-31
-- **Exécuteur prévu :** non assigné; tout agent capable, **après un GO P3
-  séparé**
+- **Exécuteur :** Claude Code, sous le **GO P3 explicite de Sébastien du
+  2026-08-31**
 - **Effort recommandé :** une à trois sessions d'expérimentation. Aucun code de
   production, aucune fonctionnalité.
-- **GO humain :** **non acquis.** Cette fiche est soumise à l'examen de
-  Sébastien. **Rien ne peut être exécuté avant la porte P3.**
+- **GO humain :** **acquis.** GO P3 explicite de Sébastien le 2026-08-31,
+  accompagné d'une correction autorisée des livrables (§5.1). L'exécution est
+  ouverte sur `spike/v0.2-technical-risk-gates`.
 
-> Cette fiche **spécifie** cinq bancs d'essai. Elle ne les exécute pas. Toute
-> case « Résultat », « Mesure » ou « Verdict » reste vide tant que la porte P3
-> n'a pas été franchie. **Aucun chiffre de cette fiche n'est un résultat.**
+> Cette fiche **spécifie** cinq bancs d'essai. Les résultats, mesures et
+> verdicts réels ne vivent pas ici : ils sont publiés dans
+> [TASK-0012-risk-gate-results.md](../research/TASK-0012-risk-gate-results.md)
+> et dans les fiches `PERF-0001` à `PERF-0003`. **Aucun chiffre de cette fiche
+> n'est un résultat.**
 
 ---
 
@@ -116,6 +119,8 @@ aucun `clean`, aucune réécriture d'historique.
 | `spikes/b4-cloud-attributes/` | Fixture ou simulation d'attributs infonuagiques |
 | `spikes/fixtures/` | Générateurs de données **synthétiques** uniquement |
 | `docs/performance/PERF-0001-b2-rendering.md` | Mesures réelles de `B2` |
+| `docs/performance/PERF-0002-b1-sqlite-migration.md` | Mesures réelles de `B1` |
+| `docs/performance/PERF-0003-b3-windows-identity.md` | Mesures réelles de `B3` |
 | `docs/research/TASK-0012-risk-gate-results.md` | Résultats, verdicts et preuves de `B0` à `B4` |
 
 ### 5.2 Modifications autorisées
@@ -258,7 +263,8 @@ Une réfutation de `M-C` est un **résultat valide**, pas un échec de la tâche
 Pour chaque point : commande, état du disque avant/après (liste de fichiers,
 tailles, empreintes), sortie de `PRAGMA integrity_check` sur les deux bases,
 et journal des interruptions. Cinq exécutions minimum par scénario chronométré;
-médiane et écart min–max rapportés.
+médiane et écart min–max rapportés. Les mesures chronométrées sont publiées
+dans [PERF-0002](../performance/PERF-0002-b1-sqlite-migration.md).
 
 ---
 
@@ -362,6 +368,8 @@ Conditionne **`I-E`** de
 Sortie du programme pour chaque scénario, avant/après renommage et
 déplacement; tableau de coûts par volumétrie, cinq exécutions, médiane et
 écart; fiche de licence de la dépendance candidate avec sa source et sa date.
+Les mesures chronométrées sont publiées dans
+[PERF-0003](../performance/PERF-0003-b3-windows-identity.md).
 
 ---
 
@@ -520,3 +528,26 @@ Aucune ligne de code de production ne peut être écrite avant `P4`.
 - 2026-08-31 — `PROPOSED` : fiche rédigée après le franchissement de la porte
   P2, soumise à Sébastien. **Aucune exécution, aucun spike, aucune dépendance,
   aucune branche créée.**
+- 2026-08-31 — `APPROVED` : **GO P3 explicite de Sébastien**, porte P3
+  franchie. Une **correction autorisée** est apportée en même temps que
+  l'approbation : `docs/performance/PERF-0002-b1-sqlite-migration.md` et
+  `docs/performance/PERF-0003-b3-windows-identity.md` sont ajoutés aux
+  livrables de §5.1, afin que `B1`, `B2` et `B3` portent **chacun** sa fiche de
+  performance distincte.
+- 2026-08-31 — `IN_PROGRESS` : branche `spike/v0.2-technical-risk-gates` créée
+  depuis `db8d3de0b20e7efbfe463a17c218cc14face39a8`, pointe vérifiée de
+  `rebuild/v0.2-project-brain`. Exécution de `B0` à `B4` engagée.
+
+## 20. Rapport d'exécution
+
+Le rapport d'exécution détaillé, avec toutes les preuves, vit dans
+[docs/research/TASK-0012-risk-gate-results.md](../research/TASK-0012-risk-gate-results.md).
+Le tableau ci-dessous n'en donne que l'état d'avancement.
+
+| Banc | État | Verdict |
+|---|---|---|
+| `B0` | en attente | — |
+| `B1` | en attente | — |
+| `B2` | en attente | — |
+| `B3` | en attente | — |
+| `B4` | en attente | — |
