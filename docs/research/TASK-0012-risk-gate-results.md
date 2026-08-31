@@ -83,7 +83,7 @@ part, conformément à §10.1.1 de `TASK-0012`.
 | `B1` | Migration SQLite Windows | **`M-C` RÉFUTÉE telle qu'elle est écrite** (un `-wal` orphelin survit à la permutation et corrompt la base neuve); **`M-C` durcie** — avec repli du WAL et suppression des annexes — et **`M-B`** observent tous deux les points 2 à 7 | §2 |
 | `B2` | Rendu HTML/SVG | **Étude Canvas 2D autorisée** — seuil d'images par seconde manqué à 3 000 blocs sur `SYN-WIDE` (14,08 ips contre 30). Plafonds réels mesurés : 3 743 / 3 063 / 939 blocs selon la forme | §3 |
 | `B3` | Identité Windows | **`I-E` confirmée sur 5 des 6 points**, coût mesuré à 28,3 µs/élément soit 3,1 % du budget d'indexation. **Point 4, inter-volume : NON OBSERVÉ**, bloqué par §13.2 | §4 |
-| `B4` | Attributs infonuagiques | *en attente* | §5 |
+| `B4` | Attributs infonuagiques | **SUCCÈS** — 3 questions répondues sur sources Microsoft, la 4<sup>e</sup> (survie de l'identité à l'hydratation) **déclarée non résolue**. Aucune hydratation déclenchée, aucun fichier réel touché | §5 |
 
 ---
 
@@ -1014,3 +1014,271 @@ verdict **incomplet par périmètre**, pas par performance.
    permission.** Tous les éléments étaient accessibles; `identite()` rend
    `None` en cas d'échec d'ouverture, mais **ce chemin de code n'a jamais été
    emprunté** pendant les mesures.
+
+---
+
+# 5. B4 — Attributs infonuagiques
+
+- **Spike :** `spikes/b4-cloud-attributes/simulation.mjs`
+- **Sources :** **exclusivement Microsoft**, consultées le **2026-08-31**.
+  Aucun blogue, aucun forum, aucune réponse d'agent, aucune source secondaire.
+- **Verdict :** **SUCCÈS** au sens de §11.3 — trois questions reçoivent une
+  réponse sourcée Microsoft, la quatrième est **explicitement déclarée non
+  résolue** avec la recherche menée. **Aucune hydratation n'a été déclenchée.**
+
+## 5.0 Ce que le spike n'a pas fait, et c'est essentiel
+
+**Aucun fichier réel n'a été touché.** Le spike :
+
+- n'ouvre aucun fichier;
+- ne lit aucun contenu;
+- n'énumère aucun dossier du disque;
+- **ne touche à aucun espace réservé** d'un fournisseur de synchronisation
+  installé sur la machine, ni pour le lire, ni pour l'énumérer.
+
+Il ne prouve donc **rien** sur le comportement réel de Windows. C'est une
+**simulation** sur des vecteurs d'attributs **fabriqués** à partir des
+constantes officielles, qui vérifie qu'une règle de décision est cohérente avec
+la documentation. §11.1.2 autorise explicitement cette forme, à condition
+qu'elle soit « décrite explicitement comme telle ». Elle l'est ici.
+
+## 5.1 Sources officielles retenues
+
+| # | Page Microsoft | Consultée |
+|---|---|---|
+| S1 | *File Attribute Constants (WinNT.h)* — `learn.microsoft.com/en-us/windows/win32/fileio/file-attribute-constants` | 2026-08-31 |
+| S2 | *CreateFileW function (fileapi.h)* — `learn.microsoft.com/en-us/windows/win32/api/fileapi/nf-fileapi-createfilew` | 2026-08-31 |
+| S3 | *Handling Placeholders* (guide pour pilotes de systèmes de fichiers) — `learn.microsoft.com/en-us/windows-hardware/drivers/ifs/placeholders_guidance` | 2026-08-31 |
+| S4 | *CF_PLACEHOLDER_STATE (cfapi.h)* — `learn.microsoft.com/en-us/windows/win32/api/cfapi/ne-cfapi-cf_placeholder_state` | 2026-08-31 |
+| S5 | *CfGetPlaceholderStateFromFindData (cfapi.h)* — `learn.microsoft.com/en-us/windows/win32/api/cfapi/nf-cfapi-cfgetplaceholderstatefromfinddata` | 2026-08-31 |
+| S6 | *FILE_ID_INFO (winbase.h)* — `learn.microsoft.com/en-us/windows/win32/api/winbase/ns-winbase-file_id_info` | 2026-08-31 |
+| S7 | *BY_HANDLE_FILE_INFORMATION (fileapi.h)* — `learn.microsoft.com/en-us/windows/win32/api/fileapi/ns-fileapi-by_handle_file_information` | 2026-08-31 |
+
+## 5.2 Question 1 — quels attributs distinguent un espace réservé ?
+
+**Réponse sourcée.** Trois attributs, plus deux d'intention, plus une API
+dédiée.
+
+| Attribut | Valeur | Définition officielle (S1), citée |
+|---|---|---|
+| `FILE_ATTRIBUTE_RECALL_ON_DATA_ACCESS` | `0x00400000` | « the file or directory is not fully present locally. For a file that means that not all of its data is on local storage… Reading the file / enumerating the directory will be more expensive than normal, e.g. it will cause at least some of the file/directory content to be fetched from a remote store. **Only kernel-mode callers can set this bit.** » |
+| `FILE_ATTRIBUTE_RECALL_ON_OPEN` | `0x00040000` | « **This attribute only appears in directory enumeration classes**… the file or directory has no physical representation on the local system; **the item is virtual**. Opening the item will be more expensive than normal… » |
+| `FILE_ATTRIBUTE_OFFLINE` | `0x00001000` | « The data of a file is not available immediately… physically moved to offline storage. This attribute is used by Remote Storage… **Applications should not arbitrarily change this attribute.** » |
+| `FILE_ATTRIBUTE_PINNED` | `0x00080000` | « user intent that the file or directory should be kept fully present locally even when not being actively accessed » |
+| `FILE_ATTRIBUTE_UNPINNED` | `0x00100000` | « should not be kept fully present locally except when being actively accessed » |
+
+**L'attribut normatif est `RECALL_ON_DATA_ACCESS`.** S3 est catégorique :
+« All virtualization implementations that use placeholders **must set** the
+FILE_ATTRIBUTE_RECALL_ON_DATA_ACCESS file attribute on these placeholders. »
+
+**L'API officielle de classement** est `CfGetPlaceholderStateFromFindData`
+(S5), qui prend une structure `WIN32_FIND_DATA` — « obtained from the
+FindFirstFile/FindNextFile functions » — et rend un `CF_PLACEHOLDER_STATE`
+(S4) :
+
+| Valeur | Signification officielle |
+|---|---|
+| `CF_PLACEHOLDER_STATE_NO_STATES` `0x0` | l'élément « is not a placeholder » |
+| `CF_PLACEHOLDER_STATE_PLACEHOLDER` `0x1` | l'élément « is a placeholder » |
+| `CF_PLACEHOLDER_STATE_SYNC_ROOT` `0x2` | dossier à la fois espace réservé et racine de synchronisation |
+| `CF_PLACEHOLDER_STATE_ESSENTIAL_PROP_PRESENT` `0x4` | propriété essentielle présente dans le magasin de propriétés |
+| `CF_PLACEHOLDER_STATE_IN_SYNC` `0x8` | contenu « in sync with the cloud » |
+| `CF_PLACEHOLDER_STATE_PARTIAL` `0x10` | contenu « not ready to be consumed by the user application, though it may or may not be fully present locally » |
+| `CF_PLACEHOLDER_STATE_PARTIALLY_ON_DISK` `0x20` | contenu « not fully present locally »; implique `PARTIAL` |
+| `CF_PLACEHOLDER_STATE_INVALID` `0xffffffff` | l'API n'a pas su interpréter les informations |
+
+### Une ambiguïté réelle, trouvée dans la source officielle elle-même
+
+**Sur la même page S1, deux constantes différentes portent la même valeur :**
+
+    FILE_ATTRIBUTE_EA              262144 (0x00040000)   « for internal use only »
+    FILE_ATTRIBUTE_RECALL_ON_OPEN  262144 (0x00040000)
+
+Le bit `0x00040000` est donc **ambigu hors contexte**. S1 lève l'ambiguïté par
+le contexte, et non par la valeur : `RECALL_ON_OPEN` « only appears in
+directory enumeration classes (FILE_DIRECTORY_INFORMATION,
+FILE_BOTH_DIR_INFORMATION, etc.) ».
+
+**Conséquence directe :** lire `0x00040000` sur des attributs qui ne viennent
+**pas** d'une énumération de répertoire et en conclure « espace réservé » est
+un **défaut**. La simulation de §5.5 contient les deux cas explicitement.
+
+## 5.3 Question 2 — quelle opération risque une hydratation ?
+
+**Réponse sourcée.**
+
+**Ce qui risque une hydratation :**
+
+- **Lire les données.** S3 : « Filters should also not issue reads and writes
+  on placeholder files that have the FILE_ATTRIBUTE_RECALL_ON_DATA_ACCESS
+  attribute set… Such a read or write **causes unnecessary hydration when no
+  user application has requested the file data**. »
+- **Ouvrir l'élément**, quand `RECALL_ON_OPEN` est posé : S1, « Opening the
+  item will be more expensive than normal, e.g. it will cause at least some of
+  it to be fetched from a remote store. »
+- **Énumérer un dossier virtualisé.** S1, sur `RECALL_ON_DATA_ACCESS` :
+  « **enumerating the directory** will be more expensive than normal, e.g. it
+  will cause at least some of the file/directory content to be fetched from a
+  remote store. » **L'énumération n'est donc pas inconditionnellement
+  gratuite** quand c'est le **dossier** qui est virtualisé — elle peut
+  provoquer la récupération du **contenu de répertoire**, ce qui n'est pas
+  l'hydratation d'un fichier de l'utilisateur, mais reste un accès distant.
+
+**Ce qui est sûr :**
+
+- **L'énumération de répertoire** `FindFirstFile` / `FindNextFile`, puis
+  `CfGetPlaceholderStateFromFindData` sur la `WIN32_FIND_DATA` obtenue (S5).
+  Aucune ouverture de fichier n'est nécessaire pour classer l'élément.
+- **L'ouverture en accès nul** — « attribute-only open ». S3 la distingue
+  explicitement d'un accès aux données : « A minifilter shouldn't issue
+  reads/writes on intercepting **attribute-only opens**. Such read/writes can
+  cause deadlocks as certain implementations **don't expect attribute-only
+  opens to be converted to data access operations**. » C'est exactement ce que
+  fait le spike `B3` : `CreateFileW` avec `dwDesiredAccess = 0`.
+
+**Un drapeau à ne PAS utiliser.** `FILE_FLAG_OPEN_NO_RECALL` (`0x00100000`, S2)
+demande que les données restent en stockage distant. Mais S2 précise :
+« **This flag is for use by remote storage systems.** » FileTopo n'en est pas
+un. S'appuyer dessus serait détourner un drapeau de son usage documenté, et ne
+dispenserait de toute façon pas de la règle de §5.4. **Il n'est pas retenu.**
+
+## 5.4 Question 4 — la règle que FileTopo doit appliquer
+
+**Réponse.** Une règle **inconditionnelle**, qui ne dépend d'aucun bit :
+
+> **FileTopo ne lit jamais le contenu d'un fichier de l'utilisateur.**
+
+Elle se décline en cinq points :
+
+1. **Énumération seulement.** Les métadonnées viennent de `FindFirstFile` /
+   `FindNextFile`. Le classement d'un espace réservé se fait par
+   `CfGetPlaceholderStateFromFindData`, sans ouvrir quoi que ce soit.
+2. **Si un descripteur est nécessaire** — pour l'identité de `B3` — il est
+   ouvert en **accès nul**, jamais avec `GENERIC_READ`, et aucun flux de
+   données n'est lu.
+3. **Les bits de rappel ne conditionnent pas la lecture, ils conditionnent
+   l'affichage.** `RECALL_ON_DATA_ACCESS`, `RECALL_ON_OPEN` — lu uniquement en
+   contexte d'énumération — et `OFFLINE` servent à **montrer** à l'utilisateur
+   qu'un élément n'est pas entièrement local. Comme le contenu n'est jamais lu,
+   la sûreté ne dépend pas de leur lecture correcte.
+4. **Aucune écriture d'attribut.** S1 : « Applications should not arbitrarily
+   change this attribute. » FileTopo est en lecture seule; il n'en pose ni n'en
+   retire aucun.
+5. **Aucun recours à `FILE_FLAG_OPEN_NO_RECALL`**, réservé aux systèmes de
+   stockage distant.
+
+**Pourquoi une règle inconditionnelle plutôt qu'une règle conditionnée aux
+bits.** Une règle du type « si `RECALL_ON_DATA_ACCESS` est posé, ne pas lire »
+est fragile : elle dépend d'une lecture correcte d'un bit ambigu (§5.2), du
+contexte d'obtention des attributs, et d'une course entre le moment de la
+lecture de l'attribut et celui de la lecture des données. Ne jamais lire le
+contenu **supprime la classe entière de défauts**.
+
+## 5.5 La simulation, et ce qu'elle vaut
+
+`spikes/b4-cloud-attributes/simulation.mjs` applique la règle à une fixture de
+dix cas **fabriqués**, dont les deux cas ambigus de `0x00040000`.
+
+**Résultat : 10 cas sur 10 conformes.**
+
+| Cas fabriqué | Attributs | Contexte d'énumération | État classé | Contenu lu ? | Hydratation risquée *si* on lisait le contenu |
+|---|---|---|---|---|---|
+| `fichier-ordinaire-local` | `0x00000020` | oui | `PRESENT-LOCALEMENT` | **non** | non |
+| `dossier-ordinaire-local` | `0x00000010` | oui | `PRESENT-LOCALEMENT` | **non** | non |
+| `espace-reserve-integral` | `0x00401420` | oui | `PAS-ENTIEREMENT-LOCAL` | **non** | oui |
+| `espace-reserve-partiel` | `0x00400220` | oui | `PAS-ENTIEREMENT-LOCAL` | **non** | oui |
+| `fichier-nuage-hydrate-epingle` | `0x00080020` | oui | `PRESENT-LOCALEMENT` | **non** | non |
+| `fichier-nuage-desepingle` | `0x00500020` | oui | `PAS-ENTIEREMENT-LOCAL` | **non** | oui |
+| `archive-hors-ligne-hsm` | `0x00001020` | oui | `STOCKAGE-HORS-LIGNE` | **non** | oui |
+| `dossier-virtualise` | `0x00400010` | oui | `PAS-ENTIEREMENT-LOCAL` | **non** | oui |
+| **`ambigu-0x40000`** | `0x00040020` | **non** | `PRESENT-LOCALEMENT` | **non** | non |
+| **`ambigu-0x40000`** | `0x00040020` | **oui** | `PAS-ENTIEREMENT-LOCAL` | **non** | oui |
+
+Les deux dernières lignes portent **exactement les mêmes bits** et reçoivent
+**deux classements différents**, selon le seul contexte d'obtention. C'est le
+piège de §5.2 rendu explicite : hors énumération, `0x00040000` est
+`FILE_ATTRIBUTE_EA`, et le lire comme « espace réservé » serait un défaut.
+
+**Invariant vérifié sur les dix cas :** `lectureContenuAutorisee` vaut
+**`false`** partout, sans exception et sans condition. C'est la règle §5.4.1
+rendue mécanique.
+
+**Ce que cela prouve, et ne prouve pas.** Cela prouve que la règle est
+**cohérente** et que le cas ambigu est traité selon le contexte. Cela ne prouve
+**rien** sur le comportement réel de Windows, puisque aucun vrai fichier
+infonuagique n'a été observé. C'est une vérification de logique, pas une
+observation du système.
+
+## 5.6 Question 3 — NON RÉSOLUE, et déclarée telle
+
+> **L'identité de fichier survit-elle à une hydratation ou à une
+> déshydratation, selon la documentation officielle ?**
+
+**Aucune source officielle Microsoft répondant directement à cette question
+n'a été trouvée.** §11.1 impose de le déclarer plutôt que de combler. C'est
+donc déclaré.
+
+**Recherche menée :**
+
+- **S6**, la page de `FILE_ID_INFO`, décrit `VolumeSerialNumber` et le `FileId`
+  128 bits et dit seulement : « The file identifier and the volume serial
+  number uniquely identify a file on a single computer. To determine whether
+  two open handles represent the same file, combine the identifier and the
+  volume serial number for each file and compare them. » **Rien sur
+  l'hydratation, rien sur la déshydratation, rien sur les espaces réservés.**
+- **S7**, `BY_HANDLE_FILE_INFORMATION`, est la page la plus précise sur la
+  stabilité de l'identifiant, mais elle parle du **système de fichiers**, pas
+  de la synchronisation infonuagique :
+  - « In the NTFS file system, a file keeps the same file ID **until it is
+    deleted**. »
+  - « File IDs are **not guaranteed to be unique over time**, because file
+    systems are free to reuse them. **In some cases, the file ID for a file can
+    change over time.** »
+  - « You can replace one file with another file without changing the file ID
+    by using the ReplaceFile function. However, **the file ID of the
+    replacement file, not the replaced file, is retained** as the file ID of
+    the resulting file. »
+  - « The 64-bit identifier in this structure is **not guaranteed to be unique
+    on ReFS**. »
+- **S3** et **S4** décrivent les états d'espace réservé et les obligations des
+  pilotes, **sans jamais mentionner l'identifiant de fichier**.
+
+**Ce qu'on pourrait déduire, et pourquoi ce n'est pas une réponse.** Si une
+hydratation ne fait que remplir les données d'un fichier NTFS existant, alors
+S7 laisse penser que l'identifiant est conservé, puisque le fichier n'est pas
+supprimé. Mais c'est une **déduction**, pas une affirmation sourcée, et elle
+suppose que le fournisseur de synchronisation n'utilise ni `ReplaceFile` ni un
+remplacement équivalent — ce qui, d'après S7, **changerait** l'identifiant
+retenu. Cette déduction est donc consignée comme **hypothèse non vérifiée**,
+et non comme réponse.
+
+**Limite de la recherche, à déclarer.** La recherche par moteur a été
+**interrompue** : l'outil de recherche web a renvoyé une limite de dépense du
+compte avant que toutes les pistes soient épuisées. Les sept sources ci-dessus
+ont été obtenues par accès direct aux pages Microsoft. **Il est donc possible
+qu'une page officielle réponde à la question 3 sans avoir été trouvée.** La
+question reste ouverte, et une reprise de recherche est une action légitime.
+
+**Conséquence pratique — et elle est faible.** `DEC-0009` retient déjà `I-E` :
+l'heuristique n'est **qu'une suggestion** et ne préserve jamais
+automatiquement l'identité. Si un espace réservé change d'identité à
+l'hydratation, FileTopo le verra comme un élément nouveau et proposera au plus
+une suggestion à l'utilisateur. **Aucune perte de données ne peut en découler**
+— seulement une suggestion de plus. Le risque non résolu est donc un risque
+d'**ergonomie**, pas d'intégrité.
+
+## 5.7 Non testé et limites de B4
+
+1. **Aucune observation réelle.** Aucun fichier infonuagique réel n'a été
+   examiné. Toutes les affirmations de comportement viennent de la
+   documentation, pas de la mesure.
+2. **Aucun fournisseur de synchronisation testé.** Ni OneDrive, ni aucun autre.
+   §11.1.4 l'interdit, et c'est respecté.
+3. **La question 3 reste ouverte** (§5.6), et la recherche a été interrompue
+   par une limite d'outil.
+4. **Aucune vérification que `CfGetPlaceholderStateFromFindData` est appelable
+   depuis Rust stable.** L'API existe dans `CldApi.dll`; son accessibilité et
+   son coût **n'ont pas été mesurés**. C'est un travail distinct.
+5. **Les étiquettes de point d'analyse ne sont pas énumérées** de source
+   officielle. La simulation ne se sert de l'étiquette que comme indice, jamais
+   comme critère de décision.

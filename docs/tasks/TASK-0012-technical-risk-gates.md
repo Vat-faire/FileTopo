@@ -550,4 +550,4 @@ Le tableau ci-dessous n'en donne que l'état d'avancement.
 | `B1` | **exécuté** le 2026-08-31 | **`M-C` réfutée telle qu'écrite**, confirmée seulement durcie; `M-B` observée sûre |
 | `B2` | **exécuté** le 2026-08-31 | **Étude Canvas 2D autorisée**; plafonds réels mesurés par forme, l'hypothèse de 3 000 est remplacée |
 | `B3` | **exécuté** le 2026-08-31, **partiel** | **`I-E` confirmée sur 5 points sur 6**; l'inter-volume reste bloqué par §13.2 |
-| `B4` | en attente | — |
+| `B4` | **exécuté** le 2026-08-31 | **SUCCÈS** — 3 réponses sourcées Microsoft, 1 question déclarée non résolue; aucune hydratation |
