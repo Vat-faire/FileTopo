@@ -3,8 +3,8 @@
 - **Date :** 2026-08-31
 - **Branche :** rebuild/v0.2-project-brain
 - **Base :** 91bbe90f0f99026c28cd345784d4f579a0016db2
-- **Commit livré :** celui portant le message « docs: establish v0.2 project brain »
-- **Tâche :** TASK-0010, IMPLEMENTED, non VERIFIED
+- **Commit livré :** d1119fad06b4296d67bcd0365572b78517b9fb29, « docs: establish v0.2 project brain », publié sur origin
+- **Tâche :** TASK-0010, VERIFIED le 2026-08-31
 
 ## Livré et pourquoi
 
@@ -22,13 +22,15 @@ fiche de la prochaine tâche seulement après son approbation.
 ## Non vérifié et blocages
 
 - Aucun test applicatif, build, test manuel ou essai physique n'a été exécuté.
-- TASK-0010 attend la vérification humaine de Sébastien.
+- La vérification de TASK-0010 est documentaire et Git seulement; elle ne dit
+  rien du comportement réel du logiciel.
 - graph/ est ancien et contradictoire; sa normalisation est reportée.
 - Aucun blocage technique n'est ouvert.
 
 ## Prochaine action unique
 
-Validation humaine de la mémoire et du rebaseline, sans changement de code.
+Créer et soumettre à Sébastien la spécification TASK-0011 sur la baseline des
+exigences fonctionnelles et les décisions d'architecture, sans écrire de code.
 
 ## Commandes sûres
 

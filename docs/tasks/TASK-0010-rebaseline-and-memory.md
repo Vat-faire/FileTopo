@@ -2,8 +2,10 @@
 
 - **Identifiant :** `TASK-0010`
 - **Titre :** Établir le cerveau persistant de reconstruction de FileTopo
-- **Statut :** `IMPLEMENTED`
+- **Statut :** `VERIFIED`
 - **Approbation :** GO explicite de Sébastien, 2026-08-31
+- **Vérification humaine :** approuvée par Sébastien le 2026-08-31, sur
+  contrôle indépendant du commit publié
 - **Exécuteur :** Codex, agent principal
 
 ## Objectif
@@ -62,7 +64,8 @@ mémoire minimale, la matrice fonctionnelle, la vision du pipeline, la décision
 7. Aucun fichier hors périmètre, code, dépendance, graphe, tag ou historique
    n'est modifié.
 8. Les validations documentaires et Git prescrites réussissent.
-9. La tâche termine à `IMPLEMENTED`, en attente de vérification humaine.
+9. L'exécuteur livre à `IMPLEMENTED`; seul un contrôle indépendant peut poser
+   `VERIFIED`.
 
 ## Validations exécutées
 
@@ -81,7 +84,29 @@ mémoire minimale, la matrice fonctionnelle, la vision du pipeline, la décision
 - Audit statique du prototype et matrice de 39 fonctions produits avec preuves ciblées.
 - Pipeline local à six couches documenté sans rendre l'IA nécessaire au MVP.
 - Prototype, historique et licence conservés; aucun code ni graphe modifié.
-- Livrables prêts pour le commit documentaire et la vérification humaine.
+- Livrables commités et publiés : commit `d1119fad06b4296d67bcd0365572b78517b9fb29`,
+  message `docs: establish v0.2 project brain`, branche
+  `rebuild/v0.2-project-brain` poussée vers `origin`.
+
+## Vérification indépendante
+
+Contrôle mené par l'orchestrateur directement sur GitHub, hors du poste
+d'exécution, puis confirmé localement le 2026-08-31.
+
+| Point contrôlé | Résultat |
+|---|---|
+| Branches de secours et de reconstruction présentes | oui |
+| SHA annoncés conformes | oui |
+| Commits documentaires au-dessus de `main` | 1 |
+| Fichiers du commit | 20, tous autorisés |
+| Fichiers de code, tests, dépendances ou `graph/` modifiés | 0 |
+| Première ligne de `CLAUDE.md` | `@AGENTS.md` |
+| `AGENTS.md` compact | oui |
+| Cohérence CURRENT_STATE, NEXT_ACTION, HANDOFF et TASK-0010 | vérifiée |
+| `main`, prototype, historique et licence MIT conservés | oui |
+
+La vérification reste documentaire et Git. Elle ne couvre aucun test
+automatisé, manuel ou physique du logiciel.
 
 ## Limites
 
@@ -90,11 +115,14 @@ Windows n'est prévu dans cette tâche.
 
 ## Prochaines décisions
 
-Validation humaine du rebaseline et de la mémoire avant toute modification du
-code. La tâche suivante ne sera ni créée ni démarrée ici.
+La validation humaine est acquise. La suite consiste à rédiger et à soumettre
+à Sébastien une spécification TASK-0011 portant sur la baseline des exigences
+fonctionnelles et les décisions d'architecture requises avant tout code.
+TASK-0011 n'est ni créée ni démarrée ici.
 
 ## Historique de l'état
 
 - 2026-08-31 — `APPROVED` : GO explicite de Sébastien.
 - 2026-08-31 — `IN_PROGRESS` : branche créée et audit documentaire commencé.
 - 2026-08-31 — `IMPLEMENTED` : livrables et auto-contrôles documentaires terminés; vérification humaine en attente.
+- 2026-08-31 — `VERIFIED` : commit `d1119fa` publié, vérification indépendante réussie, approbation explicite de Sébastien.

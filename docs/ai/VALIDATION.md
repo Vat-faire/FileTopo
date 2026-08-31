@@ -1,9 +1,10 @@
 # VALIDATION.md — État de vérification
 
-**Dernière mise à jour :** 2026-08-25
+**Dernière mise à jour :** 2026-08-31
 **Portée :** TASK-0001 (phase 0) — `VERIFIED` ; TASK-0002 (phase 1) —
 `VERIFIED` le 2026-08-25, sur preuves indépendantes de l'orchestrateur
-(section A.7)
+(section A.7) ; TASK-0010 (rebaseline et mémoire) — `VERIFIED` le 2026-08-31,
+sur preuves indépendantes (section J bis)
 
 Trois qualificatifs seulement : **vérifié**, **non testé**, **inconnu**.
 
@@ -734,7 +735,8 @@ sans cet avertissement. `TASK-0009` et la phase 6 passent à `VERIFIED`.
 
 **Exécuteur :** Codex, agent principal.
 **Nature :** auto-validation documentaire et Git, non indépendante.
-**Statut livré :** IMPLEMENTED; la vérification appartient à Sébastien.
+**Statut livré :** IMPLEMENTED. La vérification indépendante est en
+section J bis.
 
 ### Vérification Git préalable
 
@@ -787,3 +789,65 @@ Une vérification documentaire contrôle les fichiers et leur cohérence. Un tes
 automatisé exécute le logiciel ou un analyseur. Un test manuel observe une
 interaction réelle. Un test physique exerce matériel, OS ou périphérique réel.
 TASK-0010 ne prétend valider que la première catégorie et les propriétés Git.
+
+---
+
+## J bis. Vérification indépendante de TASK-0010 (2026-08-31)
+
+**Statut : `VERIFIED`** le 2026-08-31. État posé hors de l'exécuteur, sur
+preuves, et approuvé explicitement par Sébastien le même jour.
+
+**Vérificateurs :** orchestrateur, contrôle direct sur GitHub; Claude Code,
+contrôle local du dépôt de travail.
+
+### J bis.1 Vérifié — preuves distantes de l'orchestrateur
+
+| Élément | Résultat |
+|---|---|
+| Branche de secours `rescue/pre-rebuild-local-changes-20260831` présente | oui |
+| Branche de reconstruction `rebuild/v0.2-project-brain` présente | oui |
+| SHA annoncés conformes à ceux publiés | oui |
+| Commits documentaires au-dessus de `main` | 1 |
+| Fichiers du commit | 20, exactement ceux autorisés |
+| Fichiers de code modifiés | 0 |
+| Première ligne de `CLAUDE.md` | `@AGENTS.md` |
+| `AGENTS.md` compact | oui |
+| Cohérence CURRENT_STATE, NEXT_ACTION, HANDOFF et TASK-0010 | vérifiée |
+| `main`, prototype, historique et licence MIT conservés | oui |
+
+### J bis.2 Vérifié — preuves locales de la présente session
+
+| Contrôle | Commande ou source | Résultat |
+|---|---|---|
+| Racine du dépôt | `git rev-parse --show-toplevel` | dépôt public autorisé |
+| Branche active | `git rev-parse --abbrev-ref HEAD` | `rebuild/v0.2-project-brain` |
+| HEAD avant modification | `git rev-parse HEAD` | `d1119fad06b4296d67bcd0365572b78517b9fb29` |
+| État de travail avant modification | `git status --porcelain` | vide |
+| Amont | `git rev-parse --abbrev-ref @{u}` | `origin/rebuild/v0.2-project-brain` |
+| SHA local et distant | `git rev-parse HEAD` et `git rev-parse origin/rebuild/v0.2-project-brain` | identiques |
+| `main` local et distant | `git rev-parse main`, `git rev-parse origin/main` | `91bbe90f0f99026c28cd345784d4f579a0016db2` |
+| Commits au-dessus de `main` | `git log --oneline main..HEAD` | 1, `docs: establish v0.2 project brain` |
+| Fichiers du commit | `git show --name-only --format="" HEAD` | 20 fichiers `.md`, aucun code |
+| Tâches au statut `IN_PROGRESS` | recherche dans `docs/tasks/` | 0 |
+| Actions dans `NEXT_ACTION.md` | lecture directe | 1 |
+
+### J bis.3 Non testé
+
+- Aucun test automatisé, manuel ou physique du logiciel n'a été exécuté pour
+  cette vérification. Elle porte uniquement sur les fichiers, leur cohérence et
+  les propriétés Git.
+- Aucune exécution, aucun build, aucune installation, aucune dépendance.
+- `graph/` reste non normalisé et n'a pas été vérifié comme source d'état.
+- `TASK-0008` demeure `IMPLEMENTED`; son état n'était pas dans le périmètre de
+  cette vérification et n'a pas été modifié.
+
+### J bis.4 Inconnu
+
+Le comportement réel du prototype sur une arborescence utilisateur reste
+inconnu tant qu'aucun essai physique Windows n'a été mené.
+
+### J bis.5 Conséquence
+
+`TASK-0010` passe de `IMPLEMENTED` à `VERIFIED`. Aucune tâche n'est
+`IN_PROGRESS`. L'action unique suivante porte sur la spécification `TASK-0011`,
+qui n'est ni créée ni démarrée.

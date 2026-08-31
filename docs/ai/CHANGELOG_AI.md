@@ -945,7 +945,8 @@ besoin concret.
 ## 2026-08-31 — TASK-0010 — Rebaseline et mémoire permanente
 
 **Agent :** Codex, exécuteur principal
-**Résultat :** IMPLEMENTED, vérification humaine requise
+**Résultat :** IMPLEMENTED à la livraison, puis VERIFIED le 2026-08-31
+(voir l'entrée suivante)
 
 ### Rebaseline et décisions
 
@@ -976,9 +977,58 @@ besoin concret.
 - Aucun test applicatif, build, test manuel ou essai physique exécuté.
 - Aucun code, dépendance, graphe, tag, release ou historique modifié.
 
-### Publication autorisée et approbation attendue
+### Publication autorisée
 
 Le GO explicite du 2026-08-31 a autorisé les branches de secours et de
 reconstruction. La branche de secours a été publiée au SHA vérifié
-7104cfcb2623d5f7d5960358e26254de88e677d7. TASK-0010 attend l'examen de
-Sébastien avant toute tâche fonctionnelle suivante.
+7104cfcb2623d5f7d5960358e26254de88e677d7. Le commit documentaire
+`d1119fad06b4296d67bcd0365572b78517b9fb29` a été publié sur
+`origin/rebuild/v0.2-project-brain`.
+
+---
+
+## 2026-08-31 — TASK-0010 vérifiée — cerveau de projet v0.2
+
+**Agent :** Claude Code, sous mandat de l'orchestrateur
+**Cadre :** GO explicite de Sébastien, 2026-08-31
+**Résultat :** `VERIFIED`
+
+### Vérification
+
+- Contrôle distant de l'orchestrateur sur GitHub : branches de secours et de
+  reconstruction présentes, SHA conformes, un seul commit documentaire au-dessus
+  de `main`, 20 fichiers autorisés, aucun code modifié, `CLAUDE.md` commençant
+  par `@AGENTS.md`, `AGENTS.md` compact, mémoire cohérente, `main`, prototype,
+  historique et licence MIT conservés.
+- Contrôle local de la présente session : racine, branche
+  `rebuild/v0.2-project-brain`, HEAD `d1119fad06b4296d67bcd0365572b78517b9fb29`,
+  arbre propre, amont `origin/rebuild/v0.2-project-brain`, SHA local et distant
+  identiques, `main` à `91bbe90f0f99026c28cd345784d4f579a0016db2`, 1 commit
+  au-dessus de `main`, 20 fichiers `.md`, 0 tâche `IN_PROGRESS`, 1 action.
+- Preuves détaillées : `docs/ai/VALIDATION.md`, section J bis.
+
+### Fait
+
+- `TASK-0010` passe de `IMPLEMENTED` à `VERIFIED`, avec l'approbation humaine
+  de Sébastien datée du 2026-08-31 et l'historique d'état complété.
+- Formulations périmées corrigées : les livrables ne sont plus décrits comme
+  « prêts pour le commit », mais comme commités et publiés.
+- `CURRENT_STATE.md` : dernière tâche `TASK-0010` `VERIFIED`, aucune tâche
+  `IN_PROGRESS`, branche de reconstruction publiée, code applicatif inchangé.
+- `NEXT_ACTION.md` : `ACTION-0016`, action unique, spécification `TASK-0011`.
+- `HANDOFF.md`, `VALIDATION.md` et `CHANGELOG_AI.md` alignés sur le résultat
+  réel.
+
+### Non fait, volontairement
+
+- `TASK-0011` n'est ni créée ni démarrée.
+- Aucun code, test, dépendance, `graph/`, fusion, PR, release, tag ou force
+  push. `main` n'est pas touchée.
+- Aucun test applicatif, build, test manuel ou essai physique.
+- Aucun accès à l'interface privée de référence.
+
+### Suite
+
+`ACTION-0016` : rédiger et soumettre à Sébastien la spécification `TASK-0011`
+sur la baseline des exigences fonctionnelles et les décisions d'architecture,
+avant toute écriture de code.

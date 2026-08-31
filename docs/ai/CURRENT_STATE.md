@@ -1,10 +1,14 @@
 # État courant
 
 - **Dernière mise à jour :** 2026-08-31
-- **Branche :** rebuild/v0.2-project-brain
+- **Branche :** rebuild/v0.2-project-brain, publiée sur origin
 - **Commit de base :** 91bbe90f0f99026c28cd345784d4f579a0016db2
-- **Tâche courante :** TASK-0010, IMPLEMENTED, en attente de vérification humaine
-- **Dernière validation :** contrôles Git et documentaires de TASK-0010; aucun test applicatif exécuté
+- **Dernière tâche :** TASK-0010, VERIFIED le 2026-08-31
+- **Tâche IN_PROGRESS :** aucune
+- **Dernière validation :** vérification indépendante du commit publié et des
+  fichiers critiques de TASK-0010, approuvée par Sébastien; aucun test
+  applicatif exécuté
+- **Code applicatif :** inchangé
 
 ## État réel du prototype
 
@@ -32,5 +36,6 @@ contradictoires et ne sont pas une source fiable pour l'état courant.
 
 ## Porte humaine
 
-Sébastien doit valider la nouvelle mémoire et le rebaseline avant toute
-modification du code ou création de la tâche suivante.
+Sébastien a validé la mémoire permanente, la décision de reconstruction et le
+bilan alpha le 2026-08-31. La porte suivante porte sur la spécification
+TASK-0011, qui devra être soumise et approuvée avant toute écriture de code.
