@@ -1,127 +1,74 @@
-# PROJECT_VISION.md — Project vision
+# Vision de FileTopo
 
-> Statement of intent, written before any code existed. It is kept as a record
-> of the original intention. Where a point has since been decided or built, the
-> note says so; nothing else has been rewritten after the fact.
+## Vision finale
 
-## 1. Guiding idea
+FileTopo doit permettre à une personne non technique de comprendre et parcourir
+son cerveau numérique sans programmer une carte. L'utilisateur choisit un
+répertoire racine; l'application construit automatiquement une représentation
+topographique interactive de sa hiérarchie réelle, puis la maintient à jour.
 
-Offer a **topographic map** of folders and documents: instead of a tree shown
-as a list, a relief in which density, volume, age and kinship of the contents
-draw a landscape readable at a glance. People find, understand and navigate
-their own corpus.
+Le produit vise le grand public sur Windows : gratuit, général, open source,
+local d'abord et utilisable sans compte, connexion Internet ou modèle d'IA.
+La métaphore topographique doit rester lisible pour des arborescences
+différentes, sans catégories personnelles codées en dur.
 
-## 2. Positioning
+## Expérience souhaitée
 
-- **A public, general application.** It targets no profession, no organisation
-  and no particular corpus. Anyone must be able to use it on their own folders.
-- **Free.** No payment, no account required, no feature held back behind a paid
-  tier.
-- **An MVP with no account, no key, no subscription and no mandatory
-  telemetry.** None of these is required to use the local, offline product.
-- **Licence considered: MIT**, *subject to verification* in phase 1
-  (compatibility with any reused components, name availability, attribution
-  obligations). *Decided since: MIT, see `docs/decisions/DEC-0002-license.md`.*
+Après la sélection d'une racine, FileTopo crée un cerveau indépendant, indexe
+dossiers, fichiers, noms et métadonnées, puis affiche des blocs représentant la
+structure réelle. La personne recherche, filtre, déplace et zoome la carte,
+sélectionne un bloc, comprend parents, enfants et relations autorisées, consulte
+les changements et ouvre un élément dans l'Explorateur Windows.
 
-## 3. Founding principles
+Plusieurs cerveaux peuvent coexister. Chacun conserve sa racine, son nom, sa
+couleur, son icône, ses préférences, sa vue, son index et son état vu/non vu.
 
-### 3.1 Local first
+## Carte générique et relations
 
-The map is **local**. Analysis runs on the user's machine. No document content
-is sent to a remote service.
+La hiérarchie vient exclusivement de l'arborescence observée. Les relations
+transversales ne sont jamais inventées silencieusement : elles résultent d'une
+règle déterministe documentée, d'une relation approuvée par l'utilisateur, ou
+d'une suggestion facultative clairement identifiée et validée.
 
-### 3.2 Windows first
+## MVP de reconstruction
 
-The first target platform is **Windows**. Other systems are not excluded but
-are not an MVP goal.
+Le MVP doit d'abord offrir un index de métadonnées fiable et reconstructible,
+une persistance versionnée, une carte hiérarchique en blocs, la navigation et
+les détails essentiels, puis une surveillance incrémentale robuste. Il demeure
+en lecture seule sur les documents analysés. Extraction de contenu, OCR, IA,
+RAG et GraphRAG sont hors du MVP structurel.
 
-### 3.3 An offline MVP with no AI
+## Évolution facultative
 
-The first usable product works **without a network connection** and **without
-any artificial intelligence model**. Ranking, grouping and relief rest on
-deterministic, explainable signals: structure, metadata, sizes, dates,
-extensions, simple textual similarity. Any AI layer would come later, be
-optional, and be switchable.
+L'extraction de formats approuvés et la recherche plein texte peuvent suivre
+l'index fiable. Un futur chatbot RAG doit rester facultatif, citer précisément
+les fichiers, accepter des fournisseurs configurables et des modèles locaux,
+et exiger un consentement avant tout transfert distant. GraphRAG ne sera étudié
+qu'après un RAG hybride cité et seulement si un besoin mesuré le justifie.
 
-### 3.4 Several independent brains
+## Confidentialité et robustesse
 
-A user can create **several brains** (each with a name, a colour and an icon),
-each tied to a **root** they choose. Each brain is **independent**: its index,
-its map and its settings are its own, and deleting one does not affect the
-others. Within a brain, the user **navigates**, **searches** and **filters** a
-progressive map, and can **open a file or folder with the associated Windows
-application**. The map distinguishes recent changes and a **seen / unseen**
-state per item.
+Les index et caches vivent dans l'espace applicatif, jamais dans la racine
+analysée. Les fichiers en ligne ne sont pas téléchargés automatiquement. Les
+erreurs d'accès, lecteurs absents et fichiers verrouillés sont signalés sans
+corrompre l'état. Aucune opération de renommage, déplacement, suppression ou
+réécriture n'est permise sur les documents utilisateur.
 
-### 3.5 A rebuildable, versioned index with incremental watching
+## État actuel distinct
 
-A brain's index is **rebuildable** (it can be regenerated identically from the
-root) and **versioned** (its format carries a version number). **Safe
-exclusions** — system folders, temporary files, large irrelevant trees — can be
-defined so that what should not be indexed is not. After a first analysis,
-changes are picked up **incrementally**: only modified items are reprocessed,
-without a systematic full re-walk. **Online-only files**, such as
-sync-on-demand cloud storage, are **never downloaded automatically** by the
-application.
+La version 0.1 alpha est conservée comme prototype historique. Elle prouve des
+éléments techniques utiles, mais sa carte de points artificielle, sa persistance
+partielle et l'absence de surveillance complète ne satisfont pas cette vision.
+Voir [le bilan alpha](docs/archive/v0.1-alpha/BASELINE_ASSESSMENT.md) et
+[la matrice fonctionnelle](docs/product/FEATURE_MATRIX.md).
 
-*Status: rebuildable and versioned indexes are built. Incremental watching is
-not implemented in 0.1.0-alpha.1; the index is rebuilt in full.*
+## Critères de succès
 
-### 3.6 Windows robustness and FR/EN accessibility
-
-The application aims at particular **robustness** on Windows: long paths,
-special characters, file locks, permissions, removable and network drives. The
-interface is **bilingual French / English** by design, with attention to
-contrast, keyboard navigation, text sizes, and non-visual alternatives to the
-map.
-
-*Status: the interface is bilingual and follows the system language, with
-English as the fallback. Accessibility has been inspected visually but never
-audited by a tool or a specialist.*
-
-### 3.7 Rendering not decided
-
-The map's rendering mode — SVG, Canvas or WebGL — is **not decided** at this
-stage. The choice follows a comparison in phase 2 (see `ROADMAP.md`).
-
-*Decided since: PixiJS/WebGL with an SVG relief fallback, see
-`docs/decisions/DEC-0005-rendering-and-relief.md`.*
-
-### 3.8 Non-destruction by default
-
-**By default, and for the whole MVP, the application never modifies the
-documents or folders it analyses.** No physical reorganisation of the corpus is
-planned in the MVP: read-only, no renaming, moving, rewriting or deletion of
-the user's documents. The artifacts produced — index, cache — are stored
-separately and can be deleted with no consequence for the corpus.
-
-A **future, optional** filing feature could propose a **virtual** arrangement,
-without touching the real files, with preview, simulation, explicit
-confirmation, an action log and the ability to restore. Such a feature remains
-hypothetical: it is neither decided nor built (see phase 7 of `ROADMAP.md`).
-
-## 4. Outside the MVP scope
-
-- Cloud synchronisation, user accounts, collaboration.
-- Automatic tidying or physical correction of the user's tree.
-- Paid features, mandatory telemetry, advertising.
-- **AI, OCR and connectors to remote services**: conceivable only as
-  **future**, **optional** features that the user **explicitly enables** (see
-  phase 7 of `ROADMAP.md`); absent from the MVP.
-
-## 5. Originally undecided
-
-Inputs to **phase 1** (see `ROADMAP.md`):
-- The project's **final public name** — *decided since: FileTopo, as a
-  reversible working name, see `docs/decisions/DEC-0001-public-name.md`.*
-- The **definitive licence** — *decided since: MIT.*
-
-Inputs to **phase 2** (see `ROADMAP.md`):
-- The **technology stack** and index format — *decided since: Tauri 2, Rust,
-  React/TypeScript, Vite, and one embedded SQLite index per collection.*
-- The **rendering mode** and layout method — *decided since: PixiJS/WebGL.*
-- The relief representation model — *decided since, see
-  `docs/decisions/DEC-0005-rendering-and-relief.md`.*
-
-Still undecided today: the final visual identity, and the definitive UX for
-exclusions and level of detail.
+- Une personne crée un cerveau en choisissant simplement une racine.
+- La carte reflète automatiquement la hiérarchie réelle sans configuration codée.
+- Plusieurs cerveaux reprennent leur état exact après redémarrage.
+- Recherche, filtres, sélection, détails et ouverture Windows sont cohérents.
+- Les changements sont détectés et appliqués incrémentalement avec historique.
+- Une indisponibilité temporaire ne détruit ni l'index ni les préférences.
+- Les documents sources restent inchangés, démontré par tests synthétiques.
+- Le produit reste utile hors ligne et sans IA.

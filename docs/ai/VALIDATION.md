@@ -727,3 +727,63 @@ La première CI a réussi mais signalait trois actions fondées sur Node.js 20.
 Les références ont été mises à jour vers `actions/checkout@v6`,
 `actions/setup-node@v6` et `actions/cache@v5`; les deux CI suivantes ont réussi
 sans cet avertissement. `TASK-0009` et la phase 6 passent à `VERIFIED`.
+
+---
+
+## J. TASK-0010 — Rebaseline et mémoire (2026-08-31)
+
+**Exécuteur :** Codex, agent principal.
+**Nature :** auto-validation documentaire et Git, non indépendante.
+**Statut livré :** IMPLEMENTED; la vérification appartient à Sébastien.
+
+### Vérification Git préalable
+
+- Racine : dépôt autorisé confirmé par git rev-parse --show-toplevel.
+- Branche de base : main au SHA
+  91bbe90f0f99026c28cd345784d4f579a0016db2, état propre.
+- Remote : https://github.com/Vat-faire/FileTopo.git.
+- Aucun tag local; connectivité Git valide; branche de reconstruction absente
+  avant sa création.
+- Branche créée : rebuild/v0.2-project-brain, directement depuis la base.
+
+### Contrôles documentaires exécutés
+
+| Contrôle | Résultat réel |
+|---|---|
+| Livrables obligatoires | 20 présents, 0 absent |
+| Première ligne de CLAUDE.md | exactement @AGENTS.md |
+| Taille d'AGENTS.md | 2 611 caractères lors du contrôle |
+| Liens Markdown locaux créés | 15 contrôlés, 0 cassé |
+| Action dans NEXT_ACTION.md | 1 |
+| Tâches au statut courant IN_PROGRESS à la clôture | 0 |
+| États de ROADMAP et FEATURE_MATRIX | 13 phases et 39 fonctions, 0 état invalide |
+| Recherche sensible à haute confiance | 0 correspondance |
+| git diff --check | réussi après normalisation des fins de fichier |
+| Fichiers hors périmètre dans le diff | 0 |
+| Code, dépendances, graphes ou fichiers générés modifiés | 0 |
+
+Les recherches sensibles ont couvert chemins de profils Windows/macOS,
+signatures usuelles de clés privées, jetons GitHub/OpenAI/Slack/AWS et JWT.
+L'interface privée de référence n'a pas été ouverte, listée ni recherchée.
+
+### Audit statique du prototype
+
+Lecture ciblée de package.json, src/, src-tauri/, tests/, mémoire existante et
+graph/. Les preuves détaillées sont dans
+docs/archive/v0.1-alpha/BASELINE_ASSESSMENT.md et
+docs/product/FEATURE_MATRIX.md. graph/ a été lu sans écriture; ses YAML sont
+contradictoires sur certains états et nécessitent une future normalisation.
+
+### Non testé
+
+- Aucun test automatisé applicatif : Vitest, TypeScript, Vite, Cargo test,
+  rustfmt, Clippy et build Tauri non exécutés.
+- Aucun test manuel de l'interface.
+- Aucun test physique Windows, lecteur amovible, lecteur réseau ou fichier
+  infonuagique.
+- Aucun contrôle complet de performance, migration ou surveillance.
+
+Une vérification documentaire contrôle les fichiers et leur cohérence. Un test
+automatisé exécute le logiciel ou un analyseur. Un test manuel observe une
+interaction réelle. Un test physique exerce matériel, OS ou périphérique réel.
+TASK-0010 ne prétend valider que la première catégorie et les propriétés Git.

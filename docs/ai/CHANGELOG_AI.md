@@ -939,3 +939,46 @@ puis commite. La recommandation reste de publier le **code source seul**.
 
 Phase 6 `VERIFIED`. `ACTION-0014` conserve la phase 7 en `DEFERRED` jusqu'à un
 besoin concret.
+
+---
+
+## 2026-08-31 — TASK-0010 — Rebaseline et mémoire permanente
+
+**Agent :** Codex, exécuteur principal
+**Résultat :** IMPLEMENTED, vérification humaine requise
+
+### Rebaseline et décisions
+
+- FileTopo reste le projet public officiel; dépôt, historique Git, licence MIT
+  et prototype alpha conservés sans réécriture.
+- Le prototype devient une référence historique et n'est plus présenté comme
+  le produit final demandé.
+- Reconstruction progressive sur branches, avec réutilisation du code seulement
+  après inspection, tests et décision documentée; DEC-0006 consigne ce choix.
+- IA, RAG et GraphRAG restent facultatifs et hors du MVP structurel.
+
+### Mémoire concernée
+
+- Mis à jour : AGENTS.md, CLAUDE.md, PROJECT_VISION.md, ROADMAP.md,
+  START_HERE.md, OPERATING_MANUAL.md, CURRENT_STATE.md, NEXT_ACTION.md,
+  HANDOFF.md, VALIDATION.md et CHANGELOG_AI.md.
+- Créé : RECOVERY.md, TOKEN_POLICY.md, COMMANDS.md, REFERENCE_INTERFACE.md,
+  FEATURE_MATRIX.md, DATA_PIPELINE_VISION.md, TASK-0010, DEC-0006 et le bilan
+  archivé de l'alpha.
+- graph/ inspecté en lecture seule et déclaré non fiable pour l'état courant
+  tant que ses contradictions ne sont pas normalisées dans une future tâche.
+
+### Validations
+
+- Contrôles Git préalables réussis; branche créée depuis le HEAD propre attendu.
+- 20 livrables présents; CLAUDE.md, taille d'AGENTS.md, liens, états, action
+  unique, portée du diff, secrets probables et git diff --check contrôlés.
+- Aucun test applicatif, build, test manuel ou essai physique exécuté.
+- Aucun code, dépendance, graphe, tag, release ou historique modifié.
+
+### Publication autorisée et approbation attendue
+
+Le GO explicite du 2026-08-31 a autorisé les branches de secours et de
+reconstruction. La branche de secours a été publiée au SHA vérifié
+7104cfcb2623d5f7d5960358e26254de88e677d7. TASK-0010 attend l'examen de
+Sébastien avant toute tâche fonctionnelle suivante.

@@ -1,92 +1,45 @@
-# AGENTS.md — Règles de travail pour les agents
+# AGENTS.md — Règles canoniques
 
-Ce fichier et `CLAUDE.md` contiennent les **mêmes règles**. Toute modification de
-l'un doit être répercutée à l'identique dans l'autre.
+## Périmètre et confidentialité
 
-## 1. Périmètre
+- Travailler uniquement dans ce dépôt public; ne jamais lire, lister ou écrire ailleurs.
+- L'interface privée de référence est interdite d'accès. Ne jamais en copier noms, chemins, données, métadonnées, code ou historique.
+- Aucun secret, chemin local personnel ou donnée réelle dans le dépôt.
+- Tests et exemples exclusivement synthétiques.
+- FileTopo analyse les documents en lecture seule. Index, caches et rapports restent dans l'espace applicatif, jamais dans la racine analysée.
 
-- Le travail est **strictement limité à ce dépôt**
-  (`TopographicDocumentMap`, nom de dossier provisoire).
-- Aucune lecture, aucun listage, aucune écriture en dehors du dépôt.
-- Aucune référence à un projet privé, à ses noms, chemins, données ou
-  identifiants ne doit apparaître dans ce dépôt.
-- Aucun secret, aucune clé, aucun chemin local personnel ne doit être écrit
-  dans un fichier versionné.
+## Reprise minimale
 
-## 2. Lecture seule des documents utilisateur
+Lire, dans cet ordre :
 
-- L'application visée **ne modifie jamais** les fichiers ou dossiers analysés.
-- Aucune opération d'écriture, de renommage, de déplacement ou de suppression
-  sur les documents d'un utilisateur, ni maintenant ni dans les prototypes.
-- Toute production d'artefact (index, cache, rapport) se fait dans un
-  emplacement dédié au projet, jamais dans les dossiers analysés.
-- Les jeux d'essai sont **synthétiques uniquement**
-  (voir `tests/fixtures_synthetic/README.md`).
+1. AGENTS.md ou CLAUDE.md;
+2. docs/ai/START_HERE.md;
+3. docs/ai/CURRENT_STATE.md;
+4. docs/ai/NEXT_ACTION.md;
+5. la fiche de la tâche active ou approuvée;
+6. seulement les fichiers supplémentaires qu'elle nomme.
 
-## 3. Une seule tâche IN_PROGRESS
+## Tâches et Git
 
-- À tout instant, **au plus une** tâche est à l'état `IN_PROGRESS`.
-- Les **huit** états permis, et aucun autre :
+- États permis uniquement : PROPOSED, APPROVED, IN_PROGRESS, BLOCKED, IMPLEMENTED, VERIFIED, REJECTED, DEFERRED.
+- Au plus une tâche IN_PROGRESS. Toute tâche existe dans docs/tasks avant son démarrage.
+- Aucune modification sans tâche APPROVED et périmètre écrit.
+- Avant une tâche : vérifier racine, branche, HEAD, remote et état Git propre. S'arrêter devant tout changement inattendu.
+- Ne jamais confondre IMPLEMENTED (livrable produit) et VERIFIED (contrôle indépendant sur preuves). L'exécuteur ne s'attribue pas VERIFIED.
+- Préserver les changements d'autrui et l'historique; aucun reset destructif, clean, force push ou réécriture.
 
-  | État | Sens |
-  |------|------|
-  | `PROPOSED` | Décrite, pas démarrée. Attend une approbation. |
-  | `APPROVED` | Approuvée, autorisée à démarrer, pas encore démarrée. |
-  | `IN_PROGRESS` | En cours d'exécution. |
-  | `BLOCKED` | Arrêtée par un obstacle, avec la cause écrite. |
-  | `IMPLEMENTED` | Livrable produit, pas encore vérifié indépendamment. |
-  | `VERIFIED` | Vérifié sur preuves par une instance indépendante de l'exécuteur. |
-  | `REJECTED` | Refusée ou rejetée après examen, avec le motif écrit. |
-  | `DEFERRED` | Reportée à plus tard, sans travail engagé. |
+## Exécution et preuves
 
-- Un agent exécuteur ne s'attribue **jamais** `VERIFIED` : cet état ne peut être
-  posé que sur une **preuve indépendante**, par l'orchestrateur ou un humain.
-- Une tâche est décrite dans `docs/tasks/TASK-XXXX-*.md` avant d'être démarrée.
+- Rester dans les fichiers autorisés; aucune donnée utilisateur réelle ni accès implicite à un dossier.
+- Tester proportionnellement au risque avec données synthétiques. Toute affirmation cite une preuve vérifiable.
+- Dire explicitement non testé pour ce qui n'a pas été exécuté; rapporter les échecs tels quels.
+- Avant de terminer : mettre à jour CURRENT_STATE.md, NEXT_ACTION.md, HANDOFF.md, VALIDATION.md et CHANGELOG_AI.md. Ne modifier graph/ que si la tâche l'autorise explicitement.
+- NEXT_ACTION.md contient exactement une action.
 
-## 4. Preuves obligatoires
+## Points d'arrêt
 
-- Toute affirmation de résultat doit être adossée à une **preuve vérifiable** :
-  fichier créé, contenu cité, sortie de commande, ou constat de lecture.
-- Ce qui n'a pas été exécuté est déclaré **« non testé »**, explicitement.
-- Interdiction de présenter comme fait ce qui est prévu, supposé ou souhaité.
-- Les échecs sont rapportés tels quels, sans reformulation avantageuse.
+GO explicite de Sébastien requis avant toute publication ou écriture distante non déjà autorisée, dépense, achat, usage payant, opération destructive, accès hors dépôt, ou changement important de portée. Ne jamais modifier les documents analysés.
 
-## 5. Autorisation permanente et points d'arrêt
+## Rapport final minimal
 
-- Depuis le **2026-08-25**, l'utilisateur a donné une **autorisation
-  permanente** : l'orchestrateur mène le projet de bout en bout de façon
-  autonome, **sans GO répété**, pour la recherche publique en lecture, les
-  décisions documentées, l'architecture, le développement, les tests, la
-  documentation et les **commits locaux**.
-- L'**enchaînement autonome des tâches** est permis dès lors que les critères
-  d'acceptation et les preuves d'une tâche sont satisfaits, en respectant la
-  règle d'une seule tâche `IN_PROGRESS` (section 3).
-- Un agent **s'arrête et demande un GO** uniquement dans ces cas :
-  - une **ambiguïté importante** sur l'intention ou la portée ;
-  - un **secret, une clé ou un identifiant manquant**, indispensable à la
-    suite du travail ;
-  - toute **dépense ou achat**, quel qu'il soit ;
-  - une **action destructive** sur des documents utilisateur ;
-  - une **action externe hors de l'objectif du projet** : publication, dépôt
-    distant, branche publique, accès réseau au-delà de la lecture de sources
-    publiques.
-- **Aucune activation ni utilisation automatique d'un portefeuille payant
-  Anthropic**, ni aucune dépense externe, sans instruction explicite de
-  l'utilisateur.
-- Figer le nom public du projet, la licence définitive ou la pile
-  technologique reste soumis à GO humain explicite : ce sont des décisions
-  d'auteur, pas des points de blocage d'exécution.
-- Les sections 1 (périmètre) et 2 (lecture seule des documents utilisateur)
-  restent **absolues et inchangées** : cette autorisation ne les modifie pas.
-
-## 6. Journalisation
-
-- Chaque intervention d'agent est consignée dans `docs/ai/CHANGELOG_AI.md`
-  et dans `graph/history.jsonl` (une ligne JSON par événement).
-- L'état courant est reflété dans `docs/ai/CURRENT_STATE.md` et
-  `graph/current_state.yaml`.
-- `docs/ai/NEXT_ACTION.md` contient **exactement une** action proposée.
-
-## 7. Point d'entrée
-
-Tout agent commence par lire `docs/ai/START_HERE.md`.
+Donner : résultat, branche et commits, fichiers touchés, validations et sorties utiles, non-testé/limites, état exact de la tâche, état Git final, action unique suivante et confirmation des actions distantes ou destructives. Attendre l'examen humain lorsque la tâche reste IMPLEMENTED.
