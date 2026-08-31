@@ -16,6 +16,7 @@ const palette = { directory: 0xb8db82, file: 0xd8bd7d, skipped: 0x788b83, root: 
 export default function TerrainMap({ snapshot, selectedId, onSelect, detailLabel, lessDetailLabel, moreDetailLabel }: TerrainMapProps) {
   const hostRef = useRef<HTMLDivElement>(null);
   const [detailLimit, setDetailLimit] = useState(600);
+  const [hoveredId, setHoveredId] = useState<number | null>(null);
   const visibleTerrain = useMemo(() => {
     if (snapshot.terrain.length <= detailLimit) return snapshot.terrain;
     const stride = Math.ceil(snapshot.terrain.length / detailLimit);
@@ -24,6 +25,27 @@ export default function TerrainMap({ snapshot, selectedId, onSelect, detailLabel
     if (selected && !sampled.some((point) => point.nodeId === selected.nodeId)) sampled.push(selected);
     return sampled;
   }, [detailLimit, selectedId, snapshot.terrain]);
+  const landmarkLabels = useMemo(() => {
+    const selected = visibleTerrain.find((point) => point.nodeId === selectedId);
+    const hovered = visibleTerrain.find((point) => point.nodeId === hoveredId);
+    const labelled = visibleTerrain
+      .filter((point) => point.kind === "directory")
+      .sort((left, right) => right.radius - left.radius)
+      .reduce<typeof visibleTerrain>((accepted, point) => {
+        const clear = accepted.every((other) => {
+          const dx = point.x - other.x;
+          const dy = point.y - other.y;
+          return (dx * dx) / (92 * 92) + (dy * dy) / (44 * 44) > 1;
+        });
+        if (clear && accepted.length < 12) accepted.push(point);
+        return accepted;
+      }, []);
+
+    for (const point of [selected, hovered]) {
+      if (point && !labelled.some((candidate) => candidate.nodeId === point.nodeId)) labelled.push(point);
+    }
+    return labelled;
+  }, [hoveredId, selectedId, visibleTerrain]);
 
   useEffect(() => {
     const host = hostRef.current;
@@ -61,6 +83,8 @@ export default function TerrainMap({ snapshot, selectedId, onSelect, detailLabel
           .stroke({ color: selected ? 0xffffff : palette[point.kind], alpha: selected ? .9 : .3, width: selected ? 2 : .6 });
         marker.eventMode = "static";
         marker.cursor = "pointer";
+        marker.on("pointerover", () => setHoveredId(point.nodeId));
+        marker.on("pointerout", () => setHoveredId((current) => current === point.nodeId ? null : current));
         marker.on("pointertap", () => onSelect(point.nodeId));
         app.stage.addChild(marker);
       }
@@ -107,6 +131,8 @@ export default function TerrainMap({ snapshot, selectedId, onSelect, detailLabel
               cy={point.y}
               r={Math.max(2.4, point.radius * .31 + (point.nodeId === selectedId ? 4 : 0))}
               className={`${point.kind}${point.nodeId === selectedId ? " selected" : ""}`}
+              onMouseEnter={() => setHoveredId(point.nodeId)}
+              onMouseLeave={() => setHoveredId((current) => current === point.nodeId ? null : current)}
               onClick={() => onSelect(point.nodeId)}
               onKeyDown={(event) => {
                 if (event.key === "Enter" || event.key === " ") onSelect(point.nodeId);
@@ -118,6 +144,25 @@ export default function TerrainMap({ snapshot, selectedId, onSelect, detailLabel
           ))}
         </g>
       </svg>
+      <div className="terrain-labels" aria-hidden="true">
+        {landmarkLabels.map((point) => {
+          const selected = point.nodeId === selectedId;
+          const hovered = point.nodeId === hoveredId;
+          return (
+            <span
+              key={point.nodeId}
+              className={`terrain-label${selected ? " selected" : ""}${hovered ? " hovered" : ""}`}
+              style={{
+                left: `${Math.min(96, Math.max(4, (point.x / 960) * 100))}%`,
+                top: `${Math.min(95, Math.max(5, (point.y / 660) * 100))}%`,
+              }}
+              title={point.label}
+            >
+              {point.label}
+            </span>
+          );
+        })}
+      </div>
     </div>
   );
 }

@@ -77,7 +77,12 @@ try {
   $env:CARGO_INCREMENTAL = '0'
 
   $arguments = @('tauri', 'build')
-  if ($Bundles -ne 'none') { $arguments += @('--bundles', $Bundles) }
+  if ($Bundles -eq 'none') {
+    $arguments += '--no-bundle'
+  }
+  else {
+    $arguments += @('--bundles', $Bundles)
+  }
 
   Write-Host ("Construction : pnpm {0}" -f ($arguments -join ' '))
   & pnpm @arguments

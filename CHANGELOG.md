@@ -7,9 +7,8 @@ All notable public changes to FileTopo are recorded here. The format follows
 This file is for people who use or read the project. The far more detailed
 internal log of agent work lives in `docs/ai/CHANGELOG_AI.md`, in French.
 
-> **No version has been released yet.** There is no release, no distributed
-> binary and no signed installer. The entries below describe the state of the
-> source code.
+> The public prerelease is source-only. No binary or installer has been
+> distributed, signed or otherwise.
 
 ## Unreleased
 
@@ -44,6 +43,9 @@ internal log of agent work lives in `docs/ai/CHANGELOG_AI.md`, in French.
 
 ### Fixed
 
+- Points on the topographic map are now identifiable: important directories
+  have persistent collision-reduced labels, every point shows its name on
+  hover, and the selected point keeps its label visible.
 - Release binaries no longer embed the absolute path of the developer's
   checkout, which `env!("CARGO_MANIFEST_DIR")` previously baked into a string
   literal.
