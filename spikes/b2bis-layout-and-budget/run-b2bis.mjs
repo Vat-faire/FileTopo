@@ -262,6 +262,14 @@ if (PHASES.includes('budget')) {
           shape: forme, count: compte(forme), seed: GRAINE, cible: 0, calepin, mode: 'transform',
         }) + '))');
         const b = JSON.parse(await evalue('window.runBudget({dureeMs:14000,chocApresMs:600}).then(JSON.stringify)'));
+        // Les DEUX seuils de §3.6 de BASELINE_TARGETS sont relevés DANS l'état
+        // où le budget a convergé : déplacement continu, puis sélection. Sans
+        // cela, `F6` n'aurait qu'un de ses deux seuils.
+        b.apresConvergence = {
+          pan: JSON.parse(await evalue('window.runPan(120).then(JSON.stringify)')),
+          selection: JSON.parse(await evalue('window.runSelect(40).then(JSON.stringify)')),
+          aspects: JSON.parse(await evalue('JSON.stringify(window.aspects())')),
+        };
         b.aria = JSON.parse(await evalue('JSON.stringify(window.checkAria())'));
         b.clavier = JSON.parse(await evalue('JSON.stringify(window.checkKeyboard())'));
         runs.push(b);
@@ -280,6 +288,12 @@ if (PHASES.includes('budget')) {
         domFinal: stat(runs.map((x) => x.domFinal)),
         nbDecisions: stat(runs.map((x) => x.nbDecisions)),
         reconstructions: stat(runs.map((x) => x.reconstructions)),
+        // Les deux seuils de §3.6, mesurés APRÈS convergence du budget.
+        apresConvergenceIpsPan: stat(runs.map((x) => x.apresConvergence.pan.ipsMedian)),
+        apresConvergenceSelP95Ms: stat(runs.map((x) => x.apresConvergence.selection.p95Ms)),
+        apresConvergenceBlocs: stat(runs.map((x) => x.apresConvergence.pan.blocsVisibles)),
+        apresConvergenceDom: stat(runs.map((x) => x.apresConvergence.pan.noeudsDom)),
+        apresConvergenceAspectMedian: stat(runs.map((x) => x.apresConvergence.aspects.median)),
         convergenceSous2sToutes: runs.every((x) => x.convergenceSous2s),
         plancherFranchiUneFois: runs.some((x) => x.plancherFranchi),
         plancherAtteintSansCible: runs.some((x) => x.plancherAtteintSansCible),
@@ -292,6 +306,7 @@ if (PHASES.includes('budget')) {
         + `| ipsStable=${String(r.ipsRegimeStable.med).padStart(7)} | inversions10s=${r.inversionsSurFenetre10s.med} `
         + `| seuilMax=${r.seuilMaxObserve.med}/${r.plancherLisibilite} | niveau=${r.niveauFinal.med} `
         + `| blocs=${r.blocsFinal.med} dom=${r.domFinal.med} | plancherAtteint=${r.plancherAtteintSansCible} `
+        + `| APRÈS CONV ips=${r.apresConvergenceIpsPan.med} selP95=${r.apresConvergenceSelP95Ms.med}ms blocs=${r.apresConvergenceBlocs.med} `
         + `| aria=${r.ariaConformeToutes} clav=${r.clavierConformeToutes}`);
     }
   }
@@ -300,11 +315,20 @@ if (PHASES.includes('budget')) {
 // --------------------------------------------------------------- phase D
 // PLANCHER DE LISIBILITÉ SOUS CONTRAINTE. Cette phase n'est PAS la mesure de
 // `F4` : elle éprouve l'exigence §5.2.3, « il n'agrège pas davantage même s'il
-// n'atteint pas sa cible d'images par seconde ». La cible est portée à 240 ips,
-// volontairement inatteignable sur les formes chargées, pour forcer le
-// contrôleur à monter jusqu'au plancher et à y rester.
+// n'atteint pas sa cible d'images par seconde ». La cible est portée à une
+// valeur PHYSIQUEMENT INATTEIGNABLE, pour forcer le contrôleur à monter
+// jusqu'au plancher et à y rester.
+//
+// Piège de mesure rencontré, et écarté : une première contrainte à 240 ips
+// s'est révélée ATTEIGNABLE en mode sans affichage sur un écran à 240 Hz. Le
+// contrôleur atteignait sa cible et s'arrêtait dans la zone morte, sans jamais
+// approcher le plancher : la phase ne prouvait rien. La contrainte publiée est
+// donc portée à 1 000 ips, qu'aucune configuration de cette machine ne peut
+// tenir. Ce changement porte sur le PROTOCOLE DE CETTE PHASE, jamais sur le
+// critère `F5`, qui est inchangé.
+const CIBLE_CONTRAINTE = Number(process.env.B2BIS_CIBLE_CONTRAINTE || 1000);
 if (PHASES.includes('plancher')) {
-  console.log('\n===== PHASE D — plancher de lisibilité sous contrainte (' + CLE + ') =====');
+  console.log('\n===== PHASE D — plancher de lisibilité, cible contrainte à ' + CIBLE_CONTRAINTE + ' ips (' + CLE + ') =====');
   sortie.plancher = [];
   for (const calepin of CALEPINS) {
     for (const forme of [...FORMES_20K, 'SYN-100K']) {
@@ -314,10 +338,10 @@ if (PHASES.includes('plancher')) {
           shape: forme, count: compte(forme), seed: GRAINE, cible: 0, calepin, mode: 'transform',
         }) + '))');
         runs.push(JSON.parse(await evalue(
-          'window.runBudget({dureeMs:9000,chocApresMs:600,config:{cibleIps:240}}).then(JSON.stringify)')));
+          'window.runBudget({dureeMs:9000,chocApresMs:600,config:{cibleIps:' + CIBLE_CONTRAINTE + '}}).then(JSON.stringify)')));
       }
       const r = {
-        calepin, forme, cibleIps: 240,
+        calepin, forme, cibleIps: CIBLE_CONTRAINTE,
         plancherLisibilite: runs[0].plancherLisibilite,
         seuilMaxObserve: stat(runs.map((x) => x.seuilMaxObserve)),
         niveauFinal: stat(runs.map((x) => x.niveauFinal)),
@@ -337,6 +361,15 @@ if (PHASES.includes('plancher')) {
 }
 
 const fichier = path.join(WORK, 'rapport-b2bis-' + CLE + '.json');
+// Fusion avec le rapport existant : lancer une seule phase ne doit pas effacer
+// les mesures des autres. Seules les phases RÉELLEMENT jouées sont remplacées.
+if (fs.existsSync(fichier)) {
+  const ancien = JSON.parse(fs.readFileSync(fichier, 'utf8'));
+  for (const ph of ['matrice', 'volumetrie', 'budget', 'plancher']) {
+    if (!PHASES.includes(ph) && ancien[ph]) sortie[ph] = ancien[ph];
+  }
+  console.log('rapport fusionné avec le précédent; phases rejouées : ' + PHASES.join(', '));
+}
 fs.writeFileSync(fichier, JSON.stringify(sortie, null, 1));
 console.log('\nRapport : ' + path.relative(RACINE, fichier).split(path.sep).join('/'));
 

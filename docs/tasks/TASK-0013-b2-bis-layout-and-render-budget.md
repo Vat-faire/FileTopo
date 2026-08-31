@@ -4,7 +4,7 @@
 - **Titre :** Comparer le calepin actuel à un calepin squarifié, éprouver un
   budget de rendu auto-régulé, et combler la réserve de volumétrie `SYN-100K`,
   en conservant HTML/SVG et l'accessibilité
-- **Statut :** `IN_PROGRESS`
+- **Statut :** `IMPLEMENTED`
 - **Phase :** 1 bis — seconde porte technique, après
   [DEC-0013](../decisions/DEC-0013-post-risk-gate-technical-arbitration.md)
 - **Proposée le :** 2026-08-31
@@ -290,7 +290,56 @@ conformément à [AGENTS.md](../../AGENTS.md).
 - 2026-08-31 — `IN_PROGRESS` : branche dédiée `spike/v0.2-render-budget` créée
   depuis `746f1b5`; arbre Git propre vérifié; aucune autre tâche
   `IN_PROGRESS`. **Aucune mesure n'a encore été prise à cet instant.**
+- 2026-08-31 — `IMPLEMENTED` : campagne exécutée, huit verdicts publiés dont
+  **deux réfutations**, `F4` et `F8`. Mémoire obligatoire mise à jour.
+  **`VERIFIED` n'est pas attribuée** : elle appartient à un contrôle
+  indépendant.
 
 ## 13. Rapport d'exécution
 
-Vide. La tâche n'a pas été exécutée.
+- **Exécutée le :** 2026-08-31
+- **Branche :** `spike/v0.2-render-budget`, publiée sur origin, créée depuis
+  `746f1b5f93c9d7085516c0e56473a95dc2c2d178`
+- **Statut à l'issue :** **`IMPLEMENTED`, jamais `VERIFIED`.** L'exécuteur ne
+  juge pas ses propres preuves.
+- **Journal, preuves et verdicts :**
+  [TASK-0013-b2-bis-results.md](../research/TASK-0013-b2-bis-results.md)
+- **Mesures :** [PERF-0004](../performance/PERF-0004-b2bis-layout-and-budget.md)
+
+### 13.1 Verdicts
+
+| # | Énoncé | Verdict |
+|---|---|---|
+| `F1` | Le calepin squarifié corrige l'effondrement de `SYN-WIDE` | **CONFIRMÉE** |
+| `F2` | L'avantage du squarifié s'explique par la géométrie | **CONFIRMÉE** |
+| `F3` | Le squarifié ne coûte rien ailleurs | **CONFIRMÉE** |
+| `F4` | Le budget auto-régulé tient la cible | **RÉFUTÉE** |
+| `F5` | Le budget reste lisible | **CONFIRMÉE** |
+| `F6` | `SYN-100K` tient le protocole de `DEC-0008` | **CONFIRMÉE** |
+| `F7` | L'accessibilité ne régresse pas | **CONFIRMÉE** |
+| `F8` | Le moteur de référence est WebView2 | **RÉFUTÉE** |
+
+**Aucun des huit énoncés n'a été modifié après la première mesure.** Le commit
+`85a4a05` porte les critères, le plancher de lisibilité et le matériel de
+référence, et il précède toute mesure publiée.
+
+### 13.2 Critères d'acceptation de §9
+
+| # | Condition | État |
+|---|---|---|
+| 1 | `F1` à `F8` ont chacun un verdict écrit, mesure jointe | **rempli** — §9 du journal, calculé par script |
+| 2 | Les deux calepins mesurés sur les **mêmes** données et la **même** trajectoire | **rempli** — même générateur, même graine, même trajectoire, même session |
+| 3 | `SYN-100K` joué, réserve **close ou déclarée ouverte** | **rempli** — joué; réserve `R1` **comblée quant au protocole**, réserve `R8` **déclarée entière** |
+| 4 | Moteur déclaré, §5.4 appliqué intégralement si WebView2 n'a pas servi | **rempli** — §3 du journal, six tentatives, substitut déclaré, écart **NON MESURÉ** |
+| 5 | Aucune régression d'accessibilité, ou variante écartée | **rempli** — 32 / 32 scénarios conformes, aucune variante écartée |
+| 6 | Aucun fichier de production, de test, de dépendance ni de `graph/` changé | **rempli** — diff vide, quatre empreintes SHA-256 inchangées |
+| 7 | Les cibles manquées sont publiées comme manquées | **rempli** — `F4` et `F8` réfutées, causes mesurées |
+| 8 | Mémoire obligatoire à jour, `NEXT_ACTION.md` avec **exactement une** action | **rempli** |
+
+### 13.3 Ce que la tâche ne fait pas
+
+Elle **ne choisit pas** le calepin du produit et **n'adopte pas** un budget,
+conformément à §6.1. Elle **ne lève aucune réserve** : `R1` à `R9`
+d'`ACTION-0021` restent en vigueur, et seul un contrôle indépendant peut se
+prononcer sur leur sort. Elle **n'ouvre pas** Canvas 2D. La porte **P4 reste
+ouverte et non franchie** : aucune ligne de code de production n'a été écrite.
