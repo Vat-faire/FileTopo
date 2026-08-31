@@ -1,128 +1,162 @@
 # État courant
 
 - **Dernière mise à jour :** 2026-08-31
-- **Branche :** rebuild/v0.2-project-brain, publiée sur origin
-- **Commit de base de la branche :** 91bbe90f0f99026c28cd345784d4f579a0016db2
-- **HEAD au démarrage de cette session :** 57e181f5100d69bfbb3dc2bfc749d9ebd96507d7
-- **Dernière tâche vérifiée :** **TASK-0011, VERIFIED le 2026-08-31** par
-  Sébastien, porte P2 franchie. TASK-0010 reste VERIFIED
-- **Tâche livrée, non vérifiée :** aucune
+- **Branche active :** **`spike/v0.2-technical-risk-gates`**, publiée sur
+  origin, créée depuis `db8d3de0b20e7efbfe463a17c218cc14face39a8`
+- **`rebuild/v0.2-project-brain` :** inchangée, `db8d3de0…`, **non touchée**
+- **`main` :** inchangée, `91bbe90f0f99026c28cd345784d4f579a0016db2`, **non
+  touchée**
+- **Dernière tâche vérifiée :** `TASK-0011`, `VERIFIED` le 2026-08-31
+- **Tâche livrée, NON vérifiée :** **`TASK-0012`, `IMPLEMENTED`** — attend le
+  contrôle indépendant de Sébastien
 - **Tâche IN_PROGRESS :** aucune
-- **Tâche proposée, non approuvée :** **TASK-0012**, `PROPOSED`, non exécutée
-- **Dernière validation :** contrôles documentaires du franchissement P2,
-  consignés dans [VALIDATION.md](VALIDATION.md), section N. Les sections L et
-  M conservent la livraison et la révision de TASK-0011. **Aucun test
-  applicatif, aucun build, aucune mesure**
-- **Code applicatif :** inchangé. 0 fichier modifié sous `src/`,
-  `src-tauri/`, `tests/`, `public/`, `scripts/`, `.github/` ou `graph/`;
-  aucune dépendance ajoutée, retirée ni mise à jour
+- **Code applicatif :** **inchangé.** 0 fichier modifié sous `src/`,
+  `src-tauri/`, `tests/`, `public/`, `scripts/`, `.github/` ou `graph/`. Les
+  quatre empreintes SHA-256 de `package.json`, `pnpm-lock.yaml`,
+  `src-tauri/Cargo.toml` et `src-tauri/Cargo.lock` sont **identiques avant et
+  après**
 
-## Porte P2 franchie le 2026-08-31
+## Porte P3 franchie le 2026-08-31, TASK-0012 exécutée
 
-Sébastien a donné un **GO explicite**. `TASK-0011` passe à `VERIFIED` et les
-six décisions passent à `APPROVED` :
+Sébastien a donné un **GO P3 explicite**, assorti d'une correction des
+livrables : `B1`, `B2` et `B3` portent désormais **chacun** sa fiche de
+performance distincte.
 
-| Fiche | Option retenue |
+**Pour la première fois depuis `TASK-0010`, des choses ont été exécutées et
+mesurées.** Les cinq bancs d'essai ont rendu leurs verdicts.
+
+| Banc | Verdict |
 |---|---|
-| [DEC-0007](../decisions/DEC-0007-rebuild-tech-stack.md) | **B** — conserver Tauri 2, Rust stable, React, TypeScript et SQLite; remplacer ou faire évoluer **uniquement** le rendu |
-| [DEC-0008](../decisions/DEC-0008-hierarchical-rendering.md) | **A** — HTML/SVG avec virtualisation et niveaux de détail au MVP; Canvas 2D **seulement** si `B2` réfute cette option; WebGL **différé** |
-| [DEC-0009](../decisions/DEC-0009-data-model-and-relations.md) | **I-E** et **R-C** — l'heuristique reste **seulement une suggestion** et ne préserve jamais automatiquement l'identité ni l'état |
-| [DEC-0010](../decisions/DEC-0010-indexing-and-watching.md) | **W-B avec repli W-C** pour la réconciliation, **U-B** pour l'application différentielle |
-| [DEC-0011](../decisions/DEC-0011-brain-isolation-and-migrations.md) | Stockage **S-C**; **M-C** cible **conditionnelle à `B1`**, **M-B** repli **obligatoire** si `B1` échoue |
-| [DEC-0012](../decisions/DEC-0012-ai-architectural-boundary.md) | **F-D** — aucune IA, extraction, embeddings, RAG ni GraphRAG dans le noyau MVP |
+| `B0` | **SUCCÈS** — l'état réel est connu et écrit, échec compris |
+| `B1` | **`M-C` RÉFUTÉE telle qu'écrite**; confirmée seulement durcie |
+| `B2` | **Étude Canvas 2D autorisée**; plafonds réels mesurés |
+| `B3` | **`I-E` confirmée sur 5 points sur 6**; inter-volume non observé |
+| `B4` | **SUCCÈS** — 3 réponses sourcées, 1 déclarée non résolue |
 
-**Exception humaine acceptée.** L'absence de source primaire externe dans
-`DEC-0012` est acceptée explicitement par Sébastien : décision **interne de
-périmètre**, fondée sur la vision approuvée. L'absence reste déclarée dans la
-fiche, pas comblée.
+Preuves : [TASK-0012-risk-gate-results.md](../research/TASK-0012-risk-gate-results.md),
+[PERF-0001](../performance/PERF-0001-b2-rendering.md),
+[PERF-0002](../performance/PERF-0002-b1-sqlite-migration.md),
+[PERF-0003](../performance/PERF-0003-b3-windows-identity.md).
 
-Les sept livrables `L1` à `L7` portent l'état approuvé. **Aucun n'a été testé
-physiquement** : ce sont des documents, et leur approbation porte sur leur
-contenu écrit.
+### B0 — le prototype, tel qu'il est
 
-Trois champs `replaced_by` ont été renseignés sur des fiches `VERIFIED`, seule
-modification permise et autorisée : `DEC-0003` → `DEC-0007`,
-`DEC-0004` → `DEC-0009`, `DEC-0005` → `DEC-0008`. **Aucun autre contenu de
-`DEC-0001` à `DEC-0006` n'a changé.**
+**Ce qui passe :** `pnpm install --frozen-lockfile`; **36 / 36** cas Vitest;
+`tsc --noEmit`; `vite build`; **13 / 13** tests Rust. Le décompte annoncé par
+l'ancien état est donc exact, **et il passe**.
 
-## Ce qui existe maintenant
+**Ce qui échoue, et n'a pas été corrigé :** `cargo build --locked` échoue avec
+une **panique interne du compilateur** `rustc 1.98.0`, **4 fois sur 4**. Un
+diagnostic complémentaire — `CARGO_INCREMENTAL=0`, sans rien supprimer —
+**réussit**. La cause est donc le **cache de compilation incrémentale** de
+`src-tauri/target/`, ignoré par Git, **et non le code source**.
 
-La baseline documentaire de reconstruction est **approuvée** :
+**« Le dépôt ne se construit pas » serait faux.** « Sur cette machine,
+`cargo build` échoue tant que le cache incrémental hérité n'est pas
+renouvelé » est ce qui a été observé. La correction est **interdite** sans une
+autorisation distincte.
 
-| Livrable | Fichier | État |
-|---|---|---|
-| L1 — baseline des 39 fonctions | [REQUIREMENTS_BASELINE.md](../product/REQUIREMENTS_BASELINE.md) | approuvé |
-| L2 — parcours utilisateur | [USER_JOURNEY.md](../product/USER_JOURNEY.md) | approuvé |
-| L3 — synthèse d'architecture | [ARCHITECTURE_BASELINE.md](../architecture/ARCHITECTURE_BASELINE.md) | approuvé |
-| L4 — matrice de formats | [FORMAT_MATRIX.md](../architecture/FORMAT_MATRIX.md) | approuvé |
-| L5 — objectifs mesurables | [BASELINE_TARGETS.md](../performance/BASELINE_TARGETS.md) | approuvé, toutes cibles **non testées** |
-| L6 — plan de tests | [TEST_STRATEGY.md](../architecture/TEST_STRATEGY.md) | approuvé, aucun test exécuté |
-| L7 — six décisions | [DEC-0007](../decisions/DEC-0007-rebuild-tech-stack.md) à [DEC-0012](../decisions/DEC-0012-ai-architectural-boundary.md) | toutes `APPROVED` |
+### B1 — le résultat le plus important
 
-La coupe de MVP arbitrée est **31 `MVP`, 4 `ULTÉRIEUR`, 4 `DIFFÉRÉ`**, avec
-11 écarts déclarés. `ULTÉRIEUR` : F-013, F-017, F-018, F-019. `DIFFÉRÉ` :
-F-021, F-037, F-038, F-039.
+La bascule `M-C` **telle que `DEC-0011` la décrit produit une base corrompue**.
+Un `-wal` orphelin, laissé par un écrivain tué, survit au `rename` : son nom
+étant dérivé du chemin cible, il devient mécaniquement le `-wal` de la
+**nouvelle** base, que SQLite détruit en le rejouant. `integrity_check` échoue,
+la base est illisible. **Ce n'est pas théorique : c'est reproduit.**
 
-## TASK-0012 — proposée, non exécutée
+Une variante **durcie** — replier le WAL de l'ancienne base, puis supprimer les
+annexes de la cible avant la permutation, **dans cet ordre** — passe le même
+scénario, pour un **coût en temps nul** (776,9 ms contre 778,4 ms).
 
-[TASK-0012](../tasks/TASK-0012-technical-risk-gates.md) est créée au statut
-`PROPOSED`. Son objectif futur unique : exécuter des bancs d'essai synthétiques
-permettant de lever les risques techniques **avant le premier code de
-production**. Cinq bancs d'essai :
+Par ailleurs : **20 arrêts brutaux sur 20** laissent la cible soit ancienne
+intacte, soit nouvelle complète, jamais un mélange; le disque plein simulé
+échoue proprement dans les trois stratégies; le retour en arrière fonctionne.
+`M-B` est plus rapide de 15 % mais laisse une base 3,0 % plus grosse, et
+**l'argument du double espace disque ne se vérifie pas** (2,6 % d'écart).
 
-| Banc | Objet |
-|---|---|
-| `B0` | Santé du prototype : dépendances verrouillées, tests et builds existants, résultats réels, **aucune correction** |
-| `B1` | Migration SQLite Windows : bascule `M-C`, `.wal`/`.shm`, arrêt brutal, disque insuffisant, retour arrière, comparaison `M-B` |
-| `B2` | Rendu HTML/SVG : 1 000, 3 000 et 5 000 blocs visibles, profondeur 40, branche de 5 000 enfants, images/seconde et latences réelles, clavier et ARIA |
-| `B3` | Identité Windows : `VolumeSerialNumber + FileId` en Rust stable, licence vérifiée, renommage, déplacement, coût à 1 000/10 000/100 000, repli déterministe |
-| `B4` | Attributs infonuagiques : sources **Microsoft uniquement**, fixture synthétique, aucune lecture de contenu, aucune hydratation |
+### B2 — l'hypothèse de 3 000 blocs est remplacée
 
-**Aucun de ces bancs d'essai n'a été exécuté.** `TASK-0012` exige un **GO P3**
-avant toute exécution, se terminera `IMPLEMENTED` et jamais `VERIFIED`.
+À 3 000 blocs visibles, `SYN-WIDE` plafonne à **14,08 ips** contre 30 exigées.
+Le seuil est manqué, donc **l'étude de Canvas 2D est autorisée — l'étude, pas
+l'adoption**.
 
-## Décision
+Plafonds **réels**, mesurés par dichotomie : `SYN-EQUILIBRE` **3 743**,
+`SYN-DEEP` **3 063**, `SYN-WIDE` **entre 939 et 1 795**. L'hypothèse de 3 000
+était prudente sur une forme, juste sur une autre, **optimiste d'un facteur 3**
+sur la troisième. **Un plafond exprimé en nombre de blocs ne décrit pas ce qui
+détermine le coût** : la géométrie produite compte autant.
 
-FileTopo, son dépôt, son historique, sa licence MIT et le prototype alpha sont
-conservés. La reconstruction progresse sur branche. Aucune fonction partielle
-du prototype n'est réputée terminée sans inspection, tests et décision
-documentée.
+ARIA et clavier sont **conformes dans les 18 scénarios**, jusqu'à 5 002 blocs —
+un acquis que Canvas 2D devrait entièrement reconstruire.
+
+### B3 — l'identité, et son coût
+
+`VolumeSerialNumber` + `FileId` 128 bits sont **obtenables sur Rust stable**,
+via `windows-sys =0.61.2` (`MIT OR Apache-2.0`, licence vérifiée), sur un
+descripteur ouvert en **accès nul**. L'identité **survit au renommage et au
+déplacement intra-volume**, pour un fichier comme pour un dossier.
+
+Coût : **28,3 µs par élément**, linéaire. Cela multiplie un parcours par 38,
+mais ne pèse que **2,83 s**, soit **3,1 %** du budget de 90 s de §3.2 de
+`BASELINE_TARGETS.md`.
+
+**Le comportement inter-volume n'a pas été observé** : le tester exigerait
+d'écrire hors du dépôt, condition d'arrêt de §13.2. Rien n'a été contourné.
+
+### B4 — trois réponses, une question ouverte
+
+Sur sources **Microsoft uniquement**. L'attribut normatif est
+`FILE_ATTRIBUTE_RECALL_ON_DATA_ACCESS`. Une **ambiguïté réelle** a été trouvée
+dans la source officielle : `FILE_ATTRIBUTE_EA` et
+`FILE_ATTRIBUTE_RECALL_ON_OPEN` portent **la même valeur**, et seul le contexte
+d'énumération les distingue.
+
+Règle retenue, **inconditionnelle** : **FileTopo ne lit jamais le contenu d'un
+fichier de l'utilisateur.** Ne pas faire dépendre la sûreté d'un bit ambigu
+supprime la classe entière de défauts.
+
+**Question non résolue, déclarée telle :** aucune source Microsoft trouvée sur
+la survie de l'identité à une hydratation. La recherche par moteur a été
+**interrompue par une limite de dépense du compte**.
+
+## Ce qui n'a pas changé
+
+La baseline documentaire de `TASK-0011` reste approuvée et **intacte**. **Aucune
+fiche `DEC-0001` à `DEC-0012` n'a été modifiée** : les verdicts **alimentent**
+des décisions futures, ils ne les prennent pas.
 
 ## Limites et risques
 
-- **Rien n'a jamais été exécuté depuis TASK-0010.** Aucun test, build,
-  installation, essai manuel Windows ni mesure de performance. L'approbation du
-  2026-08-31 est **documentaire** : elle fixe une direction, elle ne prouve
-  rien.
-- Les tests existants du prototype (36 cas Vitest, 13 tests Rust déclarés)
-  **n'ont pas été rejoués**. Leur état de réussite est **inconnu** — c'est
-  précisément l'objet de `B0`.
-- `M-C` est approuvée comme **cible** et **ne peut pas être implémentée** tant
-  que `B1` n'a pas été exécuté et publié. `M-B` reste le repli obligatoire.
-- Le plafond de 3 000 blocs DOM/SVG de `DEC-0008` reste une **hypothèse à
-  réfuter**; ce **n'est pas une capacité déclarée** du produit.
-- L'identité Windows n'est pas atteignable en Rust stable par la bibliothèque
-  standard; une dépendance sera probablement nécessaire, **aucune n'est
-  choisie**, et son inventaire de licence appartient à `B3`.
-- L'ambiguïté des attributs infonuagiques reste **non résolue**; `B4` doit la
-  lever sur sources Microsoft uniquement.
-- `DEC-0012` ne cite aucune source primaire externe : exception acceptée,
-  déclarée, non comblée.
-- Les spécifications WebGL du registre Khronos ont renvoyé HTTP 403 et
-  **n'ont pas pu être consultées**.
-- Le journal USN n'a **pas** été instruit sur source primaire; lacune déclarée
-  de `DEC-0010`.
-- Le dossier `graph/` n'a été ni lu comme source ni modifié. Ses fichiers
-  restent contradictoires et non fiables comme état courant.
-- `docs/tasks/TASK-0008-*.md` demeure `IMPLEMENTED` et se décrit encore comme
-  « non commitée » : incohérence historique connue, hors périmètre.
+- **`SIGKILL` n'est pas une coupure de courant.** Les 20 arrêts brutaux de `B1`
+  ne disent **rien** de la résistance à une panne d'alimentation.
+- **Le disque plein de `B1` est simulé** par injection `SQLITE_FULL`, pas réel.
+  Les échecs de copie et de renommage par manque d'espace ne sont pas couverts.
+- **Une seule machine, un seul volume NTFS, un seul système.** Aucune mesure
+  reproduite ailleurs. Le matériel est **au-dessus d'un poste ordinaire** : les
+  chiffres de `B2` sont un plafond favorable.
+- **Moteurs différents de la production.** `B1` mesure SQLite via `node:sqlite`,
+  pas `rusqlite`. `B2` mesure Chrome, **pas WebView2**.
+- **Ni Canvas 2D ni WebGL n'ont été mesurés.**
+- **Aucun lecteur d'écran réel** n'a été essayé; la conformité ARIA porte sur
+  les attributs produits.
+- **L'application n'a jamais été empaquetée ni lancée.** `tauri build` exigerait
+  de télécharger des empaqueteurs, interdit par §7.1.2.
+- **Aucune couverture de code mesurée.** « 36 tests passent » ne dit rien de ce
+  qu'ils couvrent.
+- Les cibles de `BASELINE_TARGETS.md` restent **non testées dans leur
+  ensemble** : `B3` n'en mesure qu'un poste.
+- Le dossier `graph/` n'a été ni lu ni modifié; ses fichiers restent
+  contradictoires.
+- `docs/tasks/TASK-0008-*.md` demeure `IMPLEMENTED` et se décrit comme « non
+  commitée » : incohérence historique connue, hors périmètre.
 
 ## Porte humaine
 
-La porte **P2 est franchie**. La porte **P3 est ouverte et non franchie** :
-Sébastien doit examiner et approuver ou corriger `TASK-0012` avant que le
-moindre banc d'essai soit exécuté.
+La porte **P3 est franchie**. La porte **P4 est ouverte et non franchie**.
 
-**Aucune ligne de code de production ne peut être écrite avant que les bancs
-d'essai aient rendu leurs verdicts et qu'une tâche d'implémentation ait été
-approuvée séparément.**
+`TASK-0012` est **`IMPLEMENTED`, jamais auto-déclarée `VERIFIED`** : l'exécuteur
+ne juge pas ses propres preuves. Le contrôle indépendant appartient à Sébastien
+(`ACTION-0021`).
+
+**Aucune ligne de code de production ne peut être écrite avant P4.** La branche
+de spike n'est ni fusionnée, ni destinée à l'être automatiquement : la
+conserver, la fusionner ou la supprimer appartient à Sébastien.

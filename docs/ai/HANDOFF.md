@@ -1,96 +1,54 @@
-# Passation
+# HANDOFF — passage de relais
 
-- **Date :** 2026-08-31
-- **Branche :** rebuild/v0.2-project-brain
-- **Base de la branche :** 91bbe90f0f99026c28cd345784d4f579a0016db2
-- **HEAD au démarrage :** 57e181f5100d69bfbb3dc2bfc749d9ebd96507d7
-- **Commit livré :** celui portant le message
-  « docs: approve baseline and propose technical risk gates », publié sur
-  `origin/rebuild/v0.2-project-brain`
-- **Tâches :** TASK-0010 VERIFIED; **TASK-0011 VERIFIED le 2026-08-31**, porte
-  P2 franchie par Sébastien; **TASK-0012 PROPOSED**, non exécutée
+- **Dernière mise à jour :** 2026-08-31
+- **Branche active :** `spike/v0.2-technical-risk-gates`, publiée sur origin
+- **Tâche livrée, NON vérifiée :** `TASK-0012`, **`IMPLEMENTED`**
 - **Tâche IN_PROGRESS :** aucune
 
-## Livré et pourquoi
+## Où en est le projet
 
-Sébastien a donné un **GO explicite** le 2026-08-31 et a franchi la porte
-**P2**. Cette session enregistre cette approbation dans la mémoire versionnée
-et prépare la porte suivante. Elle est **entièrement documentaire**.
+La porte **P3 est franchie**. `TASK-0012` a été **exécutée** : cinq bancs
+d'essai, cinq verdicts, des mesures réelles. C'est la **première fois depuis
+`TASK-0010`** que quelque chose est exécuté plutôt qu'écrit.
 
-1. **`TASK-0011` passe à `VERIFIED`.** La section 18 de la fiche consigne le
-   franchissement, les vérifications Git préalables, les six arbitrages, l'état
-   des sept livrables et ce que l'approbation **n'autorise pas**.
-2. **`DEC-0007` à `DEC-0012` passent à `APPROVED`**, chacune avec son option
-   retenue écrite dans sa section « Décision » : `B`, `A`, `I-E`+`R-C`,
-   `W-B`/`W-C`+`U-B`, `S-C`+`M-C` conditionnelle avec repli `M-B`, `F-D`.
-3. **Les sept livrables portent l'état approuvé**, avec la mention explicite
-   qu'ils **n'ont jamais été testés physiquement**.
-4. **Trois champs `replaced_by`** sont renseignés sur des fiches `VERIFIED` :
-   `DEC-0003` → `DEC-0007`, `DEC-0004` → `DEC-0009`, `DEC-0005` → `DEC-0008`.
-   Aucun autre contenu de `DEC-0001` à `DEC-0006` n'a changé.
-5. **`TASK-0012` est créée au statut `PROPOSED`** et **n'est pas exécutée**.
-   Elle spécifie cinq bancs d'essai synthétiques — `B0` santé du prototype,
-   `B1` migration SQLite Windows, `B2` rendu HTML/SVG, `B3` identité Windows,
-   `B4` attributs infonuagiques — avec branche dédiée, fichiers autorisés,
-   répertoire isolé `spikes/`, règle de licence, critères de succès et d'échec,
-   conditions d'arrêt immédiat, état final `IMPLEMENTED` jamais `VERIFIED`, et
-   **GO P3 obligatoire avant exécution**.
+`TASK-0012` est **`IMPLEMENTED`**, pas `VERIFIED`. L'exécuteur ne juge pas ses
+propres preuves.
 
-**Aucun fichier de code, de test, de dépendance ni de `graph/` n'a été
-modifié.** Aucune commande d'application n'a été lancée.
+## Ce qu'il faut savoir en cinq lignes
 
-## Ce que l'approbation n'autorise pas
+1. **`M-C` est réfutée telle que `DEC-0011` l'écrit** : un `-wal` orphelin
+   survit à la permutation et corrompt la base neuve. Preuve jointe.
+2. **Le plafond de 3 000 blocs de `DEC-0008` est remplacé** par trois plafonds
+   mesurés, de 939 à 3 743 selon la forme.
+3. **L'identité Windows fonctionne sur Rust stable**, à 28,3 µs par élément.
+4. **`cargo build` échoue** — cache incrémental, pas le code source — et n'a
+   **pas** été corrigé, volontairement.
+5. **Aucune fiche `DEC` n'a été modifiée.** Les verdicts alimentent des
+   décisions; ils n'en prennent aucune.
 
-- Aucune ligne de code de production : la porte **P3** reste à franchir, et
-  une tâche d'implémentation approuvée sera encore nécessaire après elle.
-- Aucune implémentation de `M-C` tant que `B1` n'a pas été exécuté et publié;
-  `M-B` demeure le repli obligatoire.
-- Aucun passage à Canvas 2D tant que `B2` n'a pas réfuté HTML/SVG, mesure
-  jointe.
-- Aucune dépendance ajoutée, y compris la dépendance d'API Windows envisagée
-  par `DEC-0007` et `DEC-0009` : son inventaire de licence appartient à `B3`.
-- Aucune fusion, PR, publication, release, étiquette, `force push` ni push vers
-  `main`.
+## État Git
 
-## Fichiers essentiels
+| Référence | SHA |
+|---|---|
+| `main` locale et distante | `91bbe90f0f99026c28cd345784d4f579a0016db2` — **non touchée** |
+| `rebuild/v0.2-project-brain` locale et distante | `db8d3de0b20e7efbfe463a17c218cc14face39a8` — **non touchée** |
+| `spike/v0.2-technical-risk-gates` | voir `git rev-parse HEAD`, égal à `origin/` |
 
-Lire [CLAUDE.md](../../CLAUDE.md), [START_HERE.md](START_HERE.md),
-[CURRENT_STATE.md](CURRENT_STATE.md), [NEXT_ACTION.md](NEXT_ACTION.md), puis
-[TASK-0012](../tasks/TASK-0012-technical-risk-gates.md) — **seulement pour
-l'examiner**, jamais pour l'exécuter avant son approbation.
+Six points de contrôle poussés, SHA local vérifié égal au distant à chaque fois.
+Aucune fusion, aucune PR, aucune release, aucune étiquette, aucun `force push`.
 
-La baseline approuvée se lit dans cet ordre :
-[REQUIREMENTS_BASELINE.md](../product/REQUIREMENTS_BASELINE.md),
-[USER_JOURNEY.md](../product/USER_JOURNEY.md),
-[ARCHITECTURE_BASELINE.md](../architecture/ARCHITECTURE_BASELINE.md), puis les
-six fiches `DEC-0007` à `DEC-0012` et
-[docs/decisions/README.md](../decisions/README.md).
+## Blocages ouverts, qui demandent une décision humaine
 
-## Non vérifié et blocages
-
-- **Rien n'a été exécuté.** Aucun test automatisé, build, installation, essai
-  Windows, rendu ni mesure. L'approbation P2 porte sur des **documents**.
-- Les tests existants du prototype n'ont **pas** été rejoués; leur état de
-  réussite reste **inconnu**. C'est l'objet de `B0`.
-- Les cinq bancs d'essai `B0` à `B4` **n'ont pas été exécutés**.
-- Le plafond de 3 000 blocs DOM/SVG reste une hypothèse à réfuter, **pas une
-  capacité déclarée**.
-- L'ambiguïté des attributs infonuagiques reste **non résolue**.
-- Trois lacunes de recherche demeurent, déclarées et non comblées : WebGL
-  Khronos inaccessible (HTTP 403), journal USN non instruit sur source
-  primaire, `DEC-0012` sans source primaire externe — cette dernière étant
-  désormais une **exception humaine explicitement acceptée**.
-- `graph/` reste ancien et contradictoire; sa normalisation est toujours
-  reportée.
-- `docs/tasks/TASK-0008-*.md` demeure `IMPLEMENTED` et se décrit encore comme
-  « non commitée » : incohérence historique connue, hors périmètre.
-- Aucun blocage technique n'est ouvert.
+| # | Blocage | Ce qui est demandé |
+|---|---|---|
+| 1 | **`B3`, inter-volume non observé.** Le tester exige d'écrire sur un second volume; §13.2 en fait une condition d'arrêt | Autoriser, ou non, un répertoire synthétique sur un second volume. Travail court |
+| 2 | **`B0`, échec non corrigé.** `cargo build` échoue sur le cache incrémental de `src-tauri/target/` | Autoriser, ou non, une tâche distincte de renouvellement du cache |
+| 3 | **`B4`, question 3 non résolue.** Aucune source Microsoft trouvée sur la survie de l'identité à une hydratation; la recherche a été interrompue par une limite de dépense du compte | Reprendre la recherche, ou accepter la lacune déclarée |
 
 ## Prochaine action unique
 
-Sébastien examine et approuve ou corrige
-[TASK-0012](../tasks/TASK-0012-technical-risk-gates.md) avant la porte P3
-(`ACTION-0020`).
+Sébastien **contrôle les preuves** de `TASK-0012` et attribue `VERIFIED`, ou
+renvoie la tâche avec des corrections motivées (`ACTION-0021`).
 
 ## Commandes sûres
 
@@ -98,14 +56,25 @@ Sébastien examine et approuve ou corrige
     git branch --show-current
     git rev-parse HEAD
     git status --short
-    git show --stat --oneline HEAD
+    git log --oneline db8d3de..HEAD
+    git diff --stat db8d3de -- src src-tauri tests public scripts .github graph
+
+La dernière doit rendre **une sortie vide** : aucun fichier de production n'a
+changé.
 
 ## Message court pour Claude Code
 
 Lis seulement CLAUDE.md, docs/ai/START_HERE.md, docs/ai/CURRENT_STATE.md et
-docs/ai/NEXT_ACTION.md. La porte P2 est **franchie** : TASK-0011 est
-`VERIFIED` et DEC-0007 à DEC-0012 sont `APPROVED` — mais **rien n'a été
-exécuté**, et une décision approuvée n'est pas une preuve. TASK-0012 est
-`PROPOSED` et **n'autorise rien**. N'exécute aucun banc d'essai, n'installe
-aucune dépendance et n'écris aucune ligne de code avant un GO explicite de
-Sébastien sur la porte P3.
+docs/ai/NEXT_ACTION.md. La porte **P3 est franchie** et `TASK-0012` est
+**`IMPLEMENTED`** : les bancs d'essai ont été exécutés, leurs verdicts sont
+écrits, **ne les rejoue pas** pour les lire. `TASK-0012` **n'autorise plus
+rien** : elle est terminée et attend un contrôle humain.
+
+**N'écris aucune ligne de code de production** — la porte P4 n'est pas
+franchie. **Ne corrige pas l'échec de `B0`.** **Ne teste pas l'inter-volume**
+sans un GO explicite : cela suppose d'écrire hors du dépôt. **Ne modifie aucune
+fiche `DEC`** : les verdicts alimentent des décisions, ils n'en prennent
+aucune. Ne fusionne rien, ne crée ni PR, ni release, ni étiquette.
+
+Si Sébastien demande la suite, l'action est `ACTION-0021` — et elle lui
+appartient, pas à toi.

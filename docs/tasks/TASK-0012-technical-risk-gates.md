@@ -3,7 +3,7 @@
 - **Identifiant :** `TASK-0012`
 - **Titre :** Exécuter des bancs d'essai synthétiques permettant de lever les
   risques techniques avant le premier code de production
-- **Statut :** `IN_PROGRESS`
+- **Statut :** `IMPLEMENTED`
 - **Phase :** 1 bis — porte technique entre la baseline approuvée et la
   phase 2 de [ROADMAP.md](../../ROADMAP.md)
 - **Proposée le :** 2026-08-31
@@ -537,6 +537,12 @@ Aucune ligne de code de production ne peut être écrite avant `P4`.
 - 2026-08-31 — `IN_PROGRESS` : branche `spike/v0.2-technical-risk-gates` créée
   depuis `db8d3de0b20e7efbfe463a17c218cc14face39a8`, pointe vérifiée de
   `rebuild/v0.2-project-brain`. Exécution de `B0` à `B4` engagée.
+- 2026-08-31 — `IMPLEMENTED` : `B0` à `B4` exécutés, cinq verdicts écrits,
+  preuves publiées. **`VERIFIED` n'est pas attribué** : l'exécuteur ne juge pas
+  ses propres preuves (§16). Deux points restent ouverts et sont déclarés, non
+  contournés : le comportement inter-volume de `B3`, bloqué par §13.2, et la
+  question 3 de `B4`, sans source officielle trouvée. L'échec de `B0` n'a pas
+  été corrigé, conformément à §7.1.4 et §14.
 
 ## 20. Rapport d'exécution
 

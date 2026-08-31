@@ -1308,3 +1308,104 @@ avec trois champs `replaced_by` renseignés. `TASK-0012` est `PROPOSED` et
 franchie**; la porte **P3 est ouverte et non franchie**. L'action unique
 suivante, `ACTION-0020`, appartient à Sébastien : examiner et approuver ou
 corriger `TASK-0012` avant P3.
+
+---
+
+## O. Exécution de TASK-0012 — bancs d'essai de levée des risques techniques
+
+- **Date :** 2026-08-31
+- **Branche :** `spike/v0.2-technical-risk-gates`
+- **Autorisation :** GO P3 explicite de Sébastien
+- **Nature :** **première intervention exécutée et mesurée** depuis
+  `TASK-0010`. Les sections précédentes étaient documentaires.
+
+### O.1 Contrôles Git effectués avant toute modification
+
+Les sept vérifications exigées ont été faites **avant** la première écriture :
+
+| Contrôle | Attendu | Observé | Résultat |
+|---|---|---|---|
+| Racine Git | dépôt public FileTopo | conforme | OK |
+| Branche | `rebuild/v0.2-project-brain` | conforme | OK |
+| `HEAD` | `db8d3de0b20e7efbfe463a17c218cc14face39a8` | identique | OK |
+| Arbre de travail | propre | vide, y compris non suivis | OK |
+| Local contre `origin/rebuild/v0.2-project-brain` | égaux | `db8d3de0…` = `db8d3de0…` | OK |
+| `main` locale et distante | `91bbe90f0f99026c28cd345784d4f579a0016db2` | identiques | OK |
+| Tâche `IN_PROGRESS` | aucune | aucune | OK |
+
+### O.2 Ce qui a été exécuté, et ce qui a été mesuré
+
+| Banc | Exécuté ? | Nature de la preuve |
+|---|---|---|
+| `B0` | oui | 7 commandes, codes de retour, sorties, durées |
+| `B1` | oui | 20 interruptions, `integrity_check`, listes de fichiers, 5 exécutions chronométrées par stratégie |
+| `B2` | oui | 18 scénarios × 5 exécutions, images par seconde relevées dans le navigateur, recherche dichotomique de plafond |
+| `B3` | **partiellement** | 5 points sur 6 observés; l'inter-volume est **bloqué**, pas omis |
+| `B4` | oui | 7 pages Microsoft, simulation de 10 cas fabriqués |
+
+### O.3 Intégrité du dépôt
+
+- **Aucun fichier de production modifié.** `git diff` contre `db8d3de0…` sur
+  `src/`, `src-tauri/`, `tests/`, `public/`, `scripts/`, `.github/` et `graph/`
+  est **vide**.
+- **Aucun verrou modifié.** Les quatre empreintes SHA-256 de `package.json`,
+  `pnpm-lock.yaml`, `src-tauri/Cargo.toml` et `src-tauri/Cargo.lock` sont
+  **identiques avant et après**. `--frozen-lockfile` et `--locked` auraient
+  fait échouer toute commande qui aurait voulu les réécrire.
+- **Aucune fiche `DEC` modifiée.**
+- Les dépendances des spikes sont **confinées** : `spikes/b3-windows-identity/`
+  porte son propre `Cargo.toml` et son propre `Cargo.lock`, avec une table
+  `[workspace]` vide qui empêche tout rattachement à la racine.
+- Tout ce que les spikes ont écrit sur le disque est resté sous
+  `spikes/.work/`, ignoré par Git.
+
+### O.4 Ce qui n'a PAS été fait, volontairement
+
+- **L'échec de `B0` n'a pas été corrigé.** §7.1.4 et §14 l'interdisent sans une
+  autorisation distincte. Le cache incrémental fautif est **toujours en place**.
+- **Le comportement inter-volume de `B3` n'a pas été observé.** Le tester
+  exigeait d'écrire hors du dépôt : §13.2 en fait une condition d'arrêt. La
+  règle a été appliquée — arrêt et demande, sans contournement.
+- **La question 3 de `B4` n'a pas été comblée.** Faute de source officielle,
+  elle est **déclarée non résolue**. La déduction possible est consignée comme
+  hypothèse, jamais comme réponse.
+- Aucune fusion, PR, release, étiquette, `force push`, ni push vers `main` ou
+  `rebuild/v0.2-project-brain`.
+
+### O.5 Honnêteté des mesures
+
+- **Une mesure a été jetée**, pas publiée : la première recherche de plafond de
+  `B2`, menée fenêtre affichée, s'est bloquée parce que Chrome cesse d'émettre
+  des images sur une fenêtre occultée. Le fait est consigné dans `PERF-0001`, et
+  la mesure refaite sans affichage après vérification que les deux modes
+  concordent.
+- **Un défaut du banc d'essai a été corrigé et déclaré** : le contrôle clavier
+  de `B2` comptait à tort un échec sur `SYN-WIDE`; c'était l'attente qui était
+  fausse, pas le rendu.
+- **Une erreur de mesure a été corrigée** : la première version de `B1` relevait
+  0 octet d'espace transitoire, parce qu'un échantillonnage par minuterie ne
+  peut pas se déclencher pendant du code synchrone. La mesure a été refaite aux
+  frontières d'étapes.
+- **Les cibles manquées sont publiées comme manquées** : les 14,08 ips de
+  `SYN-WIDE`, la marge de 0,4 ms sur la latence de sélection au pire cas, et la
+  panique du compilateur de `B0`.
+
+### O.6 Confidentialité
+
+Aucun accès à l'interface privée de référence, sous aucune forme. Aucune donnée
+réelle : toutes les arborescences, bases et fixtures sont **synthétiques**, à
+graine fixe. Aucun fichier de l'utilisateur lu, listé, ouvert, copié, déplacé,
+migré ni hydraté. **Aucun espace réservé d'un fournisseur de synchronisation
+n'a été touché.** Aucun chemin local personnel ni secret dans un fichier
+commité — vérifié par recherche sur les fichiers indexés avant chaque commit.
+
+Accès externes : **uniquement** sept pages `learn.microsoft.com` et deux fiches
+`crates.io`, pour `B4` et pour l'inventaire de licence de `B3`. Aucune dépense.
+
+### O.7 Conséquence
+
+`TASK-0012` est **`IMPLEMENTED`**. Elle **n'est pas** `VERIFIED` : l'exécuteur
+ne juge pas ses propres preuves. Aucune tâche n'est `IN_PROGRESS`. La porte
+**P3 est franchie**; la porte **P4 est ouverte et non franchie**. L'action
+unique suivante, `ACTION-0021`, appartient à Sébastien : contrôler les preuves
+et attribuer `VERIFIED`, ou renvoyer la tâche.

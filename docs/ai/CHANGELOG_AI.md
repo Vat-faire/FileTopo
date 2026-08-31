@@ -1403,3 +1403,65 @@ appartient à Sébastien : examiner et approuver ou corriger `TASK-0012` avant
 P3. Aucune ligne de code de production ne peut être écrite avant que les bancs
 d'essai aient rendu leurs verdicts et qu'une tâche d'implémentation ait été
 approuvée séparément.
+
+---
+
+## 2026-08-31 — TASK-0012 exécutée : cinq bancs d'essai, cinq verdicts
+
+**Branche :** `spike/v0.2-technical-risk-gates`, créée depuis `db8d3de0…`
+**Autorisation :** GO P3 explicite de Sébastien, avec correction des livrables
+**État final :** `TASK-0012` **`IMPLEMENTED`**, jamais auto-déclarée `VERIFIED`
+
+**Première intervention exécutée et mesurée depuis `TASK-0010`.** Les
+précédentes étaient documentaires.
+
+### Fait
+
+- `TASK-0012` : `PROPOSED` → `APPROVED` → `IN_PROGRESS` → `IMPLEMENTED`.
+  Correction autorisée appliquée : `PERF-0002` et `PERF-0003` ajoutés aux
+  livrables, pour que `B1`, `B2` et `B3` portent chacun sa fiche.
+- `spikes/` créé : quatre bancs d'essai, un générateur de données synthétiques,
+  une charte de non-production, un `.gitignore` pour l'espace de travail.
+- Quatre documents de preuves publiés :
+  `docs/research/TASK-0012-risk-gate-results.md`, `PERF-0001`, `PERF-0002`,
+  `PERF-0003`.
+- Six points de contrôle poussés vers `origin/spike/v0.2-technical-risk-gates`,
+  SHA local vérifié égal au SHA distant à chacun.
+
+### Verdicts
+
+| Banc | Verdict |
+|---|---|
+| `B0` | **SUCCÈS** — 36/36 Vitest et 13/13 Rust passent; `cargo build` échoue sur une panique du compilateur, **non corrigée** |
+| `B1` | **`M-C` RÉFUTÉE telle qu'écrite** — corruption prouvée par `-wal` orphelin; confirmée seulement durcie |
+| `B2` | **Étude Canvas 2D autorisée** — 14,08 ips contre 30 sur `SYN-WIDE`; plafonds réels 3 743 / 3 063 / 939 |
+| `B3` | **`I-E` confirmée sur 5 points sur 6** — coût 28,3 µs/élément, 3,1 % du budget; inter-volume **non observé** |
+| `B4` | **SUCCÈS** — 3 réponses sourcées Microsoft, 1 question **déclarée non résolue** |
+
+### Ce que ces verdicts changent, et ce qu'ils ne changent pas
+
+Ils **alimentent** des décisions futures. **Ils n'en prennent aucune.** Aucune
+fiche `DEC-0001` à `DEC-0012` n'a été modifiée, conformément à §3.
+
+Deux hypothèses approuvées sont **atteintes** : la bascule `M-C` de `DEC-0011`
+est une procédure de corruption si elle ne traite pas les fichiers annexes, et
+le plafond de 3 000 blocs de `DEC-0008` est remplacé par trois plafonds mesurés
+qui varient d'un facteur 4 selon la forme de l'arborescence.
+
+### Non fait, volontairement
+
+Aucun code de production, aucun test, aucune dépendance, aucun verrou, aucun
+fichier de `graph/` modifié. **L'échec de `B0` n'a pas été corrigé** — interdit
+sans autorisation distincte. **L'inter-volume de `B3` n'a pas été testé** —
+`§13.2` en fait une condition d'arrêt, et la règle a été appliquée sans
+contournement. **La question 3 de `B4` n'a pas été comblée** — déclarée non
+résolue. Aucune fusion, PR, release, étiquette, `force push`, ni push vers
+`main` ou `rebuild/v0.2-project-brain`. Aucune dépense.
+
+### Conséquence
+
+La porte **P3 est franchie**. La porte **P4 est ouverte et non franchie**.
+Aucune tâche n'est `IN_PROGRESS`. L'action unique suivante, `ACTION-0021`,
+appartient à Sébastien : contrôler les preuves de `TASK-0012` et attribuer
+`VERIFIED`, ou renvoyer la tâche. La branche de spike n'est **pas** fusionnée;
+son sort appartient à Sébastien.
