@@ -2,7 +2,7 @@
 
 - **Date :** 2026-08-31
 - **Tâche :** `TASK-0011`, sous le GO de Sébastien du 2026-08-31
-- **Statut du document :** livrable `L1`, soumis à l'examen humain (porte P2)
+- **Statut du document :** livrable `L1`, **APPROUVÉ** — approuvé par Sébastien le 2026-08-31 (porte P2 franchie). Livrable documentaire; **rien n'a été exécuté ni mesuré : non testé physiquement**
 - **Portée couverte :** points 1 et 11 de `TASK-0011` §7.1
 - **Nature :** arbitrage écrit du périmètre. Aucune ligne de code n'est écrite,
   aucune mesure n'est exécutée, aucun test n'est rejoué. **Non testé.**

@@ -1,13 +1,18 @@
 # DEC-0010 — Indexation incrémentale et surveillance Windows
 
 - **Date :** 2026-08-31
-- **Statut :** `PROPOSED`
+- **Statut :** `APPROVED`
 - **Phase :** 1
-- **Décideur :** Sébastien — **décision non prise.** Fiche soumise à la porte
-  P2 de [TASK-0011](../tasks/TASK-0011-functional-architecture-baseline.md).
+- **Décideur :** **Sébastien — GO explicite du 2026-08-31.** Porte P2 de
+  [TASK-0011](../tasks/TASK-0011-functional-architecture-baseline.md)
+  franchie; cette fiche est **approuvée**.
+- **Approuvée le :** 2026-08-31
 - **replaced_by :** —
 
-> Cette fiche **compare** et **classe**. Elle ne tranche pas.
+> **Décision arrêtée.** Sébastien a franchi la porte P2 le 2026-08-31 et a
+> retenu **W-B avec repli W-C** pour la réconciliation et **U-B** pour
+> l'application des changements. Le classement et les options écartées sont
+> conservés ci-dessous comme motif. **Rien n'a été exécuté ni mesuré.**
 
 ## Contexte
 
@@ -51,7 +56,12 @@ mécanisme exhaustif est fausse dès la première rafale.
 
 ## Décision
 
-**Aucune.** Classements recommandés, soumis à Sébastien :
+**W-B avec repli W-C retenue pour la réconciliation, U-B retenue pour
+l'application des changements.** Sébastien a arrêté ce choix le 2026-08-31 en
+franchissant la porte P2.
+
+Les classements qui avaient été soumis, et qui restent le motif de la
+décision :
 
 **Réconciliation :** 1. **W-B avec repli W-C** (recommandé) — 2. W-C —
 3. W-A — 4. W-D (à étudier séparément, données insuffisantes).

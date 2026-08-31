@@ -3,94 +3,83 @@
 - **Date :** 2026-08-31
 - **Branche :** rebuild/v0.2-project-brain
 - **Base de la branche :** 91bbe90f0f99026c28cd345784d4f579a0016db2
-- **Commit livré :** celui portant le message « docs: revise functional architecture baseline », publié sur origin; il révise le commit « docs: establish functional architecture baseline »
-- **Tâches :** TASK-0010 VERIFIED le 2026-08-31; TASK-0011 IMPLEMENTED le 2026-08-31 puis **révisée** le 2026-08-31, toujours non vérifiée
+- **HEAD au démarrage :** 57e181f5100d69bfbb3dc2bfc749d9ebd96507d7
+- **Commit livré :** celui portant le message
+  « docs: approve baseline and propose technical risk gates », publié sur
+  `origin/rebuild/v0.2-project-brain`
+- **Tâches :** TASK-0010 VERIFIED; **TASK-0011 VERIFIED le 2026-08-31**, porte
+  P2 franchie par Sébastien; **TASK-0012 PROPOSED**, non exécutée
 - **Tâche IN_PROGRESS :** aucune
 
 ## Livré et pourquoi
 
-TASK-0011 a été approuvée par Sébastien le 2026-08-31 (porte P1), puis
-exécutée intégralement. Elle produit la baseline qui manquait pour qu'une
-phase de développement puisse démarrer sans redécouvrir la conception :
+Sébastien a donné un **GO explicite** le 2026-08-31 et a franchi la porte
+**P2**. Cette session enregistre cette approbation dans la mémoire versionnée
+et prépare la porte suivante. Elle est **entièrement documentaire**.
 
-- **L1** — les 39 fonctions `F-001` à `F-039` sont classées `MVP`,
-  `ULTÉRIEUR` ou `DIFFÉRÉ` (**31 / 4 / 4** après la révision du 2026-08-31),
-  chacune avec un motif, une dépendance amont et un critère d'acceptation
-  mesurable;
-- **L2** — le parcours utilisateur va de la sélection d'une racine à une carte
-  construite automatiquement, sans aucune configuration manuelle de la carte;
-- **L3** — la synthèse d'architecture relie modèle de données, indexation,
-  surveillance, exclusions, relations, cerveaux et migrations, et énumère
-  dix-sept contraintes établies par des sources officielles;
-- **L4** — la matrice de formats fixe que le MVP lit des métadonnées et
-  n'ouvre aucun contenu;
-- **L5** — les objectifs mesurables à 1 000, 10 000 et 100 000 fichiers
-  synthétiques, tous marqués « non testé »;
-- **L6** — le plan de tests en cinq catégories, sur données synthétiques;
-- **L7** — six décisions `DEC-0007` à `DEC-0012`, **toutes `PROPOSED`**,
-  chacune comparant au moins deux options réelles.
+1. **`TASK-0011` passe à `VERIFIED`.** La section 18 de la fiche consigne le
+   franchissement, les vérifications Git préalables, les six arbitrages, l'état
+   des sept livrables et ce que l'approbation **n'autorise pas**.
+2. **`DEC-0007` à `DEC-0012` passent à `APPROVED`**, chacune avec son option
+   retenue écrite dans sa section « Décision » : `B`, `A`, `I-E`+`R-C`,
+   `W-B`/`W-C`+`U-B`, `S-C`+`M-C` conditionnelle avec repli `M-B`, `F-D`.
+3. **Les sept livrables portent l'état approuvé**, avec la mention explicite
+   qu'ils **n'ont jamais été testés physiquement**.
+4. **Trois champs `replaced_by`** sont renseignés sur des fiches `VERIFIED` :
+   `DEC-0003` → `DEC-0007`, `DEC-0004` → `DEC-0009`, `DEC-0005` → `DEC-0008`.
+   Aucun autre contenu de `DEC-0001` à `DEC-0006` n'a changé.
+5. **`TASK-0012` est créée au statut `PROPOSED`** et **n'est pas exécutée**.
+   Elle spécifie cinq bancs d'essai synthétiques — `B0` santé du prototype,
+   `B1` migration SQLite Windows, `B2` rendu HTML/SVG, `B3` identité Windows,
+   `B4` attributs infonuagiques — avec branche dédiée, fichiers autorisés,
+   répertoire isolé `spikes/`, règle de licence, critères de succès et d'échec,
+   conditions d'arrêt immédiat, état final `IMPLEMENTED` jamais `VERIFIED`, et
+   **GO P3 obligatoire avant exécution**.
 
-Aucune décision n'est arrêtée. `DEC-0001` à `DEC-0006` sont inchangées. Le
-prototype alpha reste intact : **aucun fichier de code, de test, de dépendance
-ni de `graph/` n'a été modifié.**
+**Aucun fichier de code, de test, de dépendance ni de `graph/` n'a été
+modifié.** Aucune commande d'application n'a été lancée.
 
-## Révision du 2026-08-31 — quatre corrections appliquées
+## Ce que l'approbation n'autorise pas
 
-La baseline générale a été **acceptée**; la porte **P2 n'est pas franchie**.
-Quatre corrections motivées ont été appliquées aux livrables, sans changer
-l'état de la tâche ni celui des décisions :
-
-1. **Périmètre MVP** — `F-024` et `F-033` passent à `MVP`; répartition
-   **31 / 4 / 4**, 11 écarts déclarés. La portée `MVP` de `F-033` couvre nom,
-   couleur, icône, persistance par cerveau et valeurs par défaut sans
-   configuration obligatoire.
-2. **Rendu (`DEC-0008`)** — HTML/SVG avec virtualisation et niveaux de détail
-   au MVP; Canvas 2D seulement sur banc d'essai; WebGL différé. Plafond initial
-   de blocs DOM/SVG proposé et marqué **« non testé »**.
-3. **Identité (`DEC-0009`)** — stratégie `I-E` : identité Windows si
-   disponible, repli déterministe par chemin relatif versionné sinon,
-   heuristique réduite à une **suggestion** révocable. Aucune heuristique ne
-   préserve automatiquement l'identité, le vu/non-vu ni le journal.
-4. **Migration (`DEC-0011`)** — `S-C` conservée; `M-C` conditionnée à un banc
-   d'essai synthétique Windows; `M-B` demeure le repli.
-
-Détail complet en section 17 de la
-[fiche TASK-0011](../tasks/TASK-0011-functional-architecture-baseline.md) et
-en section M de [VALIDATION.md](VALIDATION.md).
+- Aucune ligne de code de production : la porte **P3** reste à franchir, et
+  une tâche d'implémentation approuvée sera encore nécessaire après elle.
+- Aucune implémentation de `M-C` tant que `B1` n'a pas été exécuté et publié;
+  `M-B` demeure le repli obligatoire.
+- Aucun passage à Canvas 2D tant que `B2` n'a pas réfuté HTML/SVG, mesure
+  jointe.
+- Aucune dépendance ajoutée, y compris la dépendance d'API Windows envisagée
+  par `DEC-0007` et `DEC-0009` : son inventaire de licence appartient à `B3`.
+- Aucune fusion, PR, publication, release, étiquette, `force push` ni push vers
+  `main`.
 
 ## Fichiers essentiels
 
 Lire [CLAUDE.md](../../CLAUDE.md), [START_HERE.md](START_HERE.md),
 [CURRENT_STATE.md](CURRENT_STATE.md), [NEXT_ACTION.md](NEXT_ACTION.md), puis
-la fiche de la prochaine tâche seulement après son approbation.
+[TASK-0012](../tasks/TASK-0012-technical-risk-gates.md) — **seulement pour
+l'examiner**, jamais pour l'exécuter avant son approbation.
 
-La baseline elle-même se lit dans cet ordre :
+La baseline approuvée se lit dans cet ordre :
 [REQUIREMENTS_BASELINE.md](../product/REQUIREMENTS_BASELINE.md),
 [USER_JOURNEY.md](../product/USER_JOURNEY.md),
 [ARCHITECTURE_BASELINE.md](../architecture/ARCHITECTURE_BASELINE.md), puis les
-six fiches de décision.
+six fiches `DEC-0007` à `DEC-0012` et
+[docs/decisions/README.md](../decisions/README.md).
 
 ## Non vérifié et blocages
 
-- **Rien n'a été exécuté.** Aucun test automatisé, build, installation, test
-  manuel d'interface, essai physique Windows ni mesure de performance.
+- **Rien n'a été exécuté.** Aucun test automatisé, build, installation, essai
+  Windows, rendu ni mesure. L'approbation P2 porte sur des **documents**.
 - Les tests existants du prototype n'ont **pas** été rejoués; leur état de
-  réussite au commit de base est inconnu de cette tâche.
-- TASK-0011 est `IMPLEMENTED` et **attend une vérification indépendante**.
-  L'exécuteur ne s'est pas attribué `VERIFIED`.
-- Trois lacunes de recherche sont déclarées et non comblées : les
-  spécifications WebGL de Khronos ont renvoyé HTTP 403 et n'ont pas pu être
-  consultées; le journal USN n'a pas été instruit sur source primaire;
-  `DEC-0012` ne cite aucune source primaire externe et est déclarée
-  **incertaine**.
-- Deux constats touchent des fiches `VERIFIED` sans les modifier : la tension
-  `DEC-0003`/`DEC-0004` sur l'identité de fichier en Rust stable, et l'absence
-  de repli Canvas 2D dans PixiJS 8. Voir
-  [CURRENT_STATE.md](CURRENT_STATE.md).
-- Les deux bancs d'essai introduits par la révision — `B1` (bascule de
-  migration Windows) et `B2` (plafond de blocs DOM/SVG) — **n'ont pas été
-  exécutés**. Ils conditionnent respectivement `M-C` de `DEC-0011` et tout
-  passage à Canvas 2D dans `DEC-0008`.
+  réussite reste **inconnu**. C'est l'objet de `B0`.
+- Les cinq bancs d'essai `B0` à `B4` **n'ont pas été exécutés**.
+- Le plafond de 3 000 blocs DOM/SVG reste une hypothèse à réfuter, **pas une
+  capacité déclarée**.
+- L'ambiguïté des attributs infonuagiques reste **non résolue**.
+- Trois lacunes de recherche demeurent, déclarées et non comblées : WebGL
+  Khronos inaccessible (HTTP 403), journal USN non instruit sur source
+  primaire, `DEC-0012` sans source primaire externe — cette dernière étant
+  désormais une **exception humaine explicitement acceptée**.
 - `graph/` reste ancien et contradictoire; sa normalisation est toujours
   reportée.
 - `docs/tasks/TASK-0008-*.md` demeure `IMPLEMENTED` et se décrit encore comme
@@ -99,9 +88,9 @@ six fiches de décision.
 
 ## Prochaine action unique
 
-Sébastien examine la baseline **corrigée** et les six décisions `DEC-0007` à
-`DEC-0012`, puis franchit ou refuse la porte P2 (`ACTION-0019`). Aucune tâche
-d'implémentation ne démarre avant P2 **et** P3.
+Sébastien examine et approuve ou corrige
+[TASK-0012](../tasks/TASK-0012-technical-risk-gates.md) avant la porte P3
+(`ACTION-0020`).
 
 ## Commandes sûres
 
@@ -114,8 +103,9 @@ d'implémentation ne démarre avant P2 **et** P3.
 ## Message court pour Claude Code
 
 Lis seulement CLAUDE.md, docs/ai/START_HERE.md, docs/ai/CURRENT_STATE.md et
-docs/ai/NEXT_ACTION.md. La baseline de TASK-0011 existe, a été corrigée
-le 2026-08-31, mais n'est **pas** approuvée : ses six décisions sont `PROPOSED`
-et n'autorisent rien. Ne modifie
-rien, et n'écris aucune ligne de code, avant un GO explicite de Sébastien sur
-les portes P2 puis P3.
+docs/ai/NEXT_ACTION.md. La porte P2 est **franchie** : TASK-0011 est
+`VERIFIED` et DEC-0007 à DEC-0012 sont `APPROVED` — mais **rien n'a été
+exécuté**, et une décision approuvée n'est pas une preuve. TASK-0012 est
+`PROPOSED` et **n'autorise rien**. N'exécute aucun banc d'essai, n'installe
+aucune dépendance et n'écris aucune ligne de code avant un GO explicite de
+Sébastien sur la porte P3.

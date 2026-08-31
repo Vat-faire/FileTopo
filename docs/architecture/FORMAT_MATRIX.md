@@ -3,7 +3,7 @@
 - **Date :** 2026-08-31
 - **Tâche :** `TASK-0011`, livrable `L4`
 - **Portée couverte :** point 13 de `TASK-0011` §7.1
-- **Statut :** soumis à l'examen humain (porte P2)
+- **Statut :** livrable `L4`, **APPROUVÉ** — approuvé par Sébastien le 2026-08-31 (porte P2 franchie). Livrable documentaire; **rien n'a été exécuté ni mesuré : non testé physiquement**
 - **Nature :** **aucun extracteur n'existe, aucun n'a été exécuté. Non testé.**
 
 Cette matrice fixe **où s'arrête le MVP** en matière de lecture de fichiers.

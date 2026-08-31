@@ -1,13 +1,19 @@
 # DEC-0012 — Limite architecturale de l'IA
 
 - **Date :** 2026-08-31
-- **Statut :** `PROPOSED`
+- **Statut :** `APPROVED`
 - **Phase :** 1
-- **Décideur :** Sébastien — **décision non prise.** Fiche soumise à la porte
-  P2 de [TASK-0011](../tasks/TASK-0011-functional-architecture-baseline.md).
+- **Décideur :** **Sébastien — GO explicite du 2026-08-31.** Porte P2 de
+  [TASK-0011](../tasks/TASK-0011-functional-architecture-baseline.md)
+  franchie; cette fiche est **approuvée**.
+- **Approuvée le :** 2026-08-31
 - **replaced_by :** —
 
-> Cette fiche **compare** et **classe**. Elle ne tranche pas.
+> **Décision arrêtée.** Sébastien a franchi la porte P2 le 2026-08-31 et a
+> retenu la frontière **F-D**. Le classement et les options écartées sont
+> conservés ci-dessous comme motif. **Aucune source primaire externe n'appuie
+> cette fiche :** c'est une décision interne de périmètre, acceptée comme
+> exception humaine explicite (voir §Preuves et §Limites).
 
 ## Contexte
 
@@ -38,7 +44,19 @@ La question est donc : **où passe la ligne, et quelle forme a-t-elle ?**
 
 ## Décision
 
-**Aucune.** Classement recommandé, soumis à Sébastien :
+**Frontière F-D retenue.** Aucune IA, aucune extraction de contenu, aucun
+embedding, aucun RAG et aucun GraphRAG n'entre dans le noyau du MVP.
+Sébastien a arrêté ce choix le 2026-08-31 en franchissant la porte P2.
+
+**Exception humaine explicitement acceptée.** Cette fiche ne cite **aucune
+source primaire externe**. Sébastien a accepté cette absence comme une
+exception motivée : il s'agit d'une **décision interne de périmètre**, fondée
+sur la vision approuvée du produit, et non d'une affirmation technique qu'une
+source extérieure pourrait établir ou réfuter. L'absence de source reste
+déclarée en §Preuves et §Limites plutôt que masquée.
+
+Le classement qui avait été soumis, et qui reste le motif de la décision :
+
 
 1. **F-D** (recommandé);
 2. **F-B** (correcte, mais coûteuse avant tout besoin établi);

@@ -3,7 +3,7 @@
 - **Date :** 2026-08-31
 - **Tâche :** `TASK-0011`, livrable `L3`
 - **Portée couverte :** points 5 à 10 et 15 de `TASK-0011` §7.1
-- **Statut :** soumis à l'examen humain (porte P2)
+- **Statut :** livrable `L3`, **APPROUVÉ** — approuvé par Sébastien le 2026-08-31 (porte P2 franchie). Livrable documentaire; **rien n'a été exécuté ni mesuré : non testé physiquement**
 - **Nature :** synthèse écrite. **Aucun code, aucun build, aucune mesure.
   Non testé.**
 

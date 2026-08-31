@@ -1194,3 +1194,117 @@ Aucune écriture distante autre que le push autorisé vers
 Aucune tâche n'est `IN_PROGRESS`. La porte **P2 reste ouverte et non
 franchie**. L'action unique suivante, `ACTION-0019`, appartient à Sébastien :
 examen humain final et décision P2 après corrections.
+
+---
+
+## N. Franchissement de la porte P2 et proposition de TASK-0012 (2026-08-31)
+
+**Nature :** intervention **entièrement documentaire**, sous le **GO explicite
+de Sébastien** du 2026-08-31. Aucun code, aucun test, aucune dépendance,
+aucune mesure. Objet : enregistrer l'approbation P2, faire passer `TASK-0011` à
+`VERIFIED` et `DEC-0007` à `DEC-0012` à `APPROVED`, créer `TASK-0012` au
+statut `PROPOSED`.
+
+### N.1 Vérifications Git préalables — toutes réussies
+
+| # | Contrôle | Attendu | Observé | Verdict |
+|---|---|---|---|---|
+| 1 | Racine | dépôt public FileTopo | racine du dépôt confirmée par `git rev-parse` | réussi |
+| 2 | Branche | `rebuild/v0.2-project-brain` | `rebuild/v0.2-project-brain` | réussi |
+| 3 | `HEAD` | `57e181f5100d69bfbb3dc2bfc749d9ebd96507d7` | identique | réussi |
+| 4 | Arbre de travail | propre | `git status --porcelain` vide | réussi |
+| 5 | SHA local = distant | égalité | `origin/rebuild/v0.2-project-brain` = `57e181f5100d69bfbb3dc2bfc749d9ebd96507d7` | réussi |
+| 6 | `main` inchangée | `91bbe90f…` locale et distante | `main` = `origin/main` = `91bbe90f0f99026c28cd345784d4f579a0016db2` | réussi |
+| 7 | Remote | `origin` = dépôt public FileTopo | `https://github.com/Vat-faire/FileTopo.git` | réussi |
+| 8 | Tâche `IN_PROGRESS` | aucune | aucune | réussi |
+
+Aucune vérification n'a échoué; l'exécution a donc pu commencer.
+
+### N.2 Contrôles documentaires exécutés — résultats réels
+
+| # | Contrôle | Méthode | Résultat |
+|---|---|---|---|
+| 1 | États autorisés | inspection des états dans les fiches touchées | Seuls `PROPOSED`, `APPROVED`, `VERIFIED`, `IMPLEMENTED` apparaissent, tous prévus par `AGENTS.md` |
+| 2 | Une seule tâche `IN_PROGRESS` | inventaire des statuts de `docs/tasks/` | 0 tâche `IN_PROGRESS` |
+| 3 | Six décisions à `APPROVED` | inspection des en-têtes `DEC-0007` à `DEC-0012` | 6/6 `APPROVED`, chacune avec décideur, date d'approbation et option retenue |
+| 4 | Aucun reliquat « décision non prise » | recherche de « Aucune. », « soumis à Sébastien », « ne tranche pas », `PROPOSED` | 0 occurrence résiduelle dans les six fiches |
+| 5 | `replaced_by` autorisés | inspection de `DEC-0003`, `DEC-0004`, `DEC-0005` | 3/3 renseignés vers `DEC-0007`, `DEC-0009`, `DEC-0008` |
+| 6 | Contenu historique préservé | `git diff` sur `DEC-0001` à `DEC-0006` | seule la ligne `replaced_by` diffère, sur 3 fiches; `DEC-0001`, `DEC-0002`, `DEC-0006` intactes |
+| 7 | Sept livrables à l'état approuvé | inspection des en-têtes `L1` à `L7` | 7/7, chacun portant la mention « non testé physiquement » |
+| 8 | `NEXT_ACTION.md` | comptage des actions | exactement **une** action, `ACTION-0020` |
+| 9 | Liens internes | résolution de chaque lien relatif créé ou modifié | toutes les cibles existent |
+| 10 | Périmètre | `git status` restreint à `docs/` et `ROADMAP.md` | 0 fichier hors documentation |
+| 11 | Code, tests, dépendances, `graph/` | `git status` | 0 fichier modifié sous `src/`, `src-tauri/`, `tests/`, `public/`, `scripts/`, `.github/`, `graph/`; verrous intacts |
+| 12 | Données sensibles | recherche de motifs de secrets, de chemins locaux personnels et de données réelles | 0 correspondance |
+| 13 | `git diff --check` | exécuté avant commit | aucun défaut signalé |
+| 14 | Encodage et fins de ligne | inspection des fichiers écrits | UTF-8, fins de ligne LF, conformes à `.gitattributes` |
+
+### N.3 Fichiers touchés
+
+**Créé — 1 :**
+
+| Fichier | Objet |
+|---|---|
+| `docs/tasks/TASK-0012-technical-risk-gates.md` | Fiche `PROPOSED` des cinq bancs d'essai `B0` à `B4` |
+
+**Modifiés :**
+
+| Fichier | Modification |
+|---|---|
+| `docs/tasks/TASK-0011-functional-architecture-baseline.md` | `VERIFIED`; table des portes; historique d'état; **section 18** nouvelle |
+| `docs/decisions/DEC-0007-rebuild-tech-stack.md` | `APPROVED`; option **B** arrêtée; conséquences et `replaced_by` alignés |
+| `docs/decisions/DEC-0008-hierarchical-rendering.md` | `APPROVED`; option **A** arrêtée, `B2` seule voie de réfutation |
+| `docs/decisions/DEC-0009-data-model-and-relations.md` | `APPROVED`; **I-E** et **R-C** arrêtées; conséquence sur la dépendance Windows renvoyée à `B3` |
+| `docs/decisions/DEC-0010-indexing-and-watching.md` | `APPROVED`; **W-B**/**W-C** et **U-B** arrêtées |
+| `docs/decisions/DEC-0011-brain-isolation-and-migrations.md` | `APPROVED`; **S-C** arrêtée, **M-C** conditionnelle à `B1`, **M-B** repli obligatoire |
+| `docs/decisions/DEC-0012-ai-architectural-boundary.md` | `APPROVED`; **F-D** arrêtée; exception humaine consignée |
+| `docs/decisions/DEC-0003-tech-stack.md` | `replaced_by` → `DEC-0007`, **seule ligne modifiée** |
+| `docs/decisions/DEC-0004-index-and-data-model.md` | `replaced_by` → `DEC-0009`, **seule ligne modifiée** |
+| `docs/decisions/DEC-0005-rendering-and-relief.md` | `replaced_by` → `DEC-0008`, **seule ligne modifiée** |
+| `docs/decisions/README.md` | Tableau des six décisions approuvées; rappel qu'`APPROVED` n'est pas une preuve; règle `replaced_by` |
+| `docs/product/REQUIREMENTS_BASELINE.md`, `docs/product/USER_JOURNEY.md`, `docs/architecture/ARCHITECTURE_BASELINE.md`, `docs/architecture/FORMAT_MATRIX.md`, `docs/performance/BASELINE_TARGETS.md`, `docs/architecture/TEST_STRATEGY.md` | `L1` à `L6` portent l'état **APPROUVÉ** avec la mention « non testé physiquement »; §6.1 de `TEST_STRATEGY.md` renvoie à `TASK-0012` |
+| `docs/ai/CURRENT_STATE.md`, `NEXT_ACTION.md`, `HANDOFF.md`, `VALIDATION.md`, `CHANGELOG_AI.md` | mémoire obligatoire |
+| `ROADMAP.md` | phase 1 → `VERIFIED`; état réel du 2026-08-31 réécrit |
+
+**Non modifiés, volontairement :** `DEC-0001`, `DEC-0002`, `DEC-0006`,
+`docs/product/FEATURE_MATRIX.md`, `PROJECT_VISION.md`, et l'intégralité du
+code, des tests, des dépendances, des verrous et de `graph/`.
+
+### N.4 Non testé — déclaration explicite
+
+Cette intervention est **entièrement documentaire**. Aucun test automatisé,
+build, installation, essai manuel d'interface, essai physique Windows, rendu ni
+mesure de performance n'a été exécuté. Les tests existants du prototype n'ont
+**pas** été rejoués : leur état de réussite reste **inconnu**.
+
+Les cinq bancs d'essai `B0` à `B4` spécifiés par `TASK-0012` **n'ont pas été
+exécutés** : `TASK-0012` est `PROPOSED` et n'autorise rien.
+
+**L'approbation P2 n'est pas une preuve.** Elle fixe une direction sur des
+documents. `M-C` reste conditionnée à `B1`; le plafond de 3 000 blocs DOM/SVG
+reste une hypothèse à réfuter par `B2` et **n'est pas une capacité déclarée du
+produit**; l'identité Windows de `DEC-0009` reste non démontrée en Rust stable;
+l'ambiguïté des attributs infonuagiques reste non résolue.
+
+Les sept livrables sont **approuvés**, jamais **testés physiquement**. Cette
+distinction est écrite dans chacun d'eux.
+
+### N.5 Confidentialité
+
+Aucun accès à l'interface privée de référence : ni lecture, ni listage, ni
+recherche, ni citation. Aucune donnée réelle. Aucun chemin local personnel ni
+secret écrit dans un fichier commité. Aucun accès hors du dépôt public —
+**aucune source externe n'a été consultée pendant cette intervention**. Aucune
+écriture distante autre que le push autorisé vers
+`origin/rebuild/v0.2-project-brain`. Aucune fusion, PR, release, étiquette,
+`force push` ni push vers `main`.
+
+### N.6 Conséquence
+
+`TASK-0011` est `VERIFIED`, attribué **par Sébastien**. `DEC-0007` à
+`DEC-0012` sont `APPROVED`. `DEC-0001` à `DEC-0006` conservent leur contenu,
+avec trois champs `replaced_by` renseignés. `TASK-0012` est `PROPOSED` et
+**n'a pas été exécutée**. Aucune tâche n'est `IN_PROGRESS`. La porte **P2 est
+franchie**; la porte **P3 est ouverte et non franchie**. L'action unique
+suivante, `ACTION-0020`, appartient à Sébastien : examiner et approuver ou
+corriger `TASK-0012` avant P3.

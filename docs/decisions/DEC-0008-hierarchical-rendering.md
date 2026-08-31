@@ -1,13 +1,18 @@
 # DEC-0008 — Rendu de la carte en blocs hiérarchiques
 
 - **Date :** 2026-08-31
-- **Statut :** `PROPOSED`
+- **Statut :** `APPROVED`
 - **Phase :** 1
-- **Décideur :** Sébastien — **décision non prise.** Fiche soumise à la porte
-  P2 de [TASK-0011](../tasks/TASK-0011-functional-architecture-baseline.md).
+- **Décideur :** **Sébastien — GO explicite du 2026-08-31.** Porte P2 de
+  [TASK-0011](../tasks/TASK-0011-functional-architecture-baseline.md)
+  franchie; cette fiche est **approuvée**.
+- **Approuvée le :** 2026-08-31
 - **replaced_by :** —
 
-> Cette fiche **compare** et **classe**. Elle ne tranche pas.
+> **Décision arrêtée.** Sébastien a franchi la porte P2 le 2026-08-31 et a
+> retenu l'**option A**, avec `B2` comme unique voie de réfutation. Le
+> classement et les options écartées sont conservés ci-dessous comme motif.
+> **Aucun rendu n'a été exécuté, aucune image par seconde mesurée.**
 
 ## Contexte
 
@@ -45,7 +50,15 @@ démontré par volumétrie et interactions attendues ». Aucune volumétrie n'ay
 
 ## Décision
 
-**Aucune.** Le classement recommandé, soumis à Sébastien :
+**Option A retenue — HTML/SVG dans le DOM, avec virtualisation et niveaux de
+détail, pour le MVP.** Canvas 2D n'est autorisé à l'étude **que si** le banc
+d'essai synthétique `B2` réfute l'option A contre les objectifs de
+[BASELINE_TARGETS.md](../performance/BASELINE_TARGETS.md) §3.6. WebGL est
+**différé** jusqu'à un besoin mesuré. Sébastien a arrêté ce choix le
+2026-08-31 en franchissant la porte P2.
+
+Le classement qui avait été soumis, et qui reste le motif de la décision :
+
 
 1. **A — HTML/SVG avec virtualisation et niveaux de détail, pour le MVP**
    (recommandé);

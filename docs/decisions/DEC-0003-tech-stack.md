@@ -4,7 +4,7 @@
 - **Statut :** `VERIFIED`
 - **Phase :** 2
 - **Décideur :** orchestrateur, sous l'autorisation permanente du 2026-08-25
-- **replaced_by :** —
+- **replaced_by :** [DEC-0007](DEC-0007-rebuild-tech-stack.md), approuvée par Sébastien le 2026-08-31 (porte P2)
 
 ## Contexte
 

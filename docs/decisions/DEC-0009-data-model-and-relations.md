@@ -1,13 +1,18 @@
 # DEC-0009 — Modèle de données, identifiants stables et relations
 
 - **Date :** 2026-08-31
-- **Statut :** `PROPOSED`
+- **Statut :** `APPROVED`
 - **Phase :** 1
-- **Décideur :** Sébastien — **décision non prise.** Fiche soumise à la porte
-  P2 de [TASK-0011](../tasks/TASK-0011-functional-architecture-baseline.md).
+- **Décideur :** **Sébastien — GO explicite du 2026-08-31.** Porte P2 de
+  [TASK-0011](../tasks/TASK-0011-functional-architecture-baseline.md)
+  franchie; cette fiche est **approuvée**.
+- **Approuvée le :** 2026-08-31
 - **replaced_by :** —
 
-> Cette fiche **compare** et **classe**. Elle ne tranche pas.
+> **Décision arrêtée.** Sébastien a franchi la porte P2 le 2026-08-31 et a
+> retenu **I-E** pour l'identité et **R-C** pour les relations. Le classement
+> et les options écartées sont conservés ci-dessous comme motif. **Rien n'a
+> été compilé, appelé ni mesuré.**
 
 ## Contexte
 
@@ -58,7 +63,14 @@ vérifiées sont donc en tension, et il faut la résoudre explicitement.
 
 ## Décision
 
-**Aucune.** Classements recommandés, soumis à Sébastien :
+**I-E retenue pour l'identité, R-C retenue pour les relations.** L'heuristique
+de ressemblance demeure **uniquement une suggestion visible et révocable** :
+elle ne préserve jamais automatiquement l'identité, l'état vu/non vu ni le
+journal de changements. Sébastien a arrêté ce choix le 2026-08-31 en
+franchissant la porte P2.
+
+Les classements qui avaient été soumis, et qui restent le motif de la
+décision :
 
 **Identifiant stable :** 1. **I-E** (recommandé) — 2. I-A — 3. I-D — 4. I-B
 (insuffisant seul, puisqu'il reproduit le défaut connu) — 5. I-C, **rejetée
@@ -86,11 +98,15 @@ comme source d'identité** et admise uniquement comme suggestion.
 **Relations :** 1. **R-C** (recommandé) — 2. R-A — 3. R-B (rejetée : elle rend
 l'invariant inapplicable).
 
-**Proposition annexe, à trancher avec `DEC-0007`.** Si I-D ou I-A est retenue,
-le projet doit accepter une **dépendance d'API Windows** dans le cœur Rust.
+**Conséquence arrêtée, cohérente avec [DEC-0007](DEC-0007-rebuild-tech-stack.md).**
+I-E s'appuyant sur l'identité Windows lorsqu'elle est disponible, le projet
+**accepte le principe** d'une dépendance d'API Windows dans le cœur Rust.
 C'est le point où `DEC-0003` (Rust stable) et `DEC-0004` (identité de volume +
-identifiant de fichier) se rejoignent. Ni l'une ni l'autre n'est modifiée ici;
-la révision est **proposée**, pas appliquée.
+identifiant de fichier) se rejoignent. **Aucune caisse n'est choisie ici** :
+son nom, sa version et sa licence doivent être établis par le banc d'essai
+`B3` de [TASK-0012](../tasks/TASK-0012-technical-risk-gates.md), après
+inventaire de licence. Le contenu de `DEC-0003` et `DEC-0004` reste intact;
+seul le `replaced_by` de `DEC-0004` pointe désormais vers cette fiche.
 
 ## Motif
 
@@ -121,8 +137,9 @@ indisponible, un renommage ou un déplacement reste non corrélé : le produit
 journalise une création et une suppression, et propose éventuellement un
 rapprochement. C'est le défaut connu du prototype — mais **déclaré, compté et
 visible**, au lieu d'être masqué par une corrélation invérifiable. C'est le
-compromis assumé de cette recommandation, et Sébastien peut le refuser en
-retenant I-D.
+compromis **assumé et approuvé** par Sébastien le 2026-08-31 : I-D a été
+écartée précisément parce qu'elle laisserait une heuristique produire une
+identité.
 
 **La clause décisive reste la provenance de l'identité.** `TASK-0011` §7.1
 point 5 exige d'indiquer « ce qui survit... et ce qui ne survit pas »; un nœud

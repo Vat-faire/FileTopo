@@ -1317,3 +1317,89 @@ restent toutes `PROPOSED`. Aucune tâche n'est `IN_PROGRESS`. La porte **P2
 reste ouverte et non franchie**. L'action unique suivante, `ACTION-0019`,
 appartient à Sébastien : examen humain final et décision P2 après corrections.
 Aucune ligne de code ne peut être écrite avant P2 puis P3.
+
+---
+
+## 2026-08-31 — Porte P2 franchie et TASK-0012 proposée
+
+**Agent :** exécuteur Claude Code, sous le **GO explicite de Sébastien** du
+2026-08-31
+**Statut à l'issue :** `TASK-0011` → **`VERIFIED`** (attribué par Sébastien,
+jamais par l'exécuteur); `TASK-0012` → **`PROPOSED`**
+
+### Fait
+
+- **Vérifications Git préalables** : racine, branche
+  `rebuild/v0.2-project-brain`, `HEAD` `57e181f5`, arbre propre, SHA local égal
+  au distant, `main` inchangée à `91bbe90f`, aucune tâche `IN_PROGRESS`. Les
+  huit contrôles ont réussi.
+- **`TASK-0011` passe à `VERIFIED`** : en-tête, table des portes (P2 franchie,
+  P3 ouverte), historique d'état, et **section 18** consignant le
+  franchissement, les six arbitrages, l'état des livrables et ce que
+  l'approbation n'autorise pas.
+- **`DEC-0007` à `DEC-0012` passent à `APPROVED`**, chacune avec son option
+  arrêtée écrite dans sa section « Décision » : **B** (pile conservée, seul le
+  rendu évolue), **A** (HTML/SVG, Canvas 2D seulement si `B2` réfute, WebGL
+  différé), **I-E** + **R-C** (l'heuristique reste une simple suggestion),
+  **W-B** avec repli **W-C** et **U-B**, **S-C** avec **M-C** conditionnelle à
+  `B1` et **M-B** en repli obligatoire, **F-D** (aucune IA dans le noyau MVP).
+- **Exception humaine consignée** : l'absence de source primaire externe dans
+  `DEC-0012` est acceptée par Sébastien comme décision **interne de périmètre**;
+  l'absence reste déclarée, non comblée.
+- **Sept livrables à l'état approuvé**, chacun portant la mention explicite
+  qu'il **n'a pas été testé physiquement**.
+- **Trois champs `replaced_by`** renseignés sur des fiches `VERIFIED` :
+  `DEC-0003` → `DEC-0007`, `DEC-0004` → `DEC-0009`, `DEC-0005` → `DEC-0008`.
+  Aucun autre contenu de `DEC-0001` à `DEC-0006` n'a changé.
+- **Création de `docs/tasks/TASK-0012-technical-risk-gates.md`** au statut
+  `PROPOSED` : objectif futur unique, cinq bancs d'essai `B0` (santé du
+  prototype), `B1` (migration SQLite Windows), `B2` (rendu HTML/SVG),
+  `B3` (identité Windows), `B4` (attributs infonuagiques); branche future
+  dédiée `spike/v0.2-technical-risk-gates`; fichiers autorisés et répertoire
+  isolé `spikes/`; dépendances soumises à un inventaire de licence préalable;
+  critères de succès et d'échec par banc d'essai; preuves et mesures réelles
+  exigées; conditions d'arrêt immédiat; aucun changement de code de production;
+  aucune fusion automatique; état final `IMPLEMENTED`, **jamais** `VERIFIED`;
+  rapport final complet; **GO P3 obligatoire avant exécution**.
+- Mise à jour de `docs/decisions/README.md`, de `ROADMAP.md` et de la mémoire
+  obligatoire. `NEXT_ACTION.md` contient exactement une action, `ACTION-0020`.
+
+### Vérifié
+
+Quatorze contrôles documentaires exécutés et consignés : états autorisés,
+absence de tâche `IN_PROGRESS`, six décisions `APPROVED`, aucun reliquat de
+formulation « décision non prise », trois `replaced_by` autorisés et contenu
+historique préservé, sept livrables approuvés, action unique, liens internes,
+périmètre limité à la documentation, 0 fichier de code, de test, de dépendance
+ou de `graph/`, 0 donnée sensible, `git diff --check` réussi, encodage UTF-8 et
+fins de ligne LF. Détail en section N de [VALIDATION.md](VALIDATION.md).
+
+### Non testé
+
+Aucun test automatisé, build, installation, test manuel d'interface, essai
+physique Windows, rendu ni mesure de performance. Les tests du prototype n'ont
+pas été rejoués et leur état de réussite reste **inconnu**. Les cinq bancs
+d'essai `B0` à `B4` **n'ont pas été exécutés**. **Une décision `APPROVED`
+n'est pas une preuve** : `M-C` reste conditionnée à `B1`, le plafond de blocs
+DOM/SVG reste une hypothèse à réfuter par `B2` et n'est pas une capacité
+déclarée, l'identité Windows reste non démontrée en Rust stable, et
+l'ambiguïté des attributs infonuagiques reste non résolue.
+
+### Non fait, volontairement
+
+Aucun code, test, dépendance, verrou, fichier généré, `graph/`, tag, release ni
+historique modifié. `TASK-0012` **n'a pas été exécutée**. Aucune branche de
+spike créée, aucun répertoire `spikes/` créé. `DEC-0001`, `DEC-0002` et
+`DEC-0006` non modifiées; sur `DEC-0003` à `DEC-0005`, seule la ligne
+`replaced_by`. Aucun push vers `main`, aucune fusion, aucune pull request,
+aucune release, aucun tag, aucun `force push`, aucun accès privé, aucune
+dépense.
+
+### Conséquence
+
+La porte **P2 est franchie**. La porte **P3 est ouverte et non franchie**.
+Aucune tâche n'est `IN_PROGRESS`. L'action unique suivante, `ACTION-0020`,
+appartient à Sébastien : examiner et approuver ou corriger `TASK-0012` avant
+P3. Aucune ligne de code de production ne peut être écrite avant que les bancs
+d'essai aient rendu leurs verdicts et qu'une tâche d'implémentation ait été
+approuvée séparément.

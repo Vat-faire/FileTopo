@@ -1,11 +1,24 @@
 # Prochaine action
 
-## ACTION-0019 — Examen humain final et décision P2 après corrections
+## ACTION-0020 — Examen humain de TASK-0012 avant la porte P3
 
 - **Statut :** PROPOSED
 - **Responsable :** Sébastien
-- **Action unique :** examiner la baseline de `TASK-0011` **après application des quatre corrections du 2026-08-31**, puis franchir ou refuser la porte P2 en décidant l'état de `TASK-0011` et celui de chacune des décisions `DEC-0007` à `DEC-0012`.
-- **Résultat attendu :** `TASK-0011` passe à VERIFIED ou reçoit de nouvelles corrections motivées; chaque décision de `DEC-0007` à `DEC-0012` reçoit un état décidé par Sébastien.
-- **Corrections à examiner :** périmètre MVP porté à 31 / 4 / 4 avec `F-024` et `F-033` au MVP; recommandation de rendu inversée vers HTML/SVG avec virtualisation et niveaux de détail, Canvas 2D conditionné à un banc d'essai et WebGL différé; stratégie d'identité `I-E` où aucune heuristique ne peut préserver l'identité, le vu/non-vu ni le journal; `M-C` maintenue comme direction proposée mais conditionnée à un banc d'essai synthétique Windows, `M-B` restant le repli. Détail en section 17 de la [fiche TASK-0011](../tasks/TASK-0011-functional-architecture-baseline.md).
-- **Points restant ouverts :** le plafond de blocs DOM/SVG est **non testé** et n'est pas une capacité déclarée; les bancs d'essai `B1` et `B2` de [TEST_STRATEGY.md](../architecture/TEST_STRATEGY.md) §6.1 n'ont pas été exécutés; l'ambiguïté des attributs infonuagiques doit être résolue avant leur implémentation; le journal USN reste une piste différée.
-- **Interdit :** ne pas écrire de code, de test ni de dépendance; ne pas démarrer une tâche d'implémentation; ne pas modifier `DEC-0001` à `DEC-0006`; ne pas faire passer une décision à un autre état sans GO de Sébastien.
+- **Action unique :** examiner
+  [TASK-0012](../tasks/TASK-0012-technical-risk-gates.md), puis l'**approuver
+  ou la corriger** avant la porte P3.
+- **Résultat attendu :** `TASK-0012` passe à `APPROVED` et la porte P3 est
+  franchie, ou la fiche reçoit des corrections motivées et reste `PROPOSED`.
+- **Ce qu'il faut examiner :** l'objectif futur unique; les cinq bancs d'essai
+  `B0` à `B4` et leurs critères de succès et d'échec; la branche future dédiée
+  `spike/v0.2-technical-risk-gates`; les fichiers autorisés et le répertoire
+  isolé `spikes/`; la règle d'inventaire de licence avant toute dépendance; les
+  conditions d'arrêt immédiat; l'état final `IMPLEMENTED`, jamais `VERIFIED`.
+- **État acquis, à ne pas rejouer :** la porte P2 est **franchie** depuis le
+  2026-08-31. `TASK-0011` est `VERIFIED`; `DEC-0007` à `DEC-0012` sont
+  `APPROVED`; les sept livrables sont approuvés; trois champs `replaced_by`
+  sont renseignés.
+- **Interdit tant que P3 n'est pas franchie :** n'exécuter aucun banc d'essai;
+  ne créer aucune branche de spike; n'installer aucune dépendance; n'écrire ni
+  code, ni test, ni mesure; ne modifier aucune fiche `DEC-0001` à `DEC-0012`;
+  ne toucher ni `graph/`, ni `main`, ni un verrou de dépendances.

@@ -1,13 +1,19 @@
 # DEC-0011 — Isolation des cerveaux, migrations et intégrité
 
 - **Date :** 2026-08-31
-- **Statut :** `PROPOSED`
+- **Statut :** `APPROVED`
 - **Phase :** 1
-- **Décideur :** Sébastien — **décision non prise.** Fiche soumise à la porte
-  P2 de [TASK-0011](../tasks/TASK-0011-functional-architecture-baseline.md).
+- **Décideur :** **Sébastien — GO explicite du 2026-08-31.** Porte P2 de
+  [TASK-0011](../tasks/TASK-0011-functional-architecture-baseline.md)
+  franchie; cette fiche est **approuvée**.
+- **Approuvée le :** 2026-08-31
 - **replaced_by :** —
 
-> Cette fiche **compare** et **classe**. Elle ne tranche pas.
+> **Décision arrêtée.** Sébastien a franchi la porte P2 le 2026-08-31 et a
+> retenu le stockage **S-C**, avec **M-C** comme cible conditionnelle au banc
+> d'essai `B1` et **M-B** comme repli obligatoire si `B1` échoue. Le classement
+> et les options écartées sont conservés ci-dessous comme motif. **`B1` n'a pas
+> été exécuté.**
 
 ## Contexte
 
@@ -55,7 +61,12 @@ aucune copie de sûreté, aucun contrôle d'intégrité et aucun retour arrière
 
 ## Décision
 
-**Aucune.** Classements recommandés, soumis à Sébastien :
+**Stockage S-C retenu. M-C retenue comme cible de migration, conditionnelle
+au banc d'essai `B1`; M-B demeure le repli obligatoire si `B1` échoue.**
+Sébastien a arrêté ce choix le 2026-08-31 en franchissant la porte P2.
+
+Les classements qui avaient été soumis, et qui restent le motif de la
+décision :
 
 **Stockage :** 1. **S-C** (recommandé) — 2. S-A — 3. S-B (rejetée :
 l'isolation par discipline de requête est exactement le défaut à éliminer).
@@ -77,15 +88,18 @@ réelle, démontrant les cinq points suivants — chacun observé, pas supposé 
 | 4 | **Espace disque insuffisant** : la construction de la nouvelle base échoue proprement, l'ancienne reste intacte et ouvrable, et l'échec est signalé à l'utilisateur |
 | 5 | **Retour à l'ancienne base** : après une bascule, le retour à la base précédente est effectivement possible tant que celle-ci n'a pas été supprimée, et la procédure de retour est écrite |
 
-**Tant que ce banc d'essai n'a pas été exécuté et publié, M-C reste
-`PROPOSED` et ne peut pas être implémentée.** Si l'un des cinq points n'est pas
-démontré, **M-B demeure la stratégie de repli** : copie de sûreté, migration en
-place, restauration si échec — avec sa limite documentée par l'éditeur (P1),
+**L'approbation du 2026-08-31 ne lève pas cette condition.** M-C est
+approuvée comme **cible**, pas comme autorisation d'implémentation :
+`B1` n'a **pas** été exécuté, et tant qu'il ne l'est pas, **aucun code de
+migration M-C ne peut être écrit**. Si l'un des cinq points n'est pas démontré,
+**M-B demeure la stratégie de repli obligatoire** : copie de sûreté, migration
+en place, restauration si échec — avec sa limite documentée par l'éditeur (P1),
 qui doit alors être traitée par suspension des écritures et délai maximal.
 
 Ce banc d'essai est décrit comme scénarios de récupération dans
 [TEST_STRATEGY.md](../architecture/TEST_STRATEGY.md) §6 (R2, R4, R10, R11) et
-§6.1.
+§6.1, et son exécution est spécifiée par le banc d'essai `B1` de
+[TASK-0012](../tasks/TASK-0012-technical-risk-gates.md), qui reste `PROPOSED`.
 
 ## Motif
 

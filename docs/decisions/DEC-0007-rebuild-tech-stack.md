@@ -1,14 +1,18 @@
 # DEC-0007 — Pile technologique de reconstruction
 
 - **Date :** 2026-08-31
-- **Statut :** `PROPOSED`
+- **Statut :** `APPROVED`
 - **Phase :** 1
-- **Décideur :** Sébastien — **décision non prise.** Cette fiche est soumise à
-  la porte P2 de [TASK-0011](../tasks/TASK-0011-functional-architecture-baseline.md).
+- **Décideur :** **Sébastien — GO explicite du 2026-08-31.** Porte P2 de
+  [TASK-0011](../tasks/TASK-0011-functional-architecture-baseline.md)
+  franchie; cette fiche est **approuvée**.
+- **Approuvée le :** 2026-08-31
 - **replaced_by :** —
 
-> Cette fiche **compare** et **classe**. Elle ne tranche pas. Le classement
-> proposé est une recommandation motivée, pas un choix arrêté.
+> **Décision arrêtée.** Sébastien a franchi la porte P2 le 2026-08-31 et a
+> retenu l'**option B**. Le classement et les options écartées sont conservés
+> ci-dessous comme motif de la décision. **Aucune ligne de code n'a été écrite
+> et rien n'a été exécuté :** cette fiche reste entièrement documentaire.
 
 ## Contexte
 
@@ -40,7 +44,13 @@ et un confinement de chemin — tous listés « à conserver après preuve » pa
 
 ## Décision
 
-**Aucune.** Le classement recommandé, soumis à Sébastien, est :
+**Option B retenue — conserver le cœur, faire évoluer uniquement le rendu.**
+Tauri 2, Rust stable, React, TypeScript et SQLite sont **conservés**; seule la
+couche de rendu est remplacée ou fait évoluer, sous [DEC-0008](DEC-0008-hierarchical-rendering.md).
+Sébastien a arrêté ce choix le 2026-08-31 en franchissant la porte P2.
+
+Le classement qui avait été soumis, et qui reste le motif de la décision :
+
 
 1. **B — conserver le cœur, réexaminer le rendu** (recommandé);
 2. **A — conserver intégralement** (acceptable, si `DEC-0008` conclut au
@@ -64,9 +74,12 @@ Ce que la fiche propose de **reconduire**, de **réviser** et de rendre
 | `DEC-0004` | Tables `layout_cells` et `map_tiles` dimensionnées pour un million de nœuds | **Probablement caduc** — l'échelle du MVP est 100 000; à trancher avec `DEC-0008` |
 | `DEC-0005` | Relief composite à six signaux, un million de nœuds, tuiles logiques | **Probablement caduc pour le MVP** — la cible est une carte en blocs hiérarchiques, pas un relief; voir `DEC-0008` |
 
-**Aucune de ces trois fiches n'est modifiée par `TASK-0011`.** Leur champ
-`replaced_by` ne sera mis à jour qu'après approbation humaine, dans une tâche
-ultérieure, conformément à [docs/decisions/README.md](README.md).
+**Le contenu historique de ces trois fiches reste intact.** Sous le GO du
+2026-08-31, seul leur champ `replaced_by` a été mis à jour, conformément à
+[docs/decisions/README.md](README.md) : `DEC-0003` → `DEC-0007`,
+`DEC-0004` → [DEC-0009](DEC-0009-data-model-and-relations.md),
+`DEC-0005` → [DEC-0008](DEC-0008-hierarchical-rendering.md). Aucune autre
+ligne de `DEC-0001` à `DEC-0006` n'a été touchée.
 
 ## Motif
 
@@ -92,13 +105,14 @@ donc pas de `DEC-0008` : il exige seulement que la question soit posée.
 
 ## Conséquences
 
-- `DEC-0007` **ne peut pas être approuvée seule** : son option recommandée
-  renvoie explicitement à `DEC-0008`. Les deux fiches doivent être examinées
-  ensemble.
-- Si B ou A est retenue, une dépendance d'API Windows devient probablement
-  nécessaire pour l'identité de fichier; son nom, sa version et sa licence
-  devront être décidés dans une tâche ultérieure, jamais ajoutés
-  silencieusement.
+- `DEC-0007` n'a pas été approuvée seule : l'option B renvoie explicitement à
+  [DEC-0008](DEC-0008-hierarchical-rendering.md), et les deux fiches ont été
+  approuvées ensemble le 2026-08-31.
+- B étant retenue, une dépendance d'API Windows devient probablement nécessaire
+  pour l'identité de fichier; son nom, sa version et sa licence doivent être
+  établis par le banc d'essai `B3` de
+  [TASK-0012](../tasks/TASK-0012-technical-risk-gates.md), après inventaire de
+  licence, jamais ajoutés silencieusement.
 - Aucune dépendance n'est ajoutée, retirée ni mise à jour par cette fiche.
 - L'inventaire de licences reste à refaire au moment du verrouillage des
   versions, comme `DEC-0003` le prévoyait.

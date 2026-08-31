@@ -3,7 +3,7 @@
 - **Identifiant :** `TASK-0011`
 - **Titre :** Établir la baseline fonctionnelle et les décisions d'architecture
   de reconstruction, avant toute écriture de code
-- **Statut :** `IMPLEMENTED`
+- **Statut :** `VERIFIED`
 - **Phase :** 1 — Exigences, matrice fonctionnelle et architecture
   ([ROADMAP.md](../../ROADMAP.md))
 - **Proposée le :** 2026-08-31
@@ -400,13 +400,13 @@ Puis l'exécuteur s'arrête et attend l'examen humain.
 | Porte | Objet | État |
 |---|---|---|
 | P1 | Approuver cette fiche : `TASK-0011` passe de `PROPOSED` à `APPROVED` | **Franchie le 2026-08-31** |
-| P2 | Approuver la baseline livrée et les six décisions `PROPOSED` | **Ouverte, non franchie** |
-| P3 | Autoriser la tâche d'implémentation qui suivra, avec périmètre écrit | Ultérieure |
+| P2 | Approuver la baseline livrée et les six décisions | **Franchie le 2026-08-31** |
+| P3 | Autoriser l'exécution des bancs d'essai de [TASK-0012](TASK-0012-technical-risk-gates.md), puis la tâche d'implémentation qui suivra, avec périmètre écrit | **Ouverte, non franchie** |
 | P4 | GO explicite pour toute publication, écriture distante, dépense ou opération destructive | Permanente |
 
-Aucune ligne de code ne peut être écrite avant `P2` **et** `P3`. Les décisions
-produites restent `PROPOSED` jusqu'à `P2`; leur passage à un autre état
-appartient à Sébastien.
+Aucune ligne de code ne peut être écrite avant `P2` **et** `P3`. `P2` est
+franchie depuis le 2026-08-31 : les six décisions sont `APPROVED`. `P3` reste
+à franchir, et aucune ligne de code de production n'est autorisée avant elle.
 
 ## 15. Historique de l'état
 
@@ -422,6 +422,11 @@ appartient à Sébastien.
   l'orchestrateur appliquées aux livrables. La baseline générale est acceptée,
   **la porte P2 n'est pas franchie**. La tâche **reste `IMPLEMENTED`** et
   n'est toujours pas `VERIFIED`. Voir section 17.
+- 2026-08-31 — `VERIFIED` : **GO explicite de Sébastien, porte P2 franchie.**
+  La baseline corrigée et les six décisions sont approuvées; `DEC-0007` à
+  `DEC-0012` passent à `APPROVED`. La vérification est **documentaire** :
+  elle porte sur des livrables écrits, **pas** sur une exécution. Voir
+  section 18.
 
 ## 16. Rapport d'exécution — 2026-08-31
 
@@ -620,3 +625,89 @@ introduit — `B1` pour la bascule de migration, `B2` pour le plafond DOM/SVG �
 `DEC-0012` restent toutes **`PROPOSED`**. `DEC-0001` à `DEC-0006` sont
 inchangées. Aucune tâche n'est `IN_PROGRESS`. La porte **P2 reste ouverte et
 non franchie**.
+
+---
+
+## 18. Franchissement de la porte P2 — 2026-08-31
+
+### 18.1 Cadre
+
+Sébastien a donné un **GO explicite** le 2026-08-31 et a franchi la porte
+**P2**. La baseline corrigée de `TASK-0011` est **approuvée**, la tâche passe à
+`VERIFIED`, et les six décisions `DEC-0007` à `DEC-0012` passent à `APPROVED`
+avec les arbitrages ci-dessous. L'exécuteur ne s'est pas attribué `VERIFIED` :
+l'état est attribué **par Sébastien**, conformément à `AGENTS.md`.
+
+### 18.2 Vérifications Git préalables — toutes réussies
+
+| Contrôle | Attendu | Observé |
+|---|---|---|
+| Racine | dépôt public FileTopo | conforme |
+| Branche | `rebuild/v0.2-project-brain` | conforme |
+| `HEAD` | `57e181f5100d69bfbb3dc2bfc749d9ebd96507d7` | conforme |
+| Arbre de travail | propre | conforme, `git status --porcelain` vide |
+| SHA local = distant | égalité | `origin/rebuild/v0.2-project-brain` = `57e181f5` |
+| `main` | inchangée | `91bbe90f`, locale = distante |
+| Tâche `IN_PROGRESS` | aucune | aucune |
+
+### 18.3 Décisions arrêtées par Sébastien
+
+| Fiche | État | Option retenue |
+|---|---|---|
+| [DEC-0007](../decisions/DEC-0007-rebuild-tech-stack.md) | `APPROVED` | **B** — conserver Tauri 2, Rust stable, React, TypeScript et SQLite; remplacer ou faire évoluer **uniquement** le rendu |
+| [DEC-0008](../decisions/DEC-0008-hierarchical-rendering.md) | `APPROVED` | **A** — HTML/SVG avec virtualisation et niveaux de détail au MVP; Canvas 2D **seulement** si `B2` réfute A; WebGL **différé** |
+| [DEC-0009](../decisions/DEC-0009-data-model-and-relations.md) | `APPROVED` | **I-E** et **R-C** — l'heuristique reste **seulement une suggestion** et ne préserve jamais automatiquement l'identité ni l'état |
+| [DEC-0010](../decisions/DEC-0010-indexing-and-watching.md) | `APPROVED` | **W-B avec repli W-C** pour la réconciliation, **U-B** pour l'application différentielle |
+| [DEC-0011](../decisions/DEC-0011-brain-isolation-and-migrations.md) | `APPROVED` | Stockage **S-C**; **M-C** cible **conditionnelle à `B1`**, **M-B** repli **obligatoire** si `B1` échoue |
+| [DEC-0012](../decisions/DEC-0012-ai-architectural-boundary.md) | `APPROVED` | **F-D** — aucune IA, extraction, embeddings, RAG ni GraphRAG dans le noyau MVP |
+
+**Exception humaine acceptée.** L'absence de source primaire externe dans
+`DEC-0012` est **acceptée explicitement** par Sébastien : c'est une décision
+**interne de périmètre**, fondée sur la vision approuvée, et non une
+affirmation technique qu'une source extérieure établirait. L'absence reste
+**déclarée** dans la fiche, pas comblée par une source secondaire.
+
+### 18.4 État des sept livrables
+
+`L1` à `L6` portent désormais la mention **APPROUVÉ**. `L7` est constitué des
+six fiches ci-dessus, toutes `APPROVED`. **Aucun de ces livrables n'a été
+testé physiquement** : ce sont des documents. Leur approbation porte sur leur
+contenu écrit, jamais sur une exécution.
+
+### 18.5 Références `replaced_by` mises à jour
+
+Sous le GO du 2026-08-31, et **uniquement** sur ce champ :
+
+| Fiche `VERIFIED` | `replaced_by` |
+|---|---|
+| `DEC-0003` | `DEC-0007` |
+| `DEC-0004` | `DEC-0009` |
+| `DEC-0005` | `DEC-0008` |
+
+**Aucun autre contenu de `DEC-0001` à `DEC-0006` n'a été modifié.**
+
+### 18.6 Non testé — déclaration explicite
+
+Ce franchissement est **entièrement documentaire**. Aucun test automatisé,
+build, installation, essai Windows, rendu ni mesure de performance n'a été
+exécuté. Les cinq bancs d'essai `B0` à `B4` de
+[TASK-0012](TASK-0012-technical-risk-gates.md) **n'ont pas été exécutés** :
+`TASK-0012` est `PROPOSED` et n'autorise rien. Les tests existants du prototype
+n'ont pas été rejoués.
+
+### 18.7 Ce que l'approbation n'autorise pas
+
+- Aucune ligne de code de production : la porte **P3** reste à franchir.
+- Aucune implémentation de M-C tant que `B1` n'a pas été exécuté et publié.
+- Aucun passage à Canvas 2D tant que `B2` n'a pas réfuté HTML/SVG.
+- Aucune dépendance ajoutée, y compris la dépendance d'API Windows envisagée
+  par `DEC-0007` et `DEC-0009` : son inventaire de licence appartient à `B3`.
+- Aucune fusion, publication, release, étiquette ni écriture hors
+  `origin/rebuild/v0.2-project-brain`.
+
+### 18.8 État final
+
+`TASK-0011` est `VERIFIED`. `DEC-0007` à `DEC-0012` sont `APPROVED`.
+`DEC-0001` à `DEC-0006` conservent leur contenu, avec trois champs
+`replaced_by` renseignés. `TASK-0012` est créée au statut `PROPOSED` et **n'est
+pas exécutée**. Aucune tâche n'est `IN_PROGRESS`.

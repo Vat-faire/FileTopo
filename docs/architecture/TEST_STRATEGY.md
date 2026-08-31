@@ -3,7 +3,7 @@
 - **Date :** 2026-08-31
 - **Tâche :** `TASK-0011`, livrable `L6`
 - **Portée couverte :** point 16 de `TASK-0011` §7.1
-- **Statut :** soumis à l'examen humain (porte P2)
+- **Statut :** livrable `L6`, **APPROUVÉ** — approuvé par Sébastien le 2026-08-31 (porte P2 franchie). Livrable documentaire; **rien n'a été exécuté ni mesuré : non testé physiquement**
 - **Nature :** **plan.** Aucun test n'a été écrit ni exécuté pendant
   `TASK-0011`. **Non testé.**
 
@@ -139,10 +139,14 @@ blocage documenté par l'éditeur.
 
 ### 6.1 Bancs d'essai conditionnant deux décisions
 
-Deux décisions `PROPOSED` ne peuvent pas être approuvées pour implémentation
-sans un banc d'essai synthétique préalable. Ces bancs d'essai ne sont pas des
-tests de non-régression : ce sont les **preuves manquantes** de ces décisions.
-Aucun n'a été exécuté.
+Deux décisions désormais `APPROVED` — [DEC-0008](../decisions/DEC-0008-hierarchical-rendering.md)
+et [DEC-0011](../decisions/DEC-0011-brain-isolation-and-migrations.md) — ne
+peuvent pas pour autant être **implémentées** sans un banc d'essai synthétique
+préalable. L'approbation du 2026-08-31 fixe la direction; elle ne fournit pas
+la preuve. Ces bancs d'essai ne sont pas des tests de non-régression : ce sont
+les **preuves manquantes** de ces décisions. **Aucun n'a été exécuté.** Leur
+exécution est spécifiée par [TASK-0012](../tasks/TASK-0012-technical-risk-gates.md),
+qui reste `PROPOSED` et ajoute trois autres bancs d'essai (`B0`, `B3`, `B4`).
 
 | Banc d'essai | Conditionne | Doit démontrer | Statut |
 |---|---|---|---|
