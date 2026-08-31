@@ -71,6 +71,11 @@ interdit d'atténuer.
    autoportant. **Tant que ce texte n'est pas joint, cette lacune est déclarée
    ici plutôt que comblée**, exactement comme la question 3 de `B4`.
 
+> **Mise à jour du 2026-08-31 — lacune comblée.** Le texte intégral de `R1` à
+> `R9` a depuis été transmis, et il est joint en **annexe A** de la présente
+> fiche. Le paragraphe ci-dessus est conservé tel qu'écrit : il décrit l'état au
+> moment de la clôture. **Aucune réserve n'est levée** par ce complément.
+
 ### 3 bis. Réserves déjà écrites dans le dépôt, distinctes de R1 à R9
 
 Ces réserves ont été publiées par `TASK-0012` elle-même. Elles **restent
@@ -142,6 +147,94 @@ préparation de la fiche `TASK-0013`; mise à jour de la mémoire obligatoire.
    sur la **tâche**, pas sur la généralité des chiffres.
 3. **Le texte de `R1` à `R9` manque au dépôt** (section 3). C'est la lacune
    connue de cette fiche.
+   **Comblée le 2026-08-31 :** voir l'annexe A. La lacune est close; les neuf
+   réserves, elles, restent entières et en vigueur.
 4. **Trois points restent ouverts** et le resteront tant qu'une tâche ne les
    ferme pas : l'inter-volume de `B3`, la question 3 de `B4`, et l'échec de
    `B0`.
+
+---
+
+## Annexe A — Texte intégral des réserves `R1` à `R9`
+
+- **Ajoutée le :** 2026-08-31, sous le GO technique de l'orchestrateur donné à
+  l'ouverture de `TASK-0013`.
+- **Provenance :** rapport de contrôle de l'orchestrateur technique, transmis
+  **verbatim**.
+- **Effet :** la lacune déclarée en **section 3, point 3** et en **section 6,
+  point 3** est **comblée**. Le dépôt est désormais autoportant sur ce point.
+- **Ce que cette annexe ne fait pas :** elle **ne lève aucune réserve**, n'en
+  atténue aucune, n'en reformule aucune et ne modifie aucun verdict.
+  `TASK-0012` reste `VERIFIED` **avec ses neuf réserves maintenues**.
+
+> Les neuf énoncés ci-dessous sont reproduits **sans changement de sens**. Ils
+> sont numérotés comme dans le rapport de contrôle.
+
+### `R1` — `SYN-100K` n'a pas été joué
+
+`B2` a mesuré 20 000 nœuds alors que `DEC-0008` écrit sa condition de
+falsification sur `SYN-100K`. `B2` respecte `TASK-0012` telle qu'écrite, mais
+`DEC-0008` n'a pas été littéralement falsifiée selon son protocole complet.
+
+### `R2` — Catégorie de verdict hors grille dans `B3`
+
+`B3` a utilisé la catégorie « incomplet par périmètre », absente de la grille
+écrite **confirmée / sous réserve / réfutée**. Cela ne bloque pas `VERIFIED`,
+mais cette déviation de catégorie doit rester déclarée.
+
+### `R3` — `B1` a conclu là où `DEC-0011` imposait un arbitrage
+
+`B1` conclut `M-C` réfutée telle qu'écrite et montre une variante durcie, alors
+que `DEC-0011` rendait `M-B` obligatoire dès qu'un point requis échouait. Cela
+ne bloque pas `VERIFIED` mais devait être tranché par arbitrage — désormais
+`DEC-0013`.
+
+### `R4` — Le `M-B` mesuré n'exerçait pas l'API SQLite Online Backup
+
+Le `M-B` mesuré utilisait une copie de fichier (`fs.copyFileSync`), pas l'API
+SQLite Online Backup. L'objection historique de `DEC-0011` contre cette API n'a
+donc pas été exercée par `B1`.
+
+### `R5` — Le rapport en 11 points n'existe pas comme fichier unique
+
+Le rapport final en 11 points demandé par `TASK-0012` §17 a été remis à
+l'orchestrateur/Sébastien mais n'existe pas comme fichier versionné unique; son
+contenu est réparti dans les documents de preuve et de mémoire. Cette réserve
+ne bloque pas `VERIFIED`.
+
+### `R6` — Anomalie cosmétique de numérotation
+
+Le journal de résultats possède une anomalie cosmétique de numérotation autour
+de §3.7 / §3.7 bis. Aucun effet sur les preuves.
+
+### `R7` — Le chiffre `SYN-WIDE` « 939 » est une borne d'encadrement
+
+Le chiffre `SYN-WIDE` « 939 » utilisé dans certaines synthèses est une borne
+d'un encadrement mesuré de **939 à 1 795 blocs**. Toute citation future de 939
+doit conserver cet encadrement.
+
+### `R8` — Les mesures ne sont pas transposables à la production
+
+Les mesures ne sont pas directement transposables à la production : `B1`
+utilise `node:sqlite` et non `rusqlite`; `B2` utilise Chrome et non WebView2.
+Cette limite interdit de présenter les résultats comme mesures de production.
+
+### `R9` — « Aucune dépense » et la limite de dépense de `B4` sont compatibles
+
+`VALIDATION` indique « aucune dépense » tandis que `B4` rapporte qu'une limite
+de dépense du compte a interrompu une recherche. Les deux sont compatibles : la
+dépense a été **refusée**, rien n'a été facturé. Conserver cette précision.
+
+### Portée des neuf réserves
+
+| Réserve | Bloque `VERIFIED` ? | Où elle continue de s'appliquer |
+|---|---|---|
+| `R1` | Non | `TASK-0013` `F6` — `SYN-100K` doit réellement être joué |
+| `R2` | Non | Toute grille de verdict future doit s'en tenir aux trois catégories écrites |
+| `R3` | Non | Tranché par `DEC-0013` B |
+| `R4` | Non | `DEC-0013` B, « Une précision qui n'est pas un détail » |
+| `R5` | Non | Dossier `TASK-0012`, réserve documentaire ouverte |
+| `R6` | Non | Rapport `TASK-0012`, cosmétique, non corrigé pour ne pas réécrire une preuve |
+| `R7` | Non | Toute citation de `SYN-WIDE` doit écrire « 939 à 1 795 » |
+| `R8` | Non | `TASK-0013` §5.4 et `F8` — moteur réellement employé, étiqueté |
+| `R9` | Non | `VALIDATION.md`, précision à conserver |
