@@ -4,17 +4,25 @@
 - **Titre :** Comparer le calepin actuel à un calepin squarifié, éprouver un
   budget de rendu auto-régulé, et combler la réserve de volumétrie `SYN-100K`,
   en conservant HTML/SVG et l'accessibilité
-- **Statut :** `PROPOSED`
+- **Statut :** `IN_PROGRESS`
 - **Phase :** 1 bis — seconde porte technique, après
   [DEC-0013](../decisions/DEC-0013-post-risk-gate-technical-arbitration.md)
 - **Proposée le :** 2026-08-31
 - **Rédacteur de la fiche :** Claude Code, sous le GO technique de
   l'orchestrateur du 2026-08-31 (étape documentaire)
-- **Exécuteur :** à désigner
+- **Exécuteur :** Claude Code, session `filetopo-task-0013-b2bis`
 - **Effort estimé :** une à deux sessions d'expérimentation
-- **GO d'exécution :** **NON ACQUIS.** Cette fiche est `PROPOSED`. Aucun banc
-  d'essai, aucun répertoire de spike, aucune mesure ne peut être créé avant un
-  GO explicite.
+- **GO d'exécution :** **ACQUIS le 2026-08-31**, de l'orchestrateur technique,
+  sous la délégation inscrite dans [AGENTS.md](../../AGENTS.md). Porte **P3 bis
+  franchie**. Le GO n'autorise que ce que cette fiche nomme. **P4 reste non
+  franchie : aucun code de production.**
+- **Branche dédiée :** `spike/v0.2-render-budget`, créée le 2026-08-31 depuis
+  la pointe contrôlée `746f1b5f93c9d7085516c0e56473a95dc2c2d178` de
+  `spike/v0.2-technical-risk-gates`.
+
+> **Note de traçabilité.** Le texte d'origine de cette fiche est conservé. Seuls
+> le statut, l'exécuteur, la ligne de GO, l'historique d'état (§12) et le
+> rapport d'exécution (§13) sont mis à jour, conformément à §4.2.
 
 > Cette fiche **spécifie**. Elle ne contient **aucun résultat**, et n'en
 > contiendra jamais : les résultats vivront dans
@@ -276,6 +284,12 @@ conformément à [AGENTS.md](../../AGENTS.md).
 - 2026-08-31 — `PROPOSED` : fiche rédigée à la clôture d'`ACTION-0021`, sous le
   GO technique de l'orchestrateur pour l'étape documentaire. **Aucune
   exécution, aucun spike, aucune branche, aucune mesure.**
+- 2026-08-31 — `APPROVED` : **porte P3 bis franchie**. GO d'exécution donné par
+  l'orchestrateur technique dans le périmètre exact de cette fiche. Aucune
+  modification des critères `F1` à `F8`.
+- 2026-08-31 — `IN_PROGRESS` : branche dédiée `spike/v0.2-render-budget` créée
+  depuis `746f1b5`; arbre Git propre vérifié; aucune autre tâche
+  `IN_PROGRESS`. **Aucune mesure n'a encore été prise à cet instant.**
 
 ## 13. Rapport d'exécution
 
