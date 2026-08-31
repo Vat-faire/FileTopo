@@ -8,6 +8,21 @@
 - Tests et exemples exclusivement synthétiques.
 - FileTopo analyse les documents en lecture seule. Index, caches et rapports restent dans l'espace applicatif, jamais dans la racine analysée.
 
+## Lecture minimale de l'environnement technique
+
+Précisé le 2026-08-31 par la clôture d'`ACTION-0023`, réserve `V4`.
+
+- Une tâche `APPROVED` peut autoriser la **lecture minimale, ciblée et non
+  récursive** de métadonnées d'environnement et d'outillage **nécessaires à son
+  exécution** : version de compilateur, de moteur d'exécution ou de navigateur;
+  **présence et chemin** d'un exécutable; métadonnées système **strictement
+  techniques**.
+- Cela **n'autorise jamais** la lecture ni le listage de **contenu
+  utilisateur**, de dossiers personnels, de documents, de secrets ou de
+  **données réelles**, sous quelque forme que ce soit.
+- **Aucune écriture hors du dépôt** n'est ajoutée par cette permission.
+- **Les points d'arrêt réservés à Sébastien restent inchangés.**
+
 ## Reprise minimale
 
 Lire, dans cet ordre :

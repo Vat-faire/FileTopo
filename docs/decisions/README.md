@@ -32,6 +32,11 @@ septième fiche enregistre les arbitrages qui en découlent :
 | Fiche | État | Ce qui est retenu |
 |---|---|---|
 | [DEC-0013](DEC-0013-post-risk-gate-technical-arbitration.md) | `APPROVED` | **`M-B`** devient la baseline de migration; **Canvas 2D n'est pas ouvert** et le plafond universel de 3 000 blocs est abandonné au profit d'un **budget de rendu auto-régulé**; l'invariant d'identité est le couple **`VolumeSerialNumber` + `FileId`**, `FileId` seul interdit |
+| [DEC-0014](DEC-0014-layout-baseline-and-budget-direction.md) | `APPROVED` | Le **pavage squarifié `CAL-B`** devient le calepin baseline; **HTML/SVG accessible** reste la direction; le **contrôleur de budget de `TASK-0013` n'est pas adopté** — `F4` réfutée — mais le **principe** du budget auto-régulé est conservé; **aucune nouvelle tentative WebView2** avant un véritable hôte Tauri |
+
+`DEC-0014` complète `DEC-0008` et `DEC-0013` sur les points que `B2 bis` a
+atteints, après le contrôle indépendant
+[`ACTION-0023`](../reviews/ACTION-0023-independent-control.md).
 
 `DEC-0013` **complète** `DEC-0008`, `DEC-0009` et `DEC-0011` sans les
 remplacer : chacune porte un **amendement en fin de fiche**, et leur texte

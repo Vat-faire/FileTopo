@@ -4,7 +4,9 @@
 - **Titre :** Comparer le calepin actuel à un calepin squarifié, éprouver un
   budget de rendu auto-régulé, et combler la réserve de volumétrie `SYN-100K`,
   en conservant HTML/SVG et l'accessibilité
-- **Statut :** `IMPLEMENTED`
+- **Statut :** `VERIFIED` — attribué le 2026-08-31 par le contrôle indépendant
+  [ACTION-0023](../reviews/ACTION-0023-independent-control.md), **avec quatre
+  réserves `V1` à `V4`**
 - **Phase :** 1 bis — seconde porte technique, après
   [DEC-0013](../decisions/DEC-0013-post-risk-gate-technical-arbitration.md)
 - **Proposée le :** 2026-08-31
@@ -21,8 +23,10 @@
   `spike/v0.2-technical-risk-gates`.
 
 > **Note de traçabilité.** Le texte d'origine de cette fiche est conservé. Seuls
-> le statut, l'exécuteur, la ligne de GO, l'historique d'état (§12) et le
-> rapport d'exécution (§13) sont mis à jour, conformément à §4.2.
+> le statut, l'exécuteur, la ligne de GO, l'historique d'état (§12), le
+> rapport d'exécution (§13) et la clôture du contrôle (§14) sont mis à jour.
+> **Aucune preuve n'a été retouchée** : ni le journal, ni `PERF-0004`, ni le
+> code du spike.
 
 > Cette fiche **spécifie**. Elle ne contient **aucun résultat**, et n'en
 > contiendra jamais : les résultats vivront dans
@@ -294,6 +298,13 @@ conformément à [AGENTS.md](../../AGENTS.md).
   **deux réfutations**, `F4` et `F8`. Mémoire obligatoire mise à jour.
   **`VERIFIED` n'est pas attribuée** : elle appartient à un contrôle
   indépendant.
+- 2026-08-31 — `VERIFIED` : contrôle indépendant
+  [`ACTION-0023`](../reviews/ACTION-0023-independent-control.md) **accepté**,
+  mené par une instance **distincte de l'exécuteur**, **sur preuves**. Quatre
+  réserves `V1` à `V4` sont attachées à cette acceptation. Les décisions
+  techniques qui en découlent sont enregistrées dans
+  [`DEC-0014`](../decisions/DEC-0014-layout-baseline-and-budget-direction.md).
+  **Aucune preuve de cette tâche n'a été modifiée par la clôture.**
 
 ## 13. Rapport d'exécution
 
@@ -343,3 +354,30 @@ conformément à §6.1. Elle **ne lève aucune réserve** : `R1` à `R9`
 d'`ACTION-0021` restent en vigueur, et seul un contrôle indépendant peut se
 prononcer sur leur sort. Elle **n'ouvre pas** Canvas 2D. La porte **P4 reste
 ouverte et non franchie** : aucune ligne de code de production n'a été écrite.
+
+
+---
+
+## 14. Clôture du contrôle indépendant
+
+- **Contrôle :** [ACTION-0023](../reviews/ACTION-0023-independent-control.md),
+  mené par l'**orchestrateur technique**, instance **distincte de
+  l'exécuteur**, **sur preuves**
+- **Résultat :** **accepté**. `TASK-0013` passe de `IMPLEMENTED` à
+  **`VERIFIED`**, **avec quatre réserves**
+
+| Réserve | Objet, en une ligne |
+|---|---|
+| `V1` | « 3 000 blocs visibles » n'a **pas** été mesuré tel quel — 2 856 construits. Le résultat est accepté sur une charge **supérieure**, 5 012 blocs visibles. Ne jamais écrire que 3 000 visibles ont été mesurés |
+| `V2` | `F2` est conforme à son énoncé mais **n'établit pas la causalité géométrique**. Restriction conservée |
+| `V3` | La correction de protocole **240 → 1 000 ips** est **acceptée** : elle a renforcé le test; aucun critère `F1` à `F8` ni le plancher de 2 400 px² n'a changé. Ce n'est **pas** un déplacement de cible |
+| `V4` | La lecture minimale de métadonnées système pour localiser, versionner et lancer WebView2, Edge et Chrome est acceptée comme **déviation procédurale** causée par une **contradiction de cette fiche**. Aucune donnée utilisateur consultée, aucune écriture hors dépôt. `AGENTS.md` et `CLAUDE.md` sont clarifiés en conséquence |
+
+**Réserves d'`ACTION-0021` :** **`R1` est LEVÉE** — son objet était l'absence de
+`SYN-100K`, qui a maintenant été réellement joué. **`R8` reste EN VIGUEUR** :
+aucune mesure WebView2 de production.
+
+**Décisions techniques issues de ce contrôle :**
+[`DEC-0014`](../decisions/DEC-0014-layout-baseline-and-budget-direction.md).
+
+**La porte `P4` reste ouverte et non franchie.**
