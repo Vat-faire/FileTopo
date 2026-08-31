@@ -81,7 +81,7 @@ part, conformément à §10.1.1 de `TASK-0012`.
 |---|---|---|---|
 | `B0` | Santé du prototype | **SUCCÈS** — état réel connu et écrit; 36/36 Vitest et 13/13 Rust réussis; `cargo build` en échec déterministe (ICE de cache incrémental), non corrigé | §1 |
 | `B1` | Migration SQLite Windows | **`M-C` RÉFUTÉE telle qu'elle est écrite** (un `-wal` orphelin survit à la permutation et corrompt la base neuve); **`M-C` durcie** — avec repli du WAL et suppression des annexes — et **`M-B`** observent tous deux les points 2 à 7 | §2 |
-| `B2` | Rendu HTML/SVG | *en attente* | §3 |
+| `B2` | Rendu HTML/SVG | **Étude Canvas 2D autorisée** — seuil d'images par seconde manqué à 3 000 blocs sur `SYN-WIDE` (14,08 ips contre 30). Plafonds réels mesurés : 3 743 / 3 063 / 939 blocs selon la forme | §3 |
 | `B3` | Identité Windows | *en attente* | §4 |
 | `B4` | Attributs infonuagiques | *en attente* | §5 |
 
@@ -508,3 +508,280 @@ de supprimer les fichiers annexes de la cible à la bascule. Sans cette clause,
    SQLite embarqué. Le comportement des fichiers annexes vient du moteur SQLite
    et devrait se transposer, mais **cela n'a pas été vérifié en Rust**.
 7. **Une seule machine.** Aucune reproduction ailleurs.
+
+---
+
+# 3. B2 — Rendu HTML/SVG
+
+- **Spike :** `spikes/b2-svg-rendering/`, page `map.html`, pilote `run-b2.mjs`
+- **Navigateur :** Google Chrome **151.0.7922.175**, piloté par le protocole
+  CDP sur le client `WebSocket` **intégré** à Node v24.13.1.
+  **Aucune dépendance n'a été installée** — ni Playwright, ni Puppeteer, ni
+  aucun paquet.
+- **Données :** arborescences **entièrement synthétiques**, 20 000 nœuds,
+  graine fixe `20260831`, générées dans la page.
+- **Verdict :** **Étude Canvas 2D autorisée** — le seuil d'images par seconde
+  est manqué à 3 000 blocs visibles sur `SYN-WIDE`, mesure jointe. Voir §3.7.
+
+## 3.1 Ce qui a été construit
+
+Un prototype de carte en blocs, **isolé**, écrit à partir des seuls documents
+publics du dépôt. Il n'importe aucun composant de `src/` et n'en réutilise
+aucun. **Aucune capture, aucune structure, aucun nom et aucune métrique ne
+provient d'une interface privée de référence.**
+
+- **Calepin** : découpage récursif alterné, surface proportionnelle au nombre
+  de descendants.
+- **Virtualisation** : descente récursive qui s'arrête dès qu'un nœud sort du
+  cadre ou passe sous un seuil d'aire. Les nœuds élagués **ne sont pas
+  construits**; ils restent agrégés dans la surface de leur parent.
+- **Niveau de détail** : le seuil d'aire est le bouton de détail. Une recherche
+  dichotomique le règle au démarrage pour atteindre le nombre de blocs visibles
+  demandé. Les étiquettes n'apparaissent qu'au-dessus de 60 × 16 pixels.
+- **Réconciliation par clé** : les éléments SVG sont **réutilisés** d'une image
+  à l'autre; seuls les entrants sont créés et les sortants retirés.
+
+## 3.2 Deux mises en œuvre, pas une
+
+Condamner l'option A de `DEC-0008` sur la foi d'une seule mise en œuvre
+médiocre serait malhonnête. **Deux** variantes du même rendu HTML/SVG ont donc
+été mesurées :
+
+| Code | Mise en œuvre |
+|---|---|
+| `reecriture` | La géométrie de **chaque** bloc visible est réécrite à chaque image |
+| `transform` | Les blocs sont posés en coordonnées **monde**; le déplacement et le zoom se font par **une seule** transformation de groupe, la virtualisation n'étant refaite qu'en sortie de marge ou sur un zoom marqué |
+
+`transform` est ce que ferait une mise en œuvre compétente. C'est elle qui doit
+servir de base au verdict.
+
+## 3.3 Protocole de mesure
+
+1. **Images par seconde relevées par l'horloge de rendu du navigateur**, via
+   `requestAnimationFrame`, **à l'intérieur de la page**. Elles ne sont ni
+   estimées, ni calculées côté Node. La valeur publiée est
+   `1000 / médiane(intervalle entre images)`.
+2. **Trajectoire scriptée et identique** entre exécutions : la page est
+   réinitialisée avant chaque exécution et parcourt le même chemin de 120
+   images, dérivé d'une fonction sinusoïdale déterministe.
+3. **Cinq exécutions** par scénario, médiane et écart min–max publiés.
+4. **Aucun drapeau ne débride la fréquence d'images.** Ni `--disable-gpu-vsync`,
+   ni `--disable-frame-rate-limit`. L'écran de référence est à **240 Hz** : le
+   seuil de 30 ips n'est donc **pas** masqué par un plafond de synchronisation
+   verticale, et les valeurs supérieures à 60 ips sont réelles.
+5. **Nombre de nœuds DOM compté**, jamais estimé : `querySelectorAll('*')` sur
+   le SVG.
+6. **Latence de sélection** mesurée d'un **vrai** événement de pointeur
+   (`MouseEvent` distribué sur l'élément) jusqu'à l'image qui porte le
+   changement, avec lecture forcée de la disposition. 40 sélections par
+   exécution, 95<sup>e</sup> centile publié.
+
+**Fenêtre affichée, pas seulement hors écran.** Les mesures publiées viennent
+d'un navigateur **avec fenêtre visible** sur l'écran 240 Hz. Une exécution
+complète en mode sans affichage (`--headless=new`) a donné des valeurs
+**équivalentes** — par exemple, à 3 000 blocs `SYN-DEEP` en mode `transform` :
+34,13 ips avec fenêtre contre 34,13 sans. Le mode sans affichage ne fausse donc
+pas ces mesures.
+
+## 3.4 Résultats — 5 exécutions, mise en œuvre `transform`
+
+| Blocs visibles demandés | Forme | Blocs visibles réels | Nœuds DOM | Déplacement, ips médianes | min–max | Zoom, ips | Sélection p95 |
+|---|---|---|---|---|---|---|---|
+| 1 000 | `SYN-DEEP` | 1 000 | 2 102 | **80,00** | 80,00 – 80,00 | 80,65 | 10,0 ms |
+| 1 000 | `SYN-WIDE` | 939 | 1 880 | **47,85** | 47,85 – 48,08 | 40,00 | 17,0 ms |
+| 1 000 | `SYN-EQUILIBRE` | 1 000 | 2 139 | **119,05** | 119,05 – 119,05 | 119,05 | 8,3 ms |
+| 3 000 | `SYN-DEEP` | 3 000 | 6 102 | **34,13** | 30,12 – 34,13 | 34,13 | 26,6 ms |
+| 3 000 | `SYN-WIDE` | 2 856 | 5 714 | **14,08** | 14,08 – 14,08 | 10,89 | 71,4 ms |
+| 3 000 | `SYN-EQUILIBRE` | 3 000 | 6 139 | **40,00** | 40,00 – 40,00 | 39,84 | 22,2 ms |
+| 5 000 | `SYN-DEEP` | 5 000 | 10 102 | **18,45** | 18,45 – 19,96 | 18,45 | 45,9 ms |
+| 5 000 | `SYN-WIDE` | 4 768 | 9 538 | **8,26** | 7,99 – 8,26 | 7,99 | 137,4 ms |
+| 5 000 | `SYN-EQUILIBRE` | 5 002 | 10 143 | **23,98** | 23,98 – 23,98 | 21,79 | 36,1 ms |
+
+## 3.5 Résultats — mise en œuvre `reecriture`, pour comparaison
+
+| Blocs | Forme | Déplacement, ips médianes | min–max | Sélection p95 |
+|---|---|---|---|---|
+| 1 000 | `SYN-DEEP` | 80,00 | 80,00 – 80,00 | 9,5 ms |
+| 1 000 | `SYN-WIDE` | 47,85 | 47,85 – 47,85 | 16,8 ms |
+| 1 000 | `SYN-EQUILIBRE` | 80,00 | 80,00 – 80,00 | 8,3 ms |
+| 3 000 | `SYN-DEEP` | **29,94** | 29,94 – 29,94 | 25,1 ms |
+| 3 000 | `SYN-WIDE` | 13,30 | 13,30 – 13,32 | 68,7 ms |
+| 3 000 | `SYN-EQUILIBRE` | 34,25 | 34,25 – 34,25 | 20,8 ms |
+| 5 000 | `SYN-DEEP` | 18,38 | 17,15 – 18,42 | 41,6 ms |
+| 5 000 | `SYN-WIDE` | 7,98 | 7,49 – 7,98 | 138,2 ms |
+| 5 000 | `SYN-EQUILIBRE` | 20,00 | 20,00 – 21,74 | 33,4 ms |
+
+**La mise en œuvre compte, mais elle ne sauve pas le seuil.** Passer de
+`reecriture` à `transform` fait gagner environ **14 %** sur `SYN-DEEP` à
+3 000 blocs (29,94 → 34,13 ips), ce qui fait franchir les 30 ips à cette forme.
+Sur `SYN-WIDE`, le gain est de **6 %** seulement (13,30 → 14,08) : très loin
+du seuil. Le goulot n'est donc **pas** le JavaScript de mise à jour — sinon
+`transform`, qui ne touche qu'un attribut par image, serait rapide. **Le coût
+est celui du rendu SVG lui-même.**
+
+## 3.6 Pourquoi `SYN-WIDE` s'effondre
+
+`SYN-WIDE` — une branche de **5 000 enfants directs**, profondeur maximale
+mesurée 2 — est de loin la forme la plus coûteuse, à nombre de nœuds DOM
+**comparable** :
+
+| Forme | Nœuds DOM à 3 000 blocs | ips |
+|---|---|---|
+| `SYN-EQUILIBRE` | 6 139 | 40,00 |
+| `SYN-DEEP` | 6 102 | 34,13 |
+| `SYN-WIDE` | 5 714 | **14,08** |
+
+`SYN-WIDE` a **moins** de nœuds DOM et va **presque trois fois moins vite**.
+Le nombre de blocs n'explique donc pas tout : la **géométrie** produite compte
+autant. Un découpage alterné qui répartit 5 000 frères sur un seul axe produit
+des rectangles en lamelles, très étroits et très hauts, dont le contour coûte
+cher à tramer.
+
+**Conséquence pour la conception, à ne pas confondre avec un verdict :** un
+plafond exprimé en « nombre de blocs » est un mauvais indicateur. Deux cartes
+de 3 000 blocs peuvent différer d'un facteur 3. C'est une observation de ce
+banc d'essai, sur ce calepin; un autre algorithme de calepin — un pavage
+« squarifié », par exemple — donnerait d'autres formes et **n'a pas été
+testé**.
+
+## 3.7 Le plafond réel, mesuré
+
+§9.2 exige que « le nombre de blocs au-delà duquel les seuils ne tiennent plus »
+soit **mesuré et publié**, quel qu'il soit. Recherche dichotomique, 7 itérations
+au plus, 3 exécutions par point, mise en œuvre `transform`, seuils
+`≥ 30 ips` **et** `p95 de sélection ≤ 150 ms`.
+
+| Forme | **Plafond mesuré** | ips au plafond | Sélection p95 au plafond | Premier point qui rompt |
+|---|---|---|---|---|
+| `SYN-EQUILIBRE` | **3 743 blocs visibles** | 30,03 | 33,4 ms | 3 805 → 29,94 ips |
+| `SYN-DEEP` | **3 063 blocs visibles** | 34,13 | 32,7 ms | 3 124 → 29,76 ips |
+| `SYN-WIDE` | **939 blocs visibles** | 47,85 | 28,8 ms | 1 795 → 19,96 ips |
+
+Points intermédiaires de la recherche, `SYN-DEEP` :
+
+| Blocs visibles | Nœuds DOM | ips | Verdict |
+|---|---|---|---|
+| 2 075 | 4 252 | 47,85 | tient |
+| **3 063** | 6 228 | 34,13 | **tient** |
+| 3 124 | 6 350 | 29,76 | rompt |
+| 3 188 | 6 478 | 26,60 | rompt |
+| 4 050 | 8 202 | 23,92 | rompt |
+
+**Le plafond dépend de la forme, d'un facteur 4.** De 939 blocs pour
+`SYN-WIDE` à 3 743 pour `SYN-EQUILIBRE`.
+
+**Précision du plafond de `SYN-WIDE`.** Cette forme **quantifie** : ses
+5 000 frères ont tous la même surface, donc le seuil d'aire les fait entrer ou
+sortir **par paliers entiers**. La recherche n'observe que deux paliers,
+939 et 1 795 blocs; le premier tient largement (47,85 ips), le second rompt
+nettement (19,96 ips). **Le plafond réel se situe donc entre 939 et 1 795, et
+ce banc d'essai ne le résout pas plus finement.** C'est publié comme tel, pas
+arrondi.
+
+### Ce que devient l'hypothèse de 3 000 de DEC-0008
+
+`DEC-0008` proposait 3 000 blocs DOM/SVG comme plafond « à falsifier », en
+disant explicitement que ce **n'est pas une capacité déclarée**. La mesure
+donne :
+
+- **`SYN-EQUILIBRE` : 3 743** — l'hypothèse était **prudente** de 25 %;
+- **`SYN-DEEP` : 3 063** — l'hypothèse était **juste**, à 2 % près;
+- **`SYN-WIDE` : 939** — l'hypothèse était **optimiste d'un facteur 3**.
+
+**L'hypothèse de 3 000 n'était donc ni bonne ni mauvaise : elle était mal
+posée.** Un plafond unique exprimé en nombre de blocs ne capture pas ce qui
+détermine réellement le coût. Un plafond utilisable doit dépendre de la
+**géométrie produite**, pas seulement du décompte.
+
+## 3.7 bis Verdict de B2
+
+Critère de §9.2, appliqué à la **meilleure** mise en œuvre (`transform`), à
+**3 000 blocs visibles**, sur `SYN-DEEP` **et** `SYN-WIDE` :
+
+| Condition | `SYN-DEEP` | `SYN-WIDE` | Tenue ? |
+|---|---|---|---|
+| ≥ 30 ips soutenues en déplacement | 34,13 (min 30,12) | **14,08** | **NON** |
+| Sélection p95 ≤ 150 ms | 26,6 ms | 71,4 ms | oui |
+| Navigation clavier fonctionnelle | oui | oui | oui |
+
+> **Verdict : « Étude Canvas 2D autorisée ».**
+> L'un des deux seuils est manqué à 3 000 blocs visibles, **mesure jointe** :
+> `SYN-WIDE` plafonne à **14,08 ips**, soit **47 %** du seuil de 30 ips.
+
+**Ce que cette autorisation n'est pas.** §9.2 est explicite : « L'autorisation
+porte sur l'**étude**, jamais sur l'adoption. » `B2` **n'a mesuré ni Canvas 2D
+ni WebGL** et ne dit **rien** de leurs performances. Il ne dit pas non plus
+que HTML/SVG est inutilisable : deux formes sur trois tiennent le seuil à
+3 000 blocs, et toutes trois le tiennent largement à 1 000.
+
+**Ce que B2 établit malgré tout en faveur de l'option A :**
+
+- la virtualisation et les niveaux de détail **fonctionnent** : le nombre de
+  nœuds DOM construits suit le nombre de blocs demandé, sans dérive;
+- **ARIA et clavier sont conformes** dans les 18 scénarios, jusqu'à
+  5 002 blocs — c'est un point que Canvas 2D devrait **reconstruire
+  entièrement**, puisqu'un canevas ne produit aucun arbre d'accessibilité;
+- la latence de sélection tient partout, avec une marge large à 3 000 blocs.
+
+**L'arbitrage appartient à Sébastien**, et `B2` ne le prend pas. Trois voies
+restent ouvertes, aucune n'est recommandée ici : plafonner le nombre de blocs
+visibles selon la forme; changer l'algorithme de calepin pour éviter les
+lamelles de `SYN-WIDE`; ou étudier Canvas 2D, en acceptant d'avoir à
+reconstruire l'accessibilité.
+
+## 3.8 Clavier et ARIA
+
+Vérification portée sur la **structure réellement construite**, jamais sur une
+intention.
+
+**ARIA — conforme dans les 18 scénarios.** Sur l'ensemble des `treeitem`
+construits :
+
+| Contrôle | Résultat |
+|---|---|
+| `role="tree"` sur le conteneur | présent |
+| `role="treeitem"` sur les blocs | présent, jusqu'à 5 002 éléments |
+| `aria-level` manquants | **0** |
+| `aria-selected` manquants | **0** |
+| `aria-setsize` manquants | **0** |
+| `aria-posinset` manquants | **0** |
+| Nœuds à enfants construits **sans** `aria-expanded` | **0** |
+
+**Clavier — fonctionnel dans les 18 scénarios.** Motif « Tree View » :
+`ArrowUp`, `ArrowDown`, `ArrowLeft`, `ArrowRight`, `Home`, `End`. Chaque touche
+est envoyée comme un **vrai** `KeyboardEvent`, et l'on vérifie à la fois l'état
+interne **et** `document.activeElement`.
+
+Une correction du banc d'essai lui-même mérite d'être signalée : la première
+version comptait `SYN-WIDE` en échec parce que `ArrowRight` ne déplaçait pas le
+focus. C'était **le contrôle qui avait tort**, pas le rendu : sur un nœud dont
+les enfants ne sont pas construits au niveau de détail courant, ne pas bouger
+est le comportement **correct** du motif. Le contrôle vérifie désormais
+l'attente juste — `ArrowRight` ne doit bouger **que si** le nœud focalisé a des
+enfants construits — et les 18 scénarios sont conformes.
+
+## 3.9 Non testé et limites de B2
+
+1. **Aucun lecteur d'écran réel.** La conformité constatée porte sur les
+   **attributs produits**, pas sur l'expérience réelle sous NVDA, JAWS ou le
+   Narrateur. **Non testé.**
+2. **Un seul navigateur, un seul moteur.** Chrome 151 / Blink. **Le rendu réel
+   de FileTopo passera par WebView2**, non mesuré ici. Edge 152 est installé
+   mais n'a pas servi aux mesures publiées.
+3. **Une seule machine, un seul écran.** i9-9900K, RTX 2070, 1920 × 1080 à
+   240 Hz, `devicePixelRatio` = 1. Un portable, un écran à 60 Hz ou un
+   affichage à forte densité donneraient d'autres chiffres. **Le matériel
+   utilisé ici est nettement au-dessus d'un poste ordinaire** : les valeurs
+   publiées sont donc plutôt un plafond favorable qu'un cas moyen.
+4. **Aucune donnée réelle, aucun rendu de document.** Ni miniature, ni icône,
+   ni texte extrait. Seuls des rectangles et des étiquettes courtes.
+5. **Un seul algorithme de calepin.** Découpage alterné. Un pavage
+   « squarifié » changerait la géométrie et donc les mesures de `SYN-WIDE`.
+6. **`revirtualisations = 0`** sur toutes les mesures de déplacement : la
+   trajectoire scriptée reste à l'intérieur de la marge de 25 %. Le coût d'une
+   revirtualisation en cours de déplacement n'est donc **pas** mesuré, et le
+   mode `transform` est mesuré dans son **cas le plus favorable**.
+7. **Aucun test de mémoire**, aucune mesure de consommation, aucune session
+   longue.
+8. **Ni Canvas 2D ni WebGL n'ont été mesurés.** `B2` ne dit **rien** de leurs
+   performances : il ne fait qu'ouvrir le droit d'étudier Canvas 2D.
