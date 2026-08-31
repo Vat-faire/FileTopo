@@ -1576,3 +1576,112 @@ rien n'a été facturé.
 franchie** : aucune ligne de code de production. L'action unique suivante est
 **`ACTION-0023`** — le contrôle indépendant de `TASK-0013`, par une instance
 **distincte de l'exécuteur**.
+
+---
+
+## R. ACTION-0023 — contrôle indépendant de TASK-0013, et clôture (2026-08-31)
+
+**Nature :** étape documentaire, sous GO technique de l'orchestrateur.
+**Aucune mesure rejouée, aucune preuve retouchée.**
+
+### R.1 Ce qui a été contrôlé, et le résultat
+
+Les preuves de `TASK-0013` — journal, `PERF-0004`, spike, préséance Git — ont
+été contrôlées par l'**orchestrateur technique**, instance **distincte de
+l'exécuteur**, **sur preuves**. Le contrôle est **accepté** : `TASK-0013` passe
+de `IMPLEMENTED` à **`VERIFIED`**, **avec quatre réserves `V1` à `V4`**,
+enregistrées intégralement dans
+[`ACTION-0023`](../reviews/ACTION-0023-independent-control.md) §3.
+
+### R.2 Sort des réserves d'`ACTION-0021`
+
+**`R1` est LEVÉE** — son objet était l'absence de `SYN-100K`, qui a été
+réellement joué. **`R8` reste EN VIGUEUR** et sort renforcée : aucune mesure
+WebView2 de production. Les sept autres réserves sont **inchangées**.
+
+### R.3 Décisions enregistrées
+
+[`DEC-0014`](../decisions/DEC-0014-layout-baseline-and-budget-direction.md) :
+`CAL-B` squarifié devient le calepin baseline; HTML/SVG accessible reste la
+direction; le contrôleur de budget de `TASK-0013` **n'est pas adopté**; le
+**principe** du budget auto-régulé est conservé; **aucune nouvelle tentative
+WebView2** avant un véritable hôte Tauri.
+
+### R.4 Clarification normative
+
+`AGENTS.md` et `CLAUDE.md` reçoivent la règle de **lecture minimale, ciblée et
+non récursive** de métadonnées d'environnement et d'outillage, qui corrige la
+contradiction relevée par `V4`. Elle **n'autorise aucun accès à du contenu
+utilisateur** et **n'ajoute aucune écriture hors dépôt**. Les points d'arrêt
+réservés à Sébastien sont inchangés.
+
+---
+
+## S. TASK-0014 — B2 ter : correction minimale du contrôleur de budget (2026-08-31)
+
+### S.1 Préséance vérifiable
+
+Le commit **`4a5520b`** porte les **neuf critères `G1` à `G9`**, la
+**configuration complète du contrôleur**, le **matériel de référence** et le
+**protocole**, y compris les amplitudes de trajectoire et la contrainte de la
+phase 2 **déclarée inatteignable avant mesure**. Il **précède toute mesure**.
+
+Après la campagne, les empreintes SHA-256 de `budget2.mjs`, `map3.html` et
+`run-b2ter.mjs` sont **identiques** à celles du commit `4a5520b`.
+
+### S.2 Verdicts
+
+**Deux réfutations** — `G1`, la cible; `G2`, la convergence. **Un critère
+bloqué** — `G3`, dont la mesure s'est révélée **nulle par construction**. Six
+confirmations — `G4`, `G5`, `G6`, `G7`, `G8`, `G9`.
+
+**La correction minimale n'est pas validée.** Elle corrige les deux causes
+mesurées de `F4`, et c'est vérifiable, mais ne tient ni la cible ni la
+convergence dès que la charge varie réellement.
+
+### S.3 Deux défauts de protocole, publiés sans atténuation
+
+`D1` — le « régime stable » peut ne contenir qu'une poignée d'images, parfois
+aucune. `D2` — la fenêtre stable de `G3` est **vide par construction**.
+
+Conformément à §6.1 de `TASK-0014` : **le protocole n'a pas été changé**,
+**aucune mesure n'a été rejouée**, aucune cible n'a été déplacée, et le critère
+concerné est publié **bloqué**, jamais confirmé.
+
+### S.4 Ce qui a été touché après la première mesure — déclaration
+
+1. **`verdicts2.mjs`, ligne de verdict de `G3`** : « CONFIRMÉE » remplacée par
+   **« BLOQUÉE »**. Ce geste **retire une confirmation et n'en ajoute aucune**.
+   Aucun seuil, aucune constante, aucun paramètre n'a bougé.
+2. **`analyse-defauts.mjs`**, fichier nouveau, qui **ne mesure rien** : il
+   relit les mesures déjà collectées pour publier les défauts et des lectures
+   supplémentaires, toutes étiquetées comme n'établissant aucun verdict.
+
+**C'est au contrôle indépendant de juger si ces deux gestes respectent `G9`.**
+L'exécuteur les déclare et ne se donne pas quitus.
+
+### S.5 Périmètre
+
+- **Aucune donnée réelle**, aucun fichier de l'utilisateur.
+- **Aucune écriture hors du dépôt** : tout est allé sous `spikes/.work/b2ter/`,
+  ignoré par Git, profils de navigateur compris.
+- **Lecture d'environnement** : métadonnées matérielles du poste, présence,
+  chemin et version d'Edge et de Chrome. Lecture **minimale, ciblée et non
+  récursive**, autorisée par `TASK-0014` §3 au titre de la section « Lecture
+  minimale de l'environnement technique » d'`AGENTS.md`. **Aucun dossier
+  personnel, aucun document, aucun contenu utilisateur.**
+- **Aucune tentative WebView2**, aucun Canvas 2D, aucun WebGL.
+- **Aucune dépendance installée**, ni dans le dépôt, ni sur le système.
+- **Aucune dépense.** La précision de `R9` reste valable.
+- **Aucune preuve de `TASK-0013` retouchée**, aucune fiche `DEC` existante
+  modifiée, aucun fichier de production, de test, de verrou ni de `graph/`
+  touché.
+- **Aucune fusion, PR, release, étiquette, `force push`**, aucun push vers
+  `main`.
+
+### S.6 Conséquence
+
+`TASK-0014` est **`IMPLEMENTED`**, jamais auto-déclarée `VERIFIED`. Aucune
+tâche n'est `IN_PROGRESS`. La porte **P4 reste ouverte et non franchie**.
+L'action unique suivante est **`ACTION-0024`** — le contrôle indépendant de
+`TASK-0014`, par une instance **distincte de l'exécuteur**.

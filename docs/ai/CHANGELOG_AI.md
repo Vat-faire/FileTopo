@@ -1644,3 +1644,107 @@ obligatoire.
 
 `ACTION-0023` — **contrôle indépendant de `TASK-0013`**, par une instance
 **distincte de l'exécuteur**. La porte **P4 reste ouverte et non franchie**.
+
+---
+
+## 2026-08-31 — ACTION-0023 — Contrôle indépendant de TASK-0013, et clôture
+
+**Agent :** Claude Code, étape documentaire sous GO technique de
+l'orchestrateur
+**Statut à l'issue :** `TASK-0013` passe de `IMPLEMENTED` à **`VERIFIED`**
+
+### Fait
+
+- Contrôle indépendant **accepté**, par une instance **distincte de
+  l'exécuteur**, **sur preuves**. **Quatre réserves `V1` à `V4`** enregistrées
+  dans [`ACTION-0023`](../reviews/ACTION-0023-independent-control.md).
+- **`R1` d'`ACTION-0021` LEVÉE** — `SYN-100K` a été réellement joué. **`R8`
+  reste EN VIGUEUR**, renforcée. Les sept autres réserves sont inchangées.
+- [`DEC-0014`](../decisions/DEC-0014-layout-baseline-and-budget-direction.md)
+  enregistre six décisions : `CAL-B` squarifié devient le **calepin baseline**;
+  **HTML/SVG accessible** reste la direction; le **contrôleur de budget de
+  `TASK-0013` n'est pas adopté** — `F4` réfutée; le **principe** du budget
+  auto-régulé est **conservé**; **aucune nouvelle tentative WebView2** avant un
+  véritable hôte Tauri.
+- `AGENTS.md` et `CLAUDE.md` clarifiés : une tâche `APPROVED` peut autoriser la
+  **lecture minimale, ciblée et non récursive** de métadonnées d'outillage.
+  Jamais de contenu utilisateur. Aucune écriture hors dépôt ajoutée.
+
+### Non fait, volontairement
+
+**Aucune mesure rejouée, aucune preuve de `TASK-0013` retouchée.** Ni Canvas 2D,
+ni WebGL, ni WebView2. Aucune fusion, PR, release, étiquette. **P4 reste
+ouverte et non franchie.**
+
+---
+
+## 2026-08-31 — TASK-0014 — B2 ter : correction minimale du contrôleur de budget
+
+**Agent :** exécuteur Claude Code, session `filetopo-task-0014-budget`
+**Statut à l'issue :** **`IMPLEMENTED`**, jamais auto-déclarée `VERIFIED`
+**Branche :** `spike/v0.2-budget-controller`, créée depuis `933bd0d`
+
+### Fait
+
+- **Critères `G1` à `G9`, configuration du contrôleur, matériel et protocole
+  commités AVANT toute mesure**, dans le commit `4a5520b`. Empreintes SHA-256
+  du contrôleur, de la page et du pilote **identiques après la campagne**.
+- Contrôleur corrigé sur les **deux causes** mesurées de la réfutation de
+  `F4` : plus de zone morte sous la cible — seuil lent exactement `1000 / 30`
+  ms —, et plus de refroidissement sur un mouvement de même sens.
+- Campagne jouée sur **deux moteurs** — Edge 152.0.4191.53 en principal,
+  Chrome 151.0.7922.175 en continuité —, **quatre formes**, **cinq exécutions**
+  par scénario, plus un **contrôle ponctuel `CAL-A`** qui ne fonde aucun
+  critère.
+- **De vraies revirtualisations** : 42 à 51 par exécution, contre **0** dans
+  `B2 bis`. **De vraies reconstructions DOM**, chronométrées : coût médian
+  18,1 à 25,5 ms, soit 0,57 à 0,76 image du budget de 33,3 ms.
+- **Neuf verdicts publiés : deux réfutations `G1` et `G2`, un critère bloqué
+  `G3`, six confirmations.**
+- **Deux défauts de protocole découverts après la première mesure, publiés
+  sans atténuation** : le « régime stable » peut ne contenir qu'une poignée
+  d'images; la fenêtre stable de `G3` est **vide par construction**. Le
+  protocole **n'a pas été changé**, aucune mesure n'a été rejouée, aucune cible
+  n'a été déplacée.
+
+### Le résultat, en clair
+
+**La correction minimale n'est pas validée.** Elle corrige bien les deux
+causes — c'est vérifiable — mais ne tient **ni la cible** ni **la
+convergence** dès que la charge varie réellement. Cause mesurée : les **deux
+bornes** de la zone morte tombent **exactement** sur un pas de synchronisation
+verticale de 4,1667 ms, si bien qu'une fluctuation inférieure à la milliseconde
+fait basculer la décision.
+
+### Non fait, volontairement
+
+- **Aucune tentative WebView2** — `DEC-0014` F l'interdit. Ni Canvas 2D, ni
+  WebGL.
+- **Aucun budget adopté**, aucune porte franchie, **aucune réserve levée**.
+- **Aucune preuve de `TASK-0013` retouchée**, aucune fiche `DEC` existante
+  modifiée, aucun fichier de production, de test, de verrou ni de `graph/`
+  touché.
+- **Aucune donnée réelle**, **aucune écriture hors du dépôt**, **aucune
+  dépendance installée**, **aucune dépense**.
+- **Aucune fusion, PR, release, étiquette, `force push`**, aucun push vers
+  `main`.
+
+### Fichiers
+
+**Créés :** `docs/reviews/ACTION-0023-independent-control.md`;
+`docs/decisions/DEC-0014-layout-baseline-and-budget-direction.md`;
+`docs/tasks/TASK-0014-b2-ter-budget-controller.md`;
+`docs/performance/PERF-0005-b2ter-budget-controller.md`;
+`docs/research/TASK-0014-b2-ter-results.md`;
+`spikes/b2ter-budget-controller/` — `README.md`, `budget2.mjs`, `map3.html`,
+`run-b2ter.mjs`, `replay-budget2.mjs`, `verdicts2.mjs`, `tables2.mjs`,
+`analyse-defauts.mjs`.
+
+**Modifiés :** `AGENTS.md`, `CLAUDE.md`, `docs/decisions/README.md`,
+`docs/tasks/TASK-0013-b2-bis-layout-and-render-budget.md` (statut, historique
+et clôture uniquement), et la mémoire obligatoire.
+
+### Prochaine action unique
+
+**`ACTION-0024`** — contrôle indépendant de `TASK-0014`, par une instance
+**distincte de l'exécuteur**. La porte **P4 reste ouverte et non franchie**.

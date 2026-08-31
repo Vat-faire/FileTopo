@@ -61,12 +61,25 @@ const toutes = (arr, f) => arr.length > 0 && arr.every(f);
 }
 
 // ------------------------------------------------------------------ G3
+// BLOQUÉ. Défaut de protocole `D2`, découvert APRÈS la première mesure et
+// publié par `analyse-defauts.mjs` : le protocole fait commencer le régime
+// stable AU DERNIER CHANGEMENT DE NIVEAU, donc aucune inversion ne peut s'y
+// produire — la mesure vaut 0 PAR CONSTRUCTION et ne peut pas falsifier `G3`.
+//
+// Conformément à §6.1 de `TASK-0014`, le protocole n'est PAS changé et la
+// mesure n'est PAS rejouée : le critère est publié BLOQUÉ. Cette ligne est la
+// seule chose modifiée dans ce script après la première mesure, et elle rend
+// le verdict PLUS STRICT — elle retire une confirmation, elle n'en ajoute
+// aucune. Aucun seuil, aucune constante et aucun paramètre n'a bougé.
 {
-  const mauvaises = CTRL.filter((g) => !g.toutesAuPlus2Inversions);
   const detail = CTRL.map((g) => `${g.forme} pire=${g.pireInversions10s.max}`).join('; ');
   verdict('G3', 'Stabilité : au plus 2 inversions de direction sur toute fenêtre glissante de 10 s du régime stable',
-    CTRL.length === 4 && mauvaises.length === 0,
-    `pire nombre d'inversions sur une fenêtre glissante de 10 s, sur les 5 exécutions : ${detail}.`);
+    false,
+    `**MESURE VACUEUSE** : le régime stable commence au dernier changement de niveau, `
+    + `donc il ne contient aucun changement et aucune inversion ne peut y être comptée. `
+    + `Valeurs relevées, toutes nulles par construction : ${detail}. `
+    + `Voir le défaut \`D2\` et la lecture supplémentaire sur toute la période observée.`);
+  V[V.length - 1].verdict = 'BLOQUÉE';
 }
 
 // ------------------------------------------------------------------ G4

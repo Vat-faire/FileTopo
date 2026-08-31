@@ -5,7 +5,7 @@
   budget auto-régulé, sur `CAL-B` comme calepin de référence, avec de
   **vraies** variations du seuil de visibilité et le **coût mesuré** des
   reconstructions DOM qu'elles provoquent
-- **Statut :** `IN_PROGRESS`
+- **Statut :** `IMPLEMENTED`
 - **Phase :** 1 ter — après
   [DEC-0014](../decisions/DEC-0014-layout-baseline-and-budget-direction.md) et
   le contrôle indépendant
@@ -318,8 +318,60 @@ conformément à [AGENTS.md](../../AGENTS.md).
 - 2026-08-31 — `IN_PROGRESS` : branche dédiée `spike/v0.2-budget-controller`
   créée depuis `933bd0d`; arbre Git propre vérifié; aucune autre tâche
   `IN_PROGRESS`. **Aucune mesure n'a encore été prise à cet instant.**
+- 2026-08-31 — `IMPLEMENTED` : campagne exécutée sur deux moteurs, neuf
+  verdicts publiés dont **deux réfutations**, `G1` et `G2`, et **un critère
+  bloqué**, `G3`. Deux défauts de protocole découverts après la première mesure
+  ont été **publiés**, sans changer le protocole ni rejouer une mesure.
+  **`VERIFIED` n'est pas attribuée** : elle appartient à un contrôle
+  indépendant.
 
 ## 13. Rapport d'exécution
 
-*À remplir à l'issue de l'exécution. Vide tant que la campagne n'a pas été
-jouée.*
+- **Exécutée le :** 2026-08-31
+- **Branche :** `spike/v0.2-budget-controller`, publiée sur origin, créée
+  depuis `933bd0d5e7e05e4e7fe233c5fc6b9320a194264d`
+- **Commit de préséance :** `4a5520b` — critères, configuration, matériel et
+  protocole, **avant toute mesure**
+- **Statut à l'issue :** **`IMPLEMENTED`, jamais `VERIFIED`.**
+- **Journal, preuves et verdicts :**
+  [TASK-0014-b2-ter-results.md](../research/TASK-0014-b2-ter-results.md)
+- **Mesures :** [PERF-0005](../performance/PERF-0005-b2ter-budget-controller.md)
+
+### 13.1 Verdicts
+
+| # | Énoncé | Verdict |
+|---|---|---|
+| `G1` | Cible : régime stable ≥ 30 ips sur chacune des 5 exécutions | **RÉFUTÉE** |
+| `G2` | Convergence : dernier changement ≤ 2 000 ms | **RÉFUTÉE** |
+| `G3` | Stabilité : au plus 2 inversions / 10 s | **BLOQUÉ** — mesure vacueuse, défaut `D2` |
+| `G4` | Lisibilité : 2 400 px² jamais dépassé, plancher atteint et tenu | **CONFIRMÉE** |
+| `G5` | Déterminisme : 95 traces réelles rejouées, zéro divergence | **CONFIRMÉE** |
+| `G6` | Reconstruction réelle, coût mesuré et inclus dans les temps d'image | **CONFIRMÉE** |
+| `G7` | Accessibilité : zéro régression après les changements de niveau | **CONFIRMÉE** |
+| `G8` | `SYN-100K` : ≥ 30 ips et p95 ≤ 150 ms | **CONFIRMÉE** |
+| `G9` | Intégrité du protocole | **CONFIRMÉE**, avec déclaration §8 du journal |
+
+**La correction minimale n'est pas validée.** Elle corrige les deux causes
+mesurées de `F4` — c'est vérifiable — mais ne tient ni `G1` ni `G2` dès que la
+charge varie réellement.
+
+### 13.2 Critères d'acceptation de §9
+
+| # | Condition | État |
+|---|---|---|
+| 1 | `G1` à `G9` ont chacun un verdict écrit, mesure jointe | **rempli** — §6 du journal, calculé par script |
+| 2 | Configuration de §5.2 commitée avant la première mesure, inchangée après | **rempli** — commit `4a5520b`; empreintes SHA-256 identiques après campagne |
+| 3 | Vraies reconstructions DOM, coût mesuré et inclus dans les temps d'image | **rempli** — 42 à 51 revirtualisations par exécution; coût médian 18,1 à 25,5 ms |
+| 4 | Plancher réellement atteint au moins une fois, contrôleur y reste | **rempli** — niveau 13/13, seuil exactement 2 400 px², 64 à 143 fenêtres au plancher, deux moteurs |
+| 5 | Aucune régression d'accessibilité | **rempli** — 50 exécutions contrôlées, ARIA et clavier conformes |
+| 6 | Aucun fichier de production, de test, de dépendance, de `graph/` ni de preuve de `TASK-0013` changé | **rempli** — diff vide hors `spikes/b2ter-budget-controller/` et documents de cette tâche |
+| 7 | Les cibles manquées sont publiées comme manquées | **rempli** — `G1` et `G2` réfutées, `G3` bloqué, causes mesurées |
+| 8 | Mémoire obligatoire à jour, `NEXT_ACTION.md` avec **exactement une** action | **rempli** |
+
+### 13.3 Ce que la tâche ne fait pas
+
+Elle **n'adopte aucun budget** et **ne franchit aucune porte**, conformément à
+§6.2. Elle **ne lève aucune réserve** : `V1` à `V4` d'`ACTION-0023` et `R2` à
+`R9` d'`ACTION-0021` restent en vigueur. Elle **n'ouvre pas** Canvas 2D et
+**n'a tenté aucune** instrumentation de WebView2. La porte **P4 reste ouverte
+et non franchie** : aucune ligne de code de production n'a été écrite.
