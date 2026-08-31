@@ -3,7 +3,9 @@
 - **Identifiant :** `TASK-0012`
 - **Titre :** Exécuter des bancs d'essai synthétiques permettant de lever les
   risques techniques avant le premier code de production
-- **Statut :** `IMPLEMENTED`
+- **Statut :** `VERIFIED` le 2026-08-31, sur contrôle indépendant
+  [`ACTION-0021`](../reviews/ACTION-0021-independent-control.md), **avec neuf
+  réserves maintenues** (`R1` à `R9`)
 - **Phase :** 1 bis — porte technique entre la baseline approuvée et la
   phase 2 de [ROADMAP.md](../../ROADMAP.md)
 - **Proposée le :** 2026-08-31
@@ -490,6 +492,15 @@ L'exécuteur ne s'attribue pas `VERIFIED` : ce serait juger ses propres preuves.
 Le passage à `VERIFIED` appartient à Sébastien, sur contrôle indépendant des
 preuves publiées, conformément à [AGENTS.md](../../AGENTS.md).
 
+> **Ajout du 2026-08-31, après clôture — le texte ci-dessus est conservé tel
+> qu'il a été écrit.** La règle a été respectée : l'exécuteur a livré
+> `IMPLEMENTED` et ne s'est jamais attribué `VERIFIED`. Le contrôle
+> indépendant `ACTION-0021` a été mené par une instance distincte, sous la
+> délégation d'orchestration technique de Sébastien du 2026-08-31, et c'est
+> **lui** qui a attribué `VERIFIED`, **avec neuf réserves maintenues**. Voir
+> [ACTION-0021-independent-control.md](../reviews/ACTION-0021-independent-control.md)
+> et [DEC-0013](../decisions/DEC-0013-post-risk-gate-technical-arbitration.md).
+
 ## 17. Format du rapport final attendu
 
 Le rapport final doit donner, dans cet ordre :
@@ -543,6 +554,17 @@ Aucune ligne de code de production ne peut être écrite avant `P4`.
   contournés : le comportement inter-volume de `B3`, bloqué par §13.2, et la
   question 3 de `B4`, sans source officielle trouvée. L'échec de `B0` n'a pas
   été corrigé, conformément à §7.1.4 et §14.
+- 2026-08-31 — `VERIFIED` : **contrôle indépendant `ACTION-0021` accepté**, mené
+  par une instance distincte de l'exécuteur sous la délégation d'orchestration
+  technique de Sébastien. Les critères d'acceptation de §15 sont remplis. **Neuf
+  réserves `R1` à `R9` sont maintenues** : `VERIFIED` ne les lève pas. La
+  question 3 de `B4` **ne bloque pas** ce passage — §11.3 prévoit la
+  déclaration de non-résolution comme livrable conforme. Les six arbitrages
+  qui en découlent sont enregistrés dans
+  [DEC-0013](../decisions/DEC-0013-post-risk-gate-technical-arbitration.md); le
+  contrôle lui-même est enregistré dans
+  [ACTION-0021-independent-control.md](../reviews/ACTION-0021-independent-control.md).
+  **Aucune mesure n'a été rejouée, aucun document de preuve n'a été modifié.**
 
 ## 20. Rapport d'exécution
 

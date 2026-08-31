@@ -215,3 +215,36 @@ secondaire.
   vérifier.
 - L'algorithme de disposition hiérarchique (treemap déterministe ou autre)
   n'est pas décidé ici : c'est une question distincte du moteur de rendu.
+
+---
+
+## Amendement du 2026-08-31 — DEC-0013, après le banc d'essai B2
+
+**Le texte ci-dessus est conservé intact**, y compris le plafond initial de
+3 000 blocs, qui reste lisible comme ce qu'il a toujours été : une hypothèse
+écrite pour être réfutée. Ce qui suit le complète.
+
+`B2` a été exécuté, et [DEC-0013](DEC-0013-post-risk-gate-technical-arbitration.md)
+a arbitré :
+
+- **L'option A — HTML/SVG accessible — est conservée.** Canvas 2D **n'est pas
+  ouvert** : l'autorisation d'étude rendue par `B2` n'est **pas exercée**.
+- **Le plafond universel fixe de 3 000 blocs est abandonné comme règle de
+  conception.** Les plafonds mesurés varient d'un facteur 4 selon la forme —
+  3 743 sur `SYN-EQUILIBRE`, 3 063 sur `SYN-DEEP`, **entre 939 et 1 795** sur
+  `SYN-WIDE`. Un décompte de blocs ne décrit pas ce qui détermine le coût.
+- **Direction retenue à sa place :** un **budget de rendu auto-régulé**, plus
+  l'**étude d'un calepin squarifié** — l'algorithme de calepin devient une
+  variable de conception, pas un acquis.
+- **Les valeurs de `B2` ne sont pas des plafonds universels** : une machine
+  au-dessus d'un poste ordinaire, Chrome et non WebView2, un seul calepin,
+  `revirtualisations = 0`. Aucune ne peut être citée comme capacité du produit.
+- **Réserve `SYN-100K`, à ne pas perdre :** le protocole de falsification écrit
+  ci-dessus exige `SYN-100K`, `SYN-DEEP` **et** `SYN-WIDE`. `B2` a mesuré
+  `SYN-EQUILIBRE` à la place de `SYN-100K`. **`B2` ne falsifie donc pas
+  littéralement la présente fiche selon son protocole complet.** Le trou de
+  preuve est déclaré, et sa fermeture est spécifiée par
+  [TASK-0013](../tasks/TASK-0013-b2-bis-layout-and-render-budget.md).
+
+Preuves : [rapport de TASK-0012 §3](../research/TASK-0012-risk-gate-results.md),
+[PERF-0001](../performance/PERF-0001-b2-rendering.md).

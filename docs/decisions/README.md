@@ -24,6 +24,20 @@ mesuré. `M-C` et l'option A restent conditionnées aux bancs d'essai `B1` et
 `B2`, spécifiés par [TASK-0012](../tasks/TASK-0012-technical-risk-gates.md),
 qui reste `PROPOSED`.
 
+**Mise à jour du 2026-08-31 — les bancs d'essai ont eu lieu.** `TASK-0012` est
+`VERIFIED` sur contrôle indépendant
+([`ACTION-0021`](../reviews/ACTION-0021-independent-control.md)), et une
+septième fiche enregistre les arbitrages qui en découlent :
+
+| Fiche | État | Ce qui est retenu |
+|---|---|---|
+| [DEC-0013](DEC-0013-post-risk-gate-technical-arbitration.md) | `APPROVED` | **`M-B`** devient la baseline de migration; **Canvas 2D n'est pas ouvert** et le plafond universel de 3 000 blocs est abandonné au profit d'un **budget de rendu auto-régulé**; l'invariant d'identité est le couple **`VolumeSerialNumber` + `FileId`**, `FileId` seul interdit |
+
+`DEC-0013` **complète** `DEC-0008`, `DEC-0009` et `DEC-0011` sans les
+remplacer : chacune porte un **amendement en fin de fiche**, et leur texte
+d'origine est conservé intact. Le paragraphe ci-dessus reste vrai **au moment
+où il a été écrit**; il n'est pas réécrit après coup.
+
 **Exception humaine consignée.** `DEC-0012` ne cite aucune source primaire
 externe. Sébastien a accepté cette absence le 2026-08-31 : c'est une décision
 **interne de périmètre**, fondée sur la vision approuvée, et l'absence de

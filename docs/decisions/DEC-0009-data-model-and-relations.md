@@ -224,3 +224,36 @@ source primaire. Cela relève de
   de la disponibilité réelle de l'identité Windows sur les volumes des
   utilisateurs, qui n'a été mesurée sur aucune machine. C'est la principale
   incertitude de cette recommandation.
+
+---
+
+## Amendement du 2026-08-31 — DEC-0013, après les bancs d'essai B3 et B4
+
+**Le texte ci-dessus est conservé intact.** Ce qui suit le complète.
+
+`B3` et `B4` ont été exécutés, et
+[DEC-0013](DEC-0013-post-risk-gate-technical-arbitration.md) a arbitré :
+
+- **`I-E` tient sur cinq points sur six.** L'identité système est obtenable sur
+  **Rust stable**, survit au renommage et au déplacement **intra-volume**, pour
+  un coût mesuré de **28,3 µs par élément**, soit 3,1 % du budget de §3.2 de
+  `BASELINE_TARGETS.md`.
+- **Invariant architectural obligatoire :** une identité système est le
+  **couple `VolumeSerialNumber` + `FileId` 128 bits**. **Utiliser `FileId`
+  seul est interdit** — dans tout code, tout schéma, tout index et toute
+  comparaison. La source Microsoft n'énonce l'unicité que pour le couple.
+- **Le comportement inter-volume reste `NON TESTÉ`**, et n'est pas testé
+  maintenant : le tester exigerait d'écrire hors du dépôt. Aucune fiche ne peut
+  le présenter autrement.
+- **Identité après hydratation : question ouverte, et risque requalifié.**
+  Aucune source Microsoft n'a été trouvée. Le risque n'est **pas** un simple
+  inconfort d'ergonomie : si l'identité change à l'hydratation, tout état
+  attaché à cette identité — vu/non vu, couleur, préférences, relations
+  approuvées, journal — cesse d'être retrouvé. C'est une **perte potentielle
+  d'état utilisateur non reconstructible, possiblement en masse**, un
+  fournisseur de synchronisation pouvant hydrater des milliers d'éléments en
+  une opération. **Cette question doit être fermée avant d'implémenter
+  l'identité persistante et l'état vu/non vu.**
+
+Preuves : [rapport de TASK-0012 §4 et §5](../research/TASK-0012-risk-gate-results.md),
+[PERF-0003](../performance/PERF-0003-b3-windows-identity.md).

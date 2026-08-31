@@ -194,3 +194,32 @@ acceptable que si S-C est retenue.
   bascule n'est pas connu.
 - Cette fiche dépend de [DEC-0009](DEC-0009-data-model-and-relations.md) pour
   la définition précise de l'état non reconstructible.
+
+---
+
+## Amendement du 2026-08-31 — DEC-0013, après le banc d'essai B1
+
+**Le texte ci-dessus est conservé intact.** Ce qui suit le complète; il ne le
+remplace pas et n'en supprime rien.
+
+`B1` a été exécuté, et [DEC-0013](DEC-0013-post-risk-gate-technical-arbitration.md)
+a arbitré :
+
+- **`M-B` devient la stratégie baseline** — copie de sûreté **de fichier** sur
+  base **quiescée**, migration transactionnelle **en place**, restauration si
+  échec. Le classement de la section « Décision » ci-dessus est donc
+  **renversé**, sur mesures.
+- **`M-C` telle qu'elle est décrite ci-dessus est réfutée** : un `-wal`
+  orphelin survivant à la permutation corrompt la base neuve. La corruption est
+  **reproduite**, `integrity_check` à l'appui.
+- **`M-C` durcie** — replier le WAL de l'ancienne base, puis supprimer les
+  annexes de la cible **avant** la permutation — reste **documentée comme
+  alternative défensive étudiée**. Elle **n'est pas** la baseline.
+- **Précision obligatoire :** le `M-B` mesuré par `B1` utilisait une **copie de
+  fichier**, base fermée. Il **n'exerçait pas** l'API SQLite Online Backup. La
+  limite documentée en preuve `P1` ci-dessus **n'a été ni levée, ni mesurée, ni
+  contournée**; la variante retenue l'évite en quiesçant la base avant de
+  copier.
+
+Preuves : [rapport de TASK-0012 §2](../research/TASK-0012-risk-gate-results.md),
+[PERF-0002](../performance/PERF-0002-b1-sqlite-migration.md).
