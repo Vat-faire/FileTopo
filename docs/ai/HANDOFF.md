@@ -2,29 +2,51 @@
 
 - **Dernière mise à jour :** 2026-08-31
 - **Branche active :** `spike/v0.2-technical-risk-gates`, publiée sur origin
-- **Tâche livrée, NON vérifiée :** `TASK-0012`, **`IMPLEMENTED`**
+- **Dernière tâche vérifiée :** `TASK-0012`, **`VERIFIED`** le 2026-08-31, sur
+  contrôle indépendant [`ACTION-0021`](../reviews/ACTION-0021-independent-control.md),
+  **avec neuf réserves `R1` à `R9` maintenues**
+- **Tâche préparée, NON exécutée :** `TASK-0013`, **`PROPOSED`**
 - **Tâche IN_PROGRESS :** aucune
 
 ## Où en est le projet
 
-La porte **P3 est franchie**. `TASK-0012` a été **exécutée** : cinq bancs
-d'essai, cinq verdicts, des mesures réelles. C'est la **première fois depuis
-`TASK-0010`** que quelque chose est exécuté plutôt qu'écrit.
+La porte **P3 est franchie** et `TASK-0012` est **close** : cinq bancs d'essai,
+cinq verdicts, un contrôle indépendant accepté. Les verdicts sont devenus des
+décisions, dans
+[DEC-0013](../decisions/DEC-0013-post-risk-gate-technical-arbitration.md).
 
-`TASK-0012` est **`IMPLEMENTED`**, pas `VERIFIED`. L'exécuteur ne juge pas ses
-propres preuves.
+La suite technique est décidée mais **non ouverte** : `TASK-0013` — un `B2 bis`
+— est spécifiée, `PROPOSED`, et attend un GO d'exécution.
 
-## Ce qu'il faut savoir en cinq lignes
+## Ce qu'il faut savoir en six lignes
 
-1. **`M-C` est réfutée telle que `DEC-0011` l'écrit** : un `-wal` orphelin
-   survit à la permutation et corrompt la base neuve. Preuve jointe.
-2. **Le plafond de 3 000 blocs de `DEC-0008` est remplacé** par trois plafonds
-   mesurés, de 939 à 3 743 selon la forme.
-3. **L'identité Windows fonctionne sur Rust stable**, à 28,3 µs par élément.
-4. **`cargo build` échoue** — cache incrémental, pas le code source — et n'a
-   **pas** été corrigé, volontairement.
-5. **Aucune fiche `DEC` n'a été modifiée.** Les verdicts alimentent des
-   décisions; ils n'en prennent aucune.
+1. **`M-B` est la baseline de migration.** Copie de sûreté **de fichier** sur
+   base **quiescée**, migration transactionnelle **en place**, restauration si
+   échec. `M-C` naïve est **réfutée**, preuve de corruption à l'appui; `M-C`
+   durcie reste une alternative **documentée**, jamais la baseline.
+2. **Le `M-B` mesuré n'exerçait pas l'API SQLite Online Backup** : c'était une
+   copie de fichier. Ne jamais écrire le contraire.
+3. **Canvas 2D n'est pas ouvert.** HTML/SVG accessible reste la direction. Le
+   plafond universel de 3 000 blocs est **abandonné** : budget de rendu
+   **auto-régulé** + étude d'un **calepin squarifié**.
+4. **Identité : la paire `VolumeSerialNumber` + `FileId` est obligatoire**,
+   `FileId` seul **interdit**. L'inter-volume reste **NON TESTÉ**.
+5. **Rien n'est supprimé** du cache incrémental de `src-tauri/target/` : il faut
+   le conserver ou le renommer avant tout renouvellement, dans une tâche
+   distincte, pour préserver la reproduction de la panique du compilateur.
+6. **L'identité après hydratation est une question ouverte**, et son risque est
+   **requalifié** : perte potentielle d'état utilisateur **non
+   reconstructible**, possiblement **en masse**. À fermer **avant**
+   l'identité persistante et l'état vu/non vu.
+
+## Gouvernance en vigueur
+
+Depuis le 2026-08-31, les **GO techniques** viennent de l'**orchestrateur
+technique**, sous délégation de Sébastien (`AGENTS.md`, section « Délégation
+d'orchestration technique »). **Restent réservés à Sébastien**, sans
+délégation : dépense, donnée réelle ou personnelle, publication externe
+exceptionnelle (fusion vers `main`, PR, release, étiquette, nouveau distant),
+opération destructive ou hors dépôt, changement important de portée produit.
 
 ## État Git
 
@@ -34,21 +56,23 @@ propres preuves.
 | `rebuild/v0.2-project-brain` locale et distante | `db8d3de0b20e7efbfe463a17c218cc14face39a8` — **non touchée** |
 | `spike/v0.2-technical-risk-gates` | voir `git rev-parse HEAD`, égal à `origin/` |
 
-Six points de contrôle poussés, SHA local vérifié égal au distant à chaque fois.
 Aucune fusion, aucune PR, aucune release, aucune étiquette, aucun `force push`.
 
-## Blocages ouverts, qui demandent une décision humaine
+## Points ouverts
 
-| # | Blocage | Ce qui est demandé |
+| # | Point | Ce qui est demandé |
 |---|---|---|
-| 1 | **`B3`, inter-volume non observé.** Le tester exige d'écrire sur un second volume; §13.2 en fait une condition d'arrêt | Autoriser, ou non, un répertoire synthétique sur un second volume. Travail court |
-| 2 | **`B0`, échec non corrigé.** `cargo build` échoue sur le cache incrémental de `src-tauri/target/` | Autoriser, ou non, une tâche distincte de renouvellement du cache |
-| 3 | **`B4`, question 3 non résolue.** Aucune source Microsoft trouvée sur la survie de l'identité à une hydratation; la recherche a été interrompue par une limite de dépense du compte | Reprendre la recherche, ou accepter la lacune déclarée |
+| 1 | **Texte intégral de `R1` à `R9`** absent du dépôt | L'orchestrateur le joint au dossier `ACTION-0021`; la lacune est déclarée, pas comblée |
+| 2 | **Réserve `SYN-100K`** : `B2` ne falsifie pas littéralement `DEC-0008` | Fermée par `TASK-0013`, une fois approuvée |
+| 3 | **`B3`, inter-volume non observé** | Écrire hors du dépôt reste **réservé à Sébastien**. Point conservé **NON TESTÉ** |
+| 4 | **`B0`, échec non corrigé** | Tâche distincte, **avec conservation préalable** du cache fautif |
+| 5 | **`B4`, question 3 ouverte** | À fermer **avant** l'identité persistante et l'état vu/non vu |
 
 ## Prochaine action unique
 
-Sébastien **contrôle les preuves** de `TASK-0012` et attribue `VERIFIED`, ou
-renvoie la tâche avec des corrections motivées (`ACTION-0021`).
+`ACTION-0022` — examiner
+[TASK-0013](../tasks/TASK-0013-b2-bis-layout-and-render-budget.md), puis donner
+le GO d'exécution ou renvoyer la fiche avec des corrections motivées.
 
 ## Commandes sûres
 
@@ -65,16 +89,13 @@ changé.
 ## Message court pour Claude Code
 
 Lis seulement CLAUDE.md, docs/ai/START_HERE.md, docs/ai/CURRENT_STATE.md et
-docs/ai/NEXT_ACTION.md. La porte **P3 est franchie** et `TASK-0012` est
-**`IMPLEMENTED`** : les bancs d'essai ont été exécutés, leurs verdicts sont
-écrits, **ne les rejoue pas** pour les lire. `TASK-0012` **n'autorise plus
-rien** : elle est terminée et attend un contrôle humain.
+docs/ai/NEXT_ACTION.md. `TASK-0012` est **close et `VERIFIED`** : **ne rejoue
+aucun banc d'essai**. Les arbitrages sont dans `DEC-0013` — lis-la avant de
+proposer quoi que ce soit sur la migration, le rendu ou l'identité.
 
 **N'écris aucune ligne de code de production** — la porte P4 n'est pas
-franchie. **Ne corrige pas l'échec de `B0`.** **Ne teste pas l'inter-volume**
-sans un GO explicite : cela suppose d'écrire hors du dépôt. **Ne modifie aucune
-fiche `DEC`** : les verdicts alimentent des décisions, ils n'en prennent
-aucune. Ne fusionne rien, ne crée ni PR, ni release, ni étiquette.
-
-Si Sébastien demande la suite, l'action est `ACTION-0021` — et elle lui
-appartient, pas à toi.
+franchie. **N'ouvre pas Canvas 2D.** **Ne corrige pas l'échec de `B0` et ne
+supprime rien** dans `src-tauri/target/`. **Ne teste pas l'inter-volume** :
+cela suppose d'écrire hors du dépôt, ce qui est réservé à Sébastien.
+**N'exécute pas `TASK-0013`** sans GO : elle est `PROPOSED`. Ne fusionne rien,
+ne crée ni PR, ni release, ni étiquette.

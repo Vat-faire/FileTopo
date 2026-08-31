@@ -6,7 +6,10 @@
 (section A.7) ; TASK-0010 (rebaseline et mémoire) — `VERIFIED` le 2026-08-31,
 sur preuves indépendantes (section J bis) ; TASK-0011 (baseline fonctionnelle
 et architecture) — `IMPLEMENTED` le 2026-08-31, contrôles d'exécution en
-section L, **en attente de vérification indépendante**
+section L, **en attente de vérification indépendante** ; TASK-0012 (bancs
+d'essai de levée des risques techniques) — **`VERIFIED` le 2026-08-31**, sur
+contrôle indépendant `ACTION-0021` (section P), **avec neuf réserves `R1` à
+`R9` maintenues**
 
 Trois qualificatifs seulement : **vérifié**, **non testé**, **inconnu**.
 
@@ -1409,3 +1412,60 @@ ne juge pas ses propres preuves. Aucune tâche n'est `IN_PROGRESS`. La porte
 **P3 est franchie**; la porte **P4 est ouverte et non franchie**. L'action
 unique suivante, `ACTION-0021`, appartient à Sébastien : contrôler les preuves
 et attribuer `VERIFIED`, ou renvoyer la tâche.
+
+---
+
+## P. ACTION-0021 — contrôle indépendant de TASK-0012, et clôture (2026-08-31)
+
+**Statut : `TASK-0012` → `VERIFIED`**, attribué par une instance **distincte**
+de l'exécuteur, sous la délégation d'orchestration technique de Sébastien du
+2026-08-31. Fiche complète :
+[ACTION-0021-independent-control.md](../reviews/ACTION-0021-independent-control.md).
+Arbitrages :
+[DEC-0013](../decisions/DEC-0013-post-risk-gate-technical-arbitration.md).
+
+### P.1 Ce qui a été vérifié, et par qui
+
+| Élément | Qualificatif | Preuve |
+|---|---|---|
+| Les critères d'acceptation de §15 de `TASK-0012` sont remplis | **vérifié**, par le contrôle indépendant | section 2 d'`ACTION-0021` |
+| `VERIFIED` n'a pas été auto-attribué | **vérifié** | l'exécuteur a livré `IMPLEMENTED`; l'attribution vient du contrôle |
+| La question 3 de `B4` ne bloque pas `VERIFIED` | **vérifié** | §11.3 de `TASK-0012` prévoit la déclaration de non-résolution comme livrable conforme |
+| Les neuf réserves `R1` à `R9` sont maintenues | **vérifié** | `VERIFIED` ne les lève pas; section 3 d'`ACTION-0021` |
+| Le **texte intégral** de `R1` à `R9` est dans le dépôt | **inconnu — absent** | non transmis à l'exécuteur documentaire; lacune **déclarée**, jamais comblée par reformulation |
+
+### P.2 Ce que l'étape de clôture a écrit
+
+| Fichier | Nature |
+|---|---|
+| `docs/reviews/ACTION-0021-independent-control.md` | **créé** — enregistrement du contrôle |
+| `docs/decisions/DEC-0013-post-risk-gate-technical-arbitration.md` | **créé** — six arbitrages A à F |
+| `docs/tasks/TASK-0013-b2-bis-layout-and-render-budget.md` | **créé** — `PROPOSED`, **non exécutée** |
+| `docs/tasks/TASK-0012-technical-risk-gates.md` | **modifié** — statut `VERIFIED`, note ajoutée en §16, entrée ajoutée en §19 |
+| `docs/decisions/DEC-0008`, `DEC-0009`, `DEC-0011` | **modifiés** — amendement **ajouté en fin de fiche**, texte antérieur **intact** |
+| `docs/decisions/README.md` | **modifié** — `DEC-0013` référencée |
+| `AGENTS.md`, `CLAUDE.md` | **modifiés** — délégation d'orchestration technique, points d'arrêt réservés |
+| `docs/ai/CURRENT_STATE.md`, `NEXT_ACTION.md`, `HANDOFF.md`, `VALIDATION.md`, `CHANGELOG_AI.md` | **modifiés** — mémoire obligatoire |
+
+### P.3 Ce que l'étape de clôture n'a PAS fait
+
+- **Aucun banc d'essai relancé**, aucune mesure refaite, **aucun chiffre
+  nouveau**. Rien de ce qui est écrit ici n'est une mesure.
+- **Aucun document de preuve modifié** : le rapport de `TASK-0012` et
+  `PERF-0001` à `PERF-0003` sont **intacts**. La requalification du risque de
+  `B4` est écrite dans `DEC-0013`, **pas** dans le rapport.
+- **Aucun texte antérieur supprimé ni atténué** dans les fiches `DEC`.
+- **Aucun code de production, test, dépendance, verrou ni `graph/`** touché.
+- **Aucune suppression** dans `src-tauri/target/`.
+- **Aucun accès hors dépôt**, aucune lecture, aucun listage, aucune écriture.
+- **Aucune fusion, PR, release, étiquette, `force push`**, aucun push vers
+  `main` ni `rebuild/v0.2-project-brain`. **Aucune dépense.**
+- **`TASK-0013` n'a pas été exécutée** : `PROPOSED`, aucune branche, aucun
+  spike, aucune mesure.
+
+### P.4 Conséquence
+
+`TASK-0012` est **`VERIFIED`**, réserves maintenues. Aucune tâche n'est
+`IN_PROGRESS`. La porte **P4 reste ouverte et non franchie** : aucune ligne de
+code de production. La porte suivante est **P3 bis** — approuver ou corriger
+`TASK-0013`. L'action unique suivante est `ACTION-0022`.

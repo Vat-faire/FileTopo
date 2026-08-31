@@ -1465,3 +1465,80 @@ Aucune tâche n'est `IN_PROGRESS`. L'action unique suivante, `ACTION-0021`,
 appartient à Sébastien : contrôler les preuves de `TASK-0012` et attribuer
 `VERIFIED`, ou renvoyer la tâche. La branche de spike n'est **pas** fusionnée;
 son sort appartient à Sébastien.
+
+---
+
+## 2026-08-31 — ACTION-0021 close : TASK-0012 VERIFIED, six arbitrages, gouvernance
+
+**Branche :** `spike/v0.2-technical-risk-gates`
+**Autorisation :** **GO technique de l'orchestrateur**, sous la délégation
+explicite de Sébastien du 2026-08-31, **pour cette étape documentaire
+uniquement**
+**État final :** `TASK-0012` **`VERIFIED`**; `TASK-0013` **`PROPOSED`**
+
+**Intervention documentaire.** Aucun banc d'essai relancé, aucune mesure
+refaite, aucun chiffre nouveau.
+
+### Fait
+
+- **`TASK-0012` : `IMPLEMENTED` → `VERIFIED`**, sur contrôle indépendant
+  `ACTION-0021`, mené par une instance distincte de l'exécuteur. **Neuf
+  réserves `R1` à `R9` maintenues** : `VERIFIED` ne les lève pas. La question 3
+  de `B4` ne bloque pas le passage.
+- **`docs/reviews/ACTION-0021-independent-control.md` créé** : ce qui a été
+  contrôlé, le résultat, le statut des réserves, ce qui n'a pas été fait.
+- **`DEC-0013` créée** — six arbitrages :
+  **B** `M-B` baseline (copie de sûreté **de fichier** sur base **quiescée**,
+  migration transactionnelle en place, restauration si échec), `M-C` naïve
+  réfutée, `M-C` durcie documentée comme alternative défensive, et interdiction
+  d'écrire que le `M-B` mesuré exerçait l'**API SQLite Online Backup** — c'était
+  une copie de fichier;
+  **C** Canvas 2D **non ouvert**, HTML/SVG accessible conservé, **plafond
+  universel de 3 000 blocs abandonné**, direction = **budget de rendu
+  auto-régulé** + **étude d'un calepin squarifié**, valeurs de `B2` non
+  universelles, **réserve `SYN-100K`** respectée;
+  **D** inter-volume **non testé**, invariant **`VolumeSerialNumber` +
+  `FileId`**, `FileId` seul **interdit**;
+  **E** **aucune suppression**, cache incrémental fautif à **conserver ou
+  renommer avant** renouvellement, dans une tâche distincte;
+  **F** identité après hydratation **ouverte**, risque **requalifié** en perte
+  potentielle d'**état utilisateur non reconstructible, possiblement en masse**,
+  à fermer **avant** l'identité persistante et l'état vu/non vu.
+- **`DEC-0008`, `DEC-0009` et `DEC-0011` amendées par ajout en fin de fiche**,
+  avec renvoi vers `DEC-0013`. **Aucun texte antérieur modifié ni supprimé.**
+- **Gouvernance clarifiée** dans `AGENTS.md` et `CLAUDE.md` : les **GO
+  techniques** viennent de l'orchestrateur technique sous délégation de
+  Sébastien; restent **réservés à Sébastien** la dépense, la donnée réelle ou
+  personnelle, la publication externe exceptionnelle, l'opération destructive ou
+  hors dépôt, et le changement important de portée produit.
+- **`TASK-0013` créée, `PROPOSED`** : `B2 bis` — calepin squarifié contre
+  calepin actuel, budget de rendu auto-régulé, `SYN-100K`, WebView2 ou substitut
+  déclaré, accessibilité sans régression, **critères falsifiables `F1` à `F8`
+  écrits avant toute mesure**.
+- Mémoire obligatoire mise à jour; `NEXT_ACTION.md` contient **exactement une
+  action**, `ACTION-0022`.
+
+### Lacune déclarée, non comblée
+
+Le **texte intégral des réserves `R1` à `R9`** n'a pas été transmis à
+l'exécuteur documentaire et **n'est donc pas dans le dépôt**. Il n'a été ni
+reformulé, ni résumé, ni reconstitué de mémoire : une reformulation serait une
+atténuation, et l'instruction reçue l'interdit. La lacune est déclarée en
+section 3 d'`ACTION-0021`, à la manière de la question 3 de `B4`.
+
+### Non fait, volontairement
+
+Aucun banc d'essai relancé. **Aucun document de preuve modifié** — le rapport de
+`TASK-0012` et `PERF-0001` à `PERF-0003` sont intacts, et la requalification du
+risque de `B4` est écrite dans `DEC-0013`, pas dans le rapport. Aucun code de
+production, test, dépendance, verrou ni `graph/`. **Aucune suppression** dans
+`src-tauri/target/`. Aucun accès hors dépôt. **`TASK-0013` non exécutée.**
+Aucune fusion, PR, release, étiquette, `force push`, ni push vers `main` ou
+`rebuild/v0.2-project-brain`. Aucune dépense.
+
+### Conséquence
+
+`TASK-0012` est close. La porte **P4 reste ouverte et non franchie** : aucune
+ligne de code de production. La porte suivante est **P3 bis** — approuver ou
+corriger `TASK-0013`. Aucune tâche n'est `IN_PROGRESS`. L'action unique
+suivante est `ACTION-0022`.

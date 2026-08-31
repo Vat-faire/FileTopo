@@ -1,45 +1,51 @@
 # Prochaine action
 
-## ACTION-0021 — Contrôle indépendant des preuves de TASK-0012
+## ACTION-0022 — Approuver ou corriger TASK-0013 avant son exécution
 
 - **Statut :** PROPOSED
-- **Responsable :** Sébastien
-- **Action unique :** **contrôler les preuves** publiées par `TASK-0012` sur la
-  branche `spike/v0.2-technical-risk-gates`, puis attribuer `VERIFIED` ou
-  renvoyer la tâche avec des corrections motivées.
-- **Résultat attendu :** `TASK-0012` passe à `VERIFIED`, ou reçoit des
-  corrections et reste `IMPLEMENTED`.
-- **Pourquoi c'est à Sébastien :** l'exécuteur ne s'attribue pas `VERIFIED`.
-  `TASK-0012` est `IMPLEMENTED`; aucun contrôle indépendant n'a eu lieu.
+- **Responsable :** orchestrateur technique, sous la délégation du 2026-08-31
+- **Action unique :** **examiner
+  [TASK-0013](../tasks/TASK-0013-b2-bis-layout-and-render-budget.md)**, puis
+  donner le **GO d'exécution** ou renvoyer la fiche avec des corrections
+  motivées.
+- **Résultat attendu :** `TASK-0013` passe à `APPROVED` et son exécution
+  s'ouvre, ou elle reste `PROPOSED` avec des corrections écrites.
 
-### Ce qu'il faut contrôler
+### Pourquoi c'est la seule action
 
-1. [TASK-0012-risk-gate-results.md](../research/TASK-0012-risk-gate-results.md)
-   — journal, preuves et verdicts de `B0` à `B4`;
-2. [PERF-0001](../performance/PERF-0001-b2-rendering.md),
-   [PERF-0002](../performance/PERF-0002-b1-sqlite-migration.md),
-   [PERF-0003](../performance/PERF-0003-b3-windows-identity.md);
-3. `spikes/`, et notamment
-   `spikes/b3-windows-identity/LICENCE.md`.
+`TASK-0012` est **`VERIFIED`** depuis le 2026-08-31, sur contrôle indépendant
+[`ACTION-0021`](../reviews/ACTION-0021-independent-control.md), **avec neuf
+réserves maintenues**. Les six arbitrages qui en découlent sont enregistrés
+dans [DEC-0013](../decisions/DEC-0013-post-risk-gate-technical-arbitration.md).
+Aucune tâche n'est `IN_PROGRESS`. La suite technique décidée est un `B2 bis`,
+spécifié mais **non exécuté**.
 
-### Les quatre points qui appellent une décision humaine
+### Ce que TASK-0013 demandera, une fois approuvée
 
-| # | Point | Décision attendue |
-|---|---|---|
-| 1 | **`M-C` est réfutée telle que `DEC-0011` l'écrit** : un `-wal` orphelin survit à la permutation et **corrompt** la base neuve. La variante durcie passe, pour un coût en temps nul | Compléter `DEC-0011` avec l'obligation de replier puis supprimer les fichiers annexes, ou retenir `M-B` |
-| 2 | **`B2` autorise l'étude de Canvas 2D** : à 3 000 blocs visibles, `SYN-WIDE` plafonne à 14,08 ips contre 30 exigées. Les plafonds réels mesurés sont 3 743 / 3 063 / **939** blocs selon la forme | Plafonner selon la forme, changer d'algorithme de calepin, ou ouvrir l'étude Canvas 2D — en sachant qu'elle imposerait de reconstruire l'accessibilité |
-| 3 | **`B3` est incomplet par périmètre** : le comportement **inter-volume** n'a pas été observé, car le tester exigerait d'écrire hors du dépôt, ce que §13.2 érige en condition d'arrêt | Autoriser, ou non, un répertoire de travail synthétique sur un second volume |
-| 4 | **L'échec de `B0` n'a pas été corrigé** : `cargo build` échoue sur une panique interne du compilateur, causée par le cache incrémental hérité de `src-tauri/target/`, ignoré par Git. Le code source, lui, compile | Autoriser, ou non, une tâche distincte de renouvellement de ce cache |
+1. comparer le calepin actuel à un **calepin squarifié**;
+2. éprouver un **budget de rendu auto-régulé**;
+3. conserver **HTML/SVG** et l'**accessibilité**, sans régression;
+4. combler la réserve de volumétrie avec **`SYN-100K`**;
+5. mesurer dans **WebView2**, ou démontrer précisément l'impossibilité et
+   déclarer le substitut le plus proche;
+6. **données synthétiques uniquement**, **aucun code de production**;
+7. les **critères falsifiables `F1` à `F8` sont déjà écrits**, avant toute
+   mesure, et ne sont pas ajustables après coup.
 
-### État acquis, à ne pas rejouer
+### Interdit tant que le GO d'exécution n'est pas donné
 
-La porte **P3 est franchie** depuis le 2026-08-31. `B0` à `B4` ont été
-exécutés; leurs verdicts sont écrits. Les mesures ne sont **pas** à refaire
-pour être lues.
+Ne créer aucun répertoire de spike, aucune branche, aucune mesure. Ne pas
+ouvrir Canvas 2D — `DEC-0013` C ne l'ouvre pas. Ne pas tester l'inter-volume :
+cela suppose d'écrire hors du dépôt, ce qui reste réservé à Sébastien. Ne rien
+supprimer du cache incrémental de `src-tauri/target/` — `DEC-0013` E l'interdit
+dans cette étape. N'écrire aucune ligne de code de production : la porte **P4**
+reste ouverte et non franchie. Ne fusionner rien, ne créer ni PR, ni release,
+ni étiquette.
 
-### Interdit tant que P4 n'est pas franchie
+### Note, sans statut d'action
 
-N'écrire aucune ligne de code de production. Ne modifier aucune fiche `DEC-0001`
-à `DEC-0012`. Ne fusionner ni la branche de spike, ni quoi que ce soit. Ne
-créer aucune PR, release ni étiquette. Ne toucher ni `graph/`, ni `main`, ni un
-verrou de dépendances. Ne pas corriger l'échec de `B0`.
+Le **texte intégral des réserves `R1` à `R9`** du contrôle indépendant n'est pas
+encore dans le dépôt. La lacune est déclarée en section 3 de
+[`ACTION-0021`](../reviews/ACTION-0021-independent-control.md); l'orchestrateur
+peut la combler quand il le souhaite. Ce n'est pas une action distincte : cela
+s'attache au dossier `ACTION-0021`, déjà clos.

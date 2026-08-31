@@ -6,15 +6,47 @@
 - **`rebuild/v0.2-project-brain` :** inchangée, `db8d3de0…`, **non touchée**
 - **`main` :** inchangée, `91bbe90f0f99026c28cd345784d4f579a0016db2`, **non
   touchée**
-- **Dernière tâche vérifiée :** `TASK-0011`, `VERIFIED` le 2026-08-31
-- **Tâche livrée, NON vérifiée :** **`TASK-0012`, `IMPLEMENTED`** — attend le
-  contrôle indépendant de Sébastien
+- **Dernière tâche vérifiée :** **`TASK-0012`, `VERIFIED` le 2026-08-31**, sur
+  contrôle indépendant [`ACTION-0021`](../reviews/ACTION-0021-independent-control.md),
+  **avec neuf réserves `R1` à `R9` maintenues**
+- **Tâche livrée, NON vérifiée :** aucune
+- **Tâche préparée, NON exécutée :** **`TASK-0013`, `PROPOSED`** — `B2 bis`,
+  calepin squarifié, budget de rendu auto-régulé, `SYN-100K`
 - **Tâche IN_PROGRESS :** aucune
 - **Code applicatif :** **inchangé.** 0 fichier modifié sous `src/`,
   `src-tauri/`, `tests/`, `public/`, `scripts/`, `.github/` ou `graph/`. Les
   quatre empreintes SHA-256 de `package.json`, `pnpm-lock.yaml`,
   `src-tauri/Cargo.toml` et `src-tauri/Cargo.lock` sont **identiques avant et
   après**
+
+## Clôture d'ACTION-0021 — TASK-0012 est VERIFIED, six arbitrages sont pris
+
+Le **contrôle indépendant est accepté**. `TASK-0012` passe de `IMPLEMENTED` à
+**`VERIFIED`**, **avec ses neuf réserves `R1` à `R9` maintenues** : `VERIFIED`
+ne les lève pas. La question 3 de `B4` ne bloque pas ce passage.
+
+Les verdicts deviennent enfin des décisions, dans une fiche dédiée :
+**[DEC-0013](../decisions/DEC-0013-post-risk-gate-technical-arbitration.md)**.
+
+| # | Ce qui est arrêté |
+|---|---|
+| **B** | **`M-B` est la baseline de migration** : copie de sûreté **de fichier** sur base **quiescée**, migration transactionnelle **en place**, restauration si échec. `M-C` naïve **réfutée**; `M-C` durcie **documentée** comme alternative défensive, jamais baseline. **Le `M-B` mesuré n'exerçait pas l'API SQLite Online Backup** — c'était une copie de fichier |
+| **C** | **Canvas 2D n'est pas ouvert.** HTML/SVG accessible reste la direction. Le **plafond universel de 3 000 blocs est abandonné** comme règle de conception, au profit d'un **budget de rendu auto-régulé** et de l'**étude d'un calepin squarifié**. Les valeurs de `B2` **ne sont pas des plafonds universels**. **Réserve `SYN-100K` maintenue** : `B2` ne falsifie pas littéralement `DEC-0008` selon son protocole complet |
+| **D** | Inter-volume **non testé maintenant**, rien hors dépôt, point conservé **NON TESTÉ**. Invariant obligatoire : **`VolumeSerialNumber` + `FileId`**; **`FileId` seul interdit** |
+| **E** | **Aucune suppression** : le cache incrémental fautif de `src-tauri/target/` devra être **conservé ou renommé avant** renouvellement, dans une tâche distincte, pour préserver la reproduction de la panique du compilateur |
+| **F** | Identité après hydratation **ouverte**, risque **requalifié** : **perte potentielle d'état utilisateur non reconstructible, possiblement en masse**. À **fermer avant** l'implémentation de l'identité persistante et de l'état vu/non vu |
+
+Les trois fiches touchées — `DEC-0008`, `DEC-0009`, `DEC-0011` — portent
+désormais un **amendement en fin de fiche** qui renvoie à `DEC-0013`. **Leur
+texte d'origine est intact**; rien n'a été réécrit ni supprimé. Les documents de
+preuve — rapport de `TASK-0012`, `PERF-0001` à `PERF-0003` — sont **inchangés**.
+
+**Gouvernance.** `AGENTS.md` et `CLAUDE.md` enregistrent la **délégation
+d'orchestration technique** du 2026-08-31 : l'orchestrateur technique donne les
+GO techniques; Sébastien conserve la direction produit et les points d'arrêt
+réservés — dépense, donnée réelle ou personnelle, publication externe
+exceptionnelle, opération destructive ou hors dépôt, changement important de
+portée.
 
 ## Porte P3 franchie le 2026-08-31, TASK-0012 exécutée
 
@@ -124,6 +156,13 @@ La baseline documentaire de `TASK-0011` reste approuvée et **intacte**. **Aucun
 fiche `DEC-0001` à `DEC-0012` n'a été modifiée** : les verdicts **alimentent**
 des décisions futures, ils ne les prennent pas.
 
+> **Précision du 2026-08-31, après `ACTION-0021`.** Le paragraphe ci-dessus
+> décrit l'état **à la fin de `TASK-0012`**, et il était exact : la tâche
+> s'interdisait de toucher une fiche `DEC`. À la clôture, les arbitrages ont
+> été pris dans **`DEC-0013`**, et `DEC-0008`, `DEC-0009` et `DEC-0011` ont
+> reçu un **amendement ajouté en fin de fiche**. Aucun texte antérieur n'a été
+> modifié ni supprimé.
+
 ## Limites et risques
 
 - **`SIGKILL` n'est pas une coupure de courant.** Les 20 arrêts brutaux de `B1`
@@ -153,10 +192,32 @@ des décisions futures, ils ne les prennent pas.
 
 La porte **P3 est franchie**. La porte **P4 est ouverte et non franchie**.
 
-`TASK-0012` est **`IMPLEMENTED`, jamais auto-déclarée `VERIFIED`** : l'exécuteur
-ne juge pas ses propres preuves. Le contrôle indépendant appartient à Sébastien
-(`ACTION-0021`).
+`TASK-0012` a été livrée **`IMPLEMENTED`, jamais auto-déclarée `VERIFIED`** :
+l'exécuteur ne juge pas ses propres preuves. **`VERIFIED` a été attribuée le
+2026-08-31 par le contrôle indépendant `ACTION-0021`**, mené par une instance
+distincte de l'exécuteur.
 
 **Aucune ligne de code de production ne peut être écrite avant P4.** La branche
 de spike n'est ni fusionnée, ni destinée à l'être automatiquement : la
 conserver, la fusionner ou la supprimer appartient à Sébastien.
+
+La porte suivante est **P3 bis** : approuver, ou corriger, `TASK-0013` —
+`B2 bis`. Elle est **ouverte et non franchie**; la fiche est `PROPOSED` et
+**aucun banc d'essai n'a été relancé**.
+
+## Réserves qui restent en vigueur à la clôture
+
+- **`R1` à `R9`** du contrôle indépendant. Leur **texte intégral n'est pas
+  encore dans le dépôt** : la lacune est déclarée en section 3 d'`ACTION-0021`
+  plutôt que comblée par une reformulation de mémoire.
+- **Réserve `SYN-100K`** : `B2` n'a pas joué `SYN-100K`, donc il **ne falsifie
+  pas littéralement `DEC-0008`** selon son protocole complet. `TASK-0013` doit
+  fermer ce trou.
+- **Inter-volume de `B3` : NON TESTÉ**, par décision, pas par oubli.
+- **Question 3 de `B4` : ouverte**, avec son risque **requalifié** en perte
+  potentielle d'état utilisateur non reconstructible, possiblement en masse.
+- **Échec de `B0` : non corrigé**, et le cache fautif est **conservé
+  volontairement** pour préserver la reproduction.
+- Toutes les limites déjà publiées par `TASK-0012` — `SIGKILL` n'est pas une
+  coupure de courant, disque plein simulé, une seule machine, moteurs
+  différents de la production — **restent entières**.
