@@ -2310,3 +2310,53 @@ binaire final corrigé**.
 
 **Re-contrôle indépendant de `TASK-0017`.** `X3` et `X4` sont **corrigées, pas
 closes**; `ACTION-0027` reste **`OPEN`**.
+
+
+---
+
+## 2026-09-01 — TASK-0017 VERIFIED, DEC-0017 multi-cerveaux, gel de TASK-0018
+
+**Branche :** `build/v0.2-a3-multibrain-foundation`, créée depuis le tip
+contrôlé `50de16b` de `build/v0.2-a2-relations`. **`main` non touchée.**
+
+### Enregistré, pas rendu
+
+Le **re-contrôle indépendant** de l'orchestrateur clôt **`X3`**, **`X4`** et
+**`ACTION-0027`**, et attribue **`VERIFIED`** à `TASK-0017`. L'exécuteur
+**enregistre** ce verdict; il ne se l'attribue pas.
+
+### Décidé
+
+**`DEC-0017` — FileTopo est multi-cerveaux.** Un cerveau a une identité
+`brain_id` **distincte de sa source**, son index, ses relations, son état, son
+nom, sa couleur et son icône. Une **vue composée** pourra afficher plusieurs
+cerveaux **dans le même graphique, sans jamais les fusionner**; l'affichage
+conjoint **ne crée jamais** de relation; une relation inter-cerveaux n'existe
+qu'**explicitement**; **supprimer un cerveau ne supprime jamais sa source**;
+**la couleur n'est jamais le seul identifiant**.
+
+**`F-040` — vue composée multi-cerveaux**, `MVP`, est ajoutée au modèle
+produit : **`MVP` 36, `ULTÉRIEUR` 0, `DIFFÉRÉ` 4, total 40**. **`P-20` reste
+entière** et le **contrat de parité n'est pas retouché**.
+
+**Séquence :** `TASK-0018` → `TASK-0019` → `TASK-0020`.
+
+### Gelé, avant tout code
+
+`TASK-0018` §4 : modèle de cerveau, **trois cerveaux synthétiques figés** —
+`brain-alpha` et `brain-gamma` partageant **volontairement** la fixture
+`quasi-empty` —, disposition du stockage par `brain_id`, et critères **`K1` à
+`K12`**.
+
+### Non fait, volontairement
+
+- **Aucune ligne de code** dans ce commit. Le gel précède le code.
+- **La révocation de `P-04` n'est pas implémentée** et reste hors périmètre.
+- **Aucune nouvelle dépendance, aucune donnée réelle, aucun sélecteur de
+  dossier.**
+- **`B0` non corrigé**, rien supprimé dans `src-tauri/target/`.
+- **Aucune fusion, PR, release, étiquette, `force push`**, aucune réécriture.
+
+### Prochaine action unique
+
+**Exécuter `TASK-0018`** sur ses critères gelés.

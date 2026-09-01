@@ -33,6 +33,24 @@ Les preuves et constats ci-dessous sont inchangés.
 > retouchée**; les écarts avec la classification courante sont déclarés en §4
 > de [REQUIREMENTS_BASELINE.md](REQUIREMENTS_BASELINE.md).
 
+> **Amendement du 2026-09-01 — `DEC-0017`, direction produit.**
+>
+> **Une ligne est ajoutée : `F-040` — vue composée multi-cerveaux**, classée
+> **`MVP`**. C'est une **extension produit décidée**, déclarée comme telle, et
+> **non** une reclassification silencieuse : aucune ligne existante ne change
+> de classification, aucune ne descend, aucune ne disparaît.
+>
+> **La matrice passe de 39 à 40 lignes.** Répartition : **`MVP` 36**,
+> **`ULTÉRIEUR` 0**, **`DIFFÉRÉ` 4**, **total 40**.
+>
+> **`F-040` n'est pas une exigence de parité.** L'exigence de parité
+> correspondante reste **`P-20`**, entière et inchangée. Le contrat
+> [CARTETOPO_FUNCTIONAL_PARITY.md](CARTETOPO_FUNCTIONAL_PARITY.md) **n'est pas
+> retouché** et conserve ses 22 exigences.
+>
+> La colonne « Prototype actuel » de `F-040` décrit, comme toutes les autres,
+> l'**ancienne version publique** — audit technique, jamais référence produit.
+
 | Identifiant | Fonction | Comportement cible | Prototype actuel | Preuve dans le dépôt | Écart | Priorité | Phase | État | Critères d'acceptation | Baseline TASK-0011 |
 |---|---|---|---|---|---|---|---|---|---|---|
 | F-001 | Choix de racine | Sélecteur Windows guidé | Présent | src-tauri/src/lib.rs:136 | Flux cerveau incomplet | P0 | 2 | IMPLEMENTED | Sélection synthétique testée, annulation sûre | `MVP` |
@@ -74,3 +92,4 @@ Les preuves et constats ci-dessous sont inchangés.
 | F-037 | Extraction de contenu | Formats approuvés, facultatifs | Absente | aucun extracteur | Hors MVP structurel | P2 | 10 | DEFERRED | Provenance, opt-in et erreurs par format | `DIFFÉRÉ` |
 | F-038 | RAG cité | Réponses avec citations et choix fournisseur | Absent | aucune dépendance IA | Facultatif | P3 | 11 | DEFERRED | Réponse locale/citée, consentement distant | `DIFFÉRÉ` |
 | F-039 | GraphRAG | Seulement si besoin démontré | Absent | aucune dépendance graphe IA | Facultatif | P3 | 12 | DEFERRED | Gain mesuré après RAG fiable | `DIFFÉRÉ` |
+| F-040 | Vue composée multi-cerveaux | Un ou plusieurs cerveaux indépendants dans le même graphique, sans fusion | Absent | aucun catalogue de cerveaux dans le prototype | Manquant | P1 | 7 | PROPOSED | Deux cerveaux affichés ensemble ne partagent aucun stockage ni aucun état, et chaque élément porte son cerveau d'origine | **`MVP`** (extension produit `DEC-0017`) |

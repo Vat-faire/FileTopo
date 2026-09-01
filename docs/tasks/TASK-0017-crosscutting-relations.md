@@ -5,9 +5,13 @@
   transversales explicites avec provenance**, entrantes et sortantes
   distinguées, panneau des relations, et la part « relations transversales » de
   l'accentuation de sélection
-- **Statut :** **`IMPLEMENTED`** le 2026-09-01 — résultat en §7, contrôle
-  indépendant et corrections `X3`/`X4` en §9. **Pas `VERIFIED` :** l'exécuteur
-  ne s'auto-vérifie pas, et le re-contrôle indépendant reste à faire
+- **Statut :** **`VERIFIED`** le 2026-09-01, sur **re-contrôle indépendant**
+  ([`ACTION-0027`](../reviews/ACTION-0027-independent-control.md) §7, désormais
+  **`CLOSED`**, réserves **`X3` `CLOSED`** et **`X4` `CLOSED`**). Résultat en
+  §7, contrôle et corrections en §9. **`VERIFIED` a été attribué par
+  l'orchestrateur indépendant, jamais par l'exécuteur.**
+  **Ce que `VERIFIED` ne porte pas :** la **révocation de `P-04`**, déclarée
+  manquante et hors périmètre; **`P-04` demeure PARTIELLE**
 - **Phase :** étape **A** de la feuille de route — parité fonctionnelle MVP,
   **deuxième** tranche
 - **Proposée le :** 2026-09-01
@@ -742,3 +746,4 @@ dépendance, aucune donnée réelle, aucun sélecteur de dossier.** `R8` entièr
 | Date | État | Motif |
 |---|---|---|
 | 2026-09-01 | `IMPLEMENTED` | Contrôle indépendant `ACTION-0027` : `X3` et `X4` **corrigées**, **non closes**. **`VERIFIED` non attribué.** Re-contrôle indépendant attendu |
+| 2026-09-01 | **`VERIFIED`** | **Re-contrôle indépendant** de l'orchestrateur : **`X3` `CLOSED`**, **`X4` `CLOSED`**, **`ACTION-0027` `CLOSED`**. Verdict **enregistré** par l'exécuteur, **rendu** par une instance distincte. **La révocation de `P-04` reste manquante et hors périmètre** |

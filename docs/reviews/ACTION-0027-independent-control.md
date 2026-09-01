@@ -236,9 +236,38 @@ approuvée ne correspondant pas à sa suggestion.
 
 | Élément | État |
 |---|---|
-| `X3` | **corrigée**, en attente de re-contrôle — **pas close** |
-| `X4` | **corrigée et preuve rejouée**, en attente de re-contrôle — **pas close** |
-| `ACTION-0027` | **OPEN** |
-| `TASK-0017` | **`IMPLEMENTED`** — **`VERIFIED` non attribué** |
+| `X3` | **`CLOSED`** — clos par le re-contrôle du 2026-09-01 |
+| `X4` | **`CLOSED`** — clos par le re-contrôle du 2026-09-01 |
+| `ACTION-0027` | **`CLOSED`** |
+| `TASK-0017` | **`VERIFIED`** — attribué par le re-contrôle indépendant |
 
-**L'action unique suivante est le re-contrôle indépendant de `TASK-0017`.**
+## 7. Re-contrôle indépendant du 2026-09-01 — verdict
+
+- **Date :** 2026-09-01
+- **Contrôleur :** **orchestrateur technique**, instance **distincte de
+  l'exécuteur** de `TASK-0017` et de la correction `8a259e9`
+- **Objet du re-contrôle :** les corrections `X3` et `X4` publiées en
+  `8a259e9`, puis le rapport `50de16b`, sur la branche
+  `build/v0.2-a2-relations`
+- **Verdict rendu :** **`X3` `CLOSED`**, **`X4` `CLOSED`**,
+  **`ACTION-0027` `CLOSED`**, **`TASK-0017` `VERIFIED`**
+
+> **Ce paragraphe enregistre un verdict rendu par l'orchestrateur indépendant.
+> Il ne le rend pas.** L'exécuteur qui écrit cette ligne ne s'attribue rien :
+> la règle « l'exécuteur ne s'attribue pas `VERIFIED` » est intacte, et le
+> contrôle a été mené par une instance distincte, sur preuves.
+
+### 7.1 Ce que `VERIFIED` porte, et ce qu'il ne porte pas
+
+**Porté :** la qualité des preuves de la tranche `TASK-0017`, le verrouillage
+structurel de la création d'une relation `APPROVED`, et la réalité de la
+frappe clavier de `J12`.
+
+**Non porté :** le reste du contrat de parité. **La révocation de `P-04` n'est
+toujours pas implémentée** — elle était déclarée hors du périmètre gelé de
+`TASK-0017`, elle le reste, et **`P-04` demeure PARTIELLE**. Sa clôture
+appartient à une tranche future, avec sa propre fiche, ses critères gelés et
+son propre GO. **`TASK-0018` ne l'implémente pas.**
+
+**L'action unique suivante n'est plus le re-contrôle de `TASK-0017` :
+`TASK-0018` ouvre la fondation multi-cerveaux.**

@@ -204,8 +204,8 @@ avant de contrôler GitHub, ce qui permet au rapport terminal de rester court.
 
 ## Prochaine action unique
 
-**Spécifier la prochaine tranche de l'étape A**, critères gelés avant tout
-code. Détail dans [NEXT_ACTION.md](NEXT_ACTION.md).
+**Exécuter `TASK-0018`** — fondation multi-cerveaux — sur ses critères
+**gelés** `K1` à `K12`. Détail dans [NEXT_ACTION.md](NEXT_ACTION.md).
 
 ## Commandes sûres
 
@@ -219,6 +219,7 @@ code. Détail dans [NEXT_ACTION.md](NEXT_ACTION.md).
     git show 51a8cac --stat    # TASK-0017 : le gel, AVANT tout code
     git show a98676e --stat    # TASK-0017 : le premier code de production
     git show 8a259e9 --stat    # TASK-0017 : les corrections X3 et X4
+    git log --oneline 50de16b..HEAD   # TASK-0018 : le gel, puis le code
 
     CARGO_INCREMENTAL=0 cargo test --manifest-path src-tauri/Cargo.toml --lib
     pnpm check && pnpm test
@@ -227,8 +228,14 @@ code. Détail dans [NEXT_ACTION.md](NEXT_ACTION.md).
 
 Lance `/debut-session`. Elle lit ce qu'il faut, dans l'ordre, et rien de plus.
 
-`TASK-0012` à `TASK-0016` sont **closes et `VERIFIED`**; **`TASK-0017` est
-`IMPLEMENTED` et attend un contrôle indépendant**.
+`TASK-0012` à `TASK-0017` sont **closes et `VERIFIED`**; **`TASK-0018` est
+`APPROVED`**, son **gel `K1`–`K12` est commité avant tout code**.
+
+**FileTopo est multi-cerveaux** — `DEC-0017`. **Un `brain_id` n'est pas un
+`fixture_id`** : deux cerveaux peuvent partager une source et **doivent** rester
+indépendants. **Un `node_id` seul n'est jamais une identité globale.**
+**N'affiche pas deux cerveaux dans le même graphique** — c'est `TASK-0019` —
+et **ne crée aucune relation inter-cerveaux** — c'est `TASK-0020`.
 
 **Une tranche suivante exige sa propre fiche, ses critères gelés d'avance et
 son propre GO.** Ne t'attribue pas `VERIFIED`.

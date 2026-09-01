@@ -22,7 +22,7 @@
 > `F-019` — et **aucune ne descend**. **IA, OCR, extraction de contenu, RAG et
 > GraphRAG restent `DIFFÉRÉ`.**
 
-Ce document classe les 39 fonctions de la
+Ce document classe les 40 fonctions de la
 [matrice fonctionnelle](FEATURE_MATRIX.md) et fixe, pour chacune, un critère
 d'acceptation mesurable. Il ne remplace pas la matrice : celle-ci conserve les
 constats d'audit et les preuves de code; celui-ci ajoute la **coupe de MVP**
@@ -60,14 +60,24 @@ décision écrite, jamais par omission silencieuse.
 
 ## 2. Répartition obtenue
 
-**Répartition courante, après l'amendement du 2026-08-31 :**
+**Répartition courante, après l'amendement du 2026-09-01 (`DEC-0017`) :**
 
 | Classification | Nombre | Fonctions |
 |---|---:|---|
-| `MVP` | **35** | F-001 à F-020, F-022 à F-036 |
+| `MVP` | **36** | F-001 à F-020, F-022 à F-036, **F-040** |
 | `ULTÉRIEUR` | **0** | — |
 | `DIFFÉRÉ` | 4 | F-021, F-037, F-038, F-039 |
-| **Total** | **39** | `F-001` à `F-039`, sans trou ni doublon |
+| **Total** | **40** | `F-001` à `F-040`, sans trou ni doublon |
+
+**Répartition du 2026-08-31, avant l'ajout de `F-040`, conservée pour
+mémoire :**
+
+| Classification | Nombre | Fonctions |
+|---|---:|---|
+| `MVP` | 35 | F-001 à F-020, F-022 à F-036 |
+| `ULTÉRIEUR` | 0 | — |
+| `DIFFÉRÉ` | 4 | F-021, F-037, F-038, F-039 |
+| **Total** | 39 | `F-001` à `F-039` |
 
 **Répartition d'origine, arrêtée par `TASK-0011` le 2026-08-31, conservée pour
 mémoire :**
@@ -78,7 +88,7 @@ mémoire :**
 | `ULTÉRIEUR` | 4 | F-013, F-017, F-018, F-019 |
 | `DIFFÉRÉ` | 4 | F-021, F-037, F-038, F-039 |
 
-## 3. Baseline des 39 fonctions
+## 3. Baseline des 40 fonctions
 
 Colonne « Écart » : justification obligatoire lorsque la classification
 s'écarte de la colonne « Priorité » de la matrice fonctionnelle. Un `P0`
@@ -126,6 +136,7 @@ des correspondances attendues et ne constituent pas un écart.
 | F-037 | Extraction de contenu | `DIFFÉRÉ` | La vision place l'extraction hors du MVP structurel et la conditionne au consentement. | F-006 | Chaque format déclare sa couche, sa provenance et son traitement d'erreur; l'extraction est désactivée par défaut. | — (P2) |
 | F-038 | RAG cité | `DIFFÉRÉ` | Facultatif par décision de vision; sa présence ne doit jamais devenir nécessaire au produit. | F-037 | Réponse fondée sur des sources locales citées; aucun transfert distant sans consentement explicite et révocable. | — (P3) |
 | F-039 | GraphRAG | `DIFFÉRÉ` | À n'étudier qu'après un RAG hybride cité et sur besoin mesuré. | F-038 | Gain mesuré et reproductible contre le RAG cité, sur données synthétiques. | — (P3) |
+| F-040 | Vue composée multi-cerveaux | `MVP` | La direction produit (`DEC-0017`) fait du multi-cerveaux la forme du produit; une vue doit pouvoir en montrer plusieurs sans jamais les fusionner. | F-002, F-034 | Deux cerveaux synthétiques affichés dans la même vue n'ont **aucun** fichier de stockage commun, **aucun** état commun, et **chaque** élément affiché porte un cerveau d'origine non ambigu; retirer un cerveau de la vue ne modifie **aucune** de ses données. | **Oui** : P1 → `MVP`, extension produit décidée par `DEC-0017`. |
 
 ## 4. Contrôle de couverture
 
@@ -148,6 +159,19 @@ reportés dans [VALIDATION.md](../ai/VALIDATION.md), section `TASK-0011`) :
   `P2` vers `MVP`. **Aucun n'abaisse une fonction**;
 - **la catégorie `ULTÉRIEUR` est désormais vide.** Ce n'est pas une erreur : la
   parité ne laisse rien entre « nécessaire » et « différé ».
+
+**Après l'ajout de `F-040` le 2026-09-01 — contrôlé par relecture, non
+exécuté :**
+
+- **40 lignes**, `F-001` à `F-040`, aucun manquant, aucun dupliqué. **Une
+  fonction a été ajoutée, et elle est déclarée** : `F-040`, par
+  [DEC-0017](../decisions/DEC-0017-multibrain-and-composed-views.md). **Aucune
+  ligne existante n'a changé de classification, aucune n'est descendue, aucune
+  n'a disparu**;
+- **16 écarts** avec la colonne « Priorité » : les 15 ci-dessus, **plus**
+  `F-040`, qui va de `P1` vers `MVP`. **Aucun n'abaisse une fonction**;
+- `F-040` **n'est pas une exigence de parité** et n'en remplace aucune :
+  **`P-20` reste entière**, et le contrat CarteTopo n'est pas retouché.
 
 **Inférence.** Ces 11 écarts se concentrent dans « la navigation et les
 détails essentiels » que la vision place explicitement dans le MVP, plus

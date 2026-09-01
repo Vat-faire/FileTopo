@@ -2407,3 +2407,41 @@ une relation de ce nœud. Un test unitaire verrouille la correspondance.
 `TASK-0017` reste **`IMPLEMENTED`**. L'action unique suivante est le
 **re-contrôle indépendant**, mené par une instance **distincte de l'exécuteur**
 et se prononçant **sur preuves**.
+
+
+---
+
+## AA. TASK-0017 — re-contrôle indépendant : X3 et X4 CLOSED, TASK-0017 VERIFIED
+
+**Date :** 2026-09-01. **Contrôleur :** orchestrateur technique, instance
+**distincte de l'exécuteur**. **Rédacteur de cette entrée :** Claude Code,
+exécuteur — **elle enregistre un verdict, elle ne le rend pas.**
+
+| Élément | Verdict |
+|---|---|
+| `X3` | **`CLOSED`** |
+| `X4` | **`CLOSED`** |
+| `ACTION-0027` | **`CLOSED`** |
+| `TASK-0017` | **`VERIFIED`** |
+
+**Ce que ce `VERIFIED` ne porte pas.** **La révocation de `P-04` n'est pas
+implémentée**; elle reste **déclarée manquante et hors périmètre**, et **`P-04`
+demeure PARTIELLE**. **`TASK-0018` ne l'implémente pas.**
+
+**Aucune réserve autre que `X3` et `X4` n'est levée.** `V1` à `V4`, `W1` à
+`W4`, `R2` à `R9` restent en vigueur; `R8` ne peut l'être qu'à l'étape **C**.
+
+## AB. TASK-0018 — gel des critères K1 à K12, avant tout code
+
+**Date :** 2026-09-01. **Branche :** `build/v0.2-a3-multibrain-foundation`,
+créée depuis le tip contrôlé `50de16b`.
+
+**Aucun test n'est déclaré `PASS` par cette entrée.** Elle enregistre un
+**gel**, pas un résultat : le modèle de cerveau, les **trois cerveaux
+synthétiques figés**, la disposition du stockage et les critères **`K1` à
+`K12`** de [`TASK-0018`](../tasks/TASK-0018-multibrain-foundation.md) §4 sont
+commités **avant la première ligne de code**, comme pour `TASK-0016` et
+`TASK-0017`.
+
+**Non testé, et déclaré tel :** tout ce que `K1` à `K12` décrivent. Rien n'est
+encore exécuté.

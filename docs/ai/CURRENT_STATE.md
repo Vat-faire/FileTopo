@@ -1,9 +1,11 @@
 # État courant
 
 - **Dernière mise à jour :** 2026-09-01
-- **Branche active :** **`build/v0.2-a2-relations`**, créée depuis le tip
-  contrôlé `33704a1b900f664c3957927d5bd4d3502054f95c` de
-  `build/v0.2-p4-vertical-slice`
+- **Branche active :** **`build/v0.2-a3-multibrain-foundation`**, créée depuis
+  le tip **contrôlé** `50de16b3d69996f13eb4e6b467273373abce35bf` de
+  `build/v0.2-a2-relations`
+- **`build/v0.2-a2-relations` :** `50de16b`, **non touchée** depuis la
+  vérification
 - **`build/v0.2-p4-vertical-slice` :** `33704a1`, **non touchée**
 - **`spike/v0.2-budget-controller` :** porte la clôture d'`ACTION-0025`
 - **`spike/v0.2-render-budget` :** `933bd0d…`, **non touchée**
@@ -11,29 +13,82 @@
 - **`rebuild/v0.2-project-brain` :** `db8d3de0…`, **non touchée**
 - **`main` :** inchangée, `91bbe90f0f99026c28cd345784d4f579a0016db2`, **non
   touchée**
-- **Dernière tâche vérifiée :** **`TASK-0016`, `VERIFIED` le 2026-08-31**, sur
-  re-contrôle indépendant
-  [`ACTION-0026`](../reviews/ACTION-0026-independent-control.md) du commit
-  `a6cf092` — réserve **`X2` : `CLOSED`**, **`ACTION-0026` : `CLOSED`**
-- **Tâche précédente vérifiée :** `TASK-0015`, `VERIFIED`
+- **Dernière tâche vérifiée :** **`TASK-0017`, `VERIFIED` le 2026-09-01**, sur
+  **re-contrôle indépendant**
+  [`ACTION-0027`](../reviews/ACTION-0027-independent-control.md) §7 —
+  **`X3` : `CLOSED`**, **`X4` : `CLOSED`**, **`ACTION-0027` : `CLOSED`**.
+  Le verdict a été **rendu par l'orchestrateur indépendant** et **enregistré**
+  par l'exécuteur; **l'exécuteur ne s'est rien attribué**
+- **Tâches vérifiées précédemment :** `TASK-0016`, `VERIFIED` le 2026-08-31
+  ([`ACTION-0026`](../reviews/ACTION-0026-independent-control.md), réserve
+  **`X2` : `CLOSED`**); `TASK-0015`, `VERIFIED`
   ([`ACTION-0025`](../reviews/ACTION-0025-independent-control.md)), avec la
   réserve normative `X1`, corrigée
-- **Tâche livrée, NON vérifiée :** **`TASK-0017`, `IMPLEMENTED`** le
-  2026-09-01 — [fiche](../tasks/TASK-0017-crosscutting-relations.md), gel
-  `51a8cac`, code `a98676e`, corrections `X3`/`X4` `8a259e9`.
-  **Contrôle indépendant [`ACTION-0027`](../reviews/ACTION-0027-independent-control.md) :
-  `CHANGES_REQUIRED`, réserves `X3` et `X4` corrigées mais NON CLOSES.
-  Attend son re-contrôle indépendant.**
+- **Tâche ouverte :** **`TASK-0018`, `APPROVED`** le 2026-09-01 —
+  [fiche](../tasks/TASK-0018-multibrain-foundation.md), sous
+  [`DEC-0017`](../decisions/DEC-0017-multibrain-and-composed-views.md). **Gel
+  `K1`–`K12` commité avant toute ligne de code**
 - **Tâche IN_PROGRESS :** aucune
 - **Porte `P4` :** **FRANCHIE** —
   [`DEC-0016`](../decisions/DEC-0016-p4-gate-crossing-and-first-slice.md)
 
 ## Ce qui a changé, en une phrase
 
-**FileTopo sait désormais dire d'où vient une relation.** Pour la première fois
-du projet, un modèle de **provenance** existe en code de production — et il est
-bâti de telle sorte qu'une **relation établie sans provenance n'est pas
-représentable**.
+**FileTopo n'a plus une seule carte : il a des cerveaux.** La direction produit
+a tranché — l'application est **multi-cerveaux**, un cerveau a une **identité
+propre, distincte de sa source**, et une vue pourra un jour en composer
+plusieurs **sans jamais les fusionner**.
+
+**Et ce qui avait changé à la tranche précédente tient :** FileTopo sait dire
+d'où vient une relation, avec un modèle de **provenance** bâti de telle sorte
+qu'une **relation établie sans provenance n'est pas représentable** — désormais
+**`VERIFIED`**.
+
+## La direction produit a changé — `DEC-0017`
+
+**FileTopo est une application MULTI-CERVEAUX.** Décision de direction produit
+du 2026-09-01, enregistrée par
+[`DEC-0017`](../decisions/DEC-0017-multibrain-and-composed-views.md).
+
+**Un cerveau est une unité indépendante :** identité `brain_id` **distincte de
+sa source**, index propre, relations propres, état propre, nom, couleur et
+icône propres. Le mode normal affiche **un** cerveau actif.
+
+**Une vue composée pourra afficher plusieurs cerveaux dans le même
+graphique — sans jamais les fusionner.** Composer n'est qu'un affichage :
+ajouter ou retirer un cerveau d'une vue ne modifie aucune de ses données, et
+**afficher deux cerveaux ensemble ne crée jamais de relation entre eux**. Une
+relation inter-cerveaux ne peut exister qu'**explicitement**, sous le modèle de
+provenance de `TASK-0017`. **Supprimer un cerveau ne supprime jamais sa
+source.** **La couleur n'est jamais le seul identifiant.**
+
+**Une fonction est ajoutée au modèle produit :** **`F-040` — vue composée
+multi-cerveaux**, `MVP`. Répartition : **`MVP` 36, `ULTÉRIEUR` 0, `DIFFÉRÉ` 4,
+total 40**. **`P-20` reste une exigence de parité entière**, et le contrat
+CarteTopo n'est pas retouché : `F-040` est une **extension produit déclarée**,
+pas une modification silencieuse.
+
+**Les invariants `I-1`, `I-2`, `I-3` sont inchangés.**
+
+**Séquence technique décidée :** `TASK-0018` fondation multi-cerveaux et
+bascule → `TASK-0019` vue composée → `TASK-0020` relations inter-cerveaux.
+**`TASK-0018` n'implémente que la première ligne.**
+
+## TASK-0018 — le gel précède le code
+
+Le **gel** de `TASK-0018` §4 — modèle de cerveau, **trois cerveaux synthétiques
+figés**, disposition du stockage, et **critères `K1` à `K12`** — est commité
+**avant la première ligne de code**, comme pour `TASK-0016` et `TASK-0017`.
+
+**`brain-alpha` et `brain-gamma` partagent volontairement la fixture
+`quasi-empty`.** C'est le test principal : même source, mêmes chemins relatifs,
+mêmes identifiants locaux possibles, et **deux cerveaux totalement
+indépendants**.
+
+**Hors périmètre et déclaré tel :** affichage simultané, relations
+inter-cerveaux, racine utilisateur, sélecteur de dossier, `P-08`, `P-09`,
+watcher, journal, vu/non-vu, `P-19` complète, IA/OCR/RAG/GraphRAG,
+**révocation de `P-04`**, `I-E` complète, migration de données utilisateur.
 
 ## TASK-0017 — la deuxième tranche verticale
 
@@ -273,8 +328,9 @@ performance.**
    modernisée**. **Aucune copie pixel pour pixel n'est demandée.**
 3. **Aucune amélioration visuelle ne supprime la parité fonctionnelle.** En cas
    de conflit, **la parité gagne**.
-4. **`F-013`, `F-017`, `F-018`, `F-019` restent `MVP`.** Répartition : `MVP`
-   35, `ULTÉRIEUR` 0, `DIFFÉRÉ` 4, sur 39 lignes.
+4. **`F-013`, `F-017`, `F-018`, `F-019` restent `MVP`**, et **`F-040` est
+   ajoutée** par `DEC-0017`. Répartition : `MVP` **36**, `ULTÉRIEUR` 0,
+   `DIFFÉRÉ` 4, sur **40** lignes.
 5. **IA, OCR, extraction, RAG et GraphRAG restent `DIFFÉRÉ`.** `DEC-0012`
    inchangée; **aucune exigence de parité ne peut être satisfaite au moyen de
    l'une de ces couches**.
@@ -295,7 +351,7 @@ transversale. `X1` contraint la tranche qui implémentera `P-04`, `P-05`, `P-07`
 
 | Étape | Objet | État |
 |---|---|---|
-| **A** | **Parité fonctionnelle MVP** | **EN COURS** — `TASK-0016` **`VERIFIED`**, `TASK-0017` **`IMPLEMENTED`**; **douze exigences restent entières** |
+| **A** | **Parité fonctionnelle MVP** | **EN COURS** — `TASK-0016` **`VERIFIED`**, `TASK-0017` **`VERIFIED`**, `TASK-0018` **`APPROVED`** (gel commité); **douze exigences restent entières**, dont `P-20` |
 | **B** | Finition visuelle moderne | PROPOSED — **ne commence pas** avant que **A** soit contrôlée |
 | **C** | Validation Windows/WebView2 réelle. **`R8` ne peut être levée qu'ici** | PROPOSED |
 | **D** | Empaquetage et publication — **réservé à Sébastien** | PROPOSED |
@@ -309,13 +365,19 @@ sur GitHub, commit `a6cf092`. **`X2` et `ACTION-0026` sont `CLOSED`.**
 conformité de sa surface exposée. **Pas** la faisabilité du reste du contrat de
 parité — **seize exigences ne sont pas commencées**.
 
-**`TASK-0017` est `IMPLEMENTED`, et rien de plus.** L'exécuteur ne s'est pas
-auto-attribué `VERIFIED`. Le contrôle indépendant `ACTION-0027` a rendu
-**`CHANGES_REQUIRED`**; les réserves `X3` et `X4` sont **corrigées, non
-closes**. L'action unique suivante est le **re-contrôle indépendant**, mené par
-une instance **distincte de l'exécuteur** et se prononçant **sur preuves** :
-`docs/performance/runs/TASK-0017-J12-webview2.json` et
-`docs/performance/runs/TASK-0017-J11-isolation.json`.
+**`TASK-0017` est `VERIFIED`**, sur **re-contrôle indépendant** mené par une
+instance **distincte de l'exécuteur** et se prononçant **sur preuves** —
+`ACTION-0027` §7. **`X3`, `X4` et `ACTION-0027` sont `CLOSED`.**
+
+**Ce que ce `VERIFIED` porte :** la qualité des preuves de la tranche, le
+verrouillage **structurel** de la création d'une relation `APPROVED`, et la
+réalité de la frappe clavier de `J12`. **Pas** le reste du contrat de parité.
+
+**Ce qu'il ne porte pas :** **la révocation de `P-04` n'est toujours pas
+implémentée**. Elle reste **déclarée manquante et hors périmètre**, et
+**`P-04` demeure PARTIELLE**. **`TASK-0018` ne l'implémente pas.**
+
+**L'action unique suivante est l'exécution de `TASK-0018`.**
 
 **Une tranche suivante exigera sa propre fiche, ses critères gelés d'avance et
 son propre GO.**

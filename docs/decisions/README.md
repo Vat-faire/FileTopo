@@ -71,6 +71,18 @@ conséquence de son contrôle. **`DEC-0014` et `DEC-0015` sont inchangées**, et
 **aucune réserve n'est levée** — `V1` à `V4`, `W1` à `W4`, `R2` à `R9` restent
 en vigueur, `R8` ne pouvant l'être qu'à l'**étape C**.
 
+**Mise à jour du 2026-09-01 — FileTopo est multi-cerveaux.** Une dixième fiche
+enregistre une **décision de direction produit**, rendue par Sébastien :
+
+| Fiche | État | Ce qui est retenu |
+|---|---|---|
+| [DEC-0017](DEC-0017-multibrain-and-composed-views.md) | `APPROVED` | **FileTopo est une application multi-cerveaux**; un cerveau a une **identité `brain_id` distincte de sa source**, son index, ses relations, son état, son nom, sa couleur et son icône; le mode normal affiche **un** cerveau actif; une **vue composée** pourra en afficher plusieurs **dans le même graphique, sans jamais les fusionner**; l'affichage conjoint **ne crée jamais** de relation; une relation inter-cerveaux n'existe **qu'explicitement**, sous le modèle de provenance de `TASK-0017`; **supprimer un cerveau ne supprime jamais sa source**; **la couleur n'est jamais le seul identifiant**; ajout de **`F-040`** au modèle produit (`MVP`, matrice à **40** lignes); séquence **`TASK-0018` → `TASK-0019` → `TASK-0020`** |
+
+`DEC-0017` **ne supplante rien** : elle **généralise `P-20`** sans en affaiblir
+l'exigence d'isolation, et laisse **`I-1`, `I-2`, `I-3` inchangés**. Le
+**contrat de parité n'est pas retouché** et conserve ses 22 exigences. **Aucune
+réserve n'est levée.**
+
 `DEC-0013` **complète** `DEC-0008`, `DEC-0009` et `DEC-0011` sans les
 remplacer : chacune porte un **amendement en fin de fiche**, et leur texte
 d'origine est conservé intact. Le paragraphe ci-dessus reste vrai **au moment
