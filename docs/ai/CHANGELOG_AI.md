@@ -2132,3 +2132,86 @@ effective de la commande **se vérifiera à la prochaine session**.
 
 **Spécifier la prochaine tranche de l'étape A**, avec ses critères **gelés
 avant tout code**.
+
+---
+
+## 2026-09-01 — TASK-0017 : relations transversales avec provenance
+
+**Branche `build/v0.2-a2-relations`**, créée depuis le tip contrôlé `33704a1`.
+**Deuxième tranche de production de l'étape A.** État final : **`IMPLEMENTED`**,
+**jamais `VERIFIED`**.
+
+### Fait
+
+- **Fiche `TASK-0017` écrite et gelée AVANT tout code** — commit `51a8cac` :
+  modèle normatif, deux types, clé d'endpoint `ek1`, lieu de stockage, deux
+  règles déterministes versionnées, fixture synthétique de 12 relations et
+  8 suggestions, **comptes attendus nœud par nœud**, et critères `J1` à `J12`.
+  Premier code de production : `a98676e`.
+- **Un modèle de provenance, structurel.** `relations_deterministic` et
+  `relations_approved` sont **deux tables séparées** (`DEC-0009` `R-C`) : la
+  provenance **est** la table, donc une relation établie sans provenance n'est
+  **pas représentable**. Il n'existe **aucune troisième valeur**.
+- **La correction `X1` est implémentée.** Une suggestion est un objet et un
+  état **distincts**, dans sa propre table; elle n'entre dans aucun compte, et
+  **seule** une approbation explicite la transforme en relation `APPROVED`.
+- **Aucun inverse n'est jamais déduit.** Une règle peut se déclarer symétrique;
+  **aucune des deux règles de cette tranche ne l'est**, et l'absence d'inverse
+  est vérifiée sur les huit paires concernées.
+- **Quatre commandes `map_*`** — `map_relations_open`, `map_relations_for_node`,
+  `map_relations_approve`, `map_relations_self_check` — donc **sous la
+  protection des tests-gardes `X2`**, qui restent `PASS`.
+- **Panneau des relations** groupé par direction puis par type, provenance en
+  toutes lettres, règle et version consultables, chaque entrée étant un
+  `<button>` qui sélectionne l'autre extrémité.
+- **Relations dessinées sur la carte** à partir des rectangles **déjà
+  persistés**, sans aucun recalcul de calepinage : relation établie en trait
+  plein à tête de flèche, suggestion en trait tireté **sans tête** et à anneaux
+  ouverts. **Jamais la couleur seule.**
+- **Accentuation `P-06` complétée** de sa part transversale, l'atténué restant
+  **visible, nommé et dans l'arbre**.
+- **Preuves publiées :** `TASK-0017-J12-webview2.json`, scénario complet dans
+  **WebView2 `151.0.4129.107`**, et `TASK-0017-J11-isolation.json`.
+
+### Trouvé, et corrigé avant publication
+
+- **Le type d'une relation n'était pas confronté aux deux types déclarés**,
+  seulement à la non-vacuité — une lacune du modèle gelé, révélée par un
+  avertissement de code mort. Corrigé, motif
+  `relation_rejected_unknown_type`, couvert par un test.
+- **Trois défauts du harnais de mesure** — panneau lu trop tôt, attente bornée
+  en images plutôt qu'en temps, atténuation lue sur le groupe et non sur le
+  rectangle — et **un incident d'exécution**, deux instances de l'application
+  en parallèle sur le même magasin. **Tous publiés avec ce qu'ils auraient
+  produit.** Les artefacts contradictoires ont été **détruits**; la campagne
+  publiée vient d'une **exécution unique sur le binaire final**.
+
+### Non fait, volontairement
+
+- **`P-08`, `P-09`, surveillance, journal, vu/non-vu, `P-19`** : non commencés.
+- **Aucune heuristique réelle de suggestion.** Les huit suggestions sont
+  écrites d'avance dans la fiche.
+- **Aucune donnée réelle, aucun sélecteur de dossier**, aucune commande héritée
+  de la 0.1 réactivée, **aucune nouvelle dépendance**.
+- **La révocation d'une relation approuvée n'est pas implémentée** : aucun
+  critère gelé ne la nomme. **`P-04` reste PARTIELLE**, et c'est écrit.
+- **Canvas et WebGL restent fermés.** `src/App.tsx` est **intact**.
+- **`R8` non levée**, **`B0` non corrigé**, **aucune mesure de performance,
+  aucun seuil inventé**, **rien supprimé** dans `src-tauri/target/`.
+- **Aucune fusion, PR, release, étiquette, `force push`**, aucune réécriture
+  d'historique.
+
+### Gouvernance
+
+**La commande `/debut-session` a été réellement exercée avec succès dans Claude
+Code `2.1.252`**, dans une **nouvelle session** ouverte après l'installation des
+skills : skill découvert et résolu, protocole partagé
+`.orchestrator/protocols/debut-session.md` lu et exécuté, Git vérifié avant
+toute lecture, lecture minimale respectée, aucun travail interrompu.
+**La réserve « non testé » du 2026-08-31 est levée pour Claude Code.** Elle
+**reste entière pour Codex**.
+
+### Prochaine action unique
+
+**Contrôle indépendant de `TASK-0017`**, par une instance **distincte de
+l'exécuteur**, **sur preuves**.

@@ -1,12 +1,15 @@
 # HANDOFF — passage de relais
 
-- **Dernière mise à jour :** 2026-08-31
-- **Branche active :** `build/v0.2-p4-vertical-slice`
+- **Dernière mise à jour :** 2026-09-01
+- **Branche active :** **`build/v0.2-a2-relations`**, créée depuis le tip
+  contrôlé `33704a1` de `build/v0.2-p4-vertical-slice`
 - **Dernière tâche vérifiée :** **`TASK-0016`, `VERIFIED`** le 2026-08-31, sur
   re-contrôle indépendant
   [`ACTION-0026`](../reviews/ACTION-0026-independent-control.md) du commit
   `a6cf092` — **`X2` : `CLOSED`**, **`ACTION-0026` : `CLOSED`**
-- **Tâche livrée, NON vérifiée :** aucune
+- **Tâche livrée, NON vérifiée :** **`TASK-0017`, `IMPLEMENTED`** le
+  2026-09-01 — relations transversales avec provenance. **Attend son contrôle
+  indépendant.**
 - **Tâche IN_PROGRESS :** aucune
 - **Porte `P4` :** **FRANCHIE** —
   [`DEC-0016`](../decisions/DEC-0016-p4-gate-crossing-and-first-slice.md)
@@ -73,6 +76,36 @@ strictement limités au périmètre déjà déclaré**.
 12. **Aucune donnée réelle, aucun sélecteur de dossier, aucun chemin local
     personnel dans le dépôt** — artefacts de mesure compris.
 
+## TASK-0017 — la deuxième tranche, livrée et non vérifiée
+
+**Un modèle de provenance existe.** C'est la première fois du projet.
+
+1. **La provenance est la table, pas une colonne.** `relations_deterministic`
+   et `relations_approved` sont **deux tables séparées** — `DEC-0009` `R-C`.
+   Il n'existe **aucune** colonne `provenance` qu'un `NULL` pourrait vider, et
+   **aucune** colonne de règle dans la table des approuvées. Une relation
+   établie sans provenance est **non représentable**, pas seulement interdite.
+2. **Une suggestion n'est pas une relation** — correction `X1`. Table
+   distincte, état propre, **jamais** dans un compte, et **seule** une
+   approbation explicite la transforme.
+3. **Aucun inverse n'est jamais déduit.** Aucune des deux règles n'est
+   symétrique.
+4. **Les relations vivent hors de l'index reconstructible :**
+   `<bac à sable>/relations/<fixture>/relations.sqlite`. Une reconstruction
+   complète de `maps/` n'y touche pas — vérifié sur les quatre fixtures.
+5. **La clé d'endpoint `ek1|<fixture>|<chemin relatif>` n'est PAS `I-E`.**
+   C'est le repli déterministe, déclaré comme tel. `VolumeSerialNumber` +
+   `FileId`, déplacements et renommages réels restent entiers.
+6. **Les relations ne sont ouvertes que pour `quasi-empty`**, la fixture gelée.
+   Toute autre fixture est refusée **en toutes lettres** — la règle
+   `homonymes` est quadratique et produirait des centaines de milliers de
+   paires sur `wide`. **C'est une portée, pas une troncature.**
+7. **`P-04` reste PARTIELLE** : la **révocation** d'une relation approuvée
+   n'est pas implémentée, alors que la parité §5.2 l'exige. Déclarée manquante.
+8. **Aucune mesure de performance n'a été prise et aucun seuil n'a été
+   inventé** : `TASK-0017` n'en demandait aucun.
+9. **Ne pas s'attribuer `VERIFIED`.** La tâche est `IMPLEMENTED`.
+
 ## Comment faire tourner la tranche
 
     pnpm install
@@ -84,10 +117,17 @@ Les quatre fixtures sont **engendrées** au premier clic, dans
 
 Deux modes non surveillés, **développement seulement** :
 
-    CARGO_INCREMENTAL=0 FILETOPO_AUTO_VERIFY=1 pnpm tauri dev   # rejoue H1-H7, H10, H11
-    CARGO_INCREMENTAL=0 FILETOPO_AUTO_MEASURE=1 pnpm tauri dev  # rejoue H9
+    CARGO_INCREMENTAL=0 FILETOPO_AUTO_VERIFY=1 pnpm tauri dev     # rejoue H1-H7, H10, H11
+    CARGO_INCREMENTAL=0 FILETOPO_AUTO_MEASURE=1 pnpm tauri dev    # rejoue H9
+    CARGO_INCREMENTAL=0 FILETOPO_AUTO_RELATIONS=1 pnpm tauri dev  # rejoue J12
 
 Chacun écrit son artefact sous `docs/performance/runs/`.
+
+**Avant de rejouer `J12` :** remettre le magasin de relations à neuf —
+`rm -rf .filetopo-sandbox/relations` — et **n'ouvrir qu'une seule instance de
+l'application**. Deux instances partageant le même magasin produisent des
+artefacts contradictoires; c'est arrivé, c'est déclaré, et les artefacts
+concernés ont été détruits.
 
 **Si une course reste muette :** la fenêtre doit rester visible. Chromium
 suspend `requestAnimationFrame` pour une fenêtre occultée; la course échoue
@@ -153,22 +193,28 @@ code. Détail dans [NEXT_ACTION.md](NEXT_ACTION.md).
     git rev-parse HEAD
     git status --short
     git log --oneline 73f0327..HEAD
-    git show 6edd5bd --stat    # le gel des critères, AVANT tout code
-    git show 130b670 --stat    # le premier code de production
+    git show 6edd5bd --stat    # TASK-0016 : le gel, AVANT tout code
+    git show 130b670 --stat    # TASK-0016 : le premier code de production
+    git show 51a8cac --stat    # TASK-0017 : le gel, AVANT tout code
+    git show a98676e --stat    # TASK-0017 : le premier code de production
 
     CARGO_INCREMENTAL=0 cargo test --manifest-path src-tauri/Cargo.toml --lib
-    pnpm test
+    pnpm check && pnpm test
 
 ## Message court pour Claude Code
 
-Lis seulement CLAUDE.md, docs/ai/START_HERE.md, docs/ai/CURRENT_STATE.md et
-docs/ai/NEXT_ACTION.md. `TASK-0012` à `TASK-0015` sont **closes et
-`VERIFIED`**; **`TASK-0016` est `IMPLEMENTED` et attend un contrôle
-indépendant**.
+Lance `/debut-session`. Elle lit ce qu'il faut, dans l'ordre, et rien de plus.
 
-**La porte `P4` est franchie**, mais elle n'autorisait que `TASK-0016`. **Une
-tranche suivante exige sa propre fiche, ses critères gelés d'avance et son
-GO.** Ne t'attribue pas `VERIFIED`.
+`TASK-0012` à `TASK-0016` sont **closes et `VERIFIED`**; **`TASK-0017` est
+`IMPLEMENTED` et attend un contrôle indépendant**.
+
+**Une tranche suivante exige sa propre fiche, ses critères gelés d'avance et
+son propre GO.** Ne t'attribue pas `VERIFIED`.
+
+**Une suggestion n'est jamais une relation** — correction `X1`. **La provenance
+d'une relation établie n'a que deux valeurs**, et c'est la table qui la porte.
+**N'implémente aucune heuristique réelle de suggestion.** **Ne prétends pas que
+`ek1` implémente `I-E`.**
 
 **N'ouvre pas Canvas 2D ni WebGL.** **Ne reprends aucun contrôleur de budget de
 spike.** **Ne corrige pas `B0` et ne supprime rien** dans `src-tauri/target/`.

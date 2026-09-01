@@ -2149,3 +2149,112 @@ testé plutôt que présumé.
 `TASK-0016` est **`VERIFIED`**. Aucune tâche n'est `IN_PROGRESS`. L'action
 unique suivante est de **spécifier la prochaine tranche de l'étape A**, avec
 ses critères **gelés avant tout code**.
+
+---
+
+## Z. TASK-0017 — relations transversales avec provenance
+
+**Branche `build/v0.2-a2-relations`.** Gel `51a8cac` **avant** tout code,
+premier code de production `a98676e`. Tâche **`IMPLEMENTED`**, **jamais
+`VERIFIED`** : l'exécuteur ne s'auto-vérifie pas.
+
+### Z.1 La commande `/debut-session` a été réellement exercée — PASS
+
+**Ce que `ACTION-0026` avait laissé NON TESTÉ est maintenant testé.**
+
+Le 2026-09-01, dans une **nouvelle session Claude Code**, ouverte **après**
+l'installation des skills du commit `4fb5416` :
+
+- le skill **`/debut-session` a été découvert et résolu** par le CLI;
+- le renvoi a été suivi jusqu'à
+  **`.orchestrator/protocols/debut-session.md`**, la procédure partagée, qui a
+  été lue et exécutée intégralement;
+- l'ordre du protocole a été respecté : **Git d'abord** — racine, branche,
+  `HEAD`, `upstream`, propreté —, **puis** la lecture minimale
+  `AGENTS.md` → `CURRENT_STATE.md` → `NEXT_ACTION.md`;
+- **aucun travail interrompu** n'a été détecté, donc aucune bascule vers
+  `reprise-session`;
+- la lecture est restée **minimale** : ni parcours de `docs/`, ni lecture de
+  `src/`, ni de `graph/`, ni de `VALIDATION.md` ou `CHANGELOG_AI.md` en entier.
+
+**Verdict : PASS.** La réserve « non testé » de la section `Y.4` est **levée**
+pour Claude Code. **Elle reste entière pour Codex** : l'exécution réelle d'un
+`$debut-session` en session Codex **n'a toujours pas été jouée**.
+
+### Z.2 Validation exécutée pour TASK-0017
+
+| Contrôle | Commande | Résultat |
+|---|---|---|
+| Tests Rust | `CARGO_INCREMENTAL=0 cargo test --manifest-path src-tauri/Cargo.toml --lib` | **75 / 75** |
+| Tests-gardes `X2` | idem, `exposed_commands_stay_within_the_slice`, `no_exposed_command_can_open_a_folder_picker` | **PASS** |
+| Tests TypeScript | `pnpm test` | **81 / 81** |
+| Types | `pnpm check` | **PASS** |
+| Build interface | `pnpm build` | **PASS** |
+| Build Tauri release, sans empaquetage | `CARGO_INCREMENTAL=0 pnpm tauri build --no-bundle` | **PASS**, `1 min 21 s` |
+| `J12` dans WebView2 réel | `FILETOPO_AUTO_RELATIONS=1 pnpm tauri dev` | **PASS** — `TASK-0017-J12-webview2.json` |
+| `J11` isolation | rejeu `FILETOPO_AUTO_VERIFY=1`, relations en place | **PASS** — `TASK-0017-J11-isolation.json` |
+
+**Aucune nouvelle dépendance.** `package.json`, `pnpm-lock.yaml` et
+`src-tauri/Cargo.toml` sont **inchangés**.
+
+### Z.3 Les douze critères gelés
+
+`J1` à `J12` : **TENUS**. Le détail, avec les motifs de rejet observés et les
+chiffres relevés dans l'hôte, est en §7 de la fiche `TASK-0017`.
+
+Points saillants, vérifiables sans relire la fiche :
+
+- **La provenance est la table, pas une colonne.** Le schéma lu directement
+  dans le SQLite ne contient **aucune** colonne `provenance`, et
+  `relations_approved` n'a **aucune** colonne de règle.
+- **Les cinq tentatives invalides** ont toutes été rejetées avec **exactement**
+  le motif gelé, et **aucune** n'a laissé de ligne établie.
+- **12 / 12 nœuds** conformes à l'attendu gelé de §4.6.3, **0 inverse
+  inventé**, **0 suggestion** dans un compte de relations établies.
+- **Après reconstruction complète des quatre index de carte :** 5 relations
+  approuvées et 3 suggestions **intactes**, digest déterministe identique,
+  **0 extrémité non résolue**.
+
+### Z.4 Quatre défauts de protocole, déclarés
+
+Trois dans le harnais de mesure — panneau lu trop tôt, attente bornée en images
+plutôt qu'en temps, atténuation lue sur le mauvais élément — et un d'exécution,
+**deux instances de l'application en parallèle sur le même magasin**.
+
+**Chacun aurait produit un chiffre faux ou flatteur, et chacun est publié avec
+ce qu'il aurait produit** — fiche §7.5. Les artefacts contradictoires ont été
+**détruits**, et la campagne publiée provient d'une **exécution unique sur le
+binaire final**.
+
+### Z.5 Une lacune du modèle, trouvée et corrigée
+
+Le type d'une relation était vérifié **non vide** mais **jamais confronté aux
+deux types déclarés** en §4.2. Corrigé avant publication, motif
+`relation_rejected_unknown_type`, couvert par un test.
+
+### Z.6 Ce qui n'est PAS déclaré PASS
+
+- **`R8` n'est pas levée.** **Aucune mesure de performance n'a été prise**, et
+  `TASK-0017` n'en demandait aucune. **Aucun seuil n'a été inventé.**
+- **`I-E` n'est pas implémentée.** `ek1` est un repli déterministe déclaré;
+  `VolumeSerialNumber` + `FileId`, déplacements et renommages réels restent
+  entiers.
+- **`P-04` reste PARTIELLE** : la **révocation** d'une relation approuvée n'est
+  pas implémentée, alors que la parité §5.2 l'exige. Déclarée manquante.
+- **L'activation au clavier d'une entrée de panneau n'a pas été jouée par une
+  frappe de confiance** : un script ne peut pas en forger une. Ce qui est
+  prouvé est l'atteignabilité par le focus et l'activation par le comportement
+  propre du bouton. **Les flèches de la carte, elles, sont exercées pour de
+  vrai.**
+- **`P-21` n'est pas satisfaite** : français seulement, aucun audit WCAG
+  complet, **aucun lecteur d'écran réel**.
+- **Les relations d'un seul cerveau synthétique sont exercées.** Les autres
+  fixtures sont refusées **en toutes lettres**, pas servies à moitié.
+- **`B0` n'est pas corrigé**, rien n'a été supprimé dans `src-tauri/target/`.
+- **`$debut-session` en session Codex reste non testé.**
+
+### Z.7 Conséquence
+
+`TASK-0017` est **`IMPLEMENTED`**. L'action unique suivante est son **contrôle
+indépendant**, mené par une instance **distincte de l'exécuteur** et se
+prononçant **sur preuves**.

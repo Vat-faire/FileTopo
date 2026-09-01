@@ -5,8 +5,8 @@
   transversales explicites avec provenance**, entrantes et sortantes
   distinguées, panneau des relations, et la part « relations transversales » de
   l'accentuation de sélection
-- **Statut :** **`APPROVED`** le 2026-09-01, sous le GO technique de
-  l'orchestrateur qui nomme cette fiche
+- **Statut :** **`IMPLEMENTED`** le 2026-09-01 — résultat en §7. **Pas
+  `VERIFIED` :** l'exécuteur ne s'auto-vérifie pas
 - **Phase :** étape **A** de la feuille de route — parité fonctionnelle MVP,
   **deuxième** tranche
 - **Proposée le :** 2026-09-01
@@ -404,3 +404,201 @@ cette tranche.
 | 2026-09-01 | `PROPOSED` | Fiche rédigée, tranche choisie par l'orchestrateur technique |
 | 2026-09-01 | `APPROVED` | GO technique nommant `TASK-0017` et son périmètre |
 | 2026-09-01 | `IN_PROGRESS` | Gel §4 commité **avant** la première ligne de code de production |
+
+---
+
+## 7. Résultat — état `IMPLEMENTED`
+
+**Statut : `IMPLEMENTED` le 2026-09-01.** **Pas `VERIFIED` :** l'exécuteur ne
+s'auto-vérifie pas. Le contrôle indépendant reste à faire.
+
+**Gel commité avant tout code** — `51a8cac`. **Premier code de production** —
+`a98676e`. **Aucun critère `J1` à `J12` n'a été retouché** après le premier
+résultat.
+
+### 7.1 Les douze critères gelés
+
+| Critère | Verdict | Preuve |
+|---|---|---|
+| `J1` modèle, provenance à deux valeurs | **TENU** | tables séparées; `Provenance::parse` rejette `suggested`, vide, inconnu; `X-a` et `X-b` rejetés |
+| `J2` `X1` — suggestion ≠ relation | **TENU** | table distincte; 0 suggestion dans un compte établi; `X-e` rejeté |
+| `J3` règle déterministe versionnée | **TENU** | 8/8 portent `rule_name` + `rule_version`; `X-c` et `X-d` rejetés; rejeu identique |
+| `J4` approbation | **TENU** | +1 relation `APPROVED`, état passé à `approved`, 2ᵉ approbation refusée |
+| `J5` direction | **TENU** | 12/12 nœuds conformes à l'attendu gelé; 0 inverse inventé |
+| `J6` panneau | **TENU** | 2 sections de direction, type, direction, provenance, règle consultable, entrées `<button>` |
+| `J7` navigation | **TENU** | activer une entrée sélectionne l'autre extrémité; carte et panneau synchronisés |
+| `J8` accentuation `P-06` | **TENU** | 1 sélectionné, 1 parent, 3 voisins établis, 7 atténués **visibles et nommés** |
+| `J9` affichage | **TENU** | 12 têtes de flèche sur 12 relations établies, **0** sur 4 suggestions |
+| `J10` reconstruction | **TENU** | après reconstruction des 4 index : 5 approuvées, 3 suggestions, digest identique |
+| `J11` lecture seule et isolation | **TENU** | empreintes identiques, 0 artefact dans la racine analysée, gardes `X2` `PASS` |
+| `J12` hôte réel | **TENU** | scénario complet dans **WebView2 `151.0.4129.107`** |
+
+### 7.2 Le modèle, tel qu'il est réellement stocké
+
+**La provenance n'est pas une colonne. C'est la table.** Lu directement dans le
+fichier SQLite après exécution — `TASK-0017-J11-isolation.json` :
+
+| Table | Colonnes |
+|---|---|
+| `relations_deterministic` | `id`, `source_key`, `target_key`, `relation_type`, `rule_name`, `rule_version`, `rule_symmetric` |
+| `relations_approved` | `id`, `source_key`, `target_key`, `relation_type`, `suggestion_key`, `approved_unix_ms` |
+| `relation_suggestions` | `suggestion_key`, `source_key`, `target_key`, `relation_type`, `basis`, `state`, `created_unix_ms`, `decided_unix_ms` |
+
+**Il n'existe nulle part une colonne `provenance`** qu'un `NULL` pourrait vider,
+ni une colonne de règle dans la table des relations approuvées : une relation
+`APPROVED` **ne peut pas** prétendre venir d'une règle, faute d'endroit où
+l'écrire. `relation_meta` porte `schema_version=1`, `endpoint_key_scheme=ek1`,
+`seed_version=task-0017-v1`.
+
+### 7.3 Les cinq tentatives invalides, et leurs motifs observés
+
+| # | Motif attendu | Motif observé | Rejetée |
+|---|---|---|---|
+| `X-a` | `relation_rejected_unknown_provenance` | `relation_rejected_unknown_provenance` | **oui** |
+| `X-b` | `relation_rejected_unknown_provenance` | `relation_rejected_unknown_provenance` | **oui** |
+| `X-c` | `relation_rejected_missing_rule` | `relation_rejected_missing_rule` | **oui** |
+| `X-d` | `relation_rejected_missing_rule` | `relation_rejected_missing_rule` | **oui** |
+| `X-e` | `relation_rejected_suggestion_is_not_a_relation` | `relation_rejected_suggestion_is_not_a_relation` | **oui** |
+
+**Aucune tentative n'a laissé la moindre ligne** dans les tables de relations
+établies — vérifié après coup, et non déduit du fait que l'appel a échoué.
+
+### 7.4 Ce que `J12` a réellement exécuté dans WebView2
+
+`docs/performance/runs/TASK-0017-J12-webview2.json`, hôte **WebView2
+`151.0.4129.107`**, Tauri `2.11.5`, SQLite `3.53.2`.
+
+- **Ouverture :** 12 relations établies — 8 `DETERMINISTIC`, 4 `APPROVED` —,
+  4 suggestions en attente, **0 extrémité non résolue**.
+- **Nœud bidirectionnel :** `dossier-a/note-1.txt`, **3 sortantes, 1 entrante**.
+- **Panneau lu à l'écran :** sections « Sortantes (3) » et « Entrantes (1) »,
+  4 entrées, provenances rendues `◆ déterministe` ×3 et `● approuvée` ×1,
+  lignes de règle `homonymes version v1` ×2, `suites-numerotees version v1`, et
+  pour l'approuvée « Approuvée par une action explicite. Aucune règle
+  déterministe. » Total affiché : **« 3 sortante(s) · 1 entrante(s) ·
+  1 suggestion(s) non comptée(s) »**.
+- **Clavier de la carte, réellement exercé :** un `keydown` `ArrowUp` reçu par
+  le gestionnaire du composant fait passer `aria-activedescendant` de
+  `map-node-6` à `map-node-2`, puis `ArrowDown` le ramène.
+- **Traversée d'une relation :** l'entrée est un `<button>` non désactivé,
+  **atteint par le focus**; son activation porte la sélection sur `map-node-9`,
+  l'autre extrémité.
+- **Accentuation :** 1 sélectionné, 1 parent, **3 voisins par relation
+  établie**, 7 atténués. L'atténué garde `role="treeitem"`, un `aria-label` non
+  vide, une opacité de remplissage de **0,28** et un contour à **0,45** —
+  **visible, lisible, atteignable**. Le lien se distingue en plus par un contour
+  de **2,5 px** en **tirets `6 2`** : jamais la couleur seule.
+- **Suggestions sur la carte :** 12 relations établies portent **12** têtes de
+  flèche; 4 suggestions en portent **0**, avec un trait `5 5` et 8 anneaux
+  ouverts.
+- **Approbation :** avant, `S-005` **n'est comptée nulle part** —
+  `beforeCountedAmongEstablished: false`, 3 sortantes. Après, **4 sortantes**,
+  provenance `APPROVED`, **aucun nom de règle**, plus aucune suggestion en
+  attente sur ce nœud. `enteredCountsOnlyAfterApproval: true`.
+- **Contrôle rejoué dans l'hôte :** 5/5 rejets, rejeu stable
+  (`fnv1a64:d794113801460e7f` deux fois), **12/12 nœuds conformes**, 0 inverse
+  inventé, 0 suggestion dans les établies, 0 extrémité non résolue.
+
+### 7.5 Trois défauts de protocole, trouvés et corrigés avant la campagne publiée
+
+Comme pour `TASK-0016` §13.4, ils sont publiés **avec ce qu'ils auraient
+produit**. **Aucune mesure publiée ne provient d'avant leur correction.**
+
+1. **Le panneau était lu trop tôt.** La première exécution a publié
+   « 0 sortante(s) · 0 entrante(s) » : le panneau lit ses relations par une
+   commande, donc il accuse un retard sur la sélection. **Le chiffre publié
+   aurait été celui de la sélection précédente.** Corrigé par une attente
+   **bornée en temps**; l'artefact publie désormais `settled` et le temps
+   attendu.
+2. **L'attente était bornée en images, pas en temps.** Une image dure 4 ms sur
+   cet écran 240 Hz et 16 ms sur un écran 60 Hz : le même budget aurait été une
+   attente différente sur chaque machine, et ici il valait **une seconde**, trop
+   court pour un aller-retour de commande. Corrigé.
+3. **L'atténuation était lue au mauvais endroit.** La première exécution lisait
+   l'`opacity` du groupe et publiait un **`1` plat** qui ne disait rien;
+   l'atténuation vit sur le `fill-opacity` et le `stroke-opacity` du rectangle.
+   **Le chiffre publié aurait fait croire à une absence d'atténuation.**
+   Corrigé.
+
+**Un quatrième incident, d'exécution :** deux instances de l'application ont
+tourné en parallèle sur le même magasin, produisant un artefact d'abandon et un
+artefact de succès contradictoires. **Les deux ont été détruits**, et la
+campagne publiée provient d'une **exécution unique** sur le **binaire final**,
+relancée après le dernier changement de code.
+
+### 7.6 Une lacune du modèle, trouvée en supprimant du code mort
+
+Le compilateur a signalé la constante `RELATION_TYPES` comme jamais utilisée.
+Elle l'était en effet : **le type d'une relation était vérifié non vide, mais
+jamais confronté aux deux types déclarés** en §4.2, ce que le modèle gelé exige.
+Corrigé — un type inventé est désormais rejeté par
+`relation_rejected_unknown_type` — et couvert par un test.
+
+### 7.7 Une borne ajoutée, déclarée
+
+`MAX_DERIVED_RELATIONS = 5 000`, dans l'esprit de `B-1` : la dérivation
+**refuse** au lieu de tronquer. Ce n'est **pas** un critère gelé, c'est une
+garde ajoutée. La règle `homonymes` est quadratique en nombre de fichiers
+homonymes; sur la fixture `wide`, où `piece-00.txt` existe dans 240 répertoires,
+elle produirait des centaines de milliers de paires.
+
+**Conséquence assumée :** les relations ne sont ouvertes que pour la fixture
+gelée `quasi-empty` — §4.6. Toute autre fixture est refusée **en toutes
+lettres**, motif `relations_out_of_scope_for_fixture`, et le panneau l'écrit à
+l'écran. **Ce n'est pas une troncature, c'est une portée.**
+
+### 7.8 État de chaque exigence de parité touchée
+
+| Exigence | État | Ce qui manque |
+|---|---|---|
+| `P-04` | **PARTIELLE** | **La révocation n'est pas implémentée** — §2.2. `CARTETOPO_FUNCTIONAL_PARITY.md` §5.2 interdit une relation irrévocable |
+| `P-05` | **SATISFAITE sur ce périmètre** | la fixture gelée seulement |
+| `P-07` | **SATISFAITE sur ce périmètre** | la fixture gelée seulement |
+| `P-06` | **PARTIELLE**, avancée | la part hiérarchique et la part transversale sont livrées; `F-017` reste hors périmètre |
+
+### 7.9 Ce que cette tranche ne prouve pas
+
+- **`R8` n'est pas levée** et ne peut pas l'être ici. Aucune mesure de
+  performance n'a été prise, **aucun seuil n'a été inventé**, et `TASK-0017`
+  n'en demandait aucun.
+- **`I-E` n'est pas implémentée.** `ek1` est un **repli déterministe**;
+  `VolumeSerialNumber` + `FileId` et les déplacements ou renommages réels
+  restent entiers.
+- **Aucune heuristique réelle de suggestion n'existe.** Les huit suggestions
+  sont **écrites d'avance** dans la fiche; leur `basis` est
+  `fixture-synthetique-task-0017` et ne prétend à rien d'autre.
+- **Les relations d'un seul cerveau synthétique sont exercées.** `P-20`, les
+  cerveaux multiples, reste entier.
+- **`P-21` n'est pas satisfaite :** interface **en français seulement**, aucun
+  audit WCAG complet, **aucun lecteur d'écran réel**. Ce qui est démontré est
+  l'atteignabilité au clavier et l'absence de codage par la seule couleur.
+- **L'activation au clavier d'une entrée de panneau n'a pas été jouée par une
+  frappe de confiance.** Un script ne peut pas forger un `Enter` de confiance.
+  Ce qui est prouvé : l'entrée est un `<button>` non désactivé **atteint par le
+  focus**, et son activation passe par le comportement d'activation du bouton —
+  **celui-là même qu'`Enter` déclenche**. **L'artefact le dit explicitement.**
+  Les flèches de la carte, elles, sont exercées pour de vrai.
+- **`B0` n'est pas corrigé**, rien n'a été supprimé dans `src-tauri/target/`.
+- **Douze exigences de parité restent entières.**
+
+### 7.10 Validation exécutée
+
+| Contrôle | Résultat |
+|---|---|
+| Tests Rust | **75 / 75**, dont les deux tests-gardes `X2` |
+| Tests TypeScript | **81 / 81**, dont 22 nouveaux sur `J6` à `J9` |
+| `tsc --noEmit` | **PASS** |
+| `pnpm build` | **PASS** |
+| Build Tauri release, sans empaquetage | **PASS**, `1 min 21 s` |
+| `J12` dans WebView2 réel | **PASS**, artefact publié |
+| Rejeu `H1` à `H7` de `TASK-0016`, relations en place | **PASS** sur les 4 fixtures, verdicts identiques au relevé publié |
+
+**Un avertissement de compilation subsiste**, `unused import: self` dans
+`src-tauri/src/map/commands.rs` : il est **antérieur** à cette tâche et n'a pas
+été touché, le périmètre de `TASK-0017` ne le nommant pas.
+
+## 8. Historique de l'état, suite
+
+| Date | État | Motif |
+|---|---|---|
+| 2026-09-01 | `IMPLEMENTED` | Douze critères tenus, preuves publiées, contrôle indépendant à faire |

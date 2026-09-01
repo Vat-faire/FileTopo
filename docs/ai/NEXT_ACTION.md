@@ -1,51 +1,61 @@
 # Prochaine action
 
-## Exécuter TASK-0017 — relations transversales avec provenance
+## Contrôle indépendant de TASK-0017
 
-- **Statut :** `IN_PROGRESS` — GO technique **acquis**, critères **gelés**
-- **Responsable :** Claude Code, exécuteur; **Sébastien** pour tout point
-  d'arrêt réservé
-- **Action unique :** **implémenter `TASK-0017` dans le périmètre gelé en §4 de
-  sa fiche**, puis la laisser `IMPLEMENTED` pour contrôle indépendant.
-- **Fiche :** [`TASK-0017`](../tasks/TASK-0017-crosscutting-relations.md)
-- **Branche :** `build/v0.2-a2-relations`, créée depuis le tip contrôlé
-  `33704a1b900f664c3957927d5bd4d3502054f95c`
+- **Statut :** en attente — `TASK-0017` est **`IMPLEMENTED`**, jamais
+  `VERIFIED`
+- **Responsable :** une instance **distincte de l'exécuteur**, se prononçant
+  **sur preuves**; l'orchestrateur technique peut attribuer `VERIFIED` à cette
+  condition
+- **Action unique :** **contrôler `TASK-0017` de façon indépendante**, sur les
+  preuves publiées, et statuer.
+- **Fiche :** [`TASK-0017`](../tasks/TASK-0017-crosscutting-relations.md) —
+  gel en §4, résultat en §7
+- **Branche :** `build/v0.2-a2-relations`, poussée
 
-### Le périmètre, en une phrase
+### Ce qu'il y a à contrôler
 
-**`P-04`, `P-05`, `P-07`, et la part « relations transversales » de `P-06`** —
-un modèle de relations où **une relation établie sans provenance n'est pas
-représentable**, et où **une suggestion n'est jamais une relation**.
+- **Le gel précède le code**, sans exception : `git show 51a8cac --stat` est le
+  gel, `git show a98676e --stat` le premier code de production. **Aucun critère
+  `J1` à `J12` ne doit avoir bougé après le premier résultat.**
+- **`J1` et `J2` sont structurels ou ils ne valent rien** : vérifier qu'il
+  n'existe **aucune colonne `provenance`** dans le schéma, **aucune colonne de
+  règle** dans `relations_approved`, et que la seule voie vers une ligne
+  approuvée passe par `approve`.
+- **Les cinq tentatives invalides** de §4.6.4 et leurs motifs observés.
+- **`J5` contre l'attendu gelé** de §4.6.3, y compris l'ajustement
+  `approved_since_seed`, qui doit être **listé** et non silencieux.
+- **`J12`** : `docs/performance/runs/TASK-0017-J12-webview2.json`.
+- **`J11`** : `docs/performance/runs/TASK-0017-J11-isolation.json`, et les
+  deux tests-gardes `X2`.
+- **Les quatre défauts de protocole** déclarés en §7.5, et le fait que la
+  campagne publiée provient d'une **exécution unique sur le binaire final**.
+- **Ce qui est déclaré non prouvé** en §7.9 — notamment que l'activation au
+  clavier d'une entrée de panneau n'a **pas** été jouée par une frappe de
+  confiance.
 
-### Ce qui est gelé et ne se retouche plus
+### Rejouer les preuves
 
-- le **modèle normatif** — `DETERMINISTIC` ou `APPROVED`, **aucune troisième
-  provenance** — §4.1;
-- les **deux types** `reference` et `revision` — §4.2;
-- la **clé d'endpoint `ek1`**, repli déterministe qui **n'implémente pas**
-  `I-E` — §4.3;
-- le **lieu de stockage**, séparé de l'index reconstructible — §4.4;
-- les **deux règles déterministes versionnées** — §4.5;
-- la **fixture de relations** : 12 relations établies, 2 types, 4 suggestions
-  en attente, 5 tentatives invalides, et **les comptes attendus nœud par
-  nœud** — §4.6;
-- les **critères `J1` à `J12`** — §4.7.
+    git rev-parse --abbrev-ref HEAD          # build/v0.2-a2-relations
+    git log --oneline 33704a1..HEAD
+    git show 51a8cac --stat                  # le gel, AVANT tout code
+    git show a98676e --stat                  # le premier code de production
 
-**Aucun critère `J1` à `J12` ne peut être modifié après le premier résultat.
-Une cible manquée reste manquée.**
+    CARGO_INCREMENTAL=0 cargo test --manifest-path src-tauri/Cargo.toml --lib
+    pnpm check && pnpm test
+    CARGO_INCREMENTAL=0 pnpm tauri build --no-bundle
+
+    rm -rf .filetopo-sandbox/relations       # une seule instance a la fois
+    CARGO_INCREMENTAL=0 FILETOPO_AUTO_RELATIONS=1 pnpm tauri dev   # rejoue J12
 
 ### Ce qui reste interdit
 
-- **Ne pas implémenter** `P-08`, `P-09`, la surveillance, le vu/non-vu, `P-19`,
-  ni aucune heuristique **réelle** de suggestion.
-- **Aucune donnée réelle, aucun sélecteur de dossier.**
-- **Aucune nouvelle dépendance** : devant ce besoin, **`BLOCKED`** avant
-  installation.
+- **Ne pas s'attribuer `VERIFIED`** en tant qu'exécuteur.
+- **Ne pas commencer une tranche suivante** : elle exigera sa propre fiche, ses
+  critères gelés et son propre GO.
 - **Ne pas commencer l'étape B**, ne pas lever `R8`, ne rien conclure sur le
-  budget adaptatif.
-- **Ne pas corriger `B0`**, ne rien supprimer dans `src-tauri/target/`.
-- **Ne pas contourner les tests-gardes `X2`** : les commandes nouvelles portent
-  le préfixe `map_`.
+  budget adaptatif, ne pas corriger `B0`.
+- **Aucune donnée réelle, aucun sélecteur de dossier, aucune nouvelle
+  dépendance.**
 - **Aucune fusion vers `main`, PR, release, étiquette, `force push`**, aucune
   réécriture d'historique.
-- **Ne pas s'attribuer `VERIFIED`.**
