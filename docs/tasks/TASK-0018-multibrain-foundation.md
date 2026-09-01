@@ -5,7 +5,10 @@
   multi-cerveaux** : catalogue de cerveaux, identité `brain_id` distincte de la
   source, stockage isolé par cerveau, un cerveau actif à la fois, sélecteur de
   cerveau et **vraie bascule** de l'index, de la carte et des relations
-- **Statut :** **`APPROVED`** le 2026-09-01
+- **Statut :** **`VERIFIED`** le 2026-09-01, sur re-contrôle indépendant
+  [`ACTION-0029`](../reviews/ACTION-0029-independent-recontrol.md) — `X5`
+  **`CLOSED`**, `ACTION-0028` **`CLOSED`**, `HEAD` contrôlé `9e77a6d`.
+  **Verdict rendu par l'orchestrateur; l'exécuteur ne s'est rien attribué**
 - **Phase :** étape **A** de la feuille de route — parité fonctionnelle MVP,
   **troisième** tranche
 - **Proposée le :** 2026-09-01
@@ -626,8 +629,29 @@ session n'a été modifié.**
 
 ### 8.5 État
 
-**`X5` est corrigée, NON close.** Sa clôture appartient au **re-contrôle
-indépendant**, qui reste l'action unique suivante.
+**`X5` est `CLOSED`.** Close le 2026-09-01 par le re-contrôle indépendant
+[`ACTION-0029`](../reviews/ACTION-0029-independent-recontrol.md), sur le `HEAD`
+contrôlé `9e77a6d83fcde194af26da6d356483f592452612`. `ACTION-0028` est
+**`CLOSED`**, et **`TASK-0018` est `VERIFIED`**.
+
+**Ce que cette clôture emporte pour la suite :** les quatre preuves de
+`TASK-0018` — `TASK-0018-K11-readonly-and-isolation.json`,
+`TASK-0018-K12-webview2-pass1.json`, `TASK-0018-K12-webview2-pass2.json` et
+`TASK-0018-J12-relations-regression-webview2.json` — sont **à leur tour
+protégées** par la règle que `X5` a instaurée, et **le runtime de `TASK-0019`
+n'écrit plus aucun résultat sous un nom `TASK-0018`**.
+
+### 8.6 Une imprécision de résumé, corrigée
+
+Le `J12` de régression a produit **deux** observations au clavier, et certains
+résumés les avaient confondues :
+
+- **navigation de carte :** `map-node-6 → map-node-2 → map-node-6`;
+- **traversée d'une relation :** `map-node-6 → `**`map-node-9`**.
+
+L'artefact publiait déjà les deux, correctement et séparément. **Seuls les
+résumés ont été corrigés; aucune preuve n'a été réécrite** —
+[`ACTION-0029`](../reviews/ACTION-0029-independent-recontrol.md) §3.
 
 ## Historique d'état
 
@@ -638,3 +662,4 @@ indépendant**, qui reste l'action unique suivante.
 | 2026-09-01 | `IN_PROGRESS` | Exécution commencée après le gel `51bb687`; §4 n'est pas retouchée |
 | 2026-09-01 | `IMPLEMENTED` | `K1`–`K12` tenus, preuves publiées; `VERIFIED` non attribué par l'exécuteur |
 | 2026-09-01 | `IMPLEMENTED` | Correction de la réserve `X5` d'`ACTION-0028`; `J12` de régression rejoué; statut inchangé, `VERIFIED` toujours non attribué |
+| 2026-09-01 | `VERIFIED` | Re-contrôle indépendant [`ACTION-0029`](../reviews/ACTION-0029-independent-recontrol.md) : `X5` `CLOSED`, `ACTION-0028` `CLOSED`, `HEAD` contrôlé `9e77a6d`. Verdict rendu par l'orchestrateur, enregistré par l'exécuteur |

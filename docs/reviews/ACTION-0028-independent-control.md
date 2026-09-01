@@ -124,7 +124,8 @@ avant l'exécution, pour que la suggestion `S-005` soit bien **en attente**.
 | Point exigé | Observé |
 |---|---|
 | Panneau relations | 4 entrées, totaux `3 sortante(s) · 1 entrante(s) · 1 suggestion(s) non comptée(s)`, panneau stabilisé |
-| Traversée réelle au clavier | `map-node-6 → map-node-2 → map-node-6`; l'entrée activée mène bien à son extrémité, confirmée par l'index |
+| Navigation de carte au clavier | `map-node-6 → map-node-2 → map-node-6` — `ArrowUp` vers le parent, `ArrowDown` qui revient |
+| Traversée réelle d'une **relation** | `map-node-6 → `**`map-node-9`** — l'entrée activée mène bien à son extrémité, `ek1\|brain-alpha\|dossier-b/note-1.txt`, confirmée par l'index |
 | `activationIsTrusted` | **`true`** (traversée **et** approbation) |
 | `keydownIsTrusted` | **`true`** (traversée **et** approbation) |
 | `click()` programmatique | **0** |
@@ -193,11 +194,15 @@ a été exercée de bout en bout par le `J12` de régression.
 
 ## 6. État
 
-| Élément | État |
-|---|---|
-| `X5` | **`OPEN`** — **corrigée, NON close**. Sa clôture appartient au re-contrôle indépendant |
-| `ACTION-0028` | **`CHANGES_REQUIRED`** |
-| `TASK-0018` | **`IMPLEMENTED`** — **`VERIFIED` non attribué** |
+**Clos le 2026-09-01 par le re-contrôle indépendant**
+[`ACTION-0029`](ACTION-0029-independent-recontrol.md), sur le `HEAD` contrôlé
+`9e77a6d83fcde194af26da6d356483f592452612`.
 
-**L'action unique suivante est le re-contrôle indépendant de `TASK-0018`,
-portant sur `X5` uniquement.**
+| Élément | État au moment de ce contrôle | État final |
+|---|---|---|
+| `X5` | `OPEN` — corrigée, non close | **`CLOSED`** — `ACTION-0029` |
+| `ACTION-0028` | `CHANGES_REQUIRED` | **`CLOSED`** — `ACTION-0029` |
+| `TASK-0018` | `IMPLEMENTED` — `VERIFIED` non attribué | **`VERIFIED`** — `ACTION-0029`, verdict rendu par l'orchestrateur |
+
+**La suite est `TASK-0019` — vue composée multi-cerveaux**, sur la branche
+`build/v0.2-a4-composed-view` créée depuis `9e77a6d`.

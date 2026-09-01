@@ -1,9 +1,12 @@
 # État courant
 
 - **Dernière mise à jour :** 2026-09-01
-- **Branche active :** **`build/v0.2-a3-multibrain-foundation`**, créée depuis
-  le tip **contrôlé** `50de16b3d69996f13eb4e6b467273373abce35bf` de
-  `build/v0.2-a2-relations`
+- **Branche active :** **`build/v0.2-a4-composed-view`**, créée depuis le tip
+  **contrôlé** `9e77a6d83fcde194af26da6d356483f592452612` de
+  `build/v0.2-a3-multibrain-foundation`
+- **`build/v0.2-a3-multibrain-foundation` :** `9e77a6d`, **non touchée** depuis
+  la vérification — la branche contrôlée et le `SHA` contrôlé désignent le même
+  arbre, et rien n'y a été ajouté après le verdict
 - **`build/v0.2-a2-relations` :** `50de16b`, **non touchée** depuis la
   vérification
 - **`build/v0.2-p4-vertical-slice` :** `33704a1`, **non touchée**
@@ -13,37 +16,32 @@
 - **`rebuild/v0.2-project-brain` :** `db8d3de0…`, **non touchée**
 - **`main` :** inchangée, `91bbe90f0f99026c28cd345784d4f579a0016db2`, **non
   touchée**
-- **Dernière tâche vérifiée :** **`TASK-0017`, `VERIFIED` le 2026-09-01**, sur
+- **Dernière tâche vérifiée :** **`TASK-0018`, `VERIFIED` le 2026-09-01**, sur
   **re-contrôle indépendant**
-  [`ACTION-0027`](../reviews/ACTION-0027-independent-control.md) §7 —
-  **`X3` : `CLOSED`**, **`X4` : `CLOSED`**, **`ACTION-0027` : `CLOSED`**.
-  Le verdict a été **rendu par l'orchestrateur indépendant** et **enregistré**
-  par l'exécuteur; **l'exécuteur ne s'est rien attribué**
-- **Tâches vérifiées précédemment :** `TASK-0016`, `VERIFIED` le 2026-08-31
+  [`ACTION-0029`](../reviews/ACTION-0029-independent-recontrol.md) —
+  **`X5` : `CLOSED`**, **`ACTION-0028` : `CLOSED`**, `HEAD` contrôlé
+  **`9e77a6d83fcde194af26da6d356483f592452612`**. Le verdict a été **rendu par
+  l'orchestrateur** et **enregistré** par l'exécuteur; **l'exécuteur ne s'est
+  rien attribué**
+- **Tâches vérifiées précédemment :** `TASK-0017`, `VERIFIED` le 2026-09-01
+  ([`ACTION-0027`](../reviews/ACTION-0027-independent-control.md), **`X3`** et
+  **`X4` : `CLOSED`**); `TASK-0016`, `VERIFIED` le 2026-08-31
   ([`ACTION-0026`](../reviews/ACTION-0026-independent-control.md), réserve
   **`X2` : `CLOSED`**); `TASK-0015`, `VERIFIED`
   ([`ACTION-0025`](../reviews/ACTION-0025-independent-control.md)), avec la
   réserve normative `X1`, corrigée
-- **Tâche livrée, NON vérifiée :** **`TASK-0018`, `IMPLEMENTED`** le
-  2026-09-01 — fondation multi-cerveaux,
-  [fiche](../tasks/TASK-0018-multibrain-foundation.md) §7 et §8, sous
-  [`DEC-0017`](../decisions/DEC-0017-multibrain-and-composed-views.md). **Gel
-  `K1`–`K12` commité avant toute ligne de code** — `51bb687`, puis le code en
-  `4cb1cf4`, puis les preuves en `2424ef2`. **`VERIFIED` non attribué :
-  l'exécuteur ne s'auto-vérifie pas.**
-- **Contrôle indépendant de `TASK-0018` :**
-  [`ACTION-0028`](../reviews/ACTION-0028-independent-control.md) —
-  **`CHANGES_REQUIRED`**. Le fond de `K1` à `K12` est **accepté**; une seule
-  réserve bloque `VERIFIED` : **`X5`** — les outils du runtime courant
-  pouvaient **écraser les artefacts canoniques** de tâches déjà `VERIFIED`.
-  **`X5` est corrigée, et reste `OPEN`** : sa clôture appartient au
-  **re-contrôle**. `TASK-0018` **reste `IMPLEMENTED`**.
 - **Règle instaurée le 2026-09-01 :** **une exécution d'une tâche ultérieure ne
   remplace jamais la preuve canonique d'une tâche antérieure `VERIFIED`.** Elle
   est tenue **à la porte d'écriture** — `write_run_artifact` refuse les noms
   protégés — et non par convention. Les scénarios migrés écrivent sous un nom
   `TASK-0018` de **régression**, et le `J12` de régression **a été rejoué**
   dans le vrai WebView2, sans toucher à la preuve de `TASK-0017`.
+- **La règle s'applique à `TASK-0018` elle-même depuis sa vérification :** ses
+  quatre preuves — `TASK-0018-K11-readonly-and-isolation.json`,
+  `TASK-0018-K12-webview2-pass1.json`, `TASK-0018-K12-webview2-pass2.json`,
+  `TASK-0018-J12-relations-regression-webview2.json` — sont **protégées à la
+  porte d'écriture**, et **le runtime de `TASK-0019` n'écrit plus aucun
+  résultat sous un nom `TASK-0018`**.
 - **Tâche IN_PROGRESS :** aucune
 - **Porte `P4` :** **FRANCHIE** —
   [`DEC-0016`](../decisions/DEC-0016-p4-gate-crossing-and-first-slice.md)
