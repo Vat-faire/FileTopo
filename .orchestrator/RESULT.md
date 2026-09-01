@@ -2,7 +2,7 @@ TASK_ID: TASK-0017 — correction ciblée du contrôle indépendant, réserves X
 AGENT: CLAUDE
 RESULT: DONE
 BRANCH: build/v0.2-a2-relations
-FINAL_HEAD: <renseigné au commit de clôture>
+FINAL_HEAD: d7863e93535c58f4a1c643ab46d48072595216ee
 TASK_STATE: IMPLEMENTED — VERIFIED NON attribué, re-contrôle indépendant attendu
 CONTROLE: ACTION-0027, verdict CHANGES_REQUIRED. X3 et X4 CORRIGÉES, NON CLOSES.
 
@@ -116,8 +116,8 @@ ACTIONS_DISTANTES:
   étiquette, force push, réécriture d'historique. Aucune opération destructive
   hors du bac à sable applicatif .filetopo-sandbox/, écrit par FileTopo.
 
-COMMIT: <renseigné au commit de clôture> (clôture) / 8a259e9 (corrections X3 et X4)
-PUSHED: <renseigné au push>
+COMMIT: d7863e93535c58f4a1c643ab46d48072595216ee (clôture) / 8a259e9 (corrections X3 et X4)
+PUSHED: yes
 
 NEXT_ORCHESTRATOR_DECISION:
 - RE-CONTRÔLE INDÉPENDANT de TASK-0017, par une instance DISTINCTE de
