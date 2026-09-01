@@ -2,7 +2,7 @@ TASK_ID: TASK-0018 — fondation multi-cerveaux, catalogue, isolation, bascule
 AGENT: CLAUDE
 RESULT: DONE
 BRANCH: build/v0.2-a3-multibrain-foundation
-FINAL_HEAD: (voir ci-dessous, renseigné au commit de clôture)
+FINAL_HEAD: 010ce7ccbd5257b6b81665d97c991619010f752a
 TASK_STATE: IMPLEMENTED — VERIFIED NON attribué, contrôle indépendant attendu
 SESSION: reprise après une session interrompue; le travail non commité trouvé
 au démarrage a été repris, pas refait. Rien n'a été effacé.
