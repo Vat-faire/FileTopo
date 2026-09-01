@@ -1814,3 +1814,77 @@ tâche n'est `IN_PROGRESS`. La porte **`P4` reste ouverte et non franchie** et
 **`TASK-0016` n'a pas été exécutée**. L'action unique suivante est
 **`ACTION-0025`** — contrôle indépendant du réalignement, **puis décision de
 franchir `P4`**.
+
+---
+
+## ACTION-0025 — Contrôle indépendant de TASK-0015 et franchissement de P4 (2026-08-31)
+
+### V.1 Nature de cette étape
+
+**Documentaire.** Aucune mesure, aucune exécution, aucun test, aucune
+dépendance. Le contrôle **ne rejoue rien** : il lit les livrables de
+`TASK-0015` et les documents qu'ils touchent.
+
+### V.2 Contrôles effectués, et leur résultat
+
+| # | Contrôle | Résultat |
+|---|---|---|
+| `C1` | Les 22 exigences couvrent les domaines nommés par l'instruction produit | **conforme** |
+| `C2` | Chaque critère d'acceptation est falsifiable sur fixtures synthétiques, non déclaratif | **conforme**, avec la limite déclarée que certaines volumétries (`P-08` 100 000 nœuds, `P-18` 10 000 événements) dépassent la première tranche |
+| `C3` | §3 rend impossible la **disparition silencieuse** d'une fonction par refonte visuelle | **conforme** — cinq voies fermées, règle de conflit explicite, abandon par fiche `DEC` |
+| `C4` | §5 interdit toute relation inventée, exige provenance **visible à l'écran** et stockage **hors de l'arborescence analysée** | **conforme sur le fond**, **contradiction interne trouvée** — réserve `X1` |
+| `C5` | Reclassement : quatre remontées justifiées, classification d'origine **conservée et visible**, **rien** n'est descendu, `F-021`/`F-037`/`F-038`/`F-039` restent `DIFFÉRÉ` | **conforme** — matrice à 39 lignes, `MVP` 35 / `ULTÉRIEUR` 0 / `DIFFÉRÉ` 4 |
+| `C6` | `DEC-0015` supplante `DEC-0014` sur **deux points seulement**; `DEC-0014` **intacte**, simple renvoi; `V1`, `V2`, `R8` conservées | **conforme** |
+| `C7` | `TASK-0016` est une **tranche verticale**, borne de charge exigée **avant** exécution, préalables bloquants avant `P4` | **conforme** |
+| `C8` | `M-1` **déclaré** plutôt que comblé par une fonction inventée | **conforme**, avec **échéance ajoutée** — `DEC-0016` D |
+
+### V.3 Réserve X1, et sa correction
+
+**Défaut constaté.** `CARTETOPO_FUNCTIONAL_PARITY.md` §4 (`P-04`) énumérait
+`déterministe`, `approuvée`, `suggérée` comme provenances d'une relation, et
+§5.1.2 parlait des « trois provenances », **alors que §5.1.3 établit qu'une
+suggestion n'est pas une relation**.
+
+**Correction appliquée**, dans le même geste, **sans changement de portée** :
+
+- **relation établie** ⇒ provenance `déterministe` **ou** `approuvée`, sans
+  troisième valeur;
+- **suggestion** ⇒ **objet et état distincts**, **affichables**, **jamais**
+  comptés comme relation avant approbation, **jamais** présentés comme
+  relation établie;
+- l'approbation **transforme** la suggestion en relation `approuvée`.
+
+**Trois emplacements alignés**, et **seulement trois** : §4 `P-04`, §5.1.2,
+§5.1.3. **§5.2 n'a pas été touchée** : elle était déjà juste.
+
+### V.4 Contrôles de périmètre
+
+- **`git diff` sur `src/`, `src-tauri/`, `tests/`, `public/`, `scripts/`,
+  `.github/`, `spikes/` et `graph/` : sortie vide** pour cette étape
+  documentaire. Le code de production commence **après**, sur une **branche
+  dédiée**.
+- **Aucun paragraphe de `DEC-0014` modifié.** **Aucune preuve de `TASK-0012` à
+  `TASK-0014` retouchée.** **Aucun historique réécrit.**
+- **`DEC-0015` inchangée**, confirmée dans tous ses points.
+- **`PROJECT_VISION.md` inchangé.**
+- **Aucune lecture, aucun listage et aucune écriture hors du dépôt. Aucune
+  donnée réelle. Aucune dépense. Aucune publication externe.**
+- **Aucune fusion, PR, release, étiquette, `force push`.**
+
+### V.5 Ce qui n'est pas prouvé, et doit être dit
+
+- **Aucun des 22 critères de parité n'a été exécuté.** Le contrôle porte sur
+  la **qualité du livrable documentaire**, pas sur la **faisabilité** du
+  contrat.
+- **Aucune mesure de production n'existe.** `R8` en vigueur; sa levée
+  appartient à l'**étape C**.
+- **Aucune réserve technique n'est levée** : `V1` à `V4`, `W1` à `W4`, `R2` à
+  `R9`.
+- **`M-1` est daté, pas comblé.** La question 3 de `B4` reste ouverte,
+  l'inter-volume de `B3` reste NON TESTÉ, l'échec de `B0` n'est pas corrigé.
+
+### V.6 Conséquence
+
+`TASK-0015` est **`VERIFIED`**. La porte **`P4` est FRANCHIE** — `DEC-0016`.
+Elle autorise **`TASK-0016`, et rien d'autre**. L'action unique suivante est
+**figer puis exécuter `TASK-0016`**, sur `build/v0.2-p4-vertical-slice`.

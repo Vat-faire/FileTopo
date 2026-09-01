@@ -8,13 +8,16 @@
 - **`rebuild/v0.2-project-brain` :** inchangée, `db8d3de0…`, **non touchée**
 - **`main` :** inchangée, `91bbe90f0f99026c28cd345784d4f579a0016db2`, **non
   touchée**
-- **Dernière tâche vérifiée :** **`TASK-0014`, `VERIFIED` le 2026-08-31**, sur
+- **Dernière tâche vérifiée :** **`TASK-0015`, `VERIFIED` le 2026-08-31**, sur
   contrôle indépendant
-  [`ACTION-0024`](../reviews/ACTION-0024-independent-control.md), **avec quatre
-  réserves `W1` à `W4`**
-- **Tâche livrée, NON vérifiée :** **`TASK-0015`, `IMPLEMENTED` le
-  2026-08-31** — réalignement produit sur la référence fonctionnelle CarteTopo,
-  **strictement documentaire**
+  [`ACTION-0025`](../reviews/ACTION-0025-independent-control.md), **avec la
+  réserve normative `X1`, corrigée dans le même geste**
+- **Tâche précédente vérifiée :** `TASK-0014`, `VERIFIED` le 2026-08-31
+  ([`ACTION-0024`](../reviews/ACTION-0024-independent-control.md)), **avec
+  quatre réserves `W1` à `W4`**
+- **Porte `P4` :** **FRANCHIE** le 2026-08-31 —
+  [`DEC-0016`](../decisions/DEC-0016-p4-gate-crossing-and-first-slice.md). Elle
+  autorise **`TASK-0016`, et rien d'autre**
 - **Tâche IN_PROGRESS :** aucune
 - **Code applicatif :** **inchangé.** 0 fichier modifié sous `src/`,
   `src-tauri/`, `tests/`, `public/`, `scripts/`, `.github/`, `spikes/` ou
@@ -67,11 +70,12 @@ Le contrat exigible est
 **trois invariants** — lecture seule absolue, rien de FileTopo dans
 l'arborescence analysée, rien d'inventé silencieusement.
 
-**Relations transversales, règle complète :** jamais inventées; provenance
-**déterministe** ou **approbation utilisateur**, sans troisième origine;
-provenance **visible à l'écran**; **stockage hors de l'arborescence analysée**;
-une suggestion n'est pas une relation et ne compte pas dans les comptes
-entrants/sortants.
+**Relations transversales, règle complète, corrigée par `X1` :** jamais
+inventées; une **relation établie** a pour provenance **`déterministe`** ou
+**`approuvée`**, **sans troisième valeur**; provenance **visible à l'écran**;
+**stockage hors de l'arborescence analysée**; une **suggestion** est un
+**objet et un état distincts** — affichable, mais **jamais présentée comme une
+relation établie** et **jamais comptée** dans les comptes entrants/sortants.
 
 ### Quatre fonctions remontent, aucune ne descend
 
@@ -109,7 +113,7 @@ fiche, aucun de ses paragraphes n'a changé.
 
 | Étape | Objet | État |
 |---|---|---|
-| **A** | **Parité fonctionnelle MVP** — les 22 exigences prouvées sur fixtures synthétiques | **PROPOSED**, première tranche spécifiée par [`TASK-0016`](../tasks/TASK-0016-p4-vertical-slice.md) |
+| **A** | **Parité fonctionnelle MVP** — les 22 exigences prouvées sur fixtures synthétiques | **EN COURS** — `P4` franchie; première tranche [`TASK-0016`](../tasks/TASK-0016-p4-vertical-slice.md) |
 | **B** | **Finition visuelle moderne** — sans perdre une seule exigence, contrôlé en rejouant tous les critères de **A** | PROPOSED |
 | **C** | **Validation Windows/WebView2 réelle** — hôte Tauri réel, mesures refaites dans le moteur de production. **`R8` ne peut être levée qu'ici.** Budget adaptatif réévalué ici | PROPOSED |
 | **D** | **Empaquetage et publication** — décision de publier **réservée à Sébastien** | PROPOSED |
@@ -124,8 +128,10 @@ contrôlée.
 - **Aucune réserve n'est levée.** `V1` à `V4`, `W1` à `W4`, `R2` à `R9` restent
   en vigueur. `R1` reste levée depuis `ACTION-0023`.
 - **Canvas 2D n'est pas ouvert**, ni WebGL.
-- **Aucune tentative WebView2** avant qu'un véritable hôte Tauri existe —
-  `DEC-0014` F, inchangée.
+- **Aucune tentative WebView2** hors de l'hôte Tauri réel construit par
+  `TASK-0016` — `DEC-0014` F, inchangée sur le fond : l'interdiction visait
+  l'absence d'hôte embarqueur, et cet hôte est précisément le premier livrable
+  de la tranche.
 - **L'échec de `B0` n'est pas corrigé** et le cache incrémental fautif est
   **conservé** — `DEC-0013` E.
 - **L'inter-volume de `B3` reste NON TESTÉ**, la **question 3 de `B4` reste
@@ -157,17 +163,41 @@ contrôlée.
 - **Aucun lecteur d'écran réel.**
 - **La causalité géométrique n'est pas établie** — réserve `V2`.
 
-## Porte humaine
+## Porte technique — P4 est franchie
 
-Les portes **P3** et **P3 bis** sont **franchies**. La porte **P4 est ouverte
-et non franchie**.
+Les portes **P3**, **P3 bis** et **P4** sont **franchies**.
 
-`TASK-0015` a été livrée **`IMPLEMENTED`, jamais auto-déclarée `VERIFIED`**.
-L'action unique suivante est **`ACTION-0025`** : le contrôle indépendant du
-réalignement produit, **puis la décision de franchir `P4`**.
+`ACTION-0025` a contrôlé `TASK-0015` — contrôle **accepté**, `VERIFIED`, avec
+la réserve normative **`X1`** corrigée dans le même geste — et **franchi
+`P4`**. La décision est enregistrée par
+[`DEC-0016`](../decisions/DEC-0016-p4-gate-crossing-and-first-slice.md).
 
-**Aucune ligne de code de production ne peut être écrite avant P4.**
-[`TASK-0016`](../tasks/TASK-0016-p4-vertical-slice.md) est **`PROPOSED` et non
-exécutée**. Les trois branches de spike ne sont ni fusionnées, ni destinées à
+**`P4` autorise l'approbation puis l'exécution de
+[`TASK-0016`](../tasks/TASK-0016-p4-vertical-slice.md), et rien d'autre** :
+une tranche verticale, sur fixtures synthétiques, dans un véritable hôte
+Tauri/WebView2, **sans budget adaptatif**, avec une **borne de charge déclarée
+d'avance**. Elle n'autorise **aucune autre tâche d'implémentation**, **aucun
+élargissement de périmètre**, **ni Canvas 2D, ni WebGL**, **aucune donnée
+réelle**, et **ne lève aucune réserve** — `R8` en particulier appartient à
+l'étape **C**.
+
+### Correction normative `X1`
+
+Le contrat de parité employait « suggérée » comme **provenance de relation**
+en §4 (`P-04`) et §5.1.2, alors que §5.1.3 établit qu'**une suggestion n'est
+pas une relation**. Les formulations contradictoires ont été **alignées, sans
+changer aucune portée** :
+
+- **relation établie** ⇒ provenance **`déterministe`** ou **`approuvée`**,
+  sans troisième valeur;
+- **suggestion** ⇒ **objet et état distincts**, **affichables** mais **jamais
+  présentés comme une relation établie**, et **jamais comptés** dans les
+  relations entrantes ou sortantes;
+- l'**approbation transforme** la suggestion en relation `approuvée` — seule
+  voie.
+
+**Portée immédiate nulle :** `TASK-0016` ne contient aucune relation
+transversale. `X1` contraint la tranche qui implémentera `P-04`, `P-05` et
+`P-07`. Les trois branches de spike ne sont ni fusionnées, ni destinées à
 l'être automatiquement : les conserver, les fusionner ou les supprimer
 appartient à Sébastien.

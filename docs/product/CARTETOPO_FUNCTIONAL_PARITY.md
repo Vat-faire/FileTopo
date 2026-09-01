@@ -4,8 +4,19 @@
 - **Tâche :** `TASK-0015`, sur l'**instruction produit autoritative de
   Sébastien** du 2026-08-31
 - **Statut du document :** **contrat produit courant**, livrable `L1` de
-  `TASK-0015`, `IMPLEMENTED`. **Non testé : rien n'a été exécuté ni mesuré.**
-  Ce sont des cibles à falsifier, pas des résultats.
+  `TASK-0015`, **`VERIFIED`** le 2026-08-31 par le contrôle indépendant
+  [`ACTION-0025`](../reviews/ACTION-0025-independent-control.md). **Non testé :
+  rien n'a été exécuté ni mesuré.** Ce sont des cibles à falsifier, pas des
+  résultats.
+- **Correction normative `X1`, 2026-08-31.** `ACTION-0025` a relevé que
+  « suggérée » était employée comme **provenance de relation** en §4 (`P-04`)
+  et en §5.1.2, alors que §5.1.3 établit qu'**une suggestion n'est pas une
+  relation**. Les formulations contradictoires sont **alignées** :
+  **relation établie** ⇒ provenance `déterministe` **ou** `approuvée`, sans
+  troisième valeur; **suggestion** ⇒ **objet et état distincts**, affichables,
+  **jamais comptés comme relation** avant approbation. **Aucune portée n'a
+  changé**, aucune exigence n'a été ajoutée ni retirée. Enregistrée par
+  [`DEC-0016`](../decisions/DEC-0016-p4-gate-crossing-and-first-slice.md) B.
 - **Autorité :** ce document **prime** sur toute lecture antérieure du
   périmètre produit tirée de l'ancienne version publique de FileTopo.
 
@@ -115,7 +126,7 @@ est falsifiable sur fixtures synthétiques. « Matrice » renvoie aux fonctions 
 
 | # | Exigence | Comportement exigé | Critère d'acceptation | Matrice |
 |---|---|---|---|---|
-| `P-04` | **Relations transversales explicites, avec provenance** | Des relations autres que la hiérarchie peuvent exister, être affichées et être parcourues. Chacune porte sa **provenance visible**. Voir la règle complète en §5 | Chaque relation affichée expose son **type** et sa **provenance** — `déterministe`, `approuvée`, `suggérée`. **Le modèle rend une relation sans provenance non représentable.** Une fixture qui tente d'en insérer une est rejetée avec un motif | `F-017` |
+| `P-04` | **Relations transversales explicites, avec provenance** | Des relations autres que la hiérarchie peuvent exister, être affichées et être parcourues. Chacune porte sa **provenance visible**. Une **suggestion** peut être affichée, mais **jamais présentée comme une relation établie**. Voir la règle complète en §5 | Une **relation établie** expose son **type** et sa **provenance**, qui vaut `déterministe` **ou** `approuvée` — **il n'existe aucune troisième provenance**. **Le modèle rend une relation sans provenance non représentable.** Une **suggestion** est un **objet distinct**, portant son propre état, **jamais comptée comme relation avant approbation**; elle est visuellement distinguable d'une relation établie **sans recourir à la seule couleur**. Une fixture qui tente d'insérer une relation sans provenance, ou de faire passer une suggestion pour une relation établie, est rejetée avec un motif | `F-017` |
 | `P-05` | **Relations entrantes et sortantes distinguées** | L'utilisateur distingue ce qui pointe **vers** l'élément sélectionné de ce qu'il pointe **lui-même** | Sur une fixture de relations synthétiques, les comptes entrants et sortants du panneau **et** de la carte coïncident exactement avec ceux de l'index. La distinction est perceptible **sans recourir à la seule couleur** | `F-019` |
 | `P-06` | **Sélection, accentuation des liés, atténuation du reste** | Sélectionner un élément accentue ce qui lui est lié — parent, enfants directs, relations transversales — et atténue le reste, sans rien effacer | La sélection est possible à la souris **et** au clavier; carte et liste sémantique désignent le même nœud à tout instant. Les états « accentué » et « atténué » sont distinguables **sans recourir à la seule couleur**, n'altèrent **aucune** donnée de l'index, et l'information atténuée reste **lisible et atteignable** | `F-015`, `F-018` |
 | `P-07` | **Panneau des relations** | Un panneau liste les relations de l'élément sélectionné, groupées par nature et par direction, et chaque entrée mène à l'élément visé | Pour chaque nœud d'une fixture, le contenu du panneau **égale** l'ensemble des relations de l'index pour ce nœud. Chaque entrée porte type, direction et provenance, est atteignable au clavier, et sélectionner une entrée sélectionne l'élément visé sur la carte | `F-016`, `F-017`, `F-019` |
@@ -174,13 +185,21 @@ exigible** ici.
    approbation explicite de l'utilisateur**. Il n'existe pas de troisième
    origine.
 2. **Sa provenance est visible**, à l'écran, au moment où la relation est
-   montrée — pas seulement dans un journal ou une infobulle facultative. Les
-   trois provenances — `déterministe`, `approuvée`, `suggérée` — sont
-   **visuellement distinctes** et distinguables **sans recourir à la seule
-   couleur**.
-3. **Une suggestion n'est pas une relation.** Tant qu'elle n'est pas approuvée,
-   elle est signalée comme suggestion, **révocable**, et **ne compte pas** dans
-   les comptes de relations entrantes et sortantes présentés comme établis.
+   montrée — pas seulement dans un journal ou une infobulle facultative. Une
+   **relation établie** a exactement **deux** provenances possibles —
+   `déterministe` et `approuvée` —, **visuellement distinctes** et
+   distinguables **sans recourir à la seule couleur**. Une **suggestion** n'est
+   pas une provenance de relation : c'est un **état distinct**, porté par un
+   objet distinct, lui aussi distinguable des deux provenances **sans recourir
+   à la seule couleur**.
+3. **Une suggestion n'est pas une relation.** C'est un **objet et un état
+   distincts**, jamais une valeur de provenance. Tant qu'elle n'est pas
+   approuvée, elle est signalée comme suggestion, **révocable**, et **ne compte
+   pas** dans les comptes de relations entrantes et sortantes. **Elle peut être
+   affichée sur la carte et dans les panneaux** — c'est même souhaitable pour
+   la rendre approuvable —, mais **jamais présentée comme une relation
+   établie**. L'approbation la **transforme** en relation de provenance
+   `approuvée`; c'est la seule voie.
 4. **Le stockage vit hors de l'arborescence analysée**, dans l'espace
    applicatif du cerveau — invariant `I-2`. Aucune relation n'est écrite dans
    un document analysé, sous aucune forme.

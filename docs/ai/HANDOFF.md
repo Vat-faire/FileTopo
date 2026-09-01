@@ -2,12 +2,13 @@
 
 - **Dernière mise à jour :** 2026-08-31
 - **Branche active :** `spike/v0.2-budget-controller`, publiée sur origin
-- **Dernière tâche vérifiée :** `TASK-0014`, **`VERIFIED`** le 2026-08-31, sur
+- **Dernière tâche vérifiée :** `TASK-0015`, **`VERIFIED`** le 2026-08-31, sur
   contrôle indépendant
-  [`ACTION-0024`](../reviews/ACTION-0024-independent-control.md), **avec quatre
-  réserves `W1` à `W4`**
-- **Tâche livrée, NON vérifiée :** `TASK-0015`, **`IMPLEMENTED`** le
-  2026-08-31 — réalignement produit, **strictement documentaire**
+  [`ACTION-0025`](../reviews/ACTION-0025-independent-control.md), **avec la
+  réserve normative `X1`, corrigée**
+- **Porte `P4` :** **FRANCHIE** —
+  [`DEC-0016`](../decisions/DEC-0016-p4-gate-crossing-and-first-slice.md). Elle
+  autorise **`TASK-0016`, et rien d'autre**
 - **Tâche IN_PROGRESS :** aucune
 
 ## Où en est le projet
@@ -22,8 +23,18 @@ reste une piste, mais **cesse d'être un prérequis à `P4`**.
 aligné sur son propre prototype : **CarteTopo est la référence fonctionnelle**,
 et un **contrat de parité** de 22 exigences devient exigible.
 
-**Rien n'a été exécuté ni mesuré par `TASK-0015`.** C'est un livrable
-documentaire, en attente de contrôle indépendant `ACTION-0025`.
+`ACTION-0025` a **contrôlé** ce réalignement — contrôle **accepté**,
+`TASK-0015` **`VERIFIED`** — et émis la réserve normative **`X1`**, corrigée
+dans le même geste : **une suggestion n'est pas une provenance de relation**.
+
+**Dans le même geste, la porte `P4` a été FRANCHIE**
+([`DEC-0016`](../decisions/DEC-0016-p4-gate-crossing-and-first-slice.md)).
+Elle autorise **`TASK-0016`, et rien d'autre** : une **tranche verticale**, sur
+fixtures synthétiques, dans un **véritable hôte Tauri/WebView2**, **sans
+budget adaptatif**, avec une **borne de charge déclarée d'avance**.
+
+**Rien n'a encore été mesuré dans WebView2.** `R8` reste en vigueur; sa levée
+appartient à l'**étape C**.
 
 ## Ce qu'il faut savoir en dix lignes
 
@@ -45,10 +56,13 @@ documentaire, en attente de contrôle indépendant `ACTION-0025`.
    `DIFFÉRÉ` 4**, sur 39 lignes. **IA, OCR, extraction, RAG et GraphRAG restent
    `DIFFÉRÉ`**, et **aucune exigence de parité ne peut être satisfaite au moyen
    de l'une de ces couches**.
-5. **Les relations transversales ne sont jamais inventées** : règle
-   déterministe **ou** approbation utilisateur, sans troisième origine;
-   provenance **visible à l'écran**; stockage **hors de l'arborescence
-   analysée**; une suggestion **n'est pas** une relation.
+5. **Les relations transversales ne sont jamais inventées** — corrigé par
+   `X1` : une **relation établie** a pour provenance **`déterministe`** ou
+   **`approuvée`**, **sans troisième valeur**; provenance **visible à
+   l'écran**; stockage **hors de l'arborescence analysée**. Une **suggestion**
+   est un **objet et un état distincts** — affichable, **jamais** présentée
+   comme relation établie, **jamais** comptée dans les relations entrantes ou
+   sortantes. L'approbation la **transforme** en relation `approuvée`.
 6. **`CAL-B` n'est pas un contrat** — `DEC-0015` D. C'est un **candidat
    technique performant** et une **primitive de calepinage possible**. Ses
    mesures et ses trois restrictions — `V1`, `V2`, `R8` — demeurent. **Si un
@@ -99,21 +113,22 @@ aucune réécriture d'historique, aucune suppression de branche.
 
 | # | Point | Ce qui est demandé |
 |---|---|---|
-| 1 | **`TASK-0015` est `IMPLEMENTED`** | Contrôle indépendant `ACTION-0025`, par une instance **distincte de l'exécuteur**, **puis décision de franchir `P4`** |
-| 2 | **`TASK-0016` est `PROPOSED`** | **Ne pas l'exécuter.** Elle exige `P4` franchie, un GO nommant la fiche, et une **borne de charge déclarée avant exécution** |
+| 1 | **`TASK-0015` est `VERIFIED`** | Clos par `ACTION-0025`, avec la réserve normative **`X1`**, **corrigée**. Le contrat de parité reste **non testé** |
+| 2 | **`TASK-0016` est `APPROVED`** | `P4` est **franchie**. Les critères `H1` à `H11`, les fixtures et la **borne de charge** se figent **avant** la première ligne de code, et **ne se retouchent pas** après le premier résultat |
 | 3 | **Aucun critère de parité n'a été exécuté** | Les 22 exigences sont des **cibles à falsifier**. Un `MVP` impossible à tenir **redescend par décision écrite**, jamais par omission |
 | 4 | **Manque `M-1`** — persistance des préférences sans fonction propre | Une révision de la matrice devra créer une fonction ou rattacher explicitement chaque valeur. **Aucune fonction n'a été inventée** |
 | 5 | **Charge accrue du MVP** | Quatre fonctions de plus, dont un **modèle de provenance entièrement à écrire**. Aucune estimation d'effort n'existe |
 | 6 | **Réserves `W1` à `W4`** d'`ACTION-0024` | Toutes en vigueur |
 | 7 | **Réserves `V1` à `V4`** d'`ACTION-0023` | Toutes en vigueur. Aucune levée par `TASK-0014` ni `TASK-0015` |
 | 8 | **Réserve `R8`** | En vigueur, **renforcée**. `R1` levée; `R2` à `R7` et `R9` inchangées. **`R8` ne peut être levée qu'à l'étape C** |
-| 9 | **WebView2 non mesuré** | Interdit d'essayer avant un **véritable hôte Tauri** — `DEC-0014` F. Cet hôte est ce que `TASK-0016` doit produire |
+| 9 | **WebView2 non mesuré** | `DEC-0014` F visait l'absence d'**hôte embarqueur**. Cet hôte est le premier livrable de `TASK-0016`; hors de lui, aucune tentative |
 | 10 | **`B3` inter-volume, `B0` échec, `B4` question 3** | Inchangés : écrire hors du dépôt reste réservé à Sébastien; le cache fautif est conservé; la question 3 se ferme avant l'identité persistante |
 
 ## Prochaine action unique
 
-`ACTION-0025` — **contrôler le réalignement produit de `TASK-0015`, puis
-décider de franchir `P4`**. Détail dans [NEXT_ACTION.md](NEXT_ACTION.md).
+**Figer puis exécuter `TASK-0016`** — la première tranche verticale de
+production, sur la branche `build/v0.2-p4-vertical-slice`. Détail dans
+[NEXT_ACTION.md](NEXT_ACTION.md).
 
 ## Commandes sûres
 
@@ -151,9 +166,10 @@ Les arbitrages en vigueur sont dans `DEC-0013`, `DEC-0014` et `DEC-0015`.
 de production**. **Ne rejoue aucun banc d'essai** sans GO et **ne t'attribue pas
 `VERIFIED`**.
 
-**N'écris aucune ligne de code de production** — la porte `P4` n'est pas
-franchie. **N'ouvre pas Canvas 2D.** **Ne tente aucune instrumentation de
-WebView2** avant un véritable hôte Tauri. **Ne corrige pas l'échec de `B0` et
+**La porte `P4` est franchie** : le code de production est autorisé, **pour
+`TASK-0016` seulement** et dans son périmètre écrit. **N'ouvre pas Canvas 2D
+ni WebGL.** **Ne mesure WebView2 que dans l'hôte Tauri réel** construit par la
+tranche. **Ne corrige pas l'échec de `B0` et
 ne supprime rien** dans `src-tauri/target/`. **Ne teste pas l'inter-volume.**
 **Ne retouche aucune preuve** de `TASK-0012` à `TASK-0014`, ni le texte de
 `DEC-0014`. Ne fusionne rien, ne crée ni PR, ni release, ni étiquette.

@@ -1,80 +1,64 @@
 # Prochaine action
 
-## ACTION-0025 — Contrôle du réalignement produit, puis décision de franchir P4
+## Figer puis exécuter TASK-0016 — la première tranche verticale de production
 
-- **Statut :** PROPOSED
-- **Responsable :** une instance **distincte de l'exécuteur** de `TASK-0015` —
-  orchestrateur technique pour le contrôle et pour la porte technique;
-  **Sébastien** s'il choisit de reprendre `P4`, ce qu'il peut faire à tout
-  moment
-- **Action unique :** **contrôler le réalignement produit livré par
-  [TASK-0015](../tasks/TASK-0015-cartetopo-functional-parity.md)** — contrat de
-  parité, reclassement, `DEC-0015`, feuille de route et fiche `TASK-0016` —
-  **puis décider de franchir ou non la porte `P4`.**
-- **Résultat attendu :** `TASK-0015` passe de `IMPLEMENTED` à `VERIFIED`, avec
-  ou sans réserves, ou elle est renvoyée; **et** la porte `P4` est **franchie
-  ou maintenue fermée**, par écrit.
+- **Statut :** `APPROVED` — la porte **`P4` est FRANCHIE**
+  ([DEC-0016](../decisions/DEC-0016-p4-gate-crossing-and-first-slice.md))
+- **Responsable :** exécuteur de
+  [TASK-0016](../tasks/TASK-0016-p4-vertical-slice.md), sous le **GO technique
+  de l'orchestrateur** qui nomme cette fiche
+- **Action unique :** **figer les critères `H1` à `H11`, les fixtures et la
+  borne de charge de `TASK-0016`, puis exécuter la tranche verticale** —
+  fixture synthétique → scan Rust en lecture seule → index SQLite persistant
+  et reconstructible → calepinage → carte HTML/SVG accessible dans un
+  **véritable hôte Tauri/WebView2** → panoramique, zoom, ajuster,
+  réinitialiser → sélection souris **et** clavier → détails avec parent et
+  enfants directs.
+- **Résultat attendu :** `TASK-0016` se termine **`IMPLEMENTED`**, jamais
+  `VERIFIED`, sur la branche `build/v0.2-p4-vertical-slice`.
 
-### Pourquoi c'est la seule action
+### Ce qui doit être vrai avant la première ligne de code
 
-`TASK-0015` est livrée **`IMPLEMENTED`** et **ne s'est pas auto-attribué
-`VERIFIED`** : l'exécuteur ne juge pas son propre livrable. Aucune tâche n'est
-`IN_PROGRESS`.
+1. Les critères **`H1` à `H11` sont complétés, commités et figés** — sur le
+   modèle de `TASK-0013` et `TASK-0014`. **Aucun critère ne se retouche après
+   le premier résultat.**
+2. Les **quatre fixtures synthétiques** sont déclarées avec leur graine et
+   leur structure, **avant** toute mesure.
+3. La **borne de charge** de §5.2 est **déclarée d'avance** et **non
+   retouchée ensuite**.
 
-**Le contrôle et la porte forment une seule action** parce que la porte dépend
-du contrôle : `P4` autorise la première tâche d'implémentation, et cette tâche
-est [`TASK-0016`](../tasks/TASK-0016-p4-vertical-slice.md), dont le périmètre
-est **entièrement dérivé** du contrat de parité. Franchir `P4` avant d'avoir
-jugé le contrat reviendrait à autoriser du code contre une cible non contrôlée.
+### Le périmètre, et rien de plus
 
-### Ce que le contrôle doit regarder en priorité
+**Six exigences de parité couvertes** — `P-01`, `P-02`, `P-03`, `P-11`,
+`P-12`, `P-22` — plus `P-06` **partielle**, pour la seule sélection et
+l'accentuation hiérarchique.
 
-1. **La couverture du contrat de parité.** Les 22 exigences `P-01` à `P-22`
-   couvrent-elles réellement les points nommés par l'instruction produit ?
-   Chaque critère d'acceptation est-il **falsifiable sur données
-   synthétiques**, ou seulement déclaratif ?
-2. **La règle de liberté visuelle et sa subordination.** §3 du contrat
-   autorise-t-il une refonte complète tout en rendant impossible la
-   **disparition silencieuse** d'une fonction ? Le mécanisme de conflit — la
-   parité gagne, une suppression exige une fiche `DEC` — est-il suffisant ?
-3. **La règle des relations transversales.** §5 interdit-il réellement toute
-   relation inventée ? La provenance est-elle exigée **visible à l'écran**, et
-   le stockage **hors de l'arborescence analysée** ?
-4. **Le reclassement.** Les quatre remontées `F-013`, `F-017`, `F-018`, `F-019`
-   sont-elles justifiées, la classification d'origine est-elle **conservée et
-   visible**, et **rien** n'est-il descendu ? `F-021`, `F-037`, `F-038`,
-   `F-039` sont-elles bien restées `DIFFÉRÉ` ?
-5. **`DEC-0015` contre `DEC-0014`.** La supplantation porte-t-elle bien sur
-   **deux points seulement** — lecture produit de `B`, statut de prérequis de
-   `E` ? **`DEC-0014` est-elle restée intacte**, avec un simple renvoi ? Les
-   trois restrictions obligatoires de `CAL-B` — `V1`, `V2`, `R8` — sont-elles
-   conservées ?
-6. **La fiche `TASK-0016`.** Est-elle une **tranche verticale** et non
-   l'application entière ? Sa borne de charge est-elle exigée **avant**
-   exécution, conformément à `DEC-0015` F ? Ses préalables interdisent-ils bien
-   tout démarrage avant `P4` ?
-7. **Le manque `M-1`**, déclaré plutôt que comblé : la persistance des
-   préférences sans fonction propre. Juger si le déclarer suffit à ce stade.
+**Hors périmètre, explicitement :** relations transversales (`P-04`, `P-05`,
+`P-07`), recherche et filtres (`P-08`, `P-09`), légende (`P-10`), contenu
+direct listé (`P-13`), copier le chemin et ouvrir dans l'Explorateur (`P-14`,
+`P-15`), changements, vu/non vu et surveillance (`P-16` à `P-18`), persistance
+des préférences et plusieurs cerveaux (`P-19`, `P-20`), bilinguisme intégral
+et audit WCAG complet (`P-21`).
 
-### Ce que la décision sur P4 doit trancher
+### Interdit pendant cette tâche
 
-- **Franchir `P4`** autorise l'approbation puis l'exécution de `TASK-0016`, et
-  **rien d'autre** : une tranche verticale, sur fixtures synthétiques, dans un
-  véritable hôte Tauri/WebView2, sans budget adaptatif et avec une borne de
-  charge déclarée d'avance.
-- **Ne pas franchir `P4`** maintient l'interdiction de toute ligne de code de
-  production, et exige d'écrire ce qui manque encore.
+- **Aucune donnée réelle, aucun sélecteur de dossier utilisateur** — point
+  d'arrêt réservé à Sébastien.
+- **Aucun budget de rendu adaptatif**, et **aucune reprise** d'un contrôleur
+  de `TASK-0013` ou `TASK-0014` — `DEC-0015` F.
+- **Ni Canvas 2D, ni WebGL** — `DEC-0013` C, `DEC-0015` E.
+- **Aucune écriture ni modification dans l'arborescence analysée** — `I-1`,
+  `I-2`.
+- **Aucune suppression, aucun nettoyage, aucun renommage** dans
+  `src-tauri/target/` — `DEC-0013` E.
+- **Aucune nouvelle dépendance** sans arrêt préalable et justification.
+- **Aucune fusion vers `main`, PR, release, étiquette, `force push` ni
+  réécriture d'historique.**
+- **Aucune levée de réserve** : `V1` à `V4`, `W1` à `W4`, `R2` à `R9` restent
+  en vigueur. **`R8` ne peut être levée qu'à l'étape C.**
 
-**Dans les deux cas, la décision est écrite** — fiche de contrôle ou fiche
-`DEC` —, jamais implicite.
+### Après cette action
 
-### Interdit tant que ce contrôle n'a pas conclu
-
-**N'écrire aucune ligne de code de production : la porte `P4` reste ouverte et
-non franchie.** Ne pas approuver ni exécuter `TASK-0016`. Ne pas adopter de
-budget, ni reprendre l'un des deux contrôleurs de spike — `DEC-0015` F. Ne pas
-ouvrir Canvas 2D ni WebGL. **Ne tenter aucune instrumentation de WebView2**
-avant qu'un véritable hôte Tauri existe — `DEC-0014` F. Ne rien supprimer du
-cache incrémental de `src-tauri/target/` — `DEC-0013` E. Ne retoucher aucune
-preuve de `TASK-0012` à `TASK-0014`. Ne fusionner rien, ne créer ni PR, ni
-release, ni étiquette.
+L'action suivante sera le **contrôle indépendant de `TASK-0016`**, par une
+instance **distincte de son exécuteur**. **L'exécuteur ne s'attribue jamais
+`VERIFIED`.**

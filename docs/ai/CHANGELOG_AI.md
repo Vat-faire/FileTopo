@@ -1864,3 +1864,67 @@ historique uniquement); `docs/decisions/DEC-0014-layout-baseline-and-budget-dire
 **`ACTION-0025`** — contrôle indépendant du **réalignement produit** de
 `TASK-0015`, par une instance **distincte de l'exécuteur**, **puis décision de
 franchir la porte `P4`**. La porte **`P4` reste ouverte et non franchie**.
+
+---
+
+## 2026-08-31 — ACTION-0025 : contrôle de TASK-0015, correction X1, franchissement de P4
+
+**Nature : strictement documentaire.** Aucune ligne de code, aucune mesure,
+aucune exécution, aucune dépendance.
+
+### Fait
+
+- **Contrôle indépendant de `TASK-0015` accepté.** La tâche passe de
+  `IMPLEMENTED` à **`VERIFIED`**, par une instance **distincte de
+  l'exécuteur**. `VERIFIED` porte sur la **qualité du livrable documentaire**,
+  pas sur la faisabilité du contrat de parité : **aucun de ses 22 critères n'a
+  été exécuté**.
+- **Réserve normative `X1` émise et corrigée dans le même geste.** Le contrat
+  employait « suggérée » comme **provenance de relation** en §4 (`P-04`) et
+  §5.1.2, contre §5.1.3 qui établit qu'**une suggestion n'est pas une
+  relation**. Désormais : **relation établie** ⇒ provenance `déterministe`
+  **ou** `approuvée`, sans troisième valeur; **suggestion** ⇒ **objet et état
+  distincts**, **affichables** mais **jamais** présentés comme relation
+  établie ni comptés dans `P-05`; l'approbation **transforme** la suggestion
+  en relation `approuvée`. **Trois formulations alignées, aucune portée
+  changée.**
+- **La porte `P4` est FRANCHIE.** Elle autorise l'approbation puis l'exécution
+  de **`TASK-0016`**, dans le périmètre écrit de sa §4, **et rien d'autre**.
+- **`M-1` daté** : ne bloque pas `P4`, doit être résolu **avant** la tranche
+  qui implémente réellement `P-19`.
+- **`H1` à `H11` de `TASK-0016` deviennent obligatoires**, à compléter, commiter
+  et **figer avant la première exécution**.
+
+### Non fait, volontairement
+
+- **Aucune mesure, aucune exécution, aucun test.**
+- **Aucune réserve levée** : `V1` à `V4`, `W1` à `W4`, `R2` à `R9` en vigueur;
+  `R1` reste levée depuis `ACTION-0023`. **`R8` appartient à l'étape C.**
+- **Aucune décision produit de Sébastien rejugée** — `DEC-0015` `A`, `B`, `C`.
+- **Aucun paragraphe de `DEC-0014` modifié**, aucune preuve de `TASK-0012` à
+  `TASK-0014` retouchée, **aucun historique réécrit**.
+- **`M-1` non comblé**, question 3 de `B4` non fermée, inter-volume de `B3`
+  non testé, échec de `B0` non corrigé.
+- **Aucune donnée réelle, aucune dépense, aucune lecture ni écriture hors du
+  dépôt, aucune publication externe.**
+- **Aucune fusion, PR, release, étiquette, `force push`.**
+
+### Fichiers
+
+**Créés :** `docs/reviews/ACTION-0025-independent-control.md`;
+`docs/decisions/DEC-0016-p4-gate-crossing-and-first-slice.md`.
+
+**Modifiés :** `docs/product/CARTETOPO_FUNCTIONAL_PARITY.md` (**correction
+`X1`**, trois formulations, portée inchangée);
+`docs/tasks/TASK-0015-cartetopo-functional-parity.md` (statut et historique);
+`docs/decisions/README.md`; `ROADMAP.md`; et la mémoire obligatoire —
+`CURRENT_STATE.md`, `NEXT_ACTION.md`, `HANDOFF.md`, `VALIDATION.md`,
+`CHANGELOG_AI.md`.
+
+**Inchangés : `src/`, `src-tauri/`, `tests/`, `public/`, `scripts/`,
+`.github/`, `spikes/`, `graph/`.**
+
+### Prochaine action unique
+
+**Figer puis exécuter `TASK-0016`** — première tranche verticale de
+production, branche `build/v0.2-p4-vertical-slice`.

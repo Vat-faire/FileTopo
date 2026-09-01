@@ -57,6 +57,20 @@ GraphRAG restent `DIFFÉRÉ`.
 Les points `A`, `B` et `C` de `DEC-0015` relèvent de la **direction produit de
 Sébastien**, que la délégation d'orchestration technique **ne couvre pas**.
 
+**Mise à jour du 2026-08-31 — la porte `P4` est franchie.** Le contrôle
+indépendant [`ACTION-0025`](../reviews/ACTION-0025-independent-control.md) a
+accepté le réalignement produit de `TASK-0015`, émis et **corrigé** la réserve
+normative `X1`, et **franchi `P4`**. Une neuvième fiche l'enregistre :
+
+| Fiche | État | Ce qui est retenu |
+|---|---|---|
+| [DEC-0016](DEC-0016-p4-gate-crossing-and-first-slice.md) | `APPROVED` | **`TASK-0015` est `VERIFIED`**; correction normative **`X1`** — une **suggestion n'est pas une provenance de relation**, une relation établie a pour provenance `déterministe` **ou** `approuvée`; **la porte `P4` est FRANCHIE** et autorise **`TASK-0016`, et rien d'autre**; le manque **`M-1`** ne bloque pas `P4` mais doit être résolu **avant** la tranche qui implémente réellement `P-19` |
+
+`DEC-0016` **ne supplante rien** : elle **complète** `DEC-0015` en tirant la
+conséquence de son contrôle. **`DEC-0014` et `DEC-0015` sont inchangées**, et
+**aucune réserve n'est levée** — `V1` à `V4`, `W1` à `W4`, `R2` à `R9` restent
+en vigueur, `R8` ne pouvant l'être qu'à l'**étape C**.
+
 `DEC-0013` **complète** `DEC-0008`, `DEC-0009` et `DEC-0011` sans les
 remplacer : chacune porte un **amendement en fin de fiche**, et leur texte
 d'origine est conservé intact. Le paragraphe ci-dessus reste vrai **au moment

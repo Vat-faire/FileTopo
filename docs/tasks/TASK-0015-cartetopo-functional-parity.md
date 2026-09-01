@@ -6,7 +6,9 @@
   ajustement de la baseline d'exigences, une décision qui supplante `DEC-0014`
   sur la lecture produit de `CAL-B`, une feuille de route en quatre étapes et
   la fiche `PROPOSED` de la première tâche `P4`
-- **Statut :** `IMPLEMENTED`
+- **Statut :** **`VERIFIED`** — contrôle indépendant
+  [`ACTION-0025`](../reviews/ACTION-0025-independent-control.md) du 2026-08-31,
+  **avec la réserve normative `X1`, corrigée dans le même geste**
 - **Phase :** réalignement produit — après la clôture
   [ACTION-0024](../reviews/ACTION-0024-independent-control.md)
 - **Proposée le :** 2026-08-31
@@ -170,6 +172,15 @@ conformément à [AGENTS.md](../../AGENTS.md).
 - 2026-08-31 — `IMPLEMENTED` : les six livrables `L1` à `L6` sont produits.
   **Aucun fichier de production, de test, de spike ni de `graph/` n'a changé.**
   **`P4` n'est pas franchie.** `VERIFIED` appartient au contrôle indépendant.
+- 2026-08-31 — **`VERIFIED`** : contrôle indépendant
+  [`ACTION-0025`](../reviews/ACTION-0025-independent-control.md), par une
+  instance **distincte de l'exécuteur**. Contrôle **accepté**, avec la réserve
+  normative **`X1`** — « suggérée » employée comme provenance de relation,
+  contre §5.1.3 du contrat —, **corrigée dans le même geste** et enregistrée
+  par [`DEC-0016`](../decisions/DEC-0016-p4-gate-crossing-and-first-slice.md) B.
+  **`VERIFIED` porte sur la qualité du livrable documentaire, pas sur la
+  faisabilité du contrat de parité :** aucun de ses 22 critères n'a été
+  exécuté. Dans le même geste, **la porte `P4` est FRANCHIE** — `DEC-0016` C.
 
 ## 11. Rapport d'exécution
 

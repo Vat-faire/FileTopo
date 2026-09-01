@@ -16,7 +16,7 @@ attend un contrôle indépendant avant la suivante.
 
 | Étape | Objet | État | Ce qui doit être vrai à sa sortie |
 |---|---|---|---|
-| **A** | **Parité fonctionnelle MVP** | **PROPOSED** — première tranche spécifiée par [TASK-0016](docs/tasks/TASK-0016-p4-vertical-slice.md), `PROPOSED` | Les **22 exigences** `P-01` à `P-22` du [contrat de parité](docs/product/CARTETOPO_FUNCTIONAL_PARITY.md) sont satisfaites et **prouvées sur fixtures synthétiques**, avec contrôle indépendant. Les **trois invariants** `I-1` à `I-3` tiennent. **L'apparence n'est pas jugée à cette étape** : seule la fonction l'est |
+| **A** | **Parité fonctionnelle MVP** | **EN COURS** — porte **P4 franchie** le 2026-08-31 ([DEC-0016](docs/decisions/DEC-0016-p4-gate-crossing-and-first-slice.md)); première tranche [TASK-0016](docs/tasks/TASK-0016-p4-vertical-slice.md), `APPROVED` puis exécutée | Les **22 exigences** `P-01` à `P-22` du [contrat de parité](docs/product/CARTETOPO_FUNCTIONAL_PARITY.md) sont satisfaites et **prouvées sur fixtures synthétiques**, avec contrôle indépendant. Les **trois invariants** `I-1` à `I-3` tiennent. **L'apparence n'est pas jugée à cette étape** : seule la fonction l'est |
 | **B** | **Finition visuelle moderne** | PROPOSED | Le style est refondu — formes, couleurs, typographie, panneaux, animations, organisation. **Aucune exigence de parité n'a disparu ni n'est devenue inatteignable**, contrôlé en rejouant l'intégralité des critères de l'étape **A**. L'accessibilité **WCAG 2.2 AA** et le bilinguisme tiennent après refonte |
 | **C** | **Validation Windows / WebView2 réelle** | PROPOSED | Un **véritable hôte Tauri** existe et l'application s'exécute dans **WebView2**, sur Windows. Les mesures de performance sont refaites **dans ce moteur** : elles remplacent, pour toute communication, les mesures Edge et Chrome des spikes. **La réserve `R8` ne peut être levée qu'ici.** Le **budget adaptatif est réévalué ici**, et pas avant — `DEC-0015` F |
 | **D** | **Empaquetage et publication** | PROPOSED | Application empaquetée, audit, tests, documentation FR/EN, notes de version. **La décision de publier appartient à Sébastien** : fusion vers `main`, PR, release, étiquette et annonce sont des **points d'arrêt réservés**, jamais délégués |
@@ -86,6 +86,15 @@ audit technique**. Le
 produit courant, et quatre fonctions — `F-013`, `F-017`, `F-018`, `F-019` —
 sont remontées d'`ULTÉRIEUR` à `MVP`. **IA, OCR, extraction de contenu, RAG et
 GraphRAG restent DIFFÉRÉ.**
+
+**Mise à jour du 2026-08-31 — la porte P4 est FRANCHIE.** Le contrôle
+indépendant [ACTION-0025](docs/reviews/ACTION-0025-independent-control.md) a
+accepté le réalignement produit — `TASK-0015` est **`VERIFIED`** — et émis la
+réserve normative **`X1`**, corrigée dans le même geste : **une suggestion
+n'est pas une provenance de relation**. `P4` autorise
+[TASK-0016](docs/tasks/TASK-0016-p4-vertical-slice.md), **et rien d'autre** —
+[DEC-0016](docs/decisions/DEC-0016-p4-gate-crossing-and-first-slice.md).
+**L'étape B ne commence pas** : la parité précède l'esthétique.
 
 ## Règles de passage
 
