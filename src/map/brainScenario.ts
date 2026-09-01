@@ -23,6 +23,7 @@
 
 import { afterPaint } from "./measure";
 import { pressRealKey, waitUntil, type RealKeyEvidence, type ScenarioLog } from "./realInput";
+import { k12Artifact } from "./runArtifacts";
 import { sameBrainSession, type BrainSessionState } from "./brainSession";
 import type {
   BrainCatalogView,
@@ -463,7 +464,7 @@ export async function runBrainScenario(
     }
 
     const written = await invoke<string>("map_write_run_artifact", {
-      name: `TASK-0018-K12-webview2-pass${pass}.json`,
+      name: k12Artifact(pass, "written"),
       contents: JSON.stringify(
         {
           task: "TASK-0018",
@@ -485,7 +486,7 @@ export async function runBrainScenario(
     setStatus(`Scénario K12 interrompu : ${String(error)}`);
     try {
       await invoke<string>("map_write_run_artifact", {
-        name: `TASK-0018-K12-webview2-pass${pass}-abandon.json`,
+        name: k12Artifact(pass, "abandoned"),
         contents: JSON.stringify(
           {
             task: "TASK-0018",

@@ -1,6 +1,10 @@
 /**
  * `J12` of `TASK-0017`, replayed against the real host, unattended.
  *
+ * **Since `TASK-0018`, this is a regression replay, not `J12` itself.** The
+ * scenario runs on `brain-alpha` and its artefact carries a `TASK-0018` name —
+ * reserve `X5`. `TASK-0017`'s own published proof is never a destination here.
+ *
  * Driven through the **same** DOM and the **same** commands a person would
  * use: the map's own key handler receives real `keydown` events, the panel's
  * buttons receive real click events, and every count is read back from the
@@ -22,6 +26,10 @@
 
 import { afterPaint } from "./measure";
 import { pressRealKey, waitUntil } from "./realInput";
+import {
+  J12_REGRESSION_ABANDON_ARTIFACT,
+  J12_REGRESSION_ARTIFACT,
+} from "./runArtifacts";
 import type {
   HostInfo,
   MapSnapshot,
@@ -380,12 +388,24 @@ export async function runRelationScenario(deps: ScenarioDeps): Promise<void> {
       brainId: BRAIN,
     });
 
+    // Reserve `X5`. The scenario now runs against `brain-alpha`, so what it
+    // produces is a REGRESSION REPLAY belonging to `TASK-0018`. It never
+    // lands on `TASK-0017-J12-webview2.json`: that file is the canonical
+    // evidence of a VERIFIED task and stays bit-for-bit as published.
     const written = await invoke<string>("map_write_run_artifact", {
-      name: "TASK-0017-J12-webview2.json",
+      name: J12_REGRESSION_ARTIFACT,
       contents: JSON.stringify(
         {
-          task: "TASK-0017",
-          criterion: "J12",
+          task: "TASK-0018",
+          sourceCriterion: "TASK-0017/J12",
+          nature: "regression replay after multibrain migration",
+          doesNotReplace: "docs/performance/runs/TASK-0017-J12-webview2.json",
+          replacesCanonicalEvidence: false,
+          note:
+            "J12 replayed on brain-alpha after the TASK-0018 migration: same frozen " +
+            "`quasi-empty` tree, same real-keystroke mechanism, brain-keyed commands. It " +
+            "proves the migration did not break J12; it does NOT re-issue J12's own proof, " +
+            "which remains TASK-0017-J12-webview2.json, unchanged.",
           capturedAtIso: new Date().toISOString(),
           host,
           evidence,
@@ -404,11 +424,14 @@ export async function runRelationScenario(deps: ScenarioDeps): Promise<void> {
     setStatus(`Scénario J12 interrompu : ${String(error)}`);
     try {
       await invoke<string>("map_write_run_artifact", {
-        name: "TASK-0017-J12-webview2-abandon.json",
+        name: J12_REGRESSION_ABANDON_ARTIFACT,
         contents: JSON.stringify(
           {
-            task: "TASK-0017",
-            criterion: "J12",
+            task: "TASK-0018",
+            sourceCriterion: "TASK-0017/J12",
+            nature: "regression replay after multibrain migration",
+            doesNotReplace: "docs/performance/runs/TASK-0017-J12-webview2.json",
+            replacesCanonicalEvidence: false,
             outcome: "abandoned",
             reason: String(error),
             host,

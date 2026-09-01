@@ -483,15 +483,39 @@ pub fn self_check(paths: &SandboxPaths, brain: &BrainRecord) -> Result<MapSelfCh
     })
 }
 
+/// Canonical evidence of tasks already `VERIFIED` — **never a destination**.
+///
+/// Reserve `X5` of `ACTION-0028`. This function writes by replacement, so a
+/// scenario a later slice migrated but did not rename would silently destroy
+/// the published proof of an earlier task. The rule is enforced here, at the
+/// only door, rather than trusted to every caller: a later task's execution
+/// never replaces an earlier `VERIFIED` task's evidence.
+///
+/// Renaming or removing one of these files is a governance act, not a
+/// runtime one; nothing in the application does it.
+pub const PROTECTED_RUN_ARTIFACTS: [&str; 4] = [
+    "TASK-0016-H1-H7-verification.json",
+    "TASK-0016-H9-webview2.json",
+    "TASK-0017-J11-isolation.json",
+    "TASK-0017-J12-webview2.json",
+];
+
 /// Writes a measurement artefact into `docs/performance/runs/` of this
 /// checkout. Development builds only.
 ///
-/// Confined three ways, because a command that writes files is exactly where a
-/// slice could quietly step outside its repository: the destination folder is
-/// fixed, the name may contain no separator and no `..`, and the repository is
-/// located at run time by its own markers rather than by a compiled-in path.
+/// Confined four ways, because a command that writes files is exactly where a
+/// slice could quietly step outside its repository — or over its own history:
+/// the destination folder is fixed, the name may contain no separator and no
+/// `..`, the name may not be one of [`PROTECTED_RUN_ARTIFACTS`], and the
+/// repository is located at run time by its own markers rather than by a
+/// compiled-in path.
 #[cfg(debug_assertions)]
 pub fn write_run_artifact(name: &str, contents: &str) -> Result<String, MapError> {
+    if PROTECTED_RUN_ARTIFACTS.contains(&name) {
+        return Err(MapError::ArtifactRejected(format!(
+            "artefact refused, it is the canonical evidence of a VERIFIED task: {name}"
+        )));
+    }
     let safe = name
         .chars()
         .all(|character| character.is_ascii_alphanumeric() || matches!(character, '-' | '_' | '.'))
@@ -538,6 +562,45 @@ pub fn fixture_summaries() -> Vec<FixtureSummary> {
 mod tests {
     use super::*;
     use crate::map::brains::SourceKind;
+
+    /// Reserve `X5`. The only door that writes a run artefact refuses to write
+    /// over the canonical evidence of a task already `VERIFIED`.
+    ///
+    /// The refusal happens before any filesystem access, so this test writes
+    /// nothing: a test that had to create the file to prove it is protected
+    /// would be the very accident it guards against.
+    #[test]
+    fn a_verified_tasks_evidence_is_never_a_destination() {
+        for name in PROTECTED_RUN_ARTIFACTS {
+            let refused = write_run_artifact(name, "{}");
+            assert!(
+                matches!(refused, Err(MapError::ArtifactRejected(_))),
+                "{name} was accepted as a destination"
+            );
+        }
+    }
+
+    /// The names the current runtime actually writes are **not** protected
+    /// ones, and say which task they belong to.
+    #[test]
+    fn the_migrated_scenarios_write_under_task_0018() {
+        for name in [
+            "TASK-0018-H9-multibrain-regression-webview2.json",
+            "TASK-0018-H9-multibrain-regression-webview2-abandon.json",
+            "TASK-0018-J12-relations-regression-webview2.json",
+            "TASK-0018-J12-relations-regression-webview2-abandon.json",
+            "TASK-0018-K11-readonly-and-isolation.json",
+            "TASK-0018-K12-webview2-pass1.json",
+            "TASK-0018-K12-webview2-pass2.json",
+        ] {
+            assert!(
+                !PROTECTED_RUN_ARTIFACTS.contains(&name),
+                "{name} collides with protected evidence"
+            );
+            assert!(name.starts_with("TASK-0018-"), "{name} names no task");
+            assert!(name.len() <= 120, "{name} is longer than the guard allows");
+        }
+    }
 
     /// A brain that reads `spec`, for the tests that still want to exercise
     /// **every** fixture rather than only the three frozen brains.

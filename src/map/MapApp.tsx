@@ -17,6 +17,11 @@ import { establishedNeighbours, relationSegments } from "./relations";
 import { runBrainScenario as runBrains } from "./brainScenario";
 import { runRelationScenario as runScenario } from "./relationScenario";
 import {
+  H9_REGRESSION_ABANDON_ARTIFACT,
+  H9_REGRESSION_ARTIFACT,
+  K11_ARTIFACT,
+} from "./runArtifacts";
+import {
   FRAMES_PER_RUN,
   RUNS_PER_FIXTURE,
   SELECTIONS_PER_RUN,
@@ -592,7 +597,7 @@ export default function MapApp() {
       // is **not** overwritten — it remains the record of a verified task, and
       // a per-brain rerun has no business replacing it.
       const written = await invoke<string>("map_write_run_artifact", {
-        name: "TASK-0018-K11-readonly-and-isolation.json",
+        name: K11_ARTIFACT,
         contents: JSON.stringify(
           {
             task: "TASK-0018",
@@ -620,7 +625,13 @@ export default function MapApp() {
 
   runVerificationRef.current = runVerification;
 
-  /** `H9`, on every fixture, five runs each. */
+  /**
+   * The `H9` loop of `TASK-0016`, migrated to walk **brains**.
+   *
+   * Kept so the runtime stays measurable, and renamed so it cannot overwrite
+   * anything — reserve `X5`. It is a compatibility replay under `TASK-0018`,
+   * not a new canonical `H9` campaign, and it sets no threshold.
+   */
   const runMeasurement = useCallback(async () => {
     const brains = catalog?.brains ?? [];
     if (measuring || brains.length === 0) return;
@@ -705,9 +716,17 @@ export default function MapApp() {
         );
       }
 
+      // Reserve `X5`. This loop walks **brains**, so what it produces is a
+      // compatibility replay of the migrated runtime and belongs to
+      // `TASK-0018`. It is written under a `TASK-0018` name and NEVER over
+      // `TASK-0016-H9-webview2.json`, which stays the frozen H9 campaign of a
+      // VERIFIED task. `TASK-0018` sets no threshold: `R8` stays whole.
       const artifact = {
-        task: "TASK-0016",
-        criterion: "H9",
+        task: "TASK-0018",
+        sourceCriterion: "TASK-0016/H9",
+        nature: "regression / compatibility replay",
+        doesNotReplace: "docs/performance/runs/TASK-0016-H9-webview2.json",
+        replacesCanonicalEvidence: false,
         capturedAtIso: new Date().toISOString(),
         host,
         framesPerRun: FRAMES_PER_RUN,
@@ -715,13 +734,17 @@ export default function MapApp() {
         selectionsPerRun: SELECTIONS_PER_RUN,
         warmupFrames: WARMUP_FRAMES,
         note:
-          "Frame time = interval between consecutive animation-frame callbacks during a " +
-          "scripted pan and zoom, React commit included. Selection latency = request to the " +
-          "start of the frame after the one painting the selection. No fps target is set by H9.",
+          "Replay of the TASK-0016 H9 loop on the multi-brain runtime. It does NOT replace " +
+          "TASK-0016's frozen H9 campaign: it walks the catalogue's brains, so it covers " +
+          "`quasi-empty` twice and `deep`, not the four original fixtures. TASK-0018 takes no " +
+          "measurement decision and sets no threshold; R8 is untouched. Frame time = interval " +
+          "between consecutive animation-frame callbacks during a scripted pan and zoom, React " +
+          "commit included. Selection latency = request to the start of the frame after the one " +
+          "painting the selection. No fps target is set anywhere.",
         measurements: results,
       };
       const written = await invoke<string>("map_write_run_artifact", {
-        name: "TASK-0016-H9-webview2.json",
+        name: H9_REGRESSION_ARTIFACT,
         contents: JSON.stringify(artifact, null, 2),
       });
       setMeasurement(results);
@@ -735,11 +758,14 @@ export default function MapApp() {
       hostLog("error", `campagne interrompue: ${String(error)}`);
       try {
         await invoke<string>("map_write_run_artifact", {
-          name: "TASK-0016-H9-webview2-abandon.json",
+          name: H9_REGRESSION_ABANDON_ARTIFACT,
           contents: JSON.stringify(
             {
-              task: "TASK-0016",
-              criterion: "H9",
+              task: "TASK-0018",
+              sourceCriterion: "TASK-0016/H9",
+              nature: "regression / compatibility replay",
+              doesNotReplace: "docs/performance/runs/TASK-0016-H9-webview2.json",
+              replacesCanonicalEvidence: false,
               outcome: "abandoned",
               reason: String(error),
               host,
@@ -1077,8 +1103,8 @@ export default function MapApp() {
           />
 
           {measurement ? (
-            <section className="measure" aria-label="Mesures H9">
-              <h2>H9 · WebView2</h2>
+            <section className="measure" aria-label="Mesures H9 — régression multi-cerveaux">
+              <h2>H9 · WebView2 · régression multi-cerveaux</h2>
               <table>
                 <thead>
                   <tr>
