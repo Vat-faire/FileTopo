@@ -6,11 +6,18 @@
  * buttons receive real click events, and every count is read back from the
  * store rather than recomputed here.
  *
- * What the run cannot do honestly, it says. A script cannot forge a *trusted*
- * `Enter`, so a panel entry's keyboard reachability is demonstrated by focus,
- * and its activation by the button's own activation behaviour — the one
- * `Enter` triggers. The map's arrow keys, by contrast, are exercised for real:
- * the component's own handler receives the events.
+ * **Reserve `X4`.** A script cannot forge a *trusted* key press, so the first
+ * version of this scenario activated the panel entry programmatically and said
+ * so. That is not what the freeze asks for. This version does not activate
+ * anything itself: it focuses the control, prints a marker on the host's
+ * standard output, and waits for a **real Windows keystroke** sent by
+ * `scripts/j12-send-real-key.ps1` through `WScript.Shell`. What the page then
+ * records is the click's own `isTrusted` flag — `true` only for an activation
+ * the browser generated from real input — together with counters proving that
+ * **no programmatic activation was used**.
+ *
+ * If the keystroke never arrives, the scenario fails and says so. It never
+ * falls back to a synthetic click.
  */
 
 import { afterPaint } from "./measure";
@@ -81,6 +88,118 @@ async function waitUntil(
     frames += 1;
   }
   return { settled: predicate(), waitedMs: performance.now() - started, frames };
+}
+
+/** What one real keystroke proved, or failed to prove. */
+interface RealKeyEvidence {
+  inputMethod: string;
+  keyRequested: string;
+  focusedBeforeTag: string;
+  focusedBeforeClass: string;
+  focusedBeforeText: string;
+  focusReached: boolean;
+  keydownIsTrusted: boolean | null;
+  keydownKey: string | null;
+  activationIsTrusted: boolean | null;
+  programmaticClickCalls: number;
+  programmaticClickDispatches: number;
+  observedChange: boolean;
+  waitedMs: number;
+}
+
+/**
+ * Focuses a control, asks the host for a **real** keystroke, and waits.
+ *
+ * Three things are instrumented at once, because each alone could be argued
+ * with:
+ *
+ * * `isTrusted` on the activation event — `false` for anything a script
+ *   dispatched, `true` only for an activation the browser generated from real
+ *   input. This is the proof.
+ * * `HTMLElement.prototype.click` and `EventTarget.prototype.dispatchEvent`
+ *   are counted for the whole window. Both must stay at zero, which is what
+ *   "no programmatic activation was used" means when it is measured rather
+ *   than asserted.
+ * * the observable change itself, so a trusted click that did nothing is not
+ *   mistaken for success.
+ */
+async function pressRealKey(
+  target: HTMLElement,
+  key: string,
+  changed: () => boolean,
+  log: ScenarioDeps["log"],
+  budgetMs = 90_000,
+): Promise<RealKeyEvidence> {
+  let activationIsTrusted: boolean | null = null;
+  let keydownIsTrusted: boolean | null = null;
+  let keydownKey: string | null = null;
+  let programmaticClickCalls = 0;
+  let programmaticClickDispatches = 0;
+
+  const onClick = (event: Event) => {
+    if (activationIsTrusted === null) activationIsTrusted = event.isTrusted;
+  };
+  const onKeyDown = (event: Event) => {
+    if (keydownIsTrusted === null) {
+      keydownIsTrusted = event.isTrusted;
+      keydownKey = (event as KeyboardEvent).key;
+    }
+  };
+  target.addEventListener("click", onClick, true);
+  target.addEventListener("keydown", onKeyDown, true);
+
+  const nativeClick = HTMLElement.prototype.click;
+  const nativeDispatch = EventTarget.prototype.dispatchEvent;
+  HTMLElement.prototype.click = function patchedClick(this: HTMLElement) {
+    programmaticClickCalls += 1;
+    return nativeClick.call(this);
+  };
+  EventTarget.prototype.dispatchEvent = function patchedDispatch(
+    this: EventTarget,
+    event: Event,
+  ) {
+    if (event.type === "click") programmaticClickDispatches += 1;
+    return nativeDispatch.call(this, event);
+  };
+
+  target.focus();
+  const evidence: RealKeyEvidence = {
+    inputMethod:
+      "WScript.Shell SendKeys via scripts/j12-send-real-key.ps1, after AppActivate " +
+      "on the FileTopo process — the ordinary Windows input path",
+    keyRequested: key,
+    focusedBeforeTag: target.tagName,
+    focusedBeforeClass: target.getAttribute("class") ?? "",
+    focusedBeforeText: target.textContent?.trim() ?? "",
+    focusReached: document.activeElement === target,
+    keydownIsTrusted: null,
+    keydownKey: null,
+    activationIsTrusted: null,
+    programmaticClickCalls: 0,
+    programmaticClickDispatches: 0,
+    observedChange: false,
+    waitedMs: 0,
+  };
+
+  // The marker the watcher is waiting for. It names the key, so the page
+  // decides which key is sent and the watcher never guesses.
+  log("info", `J12-KEY-READY key=${key} target=${evidence.focusedBeforeClass}`);
+
+  const outcome = await waitUntil(changed, budgetMs);
+
+  target.removeEventListener("click", onClick, true);
+  target.removeEventListener("keydown", onKeyDown, true);
+  HTMLElement.prototype.click = nativeClick;
+  EventTarget.prototype.dispatchEvent = nativeDispatch;
+
+  evidence.keydownIsTrusted = keydownIsTrusted;
+  evidence.keydownKey = keydownKey;
+  evidence.activationIsTrusted = activationIsTrusted;
+  evidence.programmaticClickCalls = programmaticClickCalls;
+  evidence.programmaticClickDispatches = programmaticClickDispatches;
+  evidence.observedChange = outcome.settled;
+  evidence.waitedMs = Math.round(outcome.waitedMs);
+  return evidence;
 }
 
 export async function runRelationScenario(deps: ScenarioDeps): Promise<void> {
@@ -170,7 +289,10 @@ export async function runRelationScenario(deps: ScenarioDeps): Promise<void> {
       selectionMoved: activeBefore !== activeAfterUp,
     };
 
-    // 4. One relation traversed from the panel, and the endpoint it selects.
+    // 4. One relation traversed from the panel — by a REAL keystroke.
+    //
+    //    Reserve `X4`. Nothing here activates the entry: the page focuses it
+    //    and waits for a keystroke that comes through the Windows input path.
     setSelectedId(pivotId);
     await settle();
     await waitUntil(() => countOf(".relations__direction .relation__link") > 0);
@@ -184,24 +306,87 @@ export async function runRelationScenario(deps: ScenarioDeps): Promise<void> {
         )} ms d'attente; panneau stabilise=${panelSettled.settled}`,
       );
     }
-    entry.focus();
     const entryLabel = entry.textContent?.trim() ?? "";
-    const entryReachedByFocus = document.activeElement === entry;
-    entry.dispatchEvent(new MouseEvent("click", { bubbles: true }));
-    await settle();
+    const activeDescendantBefore = canvas?.getAttribute("aria-activedescendant") ?? null;
+
+    const keyEvidence = await pressRealKey(
+      entry,
+      "{ENTER}",
+      () => canvas?.getAttribute("aria-activedescendant") !== activeDescendantBefore,
+      log,
+    );
     const activeAfterEntry = canvas?.getAttribute("aria-activedescendant") ?? null;
+
+    // The expected endpoint is read **off the entry that was activated**, and
+    // then confirmed against the store.
+    //
+    // The panel groups by direction then by type; the index sorts by endpoint
+    // key. The first run of this step compared the selection to
+    // `outgoing[0]` — an ordering the screen never claimed — and published
+    // `selectionFollowedTheRelation: false` for a product that was right. The
+    // entry now carries its own endpoint, and the store is asked whether that
+    // endpoint really is one of the pivot's relations, so the check is neither
+    // an assumption about ordering nor a tautology.
+    const expectedEndpointKey = entry.dataset.endpointKey ?? null;
+    const expectedEndpointId = entry.dataset.endpointNodeId
+      ? Number(entry.dataset.endpointNodeId)
+      : null;
+    const storeAgreesTheEntryIsARelation = [...pivot.outgoing, ...pivot.incoming].some(
+      (candidate) =>
+        candidate.other.key === expectedEndpointKey &&
+        candidate.direction === entry.dataset.direction &&
+        candidate.relationType === entry.dataset.relationType &&
+        candidate.provenance === entry.dataset.provenance,
+    );
+
     evidence.traversal = {
       entryLabel,
       entryTag: entry.tagName,
       entryDisabled: entry.disabled,
-      entryReachedByFocus,
-      activationMechanism:
-        "HTMLButtonElement activation behaviour, the one Enter triggers; a script cannot " +
-        "forge a trusted key activation and this run does not pretend to",
-      activeDescendantBefore: `map-node-${pivotId}`,
-      activeDescendantAfterActivation: activeAfterEntry,
-      selectionFollowedTheRelation: activeAfterEntry !== `map-node-${pivotId}`,
+      ...keyEvidence,
+      activeDescendantBefore,
+      activeDescendantAfterKeystroke: activeAfterEntry,
+      expectedEndpointKey,
+      expectedEndpointNodeId: expectedEndpointId,
+      expectedActiveDescendant:
+        expectedEndpointId === null ? null : `map-node-${expectedEndpointId}`,
+      storeAgreesTheEntryIsARelation,
+      selectionFollowedTheRelation:
+        expectedEndpointId !== null &&
+        storeAgreesTheEntryIsARelation &&
+        activeAfterEntry === `map-node-${expectedEndpointId}`,
+      noProgrammaticActivationUsed:
+        keyEvidence.programmaticClickCalls === 0 &&
+        keyEvidence.programmaticClickDispatches === 0,
+      changeCameFromTheKeystroke:
+        keyEvidence.activationIsTrusted === true &&
+        keyEvidence.observedChange &&
+        keyEvidence.programmaticClickCalls === 0 &&
+        keyEvidence.programmaticClickDispatches === 0,
     };
+
+    if (
+      expectedEndpointId === null ||
+      !storeAgreesTheEntryIsARelation ||
+      activeAfterEntry !== `map-node-${expectedEndpointId}`
+    ) {
+      throw new Error(
+        `J12/J7: la frappe a change la selection en ${String(activeAfterEntry)}, ` +
+          `alors que l'entree activee menait a map-node-${String(expectedEndpointId)} ` +
+          `(cle ${String(expectedEndpointKey)}, confirmee par l'index=` +
+          `${storeAgreesTheEntryIsARelation}).`,
+      );
+    }
+
+    if (keyEvidence.activationIsTrusted !== true || !keyEvidence.observedChange) {
+      throw new Error(
+        `J12/X4: aucune frappe clavier reelle n'a active l'entree du panneau ` +
+          `(isTrusted=${String(keyEvidence.activationIsTrusted)}, ` +
+          `changement=${keyEvidence.observedChange}, ` +
+          `attente=${keyEvidence.waitedMs} ms). Aucune activation programmatique ` +
+          `n'est utilisee en remplacement.`,
+      );
+    }
 
     // 5. Accentuation, counted on the rendered map.
     //
@@ -264,15 +449,31 @@ export async function runRelationScenario(deps: ScenarioDeps): Promise<void> {
     if (!approveButton) {
       throw new Error(`bouton d'approbation absent: ${pending.suggestionKey}`);
     }
-    approveButton.focus();
-    const approveButtonReachedByFocus = document.activeElement === approveButton;
-    approveButton.dispatchEvent(new MouseEvent("click", { bubbles: true }));
-    const approvalSettled = await waitUntil(
+
+    // The approval is a real key press too. `J12` calls it "approuver une
+    // suggestion synthétique"; a click a script sent is not a person
+    // approving anything.
+    const approvalKeyEvidence = await pressRealKey(
+      approveButton,
+      "{ENTER}",
       () =>
         ![...document.querySelectorAll(".suggestion__approve")].some((button) =>
           button.textContent?.includes(pending.suggestionKey),
         ),
+      log,
     );
+
+    if (
+      approvalKeyEvidence.activationIsTrusted !== true ||
+      !approvalKeyEvidence.observedChange
+    ) {
+      throw new Error(
+        `J12/X4: aucune frappe clavier reelle n'a approuve ${pending.suggestionKey} ` +
+          `(isTrusted=${String(approvalKeyEvidence.activationIsTrusted)}, ` +
+          `changement=${approvalKeyEvidence.observedChange}, ` +
+          `attente=${approvalKeyEvidence.waitedMs} ms).`,
+      );
+    }
 
     const after = await invoke<NodeRelations>("map_relations_for_node", {
       fixtureId: FIXTURE,
@@ -288,9 +489,10 @@ export async function runRelationScenario(deps: ScenarioDeps): Promise<void> {
 
     evidence.approval = {
       suggestionKey: pending.suggestionKey,
-      approveButtonReachedByFocus,
-      panelSettledAfterApproval: approvalSettled.settled,
-      waitedMsAfterApproval: Math.round(approvalSettled.waitedMs),
+      ...approvalKeyEvidence,
+      noProgrammaticActivationUsed:
+        approvalKeyEvidence.programmaticClickCalls === 0 &&
+        approvalKeyEvidence.programmaticClickDispatches === 0,
       beforeOutgoing: before.outgoingCount,
       beforeIncoming: before.incomingCount,
       beforePendingSuggestions: before.suggestions.map((item) => item.suggestionKey),

@@ -268,6 +268,46 @@ describe("J7 — activer une relation sélectionne son autre extrémité", () =>
     expect(onSelect).toHaveBeenCalledTimes(2);
   });
 
+  it("porte sur l'entrée elle-même l'extrémité qu'elle vise", () => {
+    const onSelect = vi.fn();
+    render(
+      <RelationsPanel
+        relations={nodeRelations}
+        loading={false}
+        inScope
+        onSelect={onSelect}
+        onApprove={vi.fn()}
+        approving={null}
+      />,
+    );
+
+    // The panel groups by direction then by type; the index sorts by endpoint
+    // key. Anything reading the screen must take the endpoint from the entry
+    // it activates rather than reconstruct an ordering — which is how the
+    // first J12 evidence published a false negative.
+    const entries = [
+      screen.getByRole("region", { name: /Sortantes/ }),
+      screen.getByRole("region", { name: /Entrantes/ }),
+    ].flatMap((section) => within(section).getAllByRole("button"));
+    expect(entries).toHaveLength(3);
+
+    for (const button of entries) {
+      const endpointKey = button.getAttribute("data-endpoint-key");
+      const declared = [...nodeRelations.outgoing, ...nodeRelations.incoming].find(
+        (candidate) => candidate.other.key === endpointKey,
+      );
+      expect(declared).toBeDefined();
+      expect(button.getAttribute("data-endpoint-node-id")).toBe(String(declared?.other.nodeId));
+      expect(button.getAttribute("data-direction")).toBe(declared?.direction);
+      expect(button.getAttribute("data-relation-type")).toBe(declared?.relationType);
+      expect(button.getAttribute("data-provenance")).toBe(declared?.provenance);
+
+      fireEvent.click(button);
+      expect(onSelect).toHaveBeenLastCalledWith(declared?.other.nodeId);
+    }
+    expect(onSelect).toHaveBeenCalledTimes(3);
+  });
+
   it("désactive une entrée dont l'extrémité n'est pas dans l'index courant", () => {
     const orphan: NodeRelations = {
       ...nodeRelations,

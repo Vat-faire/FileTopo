@@ -135,6 +135,16 @@ function DirectionSection({
                   <button
                     type="button"
                     className="relation__link"
+                    // The endpoint this entry leads to, on the entry itself.
+                    // The panel groups by direction then by type, while the
+                    // index sorts by endpoint key: reading the target off the
+                    // control that is actually activated is the only way to
+                    // check `J7` without reconstructing an ordering.
+                    data-endpoint-node-id={entry.other.nodeId ?? ""}
+                    data-endpoint-key={entry.other.key}
+                    data-relation-type={entry.relationType}
+                    data-direction={entry.direction}
+                    data-provenance={entry.provenance}
                     disabled={entry.other.nodeId === null}
                     onClick={() => entry.other.nodeId !== null && onSelect(entry.other.nodeId)}
                   >

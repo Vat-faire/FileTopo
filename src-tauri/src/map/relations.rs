@@ -31,8 +31,13 @@ use std::path::Path;
 use std::time::{SystemTime, UNIX_EPOCH};
 use thiserror::Error;
 
-/// Bump only together with a migration. `TASK-0017` ships version 1.
-pub const RELATIONS_SCHEMA_VERSION: i64 = 1;
+/// Bump only together with a migration.
+///
+/// * `1` — `TASK-0017` as first delivered.
+/// * `2` — reserve **`X3`** of the independent control: an approved relation
+///   is now **structurally** bound to the suggestion it represents. See
+///   [`RelationStore::migrate_to_v2`].
+pub const RELATIONS_SCHEMA_VERSION: i64 = 2;
 
 /// Version of the endpoint key scheme, carried **inside every key** and
 /// recorded in the store's metadata, so a later scheme is a migration rather
@@ -347,6 +352,75 @@ pub fn derive(fixture_id: &str, nodes: &[MapNode]) -> Result<Vec<DerivedRelation
 // The store
 // ---------------------------------------------------------------------------
 
+/// `relations_approved`, under the `X3` constraints, plus the triggers that
+/// make the correspondence structural rather than merely checked in Rust.
+///
+/// Three guarantees, none of which depends on a caller behaving:
+///
+/// * `suggestion_key` is `UNIQUE` — **one** approved relation per suggestion,
+///   which is what `J4` means by "exactly one".
+/// * a foreign key to `relation_suggestions` — an approved relation without a
+///   suggestion cannot exist.
+/// * a trigger on insert **and** on update — the row's source, target and type
+///   must equal the suggestion's, and the suggestion must already be
+///   `approved`. A suggestion cannot be used to justify a relation that is not
+///   itself.
+///
+/// A fourth trigger protects the correspondence from the other side: a
+/// suggestion whose relation exists can no longer have its endpoints or type
+/// rewritten underneath it.
+const APPROVED_SCHEMA_V2: &str = "
+    CREATE TABLE IF NOT EXISTS relations_approved (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        source_key TEXT NOT NULL CHECK(length(source_key) > 0),
+        target_key TEXT NOT NULL CHECK(length(target_key) > 0),
+        relation_type TEXT NOT NULL CHECK(length(relation_type) > 0),
+        suggestion_key TEXT NOT NULL UNIQUE
+            REFERENCES relation_suggestions(suggestion_key),
+        approved_unix_ms INTEGER NOT NULL,
+        UNIQUE(source_key, target_key, relation_type)
+    );
+    CREATE INDEX IF NOT EXISTS idx_approved_source
+        ON relations_approved(source_key);
+    CREATE INDEX IF NOT EXISTS idx_approved_target
+        ON relations_approved(target_key);
+
+    CREATE TRIGGER IF NOT EXISTS approved_must_match_its_suggestion_on_insert
+    BEFORE INSERT ON relations_approved
+    FOR EACH ROW BEGIN
+        SELECT RAISE(ABORT, 'relation_rejected_suggestion_is_not_a_relation')
+        WHERE NOT EXISTS (
+            SELECT 1 FROM relation_suggestions s
+             WHERE s.suggestion_key = NEW.suggestion_key
+               AND s.state = 'approved'
+               AND s.source_key = NEW.source_key
+               AND s.target_key = NEW.target_key
+               AND s.relation_type = NEW.relation_type);
+    END;
+
+    CREATE TRIGGER IF NOT EXISTS approved_must_match_its_suggestion_on_update
+    BEFORE UPDATE ON relations_approved
+    FOR EACH ROW BEGIN
+        SELECT RAISE(ABORT, 'relation_rejected_suggestion_is_not_a_relation')
+        WHERE NOT EXISTS (
+            SELECT 1 FROM relation_suggestions s
+             WHERE s.suggestion_key = NEW.suggestion_key
+               AND s.state = 'approved'
+               AND s.source_key = NEW.source_key
+               AND s.target_key = NEW.target_key
+               AND s.relation_type = NEW.relation_type);
+    END;
+
+    CREATE TRIGGER IF NOT EXISTS suggestion_cannot_drift_from_its_relation
+    BEFORE UPDATE OF source_key, target_key, relation_type ON relation_suggestions
+    FOR EACH ROW BEGIN
+        SELECT RAISE(ABORT, 'relation_rejected_suggestion_is_not_a_relation')
+        WHERE EXISTS (
+            SELECT 1 FROM relations_approved a
+             WHERE a.suggestion_key = OLD.suggestion_key);
+    END;
+";
+
 pub struct RelationStore {
     connection: Connection,
 }
@@ -365,6 +439,28 @@ impl RelationStore {
         let store = Self { connection };
         store.initialize()?;
         Ok(store)
+    }
+
+    /// Writes straight into `relations_approved`, bypassing every Rust guard.
+    ///
+    /// Exists so the `X3` constraints can be proved **at the storage layer**:
+    /// a guarantee that only holds while callers use the right function is not
+    /// a guarantee. Test-only, and never compiled into the product.
+    #[cfg(test)]
+    fn raw_insert_approved(
+        &self,
+        source_key: &str,
+        target_key: &str,
+        relation_type: &str,
+        suggestion_key: &str,
+    ) -> Result<(), MapError> {
+        self.connection.execute(
+            "INSERT INTO relations_approved
+                 (source_key, target_key, relation_type, suggestion_key, approved_unix_ms)
+             VALUES (?1, ?2, ?3, ?4, ?5)",
+            params![source_key, target_key, relation_type, suggestion_key, now_ms()],
+        )?;
+        Ok(())
     }
 
     #[cfg(test)]
@@ -399,15 +495,6 @@ impl RelationStore {
                  rule_symmetric INTEGER NOT NULL DEFAULT 0,
                  UNIQUE(source_key, target_key, relation_type)
              );
-             CREATE TABLE IF NOT EXISTS relations_approved (
-                 id INTEGER PRIMARY KEY AUTOINCREMENT,
-                 source_key TEXT NOT NULL CHECK(length(source_key) > 0),
-                 target_key TEXT NOT NULL CHECK(length(target_key) > 0),
-                 relation_type TEXT NOT NULL CHECK(length(relation_type) > 0),
-                 suggestion_key TEXT NOT NULL CHECK(length(suggestion_key) > 0),
-                 approved_unix_ms INTEGER NOT NULL,
-                 UNIQUE(source_key, target_key, relation_type)
-             );
              CREATE TABLE IF NOT EXISTS relation_suggestions (
                  suggestion_key TEXT PRIMARY KEY,
                  source_key TEXT NOT NULL CHECK(length(source_key) > 0),
@@ -422,14 +509,95 @@ impl RelationStore {
                  ON relations_deterministic(source_key);
              CREATE INDEX IF NOT EXISTS idx_deterministic_target
                  ON relations_deterministic(target_key);
-             CREATE INDEX IF NOT EXISTS idx_approved_source
-                 ON relations_approved(source_key);
-             CREATE INDEX IF NOT EXISTS idx_approved_target
-                 ON relations_approved(target_key);
-             PRAGMA user_version={RELATIONS_SCHEMA_VERSION};"
+             "
         ))?;
+
+        // A store written by version 1 carries a `relations_approved` that
+        // could hold a row unrelated to the suggestion it names. Rebuild it
+        // before the constrained definition is created.
+        if self.approved_table_exists()? && self.user_version()? < 2 {
+            self.migrate_to_v2()?;
+        }
+        self.connection.execute_batch(APPROVED_SCHEMA_V2)?;
+        self.connection
+            .execute_batch(&format!("PRAGMA user_version={RELATIONS_SCHEMA_VERSION};"))?;
         self.put_meta("schema_version", &RELATIONS_SCHEMA_VERSION.to_string())?;
         self.put_meta("endpoint_key_scheme", ENDPOINT_KEY_SCHEME)?;
+        Ok(())
+    }
+
+    fn user_version(&self) -> Result<i64, MapError> {
+        Ok(self
+            .connection
+            .query_row("PRAGMA user_version", [], |row| row.get(0))?)
+    }
+
+    fn approved_table_exists(&self) -> Result<bool, MapError> {
+        Ok(self
+            .connection
+            .query_row(
+                "SELECT 1 FROM sqlite_master
+                  WHERE type = 'table' AND name = 'relations_approved'",
+                [],
+                |row| row.get::<_, i64>(0),
+            )
+            .optional()?
+            .is_some())
+    }
+
+    /// Rebuilds `relations_approved` under the `X3` constraints.
+    ///
+    /// Rows that **do not** correspond to the suggestion they name are exactly
+    /// the defect `X3` describes, so they are **not** carried over. They are
+    /// not dropped in silence either: their keys are written into
+    /// `relation_meta` under `migration_v2_discarded`, so a store that had one
+    /// says so afterwards.
+    ///
+    /// Synthetic data only — this slice has no other kind.
+    fn migrate_to_v2(&self) -> Result<(), MapError> {
+        let discarded: Vec<String> = {
+            let mut statement = self.connection.prepare(
+                "SELECT a.suggestion_key FROM relations_approved a
+                  WHERE NOT EXISTS (
+                        SELECT 1 FROM relation_suggestions s
+                         WHERE s.suggestion_key = a.suggestion_key
+                           AND s.state = 'approved'
+                           AND s.source_key = a.source_key
+                           AND s.target_key = a.target_key
+                           AND s.relation_type = a.relation_type)
+                  ORDER BY a.id",
+            )?;
+            statement
+                .query_map([], |row| row.get::<_, String>(0))?
+                .collect::<Result<Vec<_>, _>>()?
+        };
+
+        self.connection.execute_batch(
+            "ALTER TABLE relations_approved RENAME TO relations_approved_v1;",
+        )?;
+        self.connection.execute_batch(APPROVED_SCHEMA_V2)?;
+        self.connection.execute(
+            "INSERT INTO relations_approved
+                 (source_key, target_key, relation_type, suggestion_key, approved_unix_ms)
+             SELECT a.source_key, a.target_key, a.relation_type, a.suggestion_key,
+                    a.approved_unix_ms
+               FROM relations_approved_v1 a
+              WHERE EXISTS (
+                    SELECT 1 FROM relation_suggestions s
+                     WHERE s.suggestion_key = a.suggestion_key
+                       AND s.state = 'approved'
+                       AND s.source_key = a.source_key
+                       AND s.target_key = a.target_key
+                       AND s.relation_type = a.relation_type)
+              ORDER BY a.id",
+            [],
+        )?;
+        self.connection
+            .execute_batch("DROP TABLE relations_approved_v1;")?;
+
+        if !discarded.is_empty() {
+            self.put_meta("migration_v2_discarded", &discarded.join(","))?;
+        }
         Ok(())
     }
 
@@ -444,12 +612,17 @@ impl RelationStore {
 
     // -- writes --------------------------------------------------------------
 
-    /// The **only** door through which an established relation is written.
+    /// The door through which a **deterministic** relation is written, and
+    /// the door every attempted write is refused at.
     ///
     /// It takes the provenance as a *string* on purpose: that is the shape a
     /// caller, a fixture loader or a future import would have, and it is
     /// exactly where a third provenance would try to slip in. Everything is
     /// validated before a statement is prepared.
+    ///
+    /// **It cannot create an approved relation** — reserve `X3`. `APPROVED` is
+    /// refused here unconditionally; [`RelationStore::approve`] is the single
+    /// applicative path, and the storage enforces the same rule underneath.
     #[allow(clippy::too_many_arguments)]
     pub fn insert_established(
         &self,
@@ -491,48 +664,18 @@ impl RelationStore {
                 )?;
             }
             Provenance::Approved => {
-                // An approved relation exists only as the outcome of an
-                // approval. The suggestion must exist **and already be
-                // approved**, which `approve` does in the same transaction —
-                // so there is no door that writes an approved row for a
-                // suggestion nobody decided.
-                let key = suggestion_key.unwrap_or("").trim();
-                if key.is_empty() {
-                    return Err(RelationError::SuggestionIsNotARelation(
-                        "an APPROVED relation must name the suggestion that was \
-                         approved; there is no other way to create one"
-                            .into(),
-                    )
-                    .into());
-                }
-                let state: Option<String> = self
-                    .connection
-                    .query_row(
-                        "SELECT state FROM relation_suggestions WHERE suggestion_key = ?1",
-                        [key],
-                        |row| row.get(0),
-                    )
-                    .optional()?;
-                match state.as_deref() {
-                    Some("approved") => {}
-                    Some(other) => {
-                        return Err(RelationError::SuggestionIsNotARelation(format!(
-                            "suggestion `{key}` is `{other}`; a suggestion is not a \
-                             relation and only an explicit approval turns it into one"
-                        ))
-                        .into());
-                    }
-                    None => {
-                        return Err(RelationError::UnknownSuggestion(key.to_string()).into());
-                    }
-                }
-                self.connection.execute(
-                    "INSERT OR IGNORE INTO relations_approved
-                         (source_key, target_key, relation_type, suggestion_key,
-                          approved_unix_ms)
-                     VALUES (?1, ?2, ?3, ?4, ?5)",
-                    params![source_key, target_key, relation_type, key, now_ms()],
-                )?;
+                // Reserve `X3`: there is **one** applicative way to create an
+                // approved relation, and it is `approve`. This door is closed
+                // whatever the state of the suggestion — including `approved`,
+                // which previously let one suggestion justify a relation that
+                // was not itself.
+                let named = suggestion_key.unwrap_or("").trim();
+                return Err(RelationError::SuggestionIsNotARelation(format!(
+                    "an APPROVED relation is created only by approving a \
+                     suggestion; `insert_established` cannot create one \
+                     (suggestion named: `{named}`)"
+                ))
+                .into());
             }
         }
         Ok(self.connection.last_insert_rowid())
@@ -669,8 +812,12 @@ impl RelationStore {
               WHERE suggestion_key = ?1 AND state = 'pending'",
             params![suggestion_key, decided],
         )?;
+        // A plain INSERT, deliberately: `OR IGNORE` would turn a refused
+        // write into a silent no-op, and `J4` forbids a silent pass. The
+        // suggestion's state is flipped first, in the same transaction, which
+        // is what lets the trigger above accept this row and no other.
         transaction.execute(
-            "INSERT OR IGNORE INTO relations_approved
+            "INSERT INTO relations_approved
                  (source_key, target_key, relation_type, suggestion_key, approved_unix_ms)
              VALUES (?1, ?2, ?3, ?4, ?5)",
             params![
@@ -1436,9 +1583,15 @@ mod tests {
         let before = store.established().expect("read").len();
         let target = "S-005";
 
+        let suggestion = store.suggestion(target).expect("read").expect("present");
         let created = store.approve(target).expect("approval");
         assert_eq!(created.provenance, Provenance::Approved);
         assert_eq!(created.suggestion_key.as_deref(), Some(target));
+        // `X3`: the relation created is the suggestion itself, endpoint for
+        // endpoint — not merely *a* relation carrying its key.
+        assert_eq!(created.source_key, suggestion.source_key);
+        assert_eq!(created.target_key, suggestion.target_key);
+        assert_eq!(created.relation_type, suggestion.relation_type);
 
         let after = store.established().expect("read");
         assert_eq!(after.len(), before + 1, "J4: exactly one relation is created");
@@ -1447,6 +1600,305 @@ mod tests {
             "approved"
         );
         assert_eq!(store.pending_suggestions().expect("read").len(), 3);
+    }
+
+
+    // -- X3 : la creation d'une relation APPROVED, verrouillee ---------------
+
+    /// The defect `X3` named: an **already approved** suggestion used as a
+    /// justification for a direct write. The door is closed whatever the state.
+    #[test]
+    fn an_already_approved_suggestion_cannot_justify_a_direct_write() {
+        let mut store = seeded_store();
+        // `S-001` is approved by the frozen fixture.
+        assert_eq!(
+            store.suggestion("S-001").expect("read").expect("present").state,
+            "approved"
+        );
+        let before = store.approved().expect("read").len();
+
+        let error = store
+            .insert_established(
+                "APPROVED",
+                &key("dossier-a/note-1.txt"),
+                &key("racine-1.txt"),
+                "reference",
+                None,
+                None,
+                Some("S-001"),
+            )
+            .expect_err("X3: an approved suggestion must not justify another relation");
+        assert!(
+            error
+                .to_string()
+                .starts_with("relation_rejected_suggestion_is_not_a_relation"),
+            "unexpected motif: {error}"
+        );
+        assert_eq!(store.approved().expect("read").len(), before);
+
+        // And the one applicative path still works, so the door was closed
+        // rather than the feature removed.
+        store.approve("S-005").expect("approval");
+        assert_eq!(store.approved().expect("read").len(), before + 1);
+    }
+
+    /// `insert_established` refuses `APPROVED` unconditionally — pending,
+    /// approved, unknown, or unnamed.
+    #[test]
+    fn insert_established_can_never_create_an_approved_relation() {
+        let store = seeded_store();
+        for suggestion_key in [Some("S-001"), Some("S-005"), Some("S-inconnue"), None] {
+            let error = store
+                .insert_established(
+                    "APPROVED",
+                    &key("dossier-a/note-1.txt"),
+                    &key("racine-1.txt"),
+                    "reference",
+                    None,
+                    None,
+                    suggestion_key,
+                )
+                .expect_err("X3: no APPROVED relation through this door");
+            assert!(
+                error
+                    .to_string()
+                    .starts_with("relation_rejected_suggestion_is_not_a_relation"),
+                "unexpected motif for {suggestion_key:?}: {error}"
+            );
+        }
+        assert_eq!(store.approved().expect("read").len(), 4);
+    }
+
+    /// The same guarantee, **at the storage layer**: a row whose endpoints or
+    /// type differ from its suggestion is refused by the database itself.
+    #[test]
+    fn the_storage_refuses_a_relation_that_is_not_its_suggestion() {
+        let store = seeded_store();
+        let suggestion = store.suggestion("S-001").expect("read").expect("present");
+
+        for (label, source, target, relation_type) in [
+            (
+                "another target",
+                suggestion.source_key.clone(),
+                key("racine-1.txt"),
+                suggestion.relation_type.clone(),
+            ),
+            (
+                "another source",
+                key("racine-2.txt"),
+                suggestion.target_key.clone(),
+                suggestion.relation_type.clone(),
+            ),
+            (
+                "another type",
+                suggestion.source_key.clone(),
+                suggestion.target_key.clone(),
+                "revision".to_string(),
+            ),
+        ] {
+            let error = store
+                .raw_insert_approved(&source, &target, &relation_type, "S-001")
+                .unwrap_err();
+            assert!(
+                error
+                    .to_string()
+                    .contains("relation_rejected_suggestion_is_not_a_relation"),
+                "X3, {label}: unexpected motif: {error}"
+            );
+        }
+        assert_eq!(store.approved().expect("read").len(), 4);
+    }
+
+    /// A pending suggestion cannot be written straight into the approved table
+    /// either — the trigger requires the state, not just the key.
+    #[test]
+    fn the_storage_refuses_a_pending_suggestion() {
+        let store = seeded_store();
+        let pending = store.suggestion("S-005").expect("read").expect("present");
+        let error = store
+            .raw_insert_approved(
+                &pending.source_key,
+                &pending.target_key,
+                &pending.relation_type,
+                "S-005",
+            )
+            .unwrap_err();
+        assert!(
+            error
+                .to_string()
+                .contains("relation_rejected_suggestion_is_not_a_relation"),
+            "unexpected motif: {error}"
+        );
+    }
+
+    /// An approved relation naming a suggestion that does not exist is refused
+    /// by the foreign key **and** by the trigger.
+    #[test]
+    fn an_approved_relation_cannot_exist_without_its_suggestion() {
+        let store = seeded_store();
+        let error = store
+            .raw_insert_approved(
+                &key("dossier-a/note-1.txt"),
+                &key("racine-1.txt"),
+                "reference",
+                "S-fantome",
+            )
+            .unwrap_err();
+        assert!(error.to_string().contains("relation_rejected") || error.to_string().contains("FOREIGN KEY"),
+            "unexpected motif: {error}");
+        assert_eq!(store.approved().expect("read").len(), 4);
+    }
+
+    /// `J4` — **exactly one**: `suggestion_key` is unique, so a second row for
+    /// the same suggestion is impossible even bypassing every Rust guard.
+    #[test]
+    fn one_suggestion_can_never_carry_two_approved_relations() {
+        let store = seeded_store();
+        let suggestion = store.suggestion("S-002").expect("read").expect("present");
+        let error = store
+            .raw_insert_approved(
+                &suggestion.source_key,
+                &suggestion.target_key,
+                &suggestion.relation_type,
+                "S-002",
+            )
+            .unwrap_err();
+        assert!(
+            error.to_string().to_lowercase().contains("unique"),
+            "unexpected motif: {error}"
+        );
+        assert_eq!(
+            store
+                .approved()
+                .expect("read")
+                .iter()
+                .filter(|relation| relation.suggestion_key.as_deref() == Some("S-002"))
+                .count(),
+            1
+        );
+    }
+
+    /// The correspondence is protected from the other side too: a suggestion
+    /// already carrying a relation cannot have its endpoints rewritten.
+    #[test]
+    fn an_approved_suggestion_cannot_drift_away_from_its_relation() {
+        let store = seeded_store();
+        let error = store
+            .connection
+            .execute(
+                "UPDATE relation_suggestions SET target_key = ?2 WHERE suggestion_key = ?1",
+                params!["S-001", key("racine-1.txt")],
+            )
+            .unwrap_err();
+        assert!(
+            error
+                .to_string()
+                .contains("relation_rejected_suggestion_is_not_a_relation"),
+            "unexpected motif: {error}"
+        );
+    }
+
+    /// The migration of reserve `X3`, on a store written by version 1.
+    ///
+    /// The mismatched row is the defect itself: it is **not** carried over, and
+    /// it is **named** in the metadata rather than dropped in silence.
+    #[test]
+    fn migrating_a_version_1_store_drops_the_mismatched_row_and_names_it() {
+        let connection = Connection::open_in_memory().expect("connection");
+        connection.execute_batch("PRAGMA foreign_keys=ON;").expect("pragma");
+        // The version 1 shape, verbatim: no UNIQUE on `suggestion_key`, no
+        // foreign key, no trigger.
+        connection
+            .execute_batch(
+                "CREATE TABLE relation_meta (key TEXT PRIMARY KEY, value TEXT NOT NULL);
+                 CREATE TABLE relation_suggestions (
+                     suggestion_key TEXT PRIMARY KEY,
+                     source_key TEXT NOT NULL,
+                     target_key TEXT NOT NULL,
+                     relation_type TEXT NOT NULL,
+                     basis TEXT NOT NULL,
+                     state TEXT NOT NULL,
+                     created_unix_ms INTEGER NOT NULL,
+                     decided_unix_ms INTEGER);
+                 CREATE TABLE relations_approved (
+                     id INTEGER PRIMARY KEY AUTOINCREMENT,
+                     source_key TEXT NOT NULL,
+                     target_key TEXT NOT NULL,
+                     relation_type TEXT NOT NULL,
+                     suggestion_key TEXT NOT NULL,
+                     approved_unix_ms INTEGER NOT NULL,
+                     UNIQUE(source_key, target_key, relation_type));
+                 PRAGMA user_version=1;",
+            )
+            .expect("v1 schema");
+        connection
+            .execute_batch(&format!(
+                "INSERT INTO relation_suggestions VALUES
+                     ('S-001', '{a1}', '{b1}', 'reference', 'synthetique', 'approved', 1, 2);
+                 INSERT INTO relations_approved
+                     (source_key, target_key, relation_type, suggestion_key, approved_unix_ms)
+                 VALUES ('{a1}', '{b1}', 'reference', 'S-001', 2),
+                        ('{a1}', '{r1}', 'reference', 'S-001', 2);",
+                a1 = key("dossier-a/note-1.txt"),
+                b1 = key("dossier-b/note-1.txt"),
+                r1 = key("racine-1.txt"),
+            ))
+            .expect("v1 rows");
+
+        let store = RelationStore { connection };
+        store.initialize().expect("migration");
+
+        let approved = store.approved().expect("read");
+        assert_eq!(approved.len(), 1, "the mismatched row must not survive");
+        assert_eq!(approved[0].suggestion_key.as_deref(), Some("S-001"));
+        assert_eq!(approved[0].target_key, key("dossier-b/note-1.txt"));
+        assert_eq!(store.user_version().expect("version"), 2);
+        assert_eq!(
+            store
+                .connection
+                .query_row(
+                    "SELECT value FROM relation_meta WHERE key = 'migration_v2_discarded'",
+                    [],
+                    |row| row.get::<_, String>(0)
+                )
+                .expect("the discarded row must be named"),
+            "S-001"
+        );
+
+        // And the migrated store now refuses what version 1 accepted.
+        assert!(
+            store
+                .raw_insert_approved(
+                    &key("dossier-a/note-1.txt"),
+                    &key("racine-1.txt"),
+                    "reference",
+                    "S-001",
+                )
+                .is_err()
+        );
+    }
+
+    /// A store already at version 2 migrates nothing and loses nothing.
+    #[test]
+    fn reopening_a_version_2_store_is_a_no_operation() {
+        let store = seeded_store();
+        let before = store.established().expect("read").len();
+        store.initialize().expect("re-initialise");
+        assert_eq!(store.established().expect("read").len(), before);
+        assert_eq!(store.user_version().expect("version"), 2);
+        assert!(
+            store
+                .connection
+                .query_row(
+                    "SELECT value FROM relation_meta WHERE key = 'migration_v2_discarded'",
+                    [],
+                    |row| row.get::<_, String>(0)
+                )
+                .optional()
+                .expect("query")
+                .is_none(),
+            "nothing was discarded, so nothing is named"
+        );
     }
 
     #[test]

@@ -1,8 +1,12 @@
 {
   "task": "TASK-0017",
   "criterion": "J11",
-  "capturedAtIso": "2026-09-01T08:17:25.477237-04:00",
-  "note": "Rejeu de H1 a H7 de TASK-0016 dans le vrai WebView2, relations en place, index de chaque fixture supprime puis reconstruit. Les quatre fixtures rendent exactement les memes verdicts que le releve publie de TASK-0016; seuls les temps et l'horodatage different. L'etat du magasin de relations est lu APRES ces reconstructions.",
+  "reserves": [
+    "X3",
+    "X4"
+  ],
+  "capturedAtIso": "2026-09-01T08:49:49.206418-04:00",
+  "note": "Rejeu de H1 a H7 de TASK-0016 dans le vrai WebView2, relations en place, index de chaque fixture supprime puis reconstruit, sur le binaire portant les corrections X3 et X4. Les quatre fixtures rendent exactement les memes verdicts que le releve publie de TASK-0016. L'etat du magasin de relations est lu APRES ces reconstructions, et le schema est celui de la version 2.",
   "host": {
     "sandboxRoot": "<dépôt>/.filetopo-sandbox",
     "appVersion": "0.1.0-alpha.1",
@@ -80,6 +84,7 @@
     }
   ],
   "relationStoreAfterEveryIndexRebuild": {
+    "user_version": 2,
     "deterministic": 8,
     "approved": 5,
     "suggestions_by_state": {
@@ -135,11 +140,42 @@
       "rule_version",
       "rule_symmetric"
     ],
+    "indexes_relations_approved": [
+      [
+        "idx_approved_target",
+        false
+      ],
+      [
+        "idx_approved_source",
+        false
+      ],
+      [
+        "sqlite_autoindex_relations_approved_2",
+        true
+      ],
+      [
+        "sqlite_autoindex_relations_approved_1",
+        true
+      ]
+    ],
+    "foreign_keys_relations_approved": [
+      [
+        "relation_suggestions",
+        "suggestion_key",
+        "suggestion_key"
+      ]
+    ],
+    "triggers": [
+      "approved_must_match_its_suggestion_on_insert",
+      "approved_must_match_its_suggestion_on_update",
+      "suggestion_cannot_drift_from_its_relation"
+    ],
     "meta": {
-      "schema_version": "1",
+      "schema_version": "2",
       "endpoint_key_scheme": "ek1",
       "seed_version": "task-0017-v1"
-    }
+    },
+    "every_approved_matches_its_suggestion": 0
   },
   "analysedRootHasNoFiletopoArtifact": true,
   "relationsStorePath": "<bac à sable>/relations/quasi-empty/relations.sqlite"

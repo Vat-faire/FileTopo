@@ -684,7 +684,16 @@ pub fn run() {
             // them to a window it treats as occluded. Keeping the window on top
             // and focused is what makes the measurement possible at all; it is
             // confined to measurement mode and never affects normal use.
-            if std::env::var("FILETOPO_AUTO_MEASURE").is_ok_and(|value| value == "1") {
+            //
+            // The J12 scenario of `TASK-0017` needs it for a different reason:
+            // reserve `X4` requires a **real** Windows keystroke, and a
+            // keystroke goes to the foreground window. A window nobody brought
+            // forward would receive nothing, and the run would report a
+            // failure that says more about the desktop than about the product.
+            let unattended = ["FILETOPO_AUTO_MEASURE", "FILETOPO_AUTO_RELATIONS"]
+                .iter()
+                .any(|name| std::env::var(name).is_ok_and(|value| value == "1"));
+            if unattended {
                 if let Some(window) = app.get_webview_window("main") {
                     let _ = window.set_always_on_top(true);
                     let _ = window.set_focus();
