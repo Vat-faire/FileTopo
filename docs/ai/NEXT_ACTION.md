@@ -1,54 +1,51 @@
 # Prochaine action
 
-## Spécifier la prochaine tranche de l'étape A
+## Exécuter TASK-0017 — relations transversales avec provenance
 
-- **Statut :** PROPOSED — **en attente du GO de l'orchestrateur technique**
-- **Responsable :** orchestrateur technique pour le choix de la tranche et le
-  GO; **Sébastien** pour tout ce qui touche la portée produit
-- **Action unique :** **choisir la prochaine tranche de l'étape A, en écrire la
-  fiche, et en geler les critères — avant toute ligne de code.**
-- **Résultat attendu :** une fiche de tâche `PROPOSED` puis `APPROVED`, avec
-  ses critères, ses fixtures et ses bornes **gelés et commités avant le premier
-  changement de code**, sur le modèle de `TASK-0016` §12.
+- **Statut :** `IN_PROGRESS` — GO technique **acquis**, critères **gelés**
+- **Responsable :** Claude Code, exécuteur; **Sébastien** pour tout point
+  d'arrêt réservé
+- **Action unique :** **implémenter `TASK-0017` dans le périmètre gelé en §4 de
+  sa fiche**, puis la laisser `IMPLEMENTED` pour contrôle indépendant.
+- **Fiche :** [`TASK-0017`](../tasks/TASK-0017-crosscutting-relations.md)
+- **Branche :** `build/v0.2-a2-relations`, créée depuis le tip contrôlé
+  `33704a1b900f664c3957927d5bd4d3502054f95c`
 
-### Pourquoi c'est la seule action
+### Le périmètre, en une phrase
 
-`TASK-0016` est **`VERIFIED`** depuis le re-contrôle indépendant
-[`ACTION-0026`](../reviews/ACTION-0026-independent-control.md) du commit
-`a6cf092` : réserve `X2` **`CLOSED`**, `ACTION-0026` **`CLOSED`**. Aucune tâche
-n'est `IN_PROGRESS`, et **aucune tranche suivante n'a de fiche**.
+**`P-04`, `P-05`, `P-07`, et la part « relations transversales » de `P-06`** —
+un modèle de relations où **une relation établie sans provenance n'est pas
+représentable**, et où **une suggestion n'est jamais une relation**.
 
-La porte `P4` n'autorisait que `TASK-0016`. **Une tranche suivante exige sa
-propre fiche, ses propres critères gelés et son propre GO** — `DEC-0016` C.
+### Ce qui est gelé et ne se retouche plus
 
-### Ce que la prochaine tranche devra trancher
+- le **modèle normatif** — `DETERMINISTIC` ou `APPROVED`, **aucune troisième
+  provenance** — §4.1;
+- les **deux types** `reference` et `revision` — §4.2;
+- la **clé d'endpoint `ek1`**, repli déterministe qui **n'implémente pas**
+  `I-E` — §4.3;
+- le **lieu de stockage**, séparé de l'index reconstructible — §4.4;
+- les **deux règles déterministes versionnées** — §4.5;
+- la **fixture de relations** : 12 relations établies, 2 types, 4 suggestions
+  en attente, 5 tentatives invalides, et **les comptes attendus nœud par
+  nœud** — §4.6;
+- les **critères `J1` à `J12`** — §4.7.
 
-**Seize exigences de parité ne sont pas commencées**, et elles ne se valent
-pas :
-
-- **`P-04`, `P-05`, `P-07`** — relations transversales. Elles portent la
-  correction **`X1`** : une **suggestion n'est pas une provenance de
-  relation**. Le modèle de provenance est **entièrement à écrire**, et
-  `DEC-0015` C le signale comme la charge principale ajoutée au MVP.
-- **`P-08`** — recherche, sur **100 000 nœuds**. La borne de 5 000 était une
-  limite de `TASK-0016`, **pas une limite produit** : cette tranche devra
-  franchir un ordre de grandeur, ce qui remet le calepinage et le rendu à
-  l'épreuve.
-- **`P-19`** — persistance des préférences. **Le manque `M-1` doit être résolu
-  AVANT** cette tranche — `DEC-0016` D.
-- **`P-12` et `P-06`** sont **partielles** : masquage du panneau, survie au
-  redémarrage, atténuation liée à `F-017`.
+**Aucun critère `J1` à `J12` ne peut être modifié après le premier résultat.
+Une cible manquée reste manquée.**
 
 ### Ce qui reste interdit
 
-- **Ne pas commencer l'étape B** — la parité précède l'esthétique.
-- **Ne pas lever `R8`** : elle appartient à l'**étape C**.
-- **Ne rien conclure sur le budget adaptatif** : ni employé, ni adopté, ni
-  abandonné, ni validé.
+- **Ne pas implémenter** `P-08`, `P-09`, la surveillance, le vu/non-vu, `P-19`,
+  ni aucune heuristique **réelle** de suggestion.
+- **Aucune donnée réelle, aucun sélecteur de dossier.**
+- **Aucune nouvelle dépendance** : devant ce besoin, **`BLOCKED`** avant
+  installation.
+- **Ne pas commencer l'étape B**, ne pas lever `R8`, ne rien conclure sur le
+  budget adaptatif.
 - **Ne pas corriger `B0`**, ne rien supprimer dans `src-tauri/target/`.
-- **Ne pas contourner les tests-gardes** de la surface runtime : le
-  gestionnaire n'expose que la tranche courante.
-- **Aucune donnée réelle, aucun sélecteur de dossier utilisateur** sans GO de
-  Sébastien.
+- **Ne pas contourner les tests-gardes `X2`** : les commandes nouvelles portent
+  le préfixe `map_`.
 - **Aucune fusion vers `main`, PR, release, étiquette, `force push`**, aucune
   réécriture d'historique.
+- **Ne pas s'attribuer `VERIFIED`.**
