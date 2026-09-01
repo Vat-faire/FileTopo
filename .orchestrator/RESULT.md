@@ -2,7 +2,7 @@ TASK_ID: TASK-0017 — relations transversales avec provenance (étape A, tranch
 AGENT: CLAUDE
 RESULT: DONE
 BRANCH: build/v0.2-a2-relations
-FINAL_HEAD: <voir COMMIT ci-dessous>
+FINAL_HEAD: 0236a1c1759505f3985db1e7dd5c786350663d34
 TASK_STATE: IMPLEMENTED — jamais VERIFIED, l'exécuteur ne s'auto-vérifie pas
 
 SUMMARY:
@@ -120,8 +120,8 @@ ACTIONS_DISTANTES:
   Aucune autre écriture distante. Aucune opération destructive hors du bac à
   sable applicatif .filetopo-sandbox/, que FileTopo a lui-même écrit.
 
-COMMIT: <renseigné au commit de clôture>
-PUSHED: <renseigné au push>
+COMMIT: 0236a1c1759505f3985db1e7dd5c786350663d34 (cloture) / a98676e (code) / 51a8cac (gel)
+PUSHED: yes
 
 NEXT_ORCHESTRATOR_DECISION:
 - CONTRÔLE INDÉPENDANT de TASK-0017, par une instance DISTINCTE de l'exécuteur,
