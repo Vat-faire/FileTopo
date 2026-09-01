@@ -68,6 +68,16 @@ pub struct HostInfo {
     pub node_ceiling: usize,
     pub depth_ceiling: u32,
     pub min_leaf_area: f64,
+    /// Set by `FILETOPO_AUTO_VERIFY`: replays `H1` to `H7` against the real
+    /// host and writes the evidence, unattended.
+    pub auto_verify: bool,
+    /// Set by `FILETOPO_AUTO_MEASURE`, so `H9` can be run in the real host
+    /// without a hand on the mouse.
+    ///
+    /// The measurement drives the same state the buttons drive; the flag only
+    /// decides *when* it starts. A run nobody can reproduce unattended is a run
+    /// nobody can check.
+    pub auto_measure: bool,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]

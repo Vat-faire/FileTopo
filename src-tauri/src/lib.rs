@@ -427,6 +427,21 @@ fn map_sandbox(app: &tauri::AppHandle) -> Result<map::sandbox::SandboxPaths, Str
     Ok(map::sandbox::resolve(&app_data))
 }
 
+/// Relays a line from the WebView to the host's standard output.
+///
+/// An unattended measurement runs behind a window nobody is watching. Without
+/// this, a page that fails silently is indistinguishable from a page that is
+/// merely slow — which is exactly the ambiguity that cost the first run.
+#[tauri::command]
+fn map_log(level: String, message: String) {
+    use std::io::Write;
+    // Flushed on every line: redirected stdout is block-buffered, and a log
+    // that only appears once the process exits is useless for watching a run
+    // that may never exit on its own.
+    println!("[web/{level}] {message}");
+    let _ = std::io::stdout().flush();
+}
+
 #[tauri::command]
 fn map_fixtures() -> Vec<map::commands::FixtureSummary> {
     map::commands::fixture_summaries()
@@ -501,6 +516,8 @@ fn map_host_info(app: tauri::AppHandle) -> map::commands::HostInfo {
         node_ceiling: map::MAX_NODES_PER_MAP,
         depth_ceiling: map::MAX_FIXTURE_DEPTH,
         min_leaf_area: map::layout::MIN_LEAF_AREA,
+        auto_measure: std::env::var("FILETOPO_AUTO_MEASURE").is_ok_and(|value| value == "1"),
+        auto_verify: std::env::var("FILETOPO_AUTO_VERIFY").is_ok_and(|value| value == "1"),
     }
 }
 
@@ -527,6 +544,19 @@ pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_dialog::init())
         .manage(IndexJobs::default())
+        .setup(|app| {
+            // An unattended H9 run needs frames, and Chromium stops delivering
+            // them to a window it treats as occluded. Keeping the window on top
+            // and focused is what makes the measurement possible at all; it is
+            // confined to measurement mode and never affects normal use.
+            if std::env::var("FILETOPO_AUTO_MEASURE").is_ok_and(|value| value == "1") {
+                if let Some(window) = app.get_webview_window("main") {
+                    let _ = window.set_always_on_top(true);
+                    let _ = window.set_focus();
+                }
+            }
+            Ok(())
+        })
         .invoke_handler(tauri::generate_handler![
             health,
             demo_snapshot,
@@ -546,6 +576,7 @@ pub fn run() {
             map_integrity,
             map_self_check,
             map_host_info,
+            map_log,
             map_write_run_artifact
         ])
         .run(tauri::generate_context!())

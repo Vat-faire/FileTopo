@@ -35,6 +35,8 @@ export interface RunSample {
 export interface FixtureMeasurement {
   fixtureId: string;
   nodeCount: number;
+  /** Published because frame cost depends on it, and it must not silently differ between fixtures. */
+  viewport: { width: number; height: number };
   runs: RunSample[];
   frameTime: Stat;
   selectionLatency: Stat;
@@ -62,6 +64,7 @@ export function summarize(values: number[]): Stat {
 export function aggregate(
   fixtureId: string,
   nodeCount: number,
+  viewport: { width: number; height: number },
   runs: RunSample[],
 ): FixtureMeasurement {
   const frames = runs.flatMap((run) => run.frameTimesMs);
@@ -69,6 +72,7 @@ export function aggregate(
   return {
     fixtureId,
     nodeCount,
+    viewport,
     runs,
     frameTime: summarize(frames),
     selectionLatency: summarize(selections),
@@ -77,8 +81,38 @@ export function aggregate(
   };
 }
 
-export function nextFrame(): Promise<number> {
-  return new Promise((resolve) => requestAnimationFrame(resolve));
+/**
+ * Raised when animation frames stop arriving.
+ *
+ * Chromium suspends `requestAnimationFrame` for a window it considers hidden or
+ * fully occluded. Without a deadline the harness simply waits for a frame that
+ * will never come, and an unattended run hangs looking exactly like a slow one.
+ * A measurement that cannot happen has to say so.
+ */
+export class FramesSuspended extends Error {
+  constructor(waitedMs: number) {
+    super(
+      `aucune image pendant ${waitedMs} ms : la fenêtre n'est pas composée ` +
+        `(masquée, réduite ou entièrement recouverte). Mesure abandonnée.`,
+    );
+    this.name = "FramesSuspended";
+  }
+}
+
+/** How long a single frame may take before the run is declared suspended. */
+export const FRAME_DEADLINE_MS = 8_000;
+
+export function nextFrame(deadlineMs = FRAME_DEADLINE_MS): Promise<number> {
+  return new Promise((resolve, reject) => {
+    const handle = requestAnimationFrame((timestamp) => {
+      clearTimeout(timer);
+      resolve(timestamp);
+    });
+    const timer = setTimeout(() => {
+      cancelAnimationFrame(handle);
+      reject(new FramesSuspended(deadlineMs));
+    }, deadlineMs);
+  });
 }
 
 /** Resolves once the frame following the current one has begun. */
@@ -106,6 +140,32 @@ export function scriptedStep(frame: number): { zoom: number; dx: number; dy: num
     dx: 7 * Math.cos(phase),
     dy: 5 * Math.sin(phase * 2),
   };
+}
+
+/**
+ * Waits until the map has a real size before anything is timed.
+ *
+ * On the first fixture the harness would otherwise start while the map host is
+ * still 1x1: the view maths would fit the tree into a single pixel and the
+ * frames would be cheap because nothing was on screen. Fast frames measured on
+ * an empty map are worse than no measurement at all.
+ */
+export async function awaitLaidOutViewport(
+  read: () => { width: number; height: number },
+  deadlineMs = 5_000,
+): Promise<{ width: number; height: number }> {
+  const started = performance.now();
+  for (;;) {
+    const viewport = read();
+    if (viewport.width > 2 && viewport.height > 2) return viewport;
+    if (performance.now() - started > deadlineMs) {
+      throw new Error(
+        `la carte n'a pas de taille après ${deadlineMs} ms ` +
+          `(${viewport.width}x${viewport.height}) : mesure abandonnée`,
+      );
+    }
+    await nextFrame();
+  }
 }
 
 /** Deterministic spread of selection targets across the tree. */

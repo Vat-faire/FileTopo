@@ -1,0 +1,230 @@
+{
+  "task": "TASK-0016",
+  "criteria": [
+    "H1",
+    "H2",
+    "H3",
+    "H5",
+    "H6",
+    "H7",
+    "H8",
+    "H10",
+    "H11"
+  ],
+  "capturedAtIso": "2026-09-01T03:35:44.574Z",
+  "host": {
+    "sandboxRoot": "<dépôt>/.filetopo-sandbox",
+    "appVersion": "0.1.0-alpha.1",
+    "sqliteVersion": "3.53.2",
+    "webviewVersion": "151.0.4129.107",
+    "tauriVersion": "2.11.5",
+    "platform": "windows",
+    "nodeCeiling": 5000,
+    "depthCeiling": 40,
+    "minLeafArea": 2400,
+    "autoVerify": true,
+    "autoMeasure": false
+  },
+  "findings": [
+    {
+      "fixtureId": "quasi-empty",
+      "declaredCeiling": 25,
+      "nodeCount": 12,
+      "plannedNodes": 12,
+      "maxDepth": 3,
+      "depthCeiling": 40,
+      "nodeCeiling": 5000,
+      "schemaVersion": 1,
+      "layoutInvocations": 1,
+      "timingsMs": {
+        "scan": 0.6775,
+        "layout": 0.034999999999999996,
+        "index": 5.252
+      },
+      "rebuiltTimingsMs": {
+        "scan": 0.7295,
+        "layout": 0.017499999999999998,
+        "index": 10.5337
+      },
+      "h1_pathsAgree": true,
+      "h1_counts": {
+        "planned": 11,
+        "onDisk": 11,
+        "indexed": 11
+      },
+      "h1_missingFromIndex": [],
+      "h1_unexpectedInIndex": [],
+      "h2_layoutViolations": [],
+      "h3_hierarchyMismatches": [],
+      "h5_detailMismatches": [],
+      "h6_readOnlyConfirmed": true,
+      "h6_fingerprintBefore": "fnv1a64:bddfe1a16cac350f",
+      "h6_fingerprintAfterRebuild": "fnv1a64:bddfe1a16cac350f",
+      "h6_fingerprintUnchanged": true,
+      "h6_filetopoArtifactsInRoot": [],
+      "h7_digestBefore": "fnv1a64:09eda272ceec9b16",
+      "h7_digestAfterRebuild": "fnv1a64:09eda272ceec9b16",
+      "h7_equivalent": true,
+      "h7_nonReconstructible": [
+        "built_unix_ms"
+      ],
+      "h11_withinCeilings": true,
+      "integrityBefore": {
+        "fixtureId": "quasi-empty",
+        "fingerprint": "fnv1a64:bddfe1a16cac350f",
+        "filetopoArtifacts": [],
+        "observedEntries": 11
+      }
+    },
+    {
+      "fixtureId": "deep",
+      "declaredCeiling": 500,
+      "nodeCount": 157,
+      "plannedNodes": 157,
+      "maxDepth": 40,
+      "depthCeiling": 40,
+      "nodeCeiling": 5000,
+      "schemaVersion": 1,
+      "layoutInvocations": 1,
+      "timingsMs": {
+        "scan": 11.1439,
+        "layout": 0.0883,
+        "index": 6.7
+      },
+      "rebuiltTimingsMs": {
+        "scan": 11.1542,
+        "layout": 0.08650000000000001,
+        "index": 11.4937
+      },
+      "h1_pathsAgree": true,
+      "h1_counts": {
+        "planned": 156,
+        "onDisk": 156,
+        "indexed": 156
+      },
+      "h1_missingFromIndex": [],
+      "h1_unexpectedInIndex": [],
+      "h2_layoutViolations": [],
+      "h3_hierarchyMismatches": [],
+      "h5_detailMismatches": [],
+      "h6_readOnlyConfirmed": true,
+      "h6_fingerprintBefore": "fnv1a64:075a9c069126e8f1",
+      "h6_fingerprintAfterRebuild": "fnv1a64:075a9c069126e8f1",
+      "h6_fingerprintUnchanged": true,
+      "h6_filetopoArtifactsInRoot": [],
+      "h7_digestBefore": "fnv1a64:7effa27d086bf493",
+      "h7_digestAfterRebuild": "fnv1a64:7effa27d086bf493",
+      "h7_equivalent": true,
+      "h7_nonReconstructible": [
+        "built_unix_ms"
+      ],
+      "h11_withinCeilings": true,
+      "integrityBefore": {
+        "fixtureId": "deep",
+        "fingerprint": "fnv1a64:075a9c069126e8f1",
+        "filetopoArtifacts": [],
+        "observedEntries": 156
+      }
+    },
+    {
+      "fixtureId": "wide",
+      "declaredCeiling": 3000,
+      "nodeCount": 2207,
+      "plannedNodes": 2207,
+      "maxDepth": 3,
+      "depthCeiling": 40,
+      "nodeCeiling": 5000,
+      "schemaVersion": 1,
+      "layoutInvocations": 1,
+      "timingsMs": {
+        "scan": 86.82960000000001,
+        "layout": 0.8681,
+        "index": 27.5162
+      },
+      "rebuiltTimingsMs": {
+        "scan": 86.39099999999999,
+        "layout": 0.8389,
+        "index": 28.852
+      },
+      "h1_pathsAgree": true,
+      "h1_counts": {
+        "planned": 2206,
+        "onDisk": 2206,
+        "indexed": 2206
+      },
+      "h1_missingFromIndex": [],
+      "h1_unexpectedInIndex": [],
+      "h2_layoutViolations": [],
+      "h3_hierarchyMismatches": [],
+      "h5_detailMismatches": [],
+      "h6_readOnlyConfirmed": true,
+      "h6_fingerprintBefore": "fnv1a64:8e2691444371d5e9",
+      "h6_fingerprintAfterRebuild": "fnv1a64:8e2691444371d5e9",
+      "h6_fingerprintUnchanged": true,
+      "h6_filetopoArtifactsInRoot": [],
+      "h7_digestBefore": "fnv1a64:9f0bc94dc3b94a08",
+      "h7_digestAfterRebuild": "fnv1a64:9f0bc94dc3b94a08",
+      "h7_equivalent": true,
+      "h7_nonReconstructible": [
+        "built_unix_ms"
+      ],
+      "h11_withinCeilings": true,
+      "integrityBefore": {
+        "fixtureId": "wide",
+        "fingerprint": "fnv1a64:8e2691444371d5e9",
+        "filetopoArtifacts": [],
+        "observedEntries": 2206
+      }
+    },
+    {
+      "fixtureId": "mixed",
+      "declaredCeiling": 5000,
+      "nodeCount": 2420,
+      "plannedNodes": 2420,
+      "maxDepth": 32,
+      "depthCeiling": 40,
+      "nodeCeiling": 5000,
+      "schemaVersion": 1,
+      "layoutInvocations": 1,
+      "timingsMs": {
+        "scan": 89.93289999999999,
+        "layout": 1.1165,
+        "index": 29.6276
+      },
+      "rebuiltTimingsMs": {
+        "scan": 91.07329999999999,
+        "layout": 1.0312,
+        "index": 27.449
+      },
+      "h1_pathsAgree": true,
+      "h1_counts": {
+        "planned": 2419,
+        "onDisk": 2419,
+        "indexed": 2419
+      },
+      "h1_missingFromIndex": [],
+      "h1_unexpectedInIndex": [],
+      "h2_layoutViolations": [],
+      "h3_hierarchyMismatches": [],
+      "h5_detailMismatches": [],
+      "h6_readOnlyConfirmed": true,
+      "h6_fingerprintBefore": "fnv1a64:18172f4f13164c02",
+      "h6_fingerprintAfterRebuild": "fnv1a64:18172f4f13164c02",
+      "h6_fingerprintUnchanged": true,
+      "h6_filetopoArtifactsInRoot": [],
+      "h7_digestBefore": "fnv1a64:d1f6cae7411e0efa",
+      "h7_digestAfterRebuild": "fnv1a64:d1f6cae7411e0efa",
+      "h7_equivalent": true,
+      "h7_nonReconstructible": [
+        "built_unix_ms"
+      ],
+      "h11_withinCeilings": true,
+      "integrityBefore": {
+        "fixtureId": "mixed",
+        "fingerprint": "fnv1a64:18172f4f13164c02",
+        "filetopoArtifacts": [],
+        "observedEntries": 2419
+      }
+    }
+  ]
+}

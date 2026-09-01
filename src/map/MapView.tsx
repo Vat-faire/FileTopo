@@ -13,6 +13,14 @@ import { fitToBox, fitView, panBy, worldToScreen, zoomAbout } from "./viewState"
  * transformed here; nothing on this path recomputes a rectangle, which is what
  * `H10` asserts.
  *
+ * **Blocks are drawn in layout coordinates inside one transformed group.** Pan
+ * and zoom therefore change a single attribute rather than re-projecting every
+ * node, so a frame costs one transform instead of thousands of DOM writes. The
+ * labels are the exception: they live in a screen-space layer because text that
+ * scaled with the map would be illegible at one end of the zoom range and
+ * absurd at the other. That layer only ever holds the handful of labels that
+ * are on screen and large enough to read.
+ *
  * Everything reachable with the mouse is reachable from the keyboard: the map
  * is one focusable widget whose arrow keys walk the hierarchy, and the toolbar
  * beside it exposes the same navigation as ordinary buttons.
@@ -71,6 +79,84 @@ export default function MapView({
     () => (selectedId === null ? new Set<number>() : hierarchicalNeighbourhood(hierarchy, selectedId)),
     [hierarchy, selectedId],
   );
+
+  // Rebuilt only when the tree or the selection changes — never for a pan or a
+  // zoom, which is the whole point of the transformed group below.
+  const blocks = useMemo(
+    () =>
+      hierarchy.drawOrder.map((node) => {
+        const selected = node.id === selectedId;
+        const related = highlighted.has(node.id);
+        // Attenuated, never erased: the rectangle keeps its outline and its
+        // accessible name whatever the selection is — parity §3, point 4.
+        const state = selected ? "selected" : related ? "related" : "plain";
+        const corner = Math.min(node.rect.w, node.rect.h) * 0.06;
+        const marker = Math.min(node.rect.w, node.rect.h) * 0.28;
+        return (
+          <g
+            key={node.id}
+            id={`map-node-${node.id}`}
+            role="treeitem"
+            aria-level={node.depth + 1}
+            aria-selected={selected}
+            aria-label={labelFor(node)}
+            className={`map-node map-node--${node.kind} map-node--${state}`}
+            onPointerDown={(event) => {
+              event.stopPropagation();
+              onSelect(node.id);
+            }}
+          >
+            <rect
+              x={node.rect.x}
+              y={node.rect.y}
+              width={node.rect.w}
+              height={node.rect.h}
+              rx={corner}
+              vectorEffect="non-scaling-stroke"
+            />
+            {node.accessDiagnostic ? (
+              // A hatched corner marks an access diagnostic without relying on
+              // colour alone; the panel spells it out in words.
+              <path
+                className="map-node__diagnostic"
+                d={`M ${node.rect.x} ${node.rect.y} l ${marker} 0 l ${-marker} ${marker} Z`}
+              />
+            ) : null}
+          </g>
+        );
+      }),
+    [hierarchy, highlighted, labelFor, onSelect, selectedId],
+  );
+
+  // Screen-space layer: only what is on screen and big enough to read, plus the
+  // selection, whose label `P-02` requires to stay legible.
+  const labels = useMemo(() => {
+    const drawn: React.ReactElement[] = [];
+    for (const node of hierarchy.drawOrder) {
+      const screen = worldToScreen(node.rect, view);
+      if (
+        screen.x + screen.w < 0 ||
+        screen.y + screen.h < 0 ||
+        screen.x > viewport.width ||
+        screen.y > viewport.height
+      ) {
+        continue;
+      }
+      const big = screen.w >= LABEL_MIN_WIDTH && screen.h >= LABEL_MIN_HEIGHT;
+      if (!big && node.id !== selectedId) continue;
+      drawn.push(
+        <text
+          key={node.id}
+          className={`map-node__label${node.id === selectedId ? " map-node__label--selected" : ""}`}
+          x={screen.x + 5}
+          y={screen.y + 13}
+        >
+          {node.name}
+        </text>,
+      );
+    }
+    return drawn;
+  }, [hierarchy, selectedId, view, viewport.height, viewport.width]);
 
   const handleWheel = useCallback(
     (event: React.WheelEvent<SVGSVGElement>) => {
@@ -193,59 +279,9 @@ export default function MapView({
         onPointerCancel={endDrag}
         onKeyDown={handleKeyDown}
       >
-        <g>
-          {hierarchy.drawOrder.map((node) => {
-            const screen = worldToScreen(node.rect, view);
-            const selected = node.id === selectedId;
-            const related = highlighted.has(node.id);
-            // Attenuated, never erased: the rectangle keeps its outline and its
-            // accessible name whatever the selection is — parity §3, point 4.
-            const state = selected ? "selected" : related ? "related" : "plain";
-            const showLabel =
-              selected ||
-              (screen.w >= LABEL_MIN_WIDTH && screen.h >= LABEL_MIN_HEIGHT);
-            return (
-              <g
-                key={node.id}
-                id={`map-node-${node.id}`}
-                role="treeitem"
-                aria-level={node.depth + 1}
-                aria-selected={selected}
-                aria-label={labelFor(node)}
-                className={`map-node map-node--${node.kind} map-node--${state}`}
-                onPointerDown={(event) => {
-                  event.stopPropagation();
-                  onSelect(node.id);
-                }}
-              >
-                <rect
-                  x={screen.x}
-                  y={screen.y}
-                  width={Math.max(screen.w, 0.5)}
-                  height={Math.max(screen.h, 0.5)}
-                  rx={Math.min(4, screen.w / 6, screen.h / 6)}
-                />
-                {node.accessDiagnostic ? (
-                  // A hatched corner marks an access diagnostic without relying
-                  // on colour alone; the panel spells it out in words.
-                  <path
-                    className="map-node__diagnostic"
-                    d={`M ${screen.x} ${screen.y} l ${Math.min(12, screen.w)} 0 l ${-Math.min(12, screen.w)} ${Math.min(12, screen.h)} Z`}
-                  />
-                ) : null}
-                {showLabel ? (
-                  <text
-                    className="map-node__label"
-                    x={screen.x + 5}
-                    y={screen.y + 13}
-                    clipPath="none"
-                  >
-                    {node.name}
-                  </text>
-                ) : null}
-              </g>
-            );
-          })}
+        <g transform={`translate(${view.tx} ${view.ty}) scale(${view.scale})`}>{blocks}</g>
+        <g className="map-view__labels" aria-hidden="true">
+          {labels}
         </g>
       </svg>
     </div>

@@ -18,17 +18,30 @@ use std::path::{Path, PathBuf};
 
 #[derive(Debug, Clone)]
 pub struct SandboxPaths {
-    pub root: PathBuf,
     pub fixtures: PathBuf,
     pub maps: PathBuf,
+    /// How the sandbox is *named* on screen and in artefacts.
+    ///
+    /// Never the absolute path. `AGENTS.md` forbids a personal local path from
+    /// reaching the repository, and a measurement artefact committed as
+    /// evidence is exactly the place one would slip through unnoticed.
+    pub label: String,
 }
 
 impl SandboxPaths {
+    /// Test-only shorthand: production always names its sandbox through
+    /// [`resolve`], which is what keeps the published label free of an absolute
+    /// path.
+    #[cfg(test)]
     pub fn under(root: PathBuf) -> Self {
+        Self::labelled(root, "<bac à sable>")
+    }
+
+    pub fn labelled(root: PathBuf, label: &str) -> Self {
         Self {
             fixtures: root.join("fixtures"),
             maps: root.join("maps"),
-            root,
+            label: label.to_string(),
         }
     }
 
@@ -36,11 +49,11 @@ impl SandboxPaths {
         self.maps.join(fixture_id).join("map.sqlite")
     }
 
-    /// Where the sandbox as a whole lives — reported to the interface so a
-    /// reader can see, without guessing, that nothing is written to a user
-    /// folder.
+    /// Where the sandbox lives, named rather than spelled out, so a reader can
+    /// see that nothing is written to a user folder without the absolute path
+    /// being published along with it.
     pub fn display_root(&self) -> String {
-        self.root.to_string_lossy().replace(char::from(92u8), "/")
+        self.label.clone()
     }
 }
 
@@ -59,10 +72,13 @@ impl SandboxPaths {
 pub fn resolve(app_data: &Path) -> SandboxPaths {
     if cfg!(debug_assertions) {
         if let Some(repository) = repository_root() {
-            return SandboxPaths::under(repository.join(".filetopo-sandbox"));
+            return SandboxPaths::labelled(
+                repository.join(".filetopo-sandbox"),
+                "<dépôt>/.filetopo-sandbox",
+            );
         }
     }
-    SandboxPaths::under(app_data.join("sandbox"))
+    SandboxPaths::labelled(app_data.join("sandbox"), "<données d'application>/sandbox")
 }
 
 /// Walks up from the working directory looking for this repository's markers.
@@ -97,6 +113,18 @@ mod tests {
             "I-2: {database:?} must not live inside {fixture_root:?}"
         );
         assert!(database.starts_with(&paths.maps));
+    }
+
+    #[test]
+    fn the_published_label_never_carries_an_absolute_path() {
+        let paths = SandboxPaths::labelled(
+            PathBuf::from(r"C:\Users\quelquun\Documents\depot\.filetopo-sandbox"),
+            "<dépôt>/.filetopo-sandbox",
+        );
+        let shown = paths.display_root();
+        assert_eq!(shown, "<dépôt>/.filetopo-sandbox");
+        assert!(!shown.contains("Users"));
+        assert!(!shown.contains(':'));
     }
 
     #[test]

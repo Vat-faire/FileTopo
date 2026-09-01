@@ -140,13 +140,33 @@ describe("map selection — P-06, H4", () => {
     expect(flagged).toHaveLength(1);
   });
 
-  it("keeps the selected label drawn even when the block is small", () => {
-    // `beta` is selected below; P-02 requires its label to stay legible.
+  it("keeps the selected label drawn, in the screen-space label layer", () => {
+    // Labels no longer live inside the block group: blocks are drawn in layout
+    // coordinates inside one transformed group so a pan costs one attribute,
+    // and text that scaled with it would be unreadable. P-02 still requires the
+    // selected block's label to be legible, so it is drawn regardless of size.
     const { container } = render(<Harness />);
     const beta = container.querySelector("#map-node-3");
     expect(beta).not.toBeNull();
     fireEvent.pointerDown(beta as Element);
-    expect(within(beta as HTMLElement).getByText("beta")).toBeInTheDocument();
+    const layer = container.querySelector(".map-view__labels") as HTMLElement;
+    expect(within(layer).getByText("beta")).toBeInTheDocument();
+  });
+
+  it("pans and zooms by transforming one group, not by re-projecting nodes", () => {
+    // H10 in spirit: the layout is paid once. A frame must not rewrite every
+    // rectangle, so the rects stay in layout coordinates and only the group
+    // transform moves.
+    const { container } = render(<Harness />);
+    const group = container.querySelector("svg > g") as SVGGElement;
+    const before = group.getAttribute("transform");
+    const rect = container.querySelector("#map-node-2 rect") as SVGRectElement;
+    const rectXBefore = rect.getAttribute("x");
+
+    fireEvent.keyDown(screen.getByRole("tree"), { key: "+" });
+
+    expect(group.getAttribute("transform")).not.toBe(before);
+    expect(rect.getAttribute("x")).toBe(rectXBefore);
   });
 });
 
@@ -223,7 +243,7 @@ describe("measurement statistics — H9", () => {
   });
 
   it("aggregates every run, worst frame included", () => {
-    const measurement = aggregate("wide", 2207, [
+    const measurement = aggregate("wide", 2207, { width: 900, height: 600 }, [
       { run: 1, frameTimesMs: [16, 17], selectionLatenciesMs: [20] },
       { run: 2, frameTimesMs: [16, 120], selectionLatenciesMs: [25] },
     ]);
@@ -231,6 +251,7 @@ describe("measurement statistics — H9", () => {
     expect(measurement.worstFrameMs).toBe(120);
     expect(measurement.worstSelectionMs).toBe(25);
     expect(measurement.runs).toHaveLength(2);
+    expect(measurement.viewport).toEqual({ width: 900, height: 600 });
   });
 
   it("spreads selection targets across the tree rather than clustering", () => {

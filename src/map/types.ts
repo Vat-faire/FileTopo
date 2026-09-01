@@ -89,6 +89,8 @@ export interface HostInfo {
   nodeCeiling: number;
   depthCeiling: number;
   minLeafArea: number;
+  autoMeasure: boolean;
+  autoVerify: boolean;
 }
 
 export interface FixtureIntegrity {

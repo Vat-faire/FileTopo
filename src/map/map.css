@@ -291,18 +291,23 @@ button:disabled {
   fill-opacity: 0.9;
 }
 
+.map-view__labels {
+  pointer-events: none;
+}
+
 .map-node__label {
   font-size: 10px;
   fill: var(--ink);
-  pointer-events: none;
+  fill-opacity: 0.85;
   paint-order: stroke;
   stroke: var(--panel);
   stroke-width: 2.5;
   stroke-linejoin: round;
 }
 
-.map-node--plain .map-node__label {
-  fill-opacity: 0.7;
+.map-node__label--selected {
+  fill-opacity: 1;
+  font-weight: 700;
 }
 
 .toolbar__hint {

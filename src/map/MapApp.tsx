@@ -10,6 +10,7 @@ import {
   WARMUP_FRAMES,
   aggregate,
   afterPaint,
+  awaitLaidOutViewport,
   nextFrame,
   scriptedStep,
   selectionTargets,
@@ -100,6 +101,15 @@ const strings = {
 
 const t = strings.fr;
 
+/**
+ * Sends a line to the host's terminal.
+ *
+ * Fire-and-forget on purpose: logging must never be able to fail a run.
+ */
+function hostLog(level: "info" | "error", message: string): void {
+  void invoke("map_log", { level, message }).catch(() => {});
+}
+
 function fixtureLabel(fixture: FixtureSummary): string {
   return `${fixture.labelFr} · ${fixture.plannedNodes} ${t.nodes} (${t.ceiling} ${fixture.maxNodes})`;
 }
@@ -128,6 +138,10 @@ export default function MapApp() {
   viewRef.current = view;
   const viewportRef = useRef(viewport);
   viewportRef.current = viewport;
+  // Declared before `runMeasurement` exists so the auto-start effect above can
+  // reach it without depending on declaration order.
+  const runMeasurementRef = useRef<(() => Promise<void>) | null>(null);
+  const runVerificationRef = useRef<(() => Promise<void>) | null>(null);
 
   const world: Rect = useMemo(
     () => ({
@@ -144,8 +158,24 @@ export default function MapApp() {
     [snapshot],
   );
 
+  // Anything the page throws becomes a line in the host log, so an unattended
+  // run leaves a trace instead of a silent stall.
+  useEffect(() => {
+    const onError = (event: ErrorEvent) =>
+      hostLog("error", `exception: ${event.message} @ ${event.filename}:${event.lineno}`);
+    const onRejection = (event: PromiseRejectionEvent) =>
+      hostLog("error", `promesse rejetée: ${String(event.reason)}`);
+    window.addEventListener("error", onError);
+    window.addEventListener("unhandledrejection", onRejection);
+    return () => {
+      window.removeEventListener("error", onError);
+      window.removeEventListener("unhandledrejection", onRejection);
+    };
+  }, []);
+
   useEffect(() => {
     document.documentElement.lang = "fr";
+    hostLog("info", "interface montée, lecture des fixtures et de l'hôte");
     Promise.all([
       invoke<FixtureSummary[]>("map_fixtures"),
       invoke<HostInfo>("map_host_info"),
@@ -153,9 +183,35 @@ export default function MapApp() {
       .then(([nextFixtures, nextHost]) => {
         setFixtures(nextFixtures);
         setHost(nextHost);
+        hostLog(
+          "info",
+          `hôte prêt: ${nextFixtures.length} fixtures, WebView2 ${nextHost.webviewVersion}, ` +
+            `mesure automatique=${nextHost.autoMeasure}, visibilité=${document.visibilityState}`,
+        );
       })
-      .catch((error) => setStatus(`Hôte indisponible : ${String(error)}`));
+      .catch((error) => {
+        hostLog("error", `hôte indisponible: ${String(error)}`);
+        setStatus(`Hôte indisponible : ${String(error)}`);
+      });
   }, []);
+
+  // Unattended runs: the host asked for a measurement or a verification, so
+  // start it as soon as the fixtures are known. Same code paths as the buttons.
+  const autoStarted = useRef(false);
+  useEffect(() => {
+    if (autoStarted.current || fixtures.length === 0 || !host) return;
+    if (host.autoVerify) {
+      autoStarted.current = true;
+      hostLog("info", "démarrage automatique de la vérification H1–H7");
+      void runVerificationRef.current?.();
+      return;
+    }
+    if (host.autoMeasure) {
+      autoStarted.current = true;
+      hostLog("info", "démarrage automatique de la campagne H9");
+      void runMeasurementRef.current?.();
+    }
+  }, [fixtures.length, host]);
 
   const openFixture = useCallback(async (fixtureId: string, rebuild: boolean) => {
     setBusy(true);
@@ -209,6 +265,111 @@ export default function MapApp() {
     }
   }, [activeFixture]);
 
+  /**
+   * Replays `H1` to `H7`, `H10` and `H11` against the running host, and writes
+   * what it found.
+   *
+   * The unit tests already check the same properties in temporary directories.
+   * This runs them where it actually matters — through the real commands, on
+   * the real sandbox, in the engine that ships — and publishes the result
+   * rather than asserting it away.
+   */
+  const runVerification = useCallback(async () => {
+    if (fixtures.length === 0) return;
+    const findings: unknown[] = [];
+    try {
+      for (const fixture of fixtures) {
+        hostLog("info", `vérification ${fixture.id}: ouverture`);
+        const first = await invoke<MapBuildReport>("map_open", {
+          fixtureId: fixture.id,
+          rebuild: false,
+        });
+        const check = await invoke<MapSelfCheck>("map_self_check", { fixtureId: fixture.id });
+        const before = await invoke<FixtureIntegrity>("map_integrity", { fixtureId: fixture.id });
+
+        hostLog("info", `vérification ${fixture.id}: index supprimé puis reconstruit`);
+        const rebuilt = await invoke<MapBuildReport>("map_open", {
+          fixtureId: fixture.id,
+          rebuild: true,
+        });
+        const after = await invoke<FixtureIntegrity>("map_integrity", { fixtureId: fixture.id });
+
+        const entry = {
+          fixtureId: fixture.id,
+          declaredCeiling: fixture.maxNodes,
+          nodeCount: first.nodeCount,
+          plannedNodes: first.plannedNodes,
+          maxDepth: first.maxDepth,
+          depthCeiling: first.depthCeiling,
+          nodeCeiling: first.nodeCeiling,
+          schemaVersion: first.schemaVersion,
+          layoutInvocations: first.layoutInvocations,
+          timingsMs: { scan: first.scanMs, layout: first.layoutMs, index: first.indexMs },
+          rebuiltTimingsMs: {
+            scan: rebuilt.scanMs,
+            layout: rebuilt.layoutMs,
+            index: rebuilt.indexMs,
+          },
+          h1_pathsAgree: check.pathsAgree,
+          h1_counts: {
+            planned: check.plannedPaths,
+            onDisk: check.observedPaths,
+            indexed: check.indexedPaths,
+          },
+          h1_missingFromIndex: check.missingFromIndex,
+          h1_unexpectedInIndex: check.unexpectedInIndex,
+          h2_layoutViolations: check.layoutViolations,
+          h3_hierarchyMismatches: check.hierarchyMismatches,
+          h5_detailMismatches: check.detailMismatches,
+          h6_readOnlyConfirmed: first.readOnlyConfirmed && rebuilt.readOnlyConfirmed,
+          h6_fingerprintBefore: first.fingerprintBefore,
+          h6_fingerprintAfterRebuild: rebuilt.fingerprintAfter,
+          h6_fingerprintUnchanged: first.fingerprintBefore === rebuilt.fingerprintAfter,
+          h6_filetopoArtifactsInRoot: after.filetopoArtifacts,
+          h7_digestBefore: first.reconstructibleDigest,
+          h7_digestAfterRebuild: rebuilt.reconstructibleDigest,
+          h7_equivalent: first.reconstructibleDigest === rebuilt.reconstructibleDigest,
+          h7_nonReconstructible: rebuilt.nonReconstructible,
+          h11_withinCeilings:
+            first.nodeCount <= fixture.maxNodes &&
+            first.nodeCount <= first.nodeCeiling &&
+            first.maxDepth <= first.depthCeiling,
+          integrityBefore: before,
+        };
+        findings.push(entry);
+        hostLog(
+          "info",
+          `vérification ${fixture.id}: H1=${entry.h1_pathsAgree} ` +
+            `H2=${entry.h2_layoutViolations.length} H3=${entry.h3_hierarchyMismatches.length} ` +
+            `H5=${entry.h5_detailMismatches.length} H6=${entry.h6_fingerprintUnchanged} ` +
+            `H7=${entry.h7_equivalent} H10=${entry.layoutInvocations} H11=${entry.h11_withinCeilings}`,
+        );
+      }
+
+      const written = await invoke<string>("map_write_run_artifact", {
+        name: "TASK-0016-H1-H7-verification.json",
+        contents: JSON.stringify(
+          {
+            task: "TASK-0016",
+            criteria: ["H1", "H2", "H3", "H5", "H6", "H7", "H8", "H10", "H11"],
+            capturedAtIso: new Date().toISOString(),
+            host,
+            findings,
+          },
+          null,
+          2,
+        ),
+      });
+      hostLog("info", `vérification terminée, artefact écrit: ${written}`);
+      setStatus(`Vérification écrite dans ${written}`);
+    } catch (error) {
+      hostLog("error", `vérification interrompue: ${String(error)}`);
+      setStatus(`Vérification interrompue : ${String(error)}`);
+    }
+  }, [fixtures, host]);
+
+  runVerificationRef.current = runVerification;
+
   /** `H9`, on every fixture, five runs each. */
   const runMeasurement = useCallback(async () => {
     if (measuring || fixtures.length === 0) return;
@@ -218,6 +379,7 @@ export default function MapApp() {
 
     try {
       for (const fixture of fixtures) {
+        hostLog("info", `fixture ${fixture.id}: ouverture`);
         const built = await invoke<MapBuildReport>("map_open", {
           fixtureId: fixture.id,
           rebuild: false,
@@ -228,6 +390,7 @@ export default function MapApp() {
         setActiveFixture(fixture.id);
         setSelectedId(loaded.rootId);
         await afterPaint();
+        const measuredViewport = await awaitLaidOutViewport(() => viewportRef.current);
 
         const box: Rect = { x: 0, y: 0, w: loaded.layoutWidth, h: loaded.layoutHeight };
         const targets = selectionTargets(
@@ -236,7 +399,14 @@ export default function MapApp() {
         );
         const runs: RunSample[] = [];
 
+        hostLog(
+          "info",
+          `fixture ${fixture.id}: ${loaded.nodeCount} nœuds chargés, ` +
+            `fenêtre ${viewportRef.current.width}x${viewportRef.current.height}`,
+        );
+
         for (let run = 1; run <= RUNS_PER_FIXTURE; run += 1) {
+          hostLog("info", `fixture ${fixture.id}: exécution ${run}/${RUNS_PER_FIXTURE}`);
           setView(fitView(box, viewportRef.current));
           for (let warm = 0; warm < WARMUP_FRAMES; warm += 1) await nextFrame();
 
@@ -267,8 +437,18 @@ export default function MapApp() {
           runs.push({ run, frameTimesMs, selectionLatenciesMs });
         }
 
-        results.push(aggregate(fixture.id, loaded.nodeCount, runs));
-        setMeasurement([...results]);
+        const summary = aggregate(fixture.id, loaded.nodeCount, measuredViewport, runs);
+        results.push(summary);
+        // Deliberately not published to the interface until the campaign ends:
+        // showing the results table mid-run would reflow the page and measure
+        // each fixture at a different map size.
+        
+        hostLog(
+          "info",
+          `fixture ${fixture.id}: terminé — image médiane ${summary.frameTime.median.toFixed(2)} ms, ` +
+            `pire ${summary.worstFrameMs.toFixed(2)} ms, sélection médiane ` +
+            `${summary.selectionLatency.median.toFixed(2)} ms`,
+        );
       }
 
       const artifact = {
@@ -290,13 +470,40 @@ export default function MapApp() {
         name: "TASK-0016-H9-webview2.json",
         contents: JSON.stringify(artifact, null, 2),
       });
+      setMeasurement(results);
       setStatus(`Mesures écrites dans ${written}`);
+      hostLog("info", `campagne terminée, artefact écrit: ${written}`);
     } catch (error) {
+      // A failed campaign is still a result, and it is written down: an
+      // artefact that says why nothing was measured is worth more than a
+      // missing file somebody has to guess about.
       setStatus(`Mesure interrompue : ${String(error)}`);
+      hostLog("error", `campagne interrompue: ${String(error)}`);
+      try {
+        await invoke<string>("map_write_run_artifact", {
+          name: "TASK-0016-H9-webview2-abandon.json",
+          contents: JSON.stringify(
+            {
+              task: "TASK-0016",
+              criterion: "H9",
+              outcome: "abandoned",
+              reason: String(error),
+              host,
+              partialMeasurements: results,
+            },
+            null,
+            2,
+          ),
+        });
+      } catch {
+        // Nothing further to do: the status line already carries the reason.
+      }
     } finally {
       setMeasuring(false);
     }
   }, [fixtures, host, measuring]);
+
+  runMeasurementRef.current = runMeasurement;
 
   const selectedNode = selectedId === null ? null : hierarchy?.byId.get(selectedId) ?? null;
 
