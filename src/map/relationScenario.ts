@@ -21,6 +21,7 @@
  */
 
 import { afterPaint } from "./measure";
+import { pressRealKey, waitUntil } from "./realInput";
 import type {
   HostInfo,
   MapSnapshot,
@@ -32,13 +33,20 @@ import type {
 export interface ScenarioDeps {
   invoke: <T>(command: string, args?: Record<string, unknown>) => Promise<T>;
   host: HostInfo | null;
-  openFixture: (fixtureId: string, rebuild: boolean) => Promise<void>;
+  openBrain: (brainId: string, rebuild: boolean) => Promise<void>;
   setSelectedId: (nodeId: number) => void;
   setStatus: (message: string) => void;
   log: (level: "info" | "error", message: string) => void;
 }
 
-const FIXTURE = "quasi-empty";
+/**
+ * The brain `J12` runs against.
+ *
+ * `TASK-0018` renames the axis without touching the criterion: `brain-alpha`
+ * reads the very same frozen `quasi-empty` tree the scenario was written for,
+ * so what `J12` proves is unchanged. Nothing of `J1`-`J12` is retouched here.
+ */
+const BRAIN = "brain-alpha";
 const PIVOT_PATH = "dossier-a/note-1.txt";
 
 async function settle(): Promise<void> {
@@ -62,159 +70,21 @@ function styleOf(
   return element ? window.getComputedStyle(element)[property] : null;
 }
 
-/**
- * Waits, in frames, until the screen actually shows what was asked for.
- *
- * The panel reads its relations through a command, so a selection is on screen
- * one or more frames before the panel that describes it is. The first run of
- * this scenario read the panel too early and published a `0 / 0` that was the
- * previous selection's — a measurement defect of exactly the kind `TASK-0016`
- * §13.4 documents. Reporting rather than throwing: if the wait times out the
- * evidence says so, and the reader sees a stale reading for what it is.
- */
-async function waitUntil(
-  predicate: () => boolean,
-  budgetMs = 5_000,
-): Promise<{ settled: boolean; waitedMs: number; frames: number }> {
-  // Bounded in **time**, not in frames: a frame lasts 4 ms on a 240 Hz screen
-  // and 16 ms on a 60 Hz one, so a frame budget would be a different wait on
-  // every machine — and on this one it was a single second, too short for a
-  // command round trip.
-  const started = performance.now();
-  let frames = 0;
-  while (performance.now() - started < budgetMs) {
-    if (predicate()) return { settled: true, waitedMs: performance.now() - started, frames };
-    await afterPaint();
-    frames += 1;
-  }
-  return { settled: predicate(), waitedMs: performance.now() - started, frames };
-}
-
-/** What one real keystroke proved, or failed to prove. */
-interface RealKeyEvidence {
-  inputMethod: string;
-  keyRequested: string;
-  focusedBeforeTag: string;
-  focusedBeforeClass: string;
-  focusedBeforeText: string;
-  focusReached: boolean;
-  keydownIsTrusted: boolean | null;
-  keydownKey: string | null;
-  activationIsTrusted: boolean | null;
-  programmaticClickCalls: number;
-  programmaticClickDispatches: number;
-  observedChange: boolean;
-  waitedMs: number;
-}
-
-/**
- * Focuses a control, asks the host for a **real** keystroke, and waits.
- *
- * Three things are instrumented at once, because each alone could be argued
- * with:
- *
- * * `isTrusted` on the activation event — `false` for anything a script
- *   dispatched, `true` only for an activation the browser generated from real
- *   input. This is the proof.
- * * `HTMLElement.prototype.click` and `EventTarget.prototype.dispatchEvent`
- *   are counted for the whole window. Both must stay at zero, which is what
- *   "no programmatic activation was used" means when it is measured rather
- *   than asserted.
- * * the observable change itself, so a trusted click that did nothing is not
- *   mistaken for success.
- */
-async function pressRealKey(
-  target: HTMLElement,
-  key: string,
-  changed: () => boolean,
-  log: ScenarioDeps["log"],
-  budgetMs = 90_000,
-): Promise<RealKeyEvidence> {
-  let activationIsTrusted: boolean | null = null;
-  let keydownIsTrusted: boolean | null = null;
-  let keydownKey: string | null = null;
-  let programmaticClickCalls = 0;
-  let programmaticClickDispatches = 0;
-
-  const onClick = (event: Event) => {
-    if (activationIsTrusted === null) activationIsTrusted = event.isTrusted;
-  };
-  const onKeyDown = (event: Event) => {
-    if (keydownIsTrusted === null) {
-      keydownIsTrusted = event.isTrusted;
-      keydownKey = (event as KeyboardEvent).key;
-    }
-  };
-  target.addEventListener("click", onClick, true);
-  target.addEventListener("keydown", onKeyDown, true);
-
-  const nativeClick = HTMLElement.prototype.click;
-  const nativeDispatch = EventTarget.prototype.dispatchEvent;
-  HTMLElement.prototype.click = function patchedClick(this: HTMLElement) {
-    programmaticClickCalls += 1;
-    return nativeClick.call(this);
-  };
-  EventTarget.prototype.dispatchEvent = function patchedDispatch(
-    this: EventTarget,
-    event: Event,
-  ) {
-    if (event.type === "click") programmaticClickDispatches += 1;
-    return nativeDispatch.call(this, event);
-  };
-
-  target.focus();
-  const evidence: RealKeyEvidence = {
-    inputMethod:
-      "WScript.Shell SendKeys via scripts/j12-send-real-key.ps1, after AppActivate " +
-      "on the FileTopo process — the ordinary Windows input path",
-    keyRequested: key,
-    focusedBeforeTag: target.tagName,
-    focusedBeforeClass: target.getAttribute("class") ?? "",
-    focusedBeforeText: target.textContent?.trim() ?? "",
-    focusReached: document.activeElement === target,
-    keydownIsTrusted: null,
-    keydownKey: null,
-    activationIsTrusted: null,
-    programmaticClickCalls: 0,
-    programmaticClickDispatches: 0,
-    observedChange: false,
-    waitedMs: 0,
-  };
-
-  // The marker the watcher is waiting for. It names the key, so the page
-  // decides which key is sent and the watcher never guesses.
-  log("info", `J12-KEY-READY key=${key} target=${evidence.focusedBeforeClass}`);
-
-  const outcome = await waitUntil(changed, budgetMs);
-
-  target.removeEventListener("click", onClick, true);
-  target.removeEventListener("keydown", onKeyDown, true);
-  HTMLElement.prototype.click = nativeClick;
-  EventTarget.prototype.dispatchEvent = nativeDispatch;
-
-  evidence.keydownIsTrusted = keydownIsTrusted;
-  evidence.keydownKey = keydownKey;
-  evidence.activationIsTrusted = activationIsTrusted;
-  evidence.programmaticClickCalls = programmaticClickCalls;
-  evidence.programmaticClickDispatches = programmaticClickDispatches;
-  evidence.observedChange = outcome.settled;
-  evidence.waitedMs = Math.round(outcome.waitedMs);
-  return evidence;
-}
-
 export async function runRelationScenario(deps: ScenarioDeps): Promise<void> {
-  const { invoke, host, openFixture, setSelectedId, setStatus, log } = deps;
-  const evidence: Record<string, unknown> = { fixtureId: FIXTURE };
+  const { invoke, host, openBrain, setSelectedId, setStatus, log } = deps;
+  const evidence: Record<string, unknown> = { brainId: BRAIN };
 
   try {
-    log("info", "J12: ouverture de la fixture et des relations");
-    await openFixture(FIXTURE, false);
+    log("info", "J12: ouverture du cerveau et des relations");
+    await openBrain(BRAIN, false);
     await settle();
 
-    const snapshot = await invoke<MapSnapshot>("map_snapshot", { fixtureId: FIXTURE });
+    const snapshot = await invoke<MapSnapshot>("map_snapshot", { brainId: BRAIN });
     const overview = await invoke<RelationsOverview>("map_relations_open", {
-      fixtureId: FIXTURE,
+      brainId: BRAIN,
     });
+    evidence.fixtureId = snapshot.fixtureId;
+    evidence.relationsPath = overview.relationsPath;
     const nodeIdOf = (relativePath: string) =>
       snapshot.nodes.find((node) => node.relativePath === relativePath)?.id ?? null;
 
@@ -236,8 +106,7 @@ export async function runRelationScenario(deps: ScenarioDeps): Promise<void> {
     await settle();
 
     const pivot = await invoke<NodeRelations>("map_relations_for_node", {
-      fixtureId: FIXTURE,
-      nodeId: pivotId,
+      reference: { brainId: BRAIN, nodeId: pivotId },
     });
     evidence.pivot = {
       relativePath: PIVOT_PATH,
@@ -435,8 +304,7 @@ export async function runRelationScenario(deps: ScenarioDeps): Promise<void> {
     await settle();
 
     const before = await invoke<NodeRelations>("map_relations_for_node", {
-      fixtureId: FIXTURE,
-      nodeId: holderId,
+      reference: { brainId: BRAIN, nodeId: holderId },
     });
     await waitUntil(() =>
       [...document.querySelectorAll<HTMLButtonElement>(".suggestion__approve")].some((button) =>
@@ -476,8 +344,7 @@ export async function runRelationScenario(deps: ScenarioDeps): Promise<void> {
     }
 
     const after = await invoke<NodeRelations>("map_relations_for_node", {
-      fixtureId: FIXTURE,
-      nodeId: holderId,
+      reference: { brainId: BRAIN, nodeId: holderId },
     });
     const created = after.outgoing.find(
       (candidate) =>
@@ -510,7 +377,7 @@ export async function runRelationScenario(deps: ScenarioDeps): Promise<void> {
 
     // 8. The self-check, replayed in the real host.
     evidence.selfCheck = await invoke<RelationsSelfCheck>("map_relations_self_check", {
-      fixtureId: FIXTURE,
+      brainId: BRAIN,
     });
 
     const written = await invoke<string>("map_write_run_artifact", {

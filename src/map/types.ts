@@ -1,4 +1,47 @@
-/** DTOs of the `TASK-0016` slice, mirroring `src-tauri/src/map`. */
+/** DTOs of the map slice, mirroring `src-tauri/src/map`. */
+
+/* --- TASK-0018 — cerveaux ------------------------------------------------- */
+
+/** The only source kind this slice resolves. */
+export type SourceKind = "SYNTHETIC_FIXTURE";
+
+/**
+ * A brain, as the catalogue holds it.
+ *
+ * `brainId` is a **FileTopo identity**, not a source: two brains may carry the
+ * same `sourceRef` and must stay completely independent — `DEC-0017`.
+ */
+export interface BrainRecord {
+  brainId: string;
+  displayName: string;
+  color: string;
+  icon: string;
+  sourceKind: SourceKind;
+  /** What the brain reads. A developer diagnostic, never its identity. */
+  sourceRef: string;
+  position: number;
+}
+
+export interface BrainCatalogView {
+  brains: BrainRecord[];
+  activeBrainId: string;
+  schemaVersion: number;
+  /** Named relative to the sandbox; never an absolute path. */
+  catalogPath: string;
+  seeded: number;
+}
+
+/**
+ * The logical boundary of every node operation — `TASK-0018` §4.1 rule 4.
+ *
+ * A `nodeId` alone is a row number, valid in one brain's index and meaningless
+ * in another's. The pair travels together so a selection left over from the
+ * previous brain cannot resolve in the current one.
+ */
+export interface BrainNodeRef {
+  brainId: string;
+  nodeId: number;
+}
 
 export type MapNodeKind = "root" | "directory" | "file" | "skipped";
 
@@ -30,6 +73,7 @@ export interface ScanDiagnostic {
 }
 
 export interface MapSnapshot {
+  brainId: string;
   fixtureId: string;
   label: string;
   rootId: number;
@@ -58,7 +102,10 @@ export interface FixtureSummary {
 }
 
 export interface MapBuildReport {
+  brainId: string;
   fixtureId: string;
+  /** Where the index landed, relative to the sandbox — `K3`. */
+  indexPath: string;
   nodeCount: number;
   plannedNodes: number;
   maxDepth: number;
@@ -92,9 +139,12 @@ export interface HostInfo {
   autoMeasure: boolean;
   autoVerify: boolean;
   autoRelations: boolean;
+  /** `0` none, `1` steps K12.1–K12.9, `2` steps K12.10–K12.12. */
+  autoBrainsPass: number;
 }
 
 export interface FixtureIntegrity {
+  brainId: string;
   fixtureId: string;
   fingerprint: string;
   filetopoArtifacts: string[];
@@ -102,6 +152,7 @@ export interface FixtureIntegrity {
 }
 
 export interface MapSelfCheck {
+  brainId: string;
   fixtureId: string;
   plannedPaths: number;
   observedPaths: number;
@@ -170,7 +221,10 @@ export interface RelationRuleInfo {
 }
 
 export interface RelationsOverview {
+  brainId: string;
   fixtureId: string;
+  /** Where this brain's relations live, relative to the sandbox — `K3`. */
+  relationsPath: string;
   schemaVersion: number;
   endpointKeyScheme: string;
   inScope: boolean;
@@ -196,8 +250,10 @@ export interface NodeRelationEntry {
 }
 
 export interface NodeRelations {
+  brainId: string;
   fixtureId: string;
-  nodeId: number;
+  /** The node this panel is about, as the pair that identifies it. */
+  reference: BrainNodeRef;
   endpointKey: string;
   relativePath: string;
   outgoing: NodeRelationEntry[];
@@ -226,6 +282,7 @@ export interface RejectionOutcome {
 }
 
 export interface RelationsSelfCheck {
+  brainId: string;
   fixtureId: string;
   establishedTotal: number;
   deterministicTotal: number;

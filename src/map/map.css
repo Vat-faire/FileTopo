@@ -102,6 +102,135 @@ body {
   overflow-wrap: anywhere;
 }
 
+/* TASK-0018 — le sélecteur de cerveau remplace le choix de fixture. */
+
+.app__brains {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.brains {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.brains__label {
+  font-size: 12px;
+  color: var(--ink-soft);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.brains__trigger,
+.brains__item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--panel);
+  color: inherit;
+  cursor: pointer;
+  text-align: left;
+  width: 100%;
+}
+
+.brains__trigger {
+  min-width: 22ch;
+}
+
+.brains__menu {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  z-index: 20;
+  min-width: 26ch;
+  margin: 0;
+  padding: 4px;
+  list-style: none;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--panel);
+  box-shadow: 0 8px 24px rgb(0 0 0 / 18%);
+}
+
+/*
+  L'état actif est marqué par le mot « actif » et par aria-checked, jamais par
+  la seule couleur — DEC-0017 point 12. La bordure est un renfort, pas le
+  signal.
+*/
+.brains__item[aria-checked="true"] {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.brains__icon {
+  font-size: 15px;
+  line-height: 1;
+  width: 1.4em;
+  text-align: center;
+}
+
+.brains__name {
+  font-weight: 650;
+  flex: 1 1 auto;
+}
+
+.brains__swatch {
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+  border: 1px solid var(--line);
+  flex: 0 0 auto;
+}
+
+.brains__state {
+  font-size: 11px;
+  color: var(--ink-soft);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.brains__source {
+  font-size: 11px;
+  color: var(--ink-soft);
+}
+
+.brains__caret {
+  font-size: 11px;
+  color: var(--ink-soft);
+}
+
+/* Les sources synthétiques restent visibles, en diagnostic développeur. */
+.app__sources {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 8px 16px;
+  font-size: 11px;
+  color: var(--ink-soft);
+}
+
+.app__sources-title {
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.app__sources ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
 .app__fixtures {
   display: flex;
   flex-wrap: wrap;

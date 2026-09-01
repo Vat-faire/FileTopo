@@ -16,8 +16,15 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::path::Path;
 
-/// Bump only together with a migration. `TASK-0016` ships version 1.
-pub const MAP_SCHEMA_VERSION: i64 = 1;
+/// Bump only together with a migration. `TASK-0016` shipped version 1;
+/// `TASK-0018` raises it to 2, because an index now records **which brain it
+/// was built for**.
+///
+/// The bump is not cosmetic. A version-1 index carries no `brain_id`, so
+/// nothing in it could tell `brain-alpha`'s index from `brain-gamma`'s — they
+/// read the same fixture and would be byte-comparable. Refusing to read it as
+/// a brain's index is the only honest answer: it is rebuilt, never guessed at.
+pub const MAP_SCHEMA_VERSION: i64 = 2;
 
 /// State that a rebuild cannot reproduce, enumerated rather than presumed
 /// empty — `H7` requires the list, not the reassurance.
@@ -44,6 +51,12 @@ pub struct MapNode {
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct MapSnapshot {
+    /// **Whose map this is.** Read back from the index rather than passed in
+    /// by the caller, so a snapshot cannot be labelled with a brain it does
+    /// not belong to.
+    pub brain_id: String,
+    /// The synthetic source behind the brain. A developer diagnostic —
+    /// `TASK-0018` §4.6 — never the brain's identity.
     pub fixture_id: String,
     pub label: String,
     pub root_id: i64,
@@ -128,6 +141,15 @@ impl MapStore {
         Ok(())
     }
 
+    /// The brain this index was built for, when it says so.
+    ///
+    /// `None` for a version-1 index, which predates brains entirely. The
+    /// caller treats that as "not built for me" rather than as "built for
+    /// whoever is asking" — `K3`.
+    pub fn built_for_brain(&self) -> Result<Option<String>, MapError> {
+        self.meta("brain_id")
+    }
+
     /// True when the database holds a complete build of the current schema.
     pub fn is_built(&self) -> Result<bool, MapError> {
         let version = self.meta("schema_version")?;
@@ -152,6 +174,7 @@ impl MapStore {
     /// than a half-map that looks finished.
     pub fn replace(
         &mut self,
+        brain_id: &str,
         fixture_id: &str,
         label: &str,
         nodes: &[NodeDto],
@@ -213,6 +236,7 @@ impl MapStore {
                 transaction.prepare("INSERT INTO map_meta (key, value) VALUES (?1, ?2)")?;
             for (key, value) in [
                 ("schema_version", MAP_SCHEMA_VERSION.to_string()),
+                ("brain_id", brain_id.to_string()),
                 ("fixture_id", fixture_id.to_string()),
                 ("label", label.to_string()),
                 ("node_count", nodes.len().to_string()),
@@ -230,6 +254,9 @@ impl MapStore {
     }
 
     pub fn snapshot(&self) -> Result<MapSnapshot, MapError> {
+        let brain_id = self
+            .meta("brain_id")?
+            .ok_or_else(|| MapError::NotBuilt("map_meta.brain_id".into()))?;
         let fixture_id = self
             .meta("fixture_id")?
             .ok_or_else(|| MapError::NotBuilt("map_meta.fixture_id".into()))?;
@@ -263,6 +290,7 @@ impl MapStore {
             .collect::<Result<Vec<_>, _>>()?;
 
         Ok(MapSnapshot {
+            brain_id,
             fixture_id,
             label,
             root_id,
@@ -455,7 +483,7 @@ mod tests {
         }];
         let mut store = MapStore::in_memory().expect("store");
         store
-            .replace("demo", "Demo", &nodes, &rects, 100.0, 100.0, &diagnostics, 7)
+            .replace("brain-demo", "demo", "Demo", &nodes, &rects, 100.0, 100.0, &diagnostics, 7)
             .expect("replace");
 
         assert!(store.is_built().expect("built"));
@@ -482,7 +510,7 @@ mod tests {
         let (nodes, rects) = sample_nodes();
         let mut store = MapStore::in_memory().expect("store");
         store
-            .replace("demo", "Demo", &nodes, &rects, 100.0, 100.0, &[], 7)
+            .replace("brain-demo", "demo", "Demo", &nodes, &rects, 100.0, 100.0, &[], 7)
             .expect("replace");
 
         let root = store.detail(1).expect("root detail");
@@ -503,11 +531,11 @@ mod tests {
         let (nodes, rects) = sample_nodes();
         let mut store = MapStore::in_memory().expect("store");
         store
-            .replace("demo", "Demo", &nodes, &rects, 100.0, 100.0, &[], 7)
+            .replace("brain-demo", "demo", "Demo", &nodes, &rects, 100.0, 100.0, &[], 7)
             .expect("first");
         let first = store.reconstructible_digest().expect("digest");
         store
-            .replace("demo", "Demo", &nodes, &rects, 100.0, 100.0, &[], 999)
+            .replace("brain-demo", "demo", "Demo", &nodes, &rects, 100.0, 100.0, &[], 999)
             .expect("second");
 
         assert_eq!(store.snapshot().expect("snapshot").node_count, 4);
@@ -546,7 +574,7 @@ mod tests {
         ];
 
         let error = store
-            .replace("demo", "Demo", &nodes, &rects, 1.0, 1.0, &[], 0)
+            .replace("brain-demo", "demo", "Demo", &nodes, &rects, 1.0, 1.0, &[], 0)
             .expect_err("over budget");
 
         assert!(matches!(error, MapError::NodeBudgetExceeded { .. }));

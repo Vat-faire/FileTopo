@@ -87,7 +87,9 @@ const suggestion: SuggestionEdge = {
 };
 
 const overview: RelationsOverview = {
+  brainId: "brain-alpha",
   fixtureId: "quasi-empty",
+  relationsPath: "brains/brain-alpha/relations/relations.sqlite",
   schemaVersion: 1,
   endpointKeyScheme: "ek1",
   inScope: true,
@@ -123,9 +125,10 @@ function entry(
 }
 
 const nodeRelations: NodeRelations = {
+  brainId: "brain-alpha",
   fixtureId: "quasi-empty",
-  nodeId: 2,
-  endpointKey: "ek1|quasi-empty|note-1.txt",
+  reference: { brainId: "brain-alpha", nodeId: 2 },
+  endpointKey: "ek1|brain-alpha|note-1.txt",
   relativePath: "note-1.txt",
   outgoing: [entry("outgoing", 3, "DETERMINISTIC", "revision"), entry("outgoing", 4, "DETERMINISTIC")],
   incoming: [entry("incoming", 5, "APPROVED")],

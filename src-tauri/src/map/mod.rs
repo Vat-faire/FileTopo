@@ -16,6 +16,7 @@
 //! reusing either spike controller, and `B-1` is a declared ceiling, not a
 //! regulator — it adjusts to nothing and measures nothing.
 
+pub mod brains;
 pub mod commands;
 pub mod fixtures;
 pub mod layout;
@@ -49,6 +50,20 @@ pub enum MapError {
     Scan(String),
     #[error("map_unknown_fixture: {0}")]
     UnknownFixture(String),
+    /// `K2` — a `brain_id` the catalogue does not hold. Named, never
+    /// defaulted: a silent fallback would read another brain's data.
+    #[error("map_unknown_brain: {0}")]
+    UnknownBrain(String),
+    /// A source kind this slice cannot resolve. `TASK-0018` supports
+    /// `SYNTHETIC_FIXTURE` and nothing else.
+    #[error("map_unsupported_source_kind: {0}")]
+    UnsupportedSourceKind(String),
+    #[error("map_brain_metadata_rejected: {0}")]
+    BrainMetadataRejected(String),
+    /// `K3` — an index file was opened for a brain it was not built for.
+    /// Reported rather than served: this is the shape a storage mix-up takes.
+    #[error("map_brain_mismatch: the index read for `{expected}` was built for `{found}`")]
+    BrainMismatch { expected: String, found: String },
     /// `B-1` refused the build. Reported rather than worked around: the slice
     /// never truncates, samples or degrades a tree to fit under the ceiling.
     #[error("map_node_budget_exceeded: {found} nodes over the frozen ceiling of {ceiling}")]

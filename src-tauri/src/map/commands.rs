@@ -6,6 +6,7 @@
 //! digests — comes out of this file rather than being reconstructed later from
 //! guesswork.
 
+use super::brains::{BrainNodeRef, BrainRecord};
 use super::layout::{self, LayoutInput};
 use super::store::{MapSnapshot, MapStore, NON_RECONSTRUCTIBLE_KEYS, NodeDetail};
 use super::sandbox::{self, SandboxPaths};
@@ -31,7 +32,16 @@ pub struct FixtureSummary {
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct MapBuildReport {
+    /// **Whose map was built.** The identity comes first, because everything
+    /// below it is only meaningful inside one brain.
+    pub brain_id: String,
+    /// The synthetic source that brain reads — a developer diagnostic, never
+    /// the brain's identity (`TASK-0018` §4.6).
     pub fixture_id: String,
+    /// Where the index really landed, named relative to the sandbox. `K3` is
+    /// checked by comparing these across brains, and a relative name keeps a
+    /// personal absolute path out of the repository.
+    pub index_path: String,
     pub node_count: usize,
     pub planned_nodes: usize,
     pub max_depth: u32,
@@ -81,11 +91,19 @@ pub struct HostInfo {
     /// Set by `FILETOPO_AUTO_RELATIONS`: replays the `J12` scenario of
     /// `TASK-0017` against the real host, unattended, and writes the evidence.
     pub auto_relations: bool,
+    /// Which pass of the `K12` scenario this process is running — `0` for
+    /// none, `1` for the steps before the restart, `2` for the steps after it.
+    ///
+    /// The **host** decides, not the page: only the process knows whether it
+    /// is the one that was relaunched, and `K12` step 11 asks for a real
+    /// restart rather than a simulated one.
+    pub auto_brains_pass: u8,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct FixtureIntegrity {
+    pub brain_id: String,
     pub fixture_id: String,
     pub fingerprint: String,
     /// Entries under the analysed root that FileTopo would have written.
@@ -99,6 +117,7 @@ pub struct FixtureIntegrity {
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct MapSelfCheck {
+    pub brain_id: String,
     pub fixture_id: String,
     pub planned_paths: usize,
     pub observed_paths: usize,
@@ -130,19 +149,36 @@ fn now_ms() -> i64 {
 /// index, rebuild, compare.
 pub fn build_map(
     paths: &SandboxPaths,
-    fixture_id: &str,
+    brain: &BrainRecord,
     rebuild: bool,
 ) -> Result<MapBuildReport, MapError> {
-    let spec = fixtures::spec(fixture_id)?;
+    // `brain_id` -> source, resolved **here and nowhere above**. The fixture
+    // is shared: two brains may materialise and read the very same tree, and
+    // it stays read-only for both.
+    let spec = brain.source_fixture()?;
     let started = Instant::now();
 
     let plan = fixtures::materialize(&paths.fixtures, spec)?;
     let root = fixtures::fixture_root(&paths.fixtures, spec.id);
     let fingerprint_before = fixtures::fingerprint(&root)?;
 
-    let database = paths.map_database(spec.id);
+    // The index is keyed by the **brain**, never by the fixture. This single
+    // line is what makes `brain-alpha` and `brain-gamma` two brains rather
+    // than one shared index wearing two names.
+    let database = paths.brain_map_database(&brain.brain_id);
     if rebuild && database.exists() {
         remove_index_files(&database)?;
+    }
+    // An index built for another brain — or a version-1 index, which names no
+    // brain at all — is **rebuilt**, never read. Serving it would be exactly
+    // the leak `K3` forbids.
+    if database.is_file() && !rebuild {
+        let existing = MapStore::open(&database)?;
+        let built_for = existing.built_for_brain()?;
+        drop(existing);
+        if built_for.as_deref() != Some(brain.brain_id.as_str()) {
+            remove_index_files(&database)?;
+        }
     }
 
     let scan_started = Instant::now();
@@ -176,6 +212,7 @@ pub fn build_map(
     let index_started = Instant::now();
     let mut store = MapStore::open(&database)?;
     store.replace(
+        &brain.brain_id,
         spec.id,
         spec.label_fr,
         &scan.nodes,
@@ -191,7 +228,9 @@ pub fn build_map(
     let max_depth = scan.nodes.iter().map(|node| node.depth).max().unwrap_or(0);
 
     Ok(MapBuildReport {
+        brain_id: brain.brain_id.clone(),
         fixture_id: spec.id.to_string(),
+        index_path: paths.relative_name(&database),
         node_count: scan.nodes.len(),
         planned_nodes: plan.node_count(),
         max_depth,
@@ -219,7 +258,8 @@ pub fn build_map(
 /// Removes the index database and its WAL companions, and nothing else.
 ///
 /// Scoped deliberately narrowly: the only files this slice ever deletes are
-/// ones it wrote itself, inside `maps/`.
+/// ones it wrote itself, inside **one brain's** `map/`. No brain is ever
+/// rebuilt by removing another brain's state — `TASK-0018` §4.4.
 fn remove_index_files(database: &Path) -> Result<(), MapError> {
     for suffix in ["", "-wal", "-shm"] {
         let mut candidate = database.as_os_str().to_os_string();
@@ -236,33 +276,64 @@ fn elapsed_ms(started: Instant) -> f64 {
     started.elapsed().as_secs_f64() * 1_000.0
 }
 
-pub fn open_store(paths: &SandboxPaths, fixture_id: &str) -> Result<MapStore, MapError> {
-    let spec = fixtures::spec(fixture_id)?;
-    let database = paths.map_database(spec.id);
+/// Opens a brain's index, and **refuses one built for another brain**.
+///
+/// The path already separates the brains; this check exists because a path is
+/// a convention and `K3` asks for a guarantee. Should the two ever meet — a
+/// copied sandbox, a future migration, a mistake in a caller — the answer is
+/// a [`MapError::BrainMismatch`] rather than another brain's nodes served
+/// under the active brain's name.
+pub fn open_store(paths: &SandboxPaths, brain: &BrainRecord) -> Result<MapStore, MapError> {
+    let database = paths.brain_map_database(&brain.brain_id);
     if !database.is_file() {
-        return Err(MapError::NotBuilt(spec.id.to_string()));
+        return Err(MapError::NotBuilt(brain.brain_id.clone()));
     }
     let store = MapStore::open(&database)?;
     if !store.is_built()? {
-        return Err(MapError::NotBuilt(spec.id.to_string()));
+        return Err(MapError::NotBuilt(brain.brain_id.clone()));
     }
-    Ok(store)
+    match store.built_for_brain()? {
+        Some(found) if found == brain.brain_id => Ok(store),
+        Some(found) => Err(MapError::BrainMismatch {
+            expected: brain.brain_id.clone(),
+            found,
+        }),
+        // A version-1 index names no brain at all, so it is not this one's.
+        None => Err(MapError::BrainMismatch {
+            expected: brain.brain_id.clone(),
+            found: "index sans cerveau (schema v1)".to_string(),
+        }),
+    }
 }
 
-pub fn snapshot(paths: &SandboxPaths, fixture_id: &str) -> Result<MapSnapshot, MapError> {
-    open_store(paths, fixture_id)?.snapshot()
+pub fn snapshot(paths: &SandboxPaths, brain: &BrainRecord) -> Result<MapSnapshot, MapError> {
+    open_store(paths, brain)?.snapshot()
 }
 
+/// The details of one node **of one brain**.
+///
+/// The argument is a [`BrainNodeRef`] rather than a bare `node_id`, because
+/// `TASK-0018` §4.1 rule 4 makes the **pair** the boundary. That is not a
+/// formality: an interface that has just switched brains still holds the
+/// previous brain's selection, and `12` is a valid row number in both
+/// `brain-alpha` and `brain-gamma`. A bare number would resolve, quietly, in
+/// the wrong brain. A reference that names its own brain cannot.
 pub fn detail(
     paths: &SandboxPaths,
-    fixture_id: &str,
-    node_id: i64,
+    brain: &BrainRecord,
+    reference: &BrainNodeRef,
 ) -> Result<NodeDetail, MapError> {
-    open_store(paths, fixture_id)?.detail(node_id)
+    if !reference.belongs_to(&brain.brain_id) {
+        return Err(MapError::BrainMismatch {
+            expected: brain.brain_id.clone(),
+            found: reference.brain_id.clone(),
+        });
+    }
+    open_store(paths, brain)?.detail(reference.node_id)
 }
 
-pub fn integrity(paths: &SandboxPaths, fixture_id: &str) -> Result<FixtureIntegrity, MapError> {
-    let spec = fixtures::spec(fixture_id)?;
+pub fn integrity(paths: &SandboxPaths, brain: &BrainRecord) -> Result<FixtureIntegrity, MapError> {
+    let spec = brain.source_fixture()?;
     let root = fixtures::fixture_root(&paths.fixtures, spec.id);
     let observed = fixtures::observed_paths(&root)?;
     // Anything FileTopo could have dropped in the analysed tree. The list is
@@ -279,6 +350,7 @@ pub fn integrity(paths: &SandboxPaths, fixture_id: &str) -> Result<FixtureIntegr
         .cloned()
         .collect::<Vec<_>>();
     Ok(FixtureIntegrity {
+        brain_id: brain.brain_id.clone(),
         fixture_id: spec.id.to_string(),
         fingerprint: fixtures::fingerprint(&root)?,
         filetopo_artifacts: artifacts,
@@ -290,13 +362,13 @@ pub fn integrity(paths: &SandboxPaths, fixture_id: &str) -> Result<FixtureIntegr
 ///
 /// Written to report rather than to assert: a self-check that panics tells the
 /// user nothing, and a missed target has to be publishable as missed.
-pub fn self_check(paths: &SandboxPaths, fixture_id: &str) -> Result<MapSelfCheck, MapError> {
-    let spec = fixtures::spec(fixture_id)?;
+pub fn self_check(paths: &SandboxPaths, brain: &BrainRecord) -> Result<MapSelfCheck, MapError> {
+    let spec = brain.source_fixture()?;
     let root = fixtures::fixture_root(&paths.fixtures, spec.id);
 
     let planned = fixtures::plan(spec).expected_paths();
     let observed = fixtures::observed_paths(&root)?;
-    let store = open_store(paths, fixture_id)?;
+    let store = open_store(paths, brain)?;
     let nodes = store.all_nodes()?;
 
     let mut indexed = nodes
@@ -397,6 +469,7 @@ pub fn self_check(paths: &SandboxPaths, fixture_id: &str) -> Result<MapSelfCheck
     }
 
     Ok(MapSelfCheck {
+        brain_id: brain.brain_id.clone(),
         fixture_id: spec.id.to_string(),
         planned_paths: planned.len(),
         observed_paths: observed.len(),
@@ -464,6 +537,26 @@ pub fn fixture_summaries() -> Vec<FixtureSummary> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::map::brains::SourceKind;
+
+    /// A brain that reads `spec`, for the tests that still want to exercise
+    /// **every** fixture rather than only the three frozen brains.
+    ///
+    /// Building a record by hand here is deliberate and confined to tests: the
+    /// pipeline must work for any brain the catalogue could hold, and the
+    /// coverage of `H1`-`H7` across all four fixtures predates brains and is
+    /// not given up.
+    fn brain_reading(fixture_id: &str) -> BrainRecord {
+        BrainRecord {
+            brain_id: format!("brain-test-{fixture_id}"),
+            display_name: format!("Cerveau {fixture_id}"),
+            color: "#333333".to_string(),
+            icon: "*".to_string(),
+            source_kind: SourceKind::SyntheticFixture,
+            source_ref: fixture_id.to_string(),
+            position: 1,
+        }
+    }
 
     /// Every fixture, end to end. Slower than a unit test, and the only place
     /// where `H1`, `H2`, `H3`, `H5`, `H6`, `H7` and `H11` are all exercised
@@ -474,7 +567,10 @@ mod tests {
         let paths = SandboxPaths::under(temp.path().join("sandbox"));
 
         for spec in &fixtures::FIXTURES {
-            let report = build_map(&paths, spec.id, false).expect("build");
+            let brain = brain_reading(spec.id);
+            let report = build_map(&paths, &brain, false).expect("build");
+            assert_eq!(report.brain_id, brain.brain_id);
+            assert_eq!(report.fixture_id, spec.id);
 
             // H11 — the frozen ceilings hold.
             assert!(
@@ -495,7 +591,7 @@ mod tests {
             assert_eq!(report.layout_invocations, 1);
 
             // H1, H2, H3, H5.
-            let check = self_check(&paths, spec.id).expect("self check");
+            let check = self_check(&paths, &brain).expect("self check");
             assert!(
                 check.paths_agree,
                 "{}: plan {} / disk {} / index {}, missing {:?}, unexpected {:?}",
@@ -526,7 +622,7 @@ mod tests {
             );
 
             // I-2 — nothing of FileTopo inside the analysed tree.
-            let integrity = integrity(&paths, spec.id).expect("integrity");
+            let integrity = integrity(&paths, &brain).expect("integrity");
             assert!(
                 integrity.filetopo_artifacts.is_empty(),
                 "{}: {:?}",
@@ -543,20 +639,21 @@ mod tests {
         let temp = tempfile::tempdir().expect("temp");
         let paths = SandboxPaths::under(temp.path().join("sandbox"));
 
-        let first = build_map(&paths, "wide", false).expect("first build");
-        let store = open_store(&paths, "wide").expect("store");
+        let brain = brain_reading("wide");
+        let first = build_map(&paths, &brain, false).expect("first build");
+        let store = open_store(&paths, &brain).expect("store");
         let first_built_at = store.meta("built_unix_ms").expect("meta");
         drop(store);
 
-        assert!(paths.map_database("wide").is_file());
+        assert!(paths.brain_map_database(&brain.brain_id).is_file());
         std::thread::sleep(std::time::Duration::from_millis(2));
-        let second = build_map(&paths, "wide", true).expect("rebuild");
+        let second = build_map(&paths, &brain, true).expect("rebuild");
 
         assert_eq!(first.reconstructible_digest, second.reconstructible_digest);
         assert_eq!(first.node_count, second.node_count);
         assert_eq!(second.non_reconstructible, vec!["built_unix_ms".to_string()]);
 
-        let store = open_store(&paths, "wide").expect("store");
+        let store = open_store(&paths, &brain).expect("store");
         assert_ne!(
             first_built_at,
             store.meta("built_unix_ms").expect("meta"),
@@ -569,7 +666,8 @@ mod tests {
     fn an_unknown_fixture_is_refused_by_name() {
         let temp = tempfile::tempdir().expect("temp");
         let paths = SandboxPaths::under(temp.path().to_path_buf());
-        let error = build_map(&paths, "ailleurs", false).expect_err("unknown fixture");
+        let error = build_map(&paths, &brain_reading("ailleurs"), false)
+            .expect_err("unknown fixture");
         assert!(matches!(error, MapError::UnknownFixture(_)));
     }
 
@@ -577,8 +675,146 @@ mod tests {
     fn reading_a_map_that_was_never_built_fails_instead_of_returning_an_empty_one() {
         let temp = tempfile::tempdir().expect("temp");
         let paths = SandboxPaths::under(temp.path().to_path_buf());
-        let error = snapshot(&paths, "deep").expect_err("not built");
+        let error = snapshot(&paths, &brain_reading("deep")).expect_err("not built");
         assert!(matches!(error, MapError::NotBuilt(_)));
+    }
+
+    /// `K3` and `K4`, on the real pipeline: the two brains that share
+    /// `quasi-empty` build **two** indexes and read **their own**.
+    ///
+    /// The fixture is identical on purpose. If isolation held only because the
+    /// sources differed, it would prove nothing at all.
+    #[test]
+    fn two_brains_on_the_same_fixture_build_two_indexes_and_read_their_own() {
+        let temp = tempfile::tempdir().expect("temp");
+        let paths = SandboxPaths::under(temp.path().join("sandbox"));
+
+        let alpha = BrainRecord::frozen_by_id("brain-alpha").expect("alpha");
+        let gamma = BrainRecord::frozen_by_id("brain-gamma").expect("gamma");
+        assert_eq!(alpha.source_ref, gamma.source_ref, "the point of the test");
+
+        let alpha_report = build_map(&paths, &alpha, false).expect("alpha build");
+        let gamma_report = build_map(&paths, &gamma, false).expect("gamma build");
+
+        // `K4`: both read `quasi-empty`, so both hold 12 nodes...
+        assert_eq!(alpha_report.node_count, 12);
+        assert_eq!(gamma_report.node_count, 12);
+        // ...and `K3`: in two different files, neither naming the fixture.
+        assert_ne!(alpha_report.index_path, gamma_report.index_path);
+        assert_eq!(alpha_report.index_path, "brains/brain-alpha/map/index.sqlite");
+        assert_eq!(gamma_report.index_path, "brains/brain-gamma/map/index.sqlite");
+        assert!(
+            paths
+                .brain_map_database("brain-alpha")
+                .is_file()
+        );
+        assert!(paths.brain_map_database("brain-gamma").is_file());
+
+        // Each snapshot names its own brain, read back from its own index.
+        assert_eq!(snapshot(&paths, &alpha).expect("alpha").brain_id, "brain-alpha");
+        assert_eq!(snapshot(&paths, &gamma).expect("gamma").brain_id, "brain-gamma");
+    }
+
+    /// `K4`: the frozen counts of §4.8, from the real pipeline.
+    #[test]
+    fn the_three_frozen_brains_load_the_counts_task_0018_froze() {
+        let temp = tempfile::tempdir().expect("temp");
+        let paths = SandboxPaths::under(temp.path().join("sandbox"));
+
+        for (brain_id, expected) in [
+            ("brain-alpha", 12usize),
+            ("brain-beta", 157),
+            ("brain-gamma", 12),
+        ] {
+            let brain = BrainRecord::frozen_by_id(brain_id).expect("frozen brain");
+            let report = build_map(&paths, &brain, false).expect("build");
+            assert_eq!(report.node_count, expected, "{brain_id}");
+            let snapshot = snapshot(&paths, &brain).expect("snapshot");
+            assert_eq!(snapshot.node_count, expected, "{brain_id}");
+            assert_eq!(snapshot.brain_id, brain_id);
+        }
+    }
+
+    /// `K3`, as a guarantee rather than a convention.
+    ///
+    /// An index physically placed where another brain looks is **refused by
+    /// name**, not served. The copy is what a mistake would look like, so the
+    /// test performs the mistake instead of describing it.
+    #[test]
+    fn an_index_built_for_another_brain_is_refused_rather_than_served() {
+        let temp = tempfile::tempdir().expect("temp");
+        let paths = SandboxPaths::under(temp.path().join("sandbox"));
+
+        let alpha = BrainRecord::frozen_by_id("brain-alpha").expect("alpha");
+        let gamma = BrainRecord::frozen_by_id("brain-gamma").expect("gamma");
+        build_map(&paths, &alpha, false).expect("alpha build");
+
+        // Alpha's index, dropped into Gamma's place.
+        let gamma_database = paths.brain_map_database(&gamma.brain_id);
+        std::fs::create_dir_all(gamma_database.parent().expect("map dir")).expect("dir");
+        std::fs::copy(paths.brain_map_database(&alpha.brain_id), &gamma_database)
+            .expect("copy");
+
+        let outcome = open_store(&paths, &gamma);
+        match outcome.err().expect("must refuse") {
+            MapError::BrainMismatch { expected, found } => {
+                assert_eq!(expected, "brain-gamma");
+                assert_eq!(found, "brain-alpha");
+            }
+            other => panic!("expected a brain mismatch, got {other:?}"),
+        }
+    }
+
+    /// `K5`: the same `node_id` exists in both brains and means two different
+    /// things. Reading it in one brain never reaches the other.
+    #[test]
+    fn the_same_node_id_in_two_brains_resolves_only_inside_its_own() {
+        let temp = tempfile::tempdir().expect("temp");
+        let paths = SandboxPaths::under(temp.path().join("sandbox"));
+
+        let alpha = BrainRecord::frozen_by_id("brain-alpha").expect("alpha");
+        let beta = BrainRecord::frozen_by_id("brain-beta").expect("beta");
+        build_map(&paths, &alpha, false).expect("alpha");
+        build_map(&paths, &beta, false).expect("beta");
+
+        let alpha_nodes = snapshot(&paths, &alpha).expect("alpha").nodes;
+        let beta_nodes = snapshot(&paths, &beta).expect("beta").nodes;
+
+        // A id held by both brains — `quasi-empty` has 12 nodes, `deep` 157.
+        let shared_id = alpha_nodes.last().expect("a node").id;
+        assert!(beta_nodes.iter().any(|node| node.id == shared_id));
+
+        let in_alpha = detail(&paths, &alpha, &BrainNodeRef::new("brain-alpha", shared_id))
+            .expect("alpha detail");
+        let in_beta = detail(&paths, &beta, &BrainNodeRef::new("brain-beta", shared_id))
+            .expect("beta detail");
+
+        // The same number, carried under the other brain's name, is refused
+        // rather than resolved — the stale-selection case, exactly.
+        let leak = detail(&paths, &beta, &BrainNodeRef::new("brain-alpha", shared_id))
+            .expect_err("K5: a reference from another brain must not resolve");
+        assert!(matches!(leak, MapError::BrainMismatch { .. }), "{leak:?}");
+
+        // Same number, two different nodes, and each one belongs to its brain.
+        assert_eq!(in_alpha.node.id, in_beta.node.id);
+        assert!(
+            alpha_nodes
+                .iter()
+                .any(|node| node.relative_path == in_alpha.node.relative_path)
+        );
+        assert!(
+            !beta_nodes
+                .iter()
+                .any(|node| node.relative_path == in_alpha.node.relative_path)
+                || in_alpha.node.relative_path == in_beta.node.relative_path
+        );
+
+        // And an id that only `deep` can hold is unreachable from Alpha.
+        let beta_only = beta_nodes.last().expect("a node").id;
+        assert!(beta_only > alpha_nodes.len() as i64);
+        let error = detail(&paths, &alpha, &BrainNodeRef::new("brain-alpha", beta_only))
+            .expect_err("must not resolve");
+        assert!(matches!(error, MapError::NodeMissing(_)));
     }
 
     #[test]

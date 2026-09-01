@@ -503,6 +503,40 @@ fn map_sandbox(app: &tauri::AppHandle) -> Result<map::sandbox::SandboxPaths, Str
     Ok(map::sandbox::resolve(&app_data))
 }
 
+/// Opens the brain catalogue and seeds the frozen brains that are missing.
+///
+/// Every map and relation command goes through here first, so a `brain_id`
+/// is resolved against the catalogue **before** anything touches a database.
+/// The seed creates what is absent and never corrects what a person changed —
+/// `K7`.
+fn map_catalog(app: &tauri::AppHandle) -> Result<map::brains::BrainCatalog, String> {
+    let paths = map_sandbox(app)?;
+    let mut catalog =
+        map::brains::BrainCatalog::open(&paths.catalog_database()).map_err(String::from)?;
+    catalog.seed_frozen().map_err(String::from)?;
+    Ok(catalog)
+}
+
+/// Resolves `brain_id` -> the record the catalogue holds.
+///
+/// **The single door.** An unknown brain is an error that names it — `K2` —
+/// never an empty result and never a silent fall back to the active brain,
+/// which would read another brain's data under the caller's nose.
+fn map_brain(
+    app: &tauri::AppHandle,
+) -> Result<(map::sandbox::SandboxPaths, map::brains::BrainCatalog), String> {
+    Ok((map_sandbox(app)?, map_catalog(app)?))
+}
+
+fn resolve_brain(
+    app: &tauri::AppHandle,
+    brain_id: &str,
+) -> Result<(map::sandbox::SandboxPaths, map::brains::BrainRecord), String> {
+    let (paths, catalog) = map_brain(app)?;
+    let record = catalog.require(brain_id).map_err(String::from)?;
+    Ok((paths, record))
+}
+
 /// Relays a line from the WebView to the host's standard output.
 ///
 /// An unattended measurement runs behind a window nobody is watching. Without
@@ -523,17 +557,69 @@ fn map_fixtures() -> Vec<map::commands::FixtureSummary> {
     map::commands::fixture_summaries()
 }
 
+/// `K1` — the catalogue, and which brain is active.
+///
+/// The interface draws its selector from this and from nothing else: name,
+/// colour and icon all come from the catalogue, so `K7` shows up on screen
+/// rather than only in storage.
+#[tauri::command]
+fn map_brains(app: tauri::AppHandle) -> Result<map::brains::BrainCatalogView, String> {
+    let paths = map_sandbox(&app)?;
+    let database = paths.catalog_database();
+    let mut catalog = map::brains::BrainCatalog::open(&database).map_err(String::from)?;
+    let seeded = catalog.seed_frozen().map_err(String::from)?;
+    let active = catalog.active().map_err(String::from)?;
+    Ok(map::brains::BrainCatalogView {
+        brains: catalog.list().map_err(String::from)?,
+        active_brain_id: active.brain_id,
+        schema_version: map::brains::CATALOG_SCHEMA_VERSION,
+        catalog_path: paths.relative_name(&database),
+        seeded,
+    })
+}
+
+/// `K9` — makes a brain active, and **persists it**.
+///
+/// Written to the catalogue rather than held in the page, because the
+/// criterion is that a real restart reopens the same brain.
+#[tauri::command]
+fn map_brain_activate(
+    app: tauri::AppHandle,
+    brain_id: String,
+) -> Result<map::brains::BrainRecord, String> {
+    let (_, mut catalog) = map_brain(&app)?;
+    catalog.set_active(&brain_id).map_err(String::from)
+}
+
+/// `K7` — changes the identity metadata of **one** brain.
+///
+/// Name, colour and icon belong to the brain, not to its source. What a brain
+/// reads is not editable here: changing a source is not a rename.
+#[tauri::command]
+fn map_brain_update(
+    app: tauri::AppHandle,
+    brain_id: String,
+    display_name: String,
+    color: String,
+    icon: String,
+) -> Result<map::brains::BrainRecord, String> {
+    let (_, mut catalog) = map_brain(&app)?;
+    catalog
+        .update_metadata(&brain_id, &display_name, &color, &icon)
+        .map_err(String::from)
+}
+
 #[tauri::command]
 async fn map_open(
     app: tauri::AppHandle,
-    fixture_id: String,
+    brain_id: String,
     rebuild: bool,
 ) -> Result<map::commands::MapBuildReport, String> {
-    let paths = map_sandbox(&app)?;
+    let (paths, brain) = resolve_brain(&app, &brain_id)?;
     // Scanning and indexing block; keeping them off the UI thread is what lets
     // the frame-time measurement of `H9` mean anything at all.
     tauri::async_runtime::spawn_blocking(move || {
-        map::commands::build_map(&paths, &fixture_id, rebuild).map_err(String::from)
+        map::commands::build_map(&paths, &brain, rebuild).map_err(String::from)
     })
     .await
     .map_err(|_| "map_worker_failed".to_string())?
@@ -542,34 +628,37 @@ async fn map_open(
 #[tauri::command]
 fn map_snapshot(
     app: tauri::AppHandle,
-    fixture_id: String,
+    brain_id: String,
 ) -> Result<map::store::MapSnapshot, String> {
-    map::commands::snapshot(&map_sandbox(&app)?, &fixture_id).map_err(String::from)
+    let (paths, brain) = resolve_brain(&app, &brain_id)?;
+    map::commands::snapshot(&paths, &brain).map_err(String::from)
 }
 
 #[tauri::command]
 fn map_node_detail(
     app: tauri::AppHandle,
-    fixture_id: String,
-    node_id: i64,
+    reference: map::brains::BrainNodeRef,
 ) -> Result<map::store::NodeDetail, String> {
-    map::commands::detail(&map_sandbox(&app)?, &fixture_id, node_id).map_err(String::from)
+    let (paths, brain) = resolve_brain(&app, &reference.brain_id)?;
+    map::commands::detail(&paths, &brain, &reference).map_err(String::from)
 }
 
 #[tauri::command]
 fn map_integrity(
     app: tauri::AppHandle,
-    fixture_id: String,
+    brain_id: String,
 ) -> Result<map::commands::FixtureIntegrity, String> {
-    map::commands::integrity(&map_sandbox(&app)?, &fixture_id).map_err(String::from)
+    let (paths, brain) = resolve_brain(&app, &brain_id)?;
+    map::commands::integrity(&paths, &brain).map_err(String::from)
 }
 
 #[tauri::command]
 fn map_self_check(
     app: tauri::AppHandle,
-    fixture_id: String,
+    brain_id: String,
 ) -> Result<map::commands::MapSelfCheck, String> {
-    map::commands::self_check(&map_sandbox(&app)?, &fixture_id).map_err(String::from)
+    let (paths, brain) = resolve_brain(&app, &brain_id)?;
+    map::commands::self_check(&paths, &brain).map_err(String::from)
 }
 
 /// `H8` — the engine actually rendering, read from the host.
@@ -595,6 +684,11 @@ fn map_host_info(app: tauri::AppHandle) -> map::commands::HostInfo {
         auto_measure: std::env::var("FILETOPO_AUTO_MEASURE").is_ok_and(|value| value == "1"),
         auto_verify: std::env::var("FILETOPO_AUTO_VERIFY").is_ok_and(|value| value == "1"),
         auto_relations: std::env::var("FILETOPO_AUTO_RELATIONS").is_ok_and(|value| value == "1"),
+        auto_brains_pass: std::env::var("FILETOPO_AUTO_BRAINS")
+            .ok()
+            .and_then(|value| value.parse::<u8>().ok())
+            .filter(|pass| *pass == 1 || *pass == 2)
+            .unwrap_or(0),
     }
 }
 
@@ -603,9 +697,10 @@ fn map_host_info(app: tauri::AppHandle) -> map::commands::HostInfo {
 #[tauri::command]
 fn map_relations_open(
     app: tauri::AppHandle,
-    fixture_id: String,
+    brain_id: String,
 ) -> Result<map::relation_commands::RelationsOverview, String> {
-    map::relation_commands::open_relations(&map_sandbox(&app)?, &fixture_id).map_err(String::from)
+    let (paths, brain) = resolve_brain(&app, &brain_id)?;
+    map::relation_commands::open_relations(&paths, &brain).map_err(String::from)
 }
 
 /// Incoming and outgoing relations of one node, read with two separate
@@ -613,11 +708,10 @@ fn map_relations_open(
 #[tauri::command]
 fn map_relations_for_node(
     app: tauri::AppHandle,
-    fixture_id: String,
-    node_id: i64,
+    reference: map::brains::BrainNodeRef,
 ) -> Result<map::relation_commands::NodeRelations, String> {
-    map::relation_commands::node_relations(&map_sandbox(&app)?, &fixture_id, node_id)
-        .map_err(String::from)
+    let (paths, brain) = resolve_brain(&app, &reference.brain_id)?;
+    map::relation_commands::node_relations(&paths, &brain, &reference).map_err(String::from)
 }
 
 /// The one explicit act that turns a suggestion into a relation.
@@ -627,10 +721,11 @@ fn map_relations_for_node(
 #[tauri::command]
 fn map_relations_approve(
     app: tauri::AppHandle,
-    fixture_id: String,
+    brain_id: String,
     suggestion_key: String,
 ) -> Result<map::relation_commands::RelationsOverview, String> {
-    map::relation_commands::approve_suggestion(&map_sandbox(&app)?, &fixture_id, &suggestion_key)
+    let (paths, brain) = resolve_brain(&app, &brain_id)?;
+    map::relation_commands::approve_suggestion(&paths, &brain, &suggestion_key)
         .map_err(String::from)
 }
 
@@ -639,9 +734,10 @@ fn map_relations_approve(
 #[tauri::command]
 fn map_relations_self_check(
     app: tauri::AppHandle,
-    fixture_id: String,
+    brain_id: String,
 ) -> Result<map::relation_commands::RelationsSelfCheck, String> {
-    map::relation_commands::self_check(&map_sandbox(&app)?, &fixture_id).map_err(String::from)
+    let (paths, brain) = resolve_brain(&app, &brain_id)?;
+    map::relation_commands::self_check(&paths, &brain).map_err(String::from)
 }
 
 /// Development-only: writes a measurement artefact into the repository.
@@ -692,7 +788,11 @@ pub fn run() {
             // failure that says more about the desktop than about the product.
             let unattended = ["FILETOPO_AUTO_MEASURE", "FILETOPO_AUTO_RELATIONS"]
                 .iter()
-                .any(|name| std::env::var(name).is_ok_and(|value| value == "1"));
+                .any(|name| std::env::var(name).is_ok_and(|value| value == "1"))
+                // `K12` needs the window forward for the same reason `J12`
+                // does: a real keystroke goes to the foreground window.
+                || std::env::var("FILETOPO_AUTO_BRAINS")
+                    .is_ok_and(|value| value == "1" || value == "2");
             if unattended {
                 if let Some(window) = app.get_webview_window("main") {
                     let _ = window.set_always_on_top(true);
@@ -703,6 +803,9 @@ pub fn run() {
         })
         .invoke_handler(tauri::generate_handler![
             map_fixtures,
+            map_brains,
+            map_brain_activate,
+            map_brain_update,
             map_open,
             map_snapshot,
             map_node_detail,
@@ -791,6 +894,24 @@ mod integration_tests {
             );
         }
         assert!(!exposed.is_empty(), "the slice needs its own commands");
+    }
+
+    /// `K2` and `K11`, together: the brain surface exists, and it is `map_`.
+    ///
+    /// Stated positively because `K2` asks that the runtime take `brain_id` as
+    /// its boundary. A command that is not registered cannot be invoked, so an
+    /// unregistered catalogue would leave the interface unable to name a brain
+    /// at all — and the test above would happily pass.
+    #[test]
+    fn the_brain_commands_are_exposed_and_stay_in_the_map_surface() {
+        let exposed = registered_commands();
+        for required in ["map_brains", "map_brain_activate", "map_brain_update"] {
+            assert!(
+                exposed.iter().any(|name| name == required),
+                "TASK-0018 needs `{required}` reachable from the WebView"
+            );
+        }
+        assert!(exposed.iter().all(|name| name.starts_with("map_")));
     }
 
     /// The dialogue plugin is what makes a real folder picker possible at all.

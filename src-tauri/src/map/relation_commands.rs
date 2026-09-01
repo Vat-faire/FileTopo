@@ -10,6 +10,7 @@ use super::relations::{
     RELATIONS_SCHEMA_VERSION, RelationError, RelationStore, RejectionOutcome, SEEDED_SUGGESTIONS,
     StoredRelation, StoredSuggestion, endpoint_key,
 };
+use super::brains::{BrainNodeRef, BrainRecord};
 use super::sandbox::SandboxPaths;
 use super::store::MapNode;
 use super::{MapError, commands, fixtures};
@@ -72,7 +73,15 @@ pub struct RelationRuleInfo {
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct RelationsOverview {
+    /// **Whose relations these are.** The identity space of a suggestion key
+    /// is the brain — `TASK-0018` §4.5 — so `S-005` may legitimately exist,
+    /// pending in one brain and approved in another.
+    pub brain_id: String,
+    /// The synthetic source behind the brain. A developer diagnostic.
     pub fixture_id: String,
+    /// Where this brain's relations really live, named relative to the
+    /// sandbox. `K3` compares these across brains.
+    pub relations_path: String,
     pub schema_version: i64,
     pub endpoint_key_scheme: String,
     /// `false` when the fixture is outside the frozen scope of `TASK-0017`;
@@ -107,8 +116,15 @@ pub struct NodeRelationEntry {
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct NodeRelations {
+    pub brain_id: String,
     pub fixture_id: String,
-    pub node_id: i64,
+    /// The node this panel is about, as the **pair** that identifies it.
+    ///
+    /// Handed back so the interface carries a reference rather than a loose
+    /// row number: `TASK-0018` §4.1 rule 5 — the same `node_id` in two brains
+    /// must never allow a leak, and the surest way is never to let the number
+    /// travel alone.
+    pub reference: BrainNodeRef,
     pub endpoint_key: String,
     pub relative_path: String,
     pub outgoing: Vec<NodeRelationEntry>,
@@ -135,6 +151,7 @@ pub struct CountComparison {
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct RelationsSelfCheck {
+    pub brain_id: String,
     pub fixture_id: String,
     pub established_total: usize,
     pub deterministic_total: usize,
@@ -222,24 +239,33 @@ fn suggestion_of(
     }
 }
 
-fn index_by_key<'a>(fixture_id: &str, nodes: &'a [MapNode]) -> HashMap<String, &'a MapNode> {
+/// Endpoint keys are built from the **brain**, so two brains reading the same
+/// tree produce two disjoint key spaces for the same relative paths.
+fn index_by_key<'a>(brain_id: &str, nodes: &'a [MapNode]) -> HashMap<String, &'a MapNode> {
     nodes
         .iter()
-        .map(|node| (endpoint_key(fixture_id, &node.relative_path), node))
+        .map(|node| (endpoint_key(brain_id, &node.relative_path), node))
         .collect()
 }
 
-/// Refuses a fixture outside the frozen relations scope, in words.
-fn ensure_in_scope(fixture_id: &str) -> Result<(), MapError> {
-    fixtures::spec(fixture_id)?;
-    if fixture_id != RELATIONS_FIXTURE {
+/// Refuses a brain whose source is outside the frozen relations scope, in
+/// words.
+///
+/// The scope is still a property of the **source** — the `homonymes` rule is
+/// quadratic and would produce hundreds of thousands of pairs on `wide` — but
+/// the refusal now names the brain, because that is what the caller asked for.
+fn ensure_in_scope(brain: &BrainRecord) -> Result<&'static fixtures::FixtureSpec, MapError> {
+    let spec = brain.source_fixture()?;
+    if spec.id != RELATIONS_FIXTURE {
+        let brain_id = &brain.brain_id;
         return Err(RelationError::OutOfScopeFixture(format!(
-            "`{fixture_id}` carries no relations: TASK-0017 §4.6 freezes \
-             `{RELATIONS_FIXTURE}` as the relations brain of this slice"
+            "`{brain_id}` reads `{}` and carries no relations: TASK-0017 §4.6 \
+             freezes `{RELATIONS_FIXTURE}` as the relations source of this slice",
+            spec.id
         ))
         .into());
     }
-    Ok(())
+    Ok(spec)
 }
 
 /// Opens the relations of a brain: replays the derivation from the current
@@ -252,26 +278,38 @@ fn ensure_in_scope(fixture_id: &str) -> Result<(), MapError> {
 /// never touched here.
 pub fn open_relations(
     paths: &SandboxPaths,
-    fixture_id: &str,
+    brain: &BrainRecord,
 ) -> Result<RelationsOverview, MapError> {
-    ensure_in_scope(fixture_id)?;
-    let snapshot = commands::snapshot(paths, fixture_id)?;
-    let mut store = RelationStore::open(&paths.relations_database(fixture_id))?;
+    let spec = ensure_in_scope(brain)?;
+    let snapshot = commands::snapshot(paths, brain)?;
+    // One store per brain. `brain-alpha` and `brain-gamma` read the same tree
+    // and derive the same eight relations — into two separate databases.
+    let database = paths.brain_relations_database(&brain.brain_id);
+    let mut store = RelationStore::open(&database)?;
 
-    let derived = super::relations::derive(fixture_id, &snapshot.nodes)?;
+    let derived = super::relations::derive(&brain.brain_id, &snapshot.nodes)?;
     store.replace_derived(&derived)?;
-    let seeded = super::relations::seed_fixture(&mut store, fixture_id)?;
+    let seeded = super::relations::seed_fixture(&mut store, &brain.brain_id)?;
 
-    overview(&store, fixture_id, &snapshot.nodes, seeded)
+    overview(
+        &store,
+        brain,
+        spec.id,
+        paths.relative_name(&database),
+        &snapshot.nodes,
+        seeded,
+    )
 }
 
 fn overview(
     store: &RelationStore,
+    brain: &BrainRecord,
     fixture_id: &str,
+    relations_path: String,
     nodes: &[MapNode],
     seeded: usize,
 ) -> Result<RelationsOverview, MapError> {
-    let by_key = index_by_key(fixture_id, nodes);
+    let by_key = index_by_key(&brain.brain_id, nodes);
     let mut unresolved = Vec::new();
 
     let established = store.established()?;
@@ -301,7 +339,9 @@ fn overview(
         .collect();
 
     Ok(RelationsOverview {
+        brain_id: brain.brain_id.clone(),
         fixture_id: fixture_id.to_string(),
+        relations_path,
         schema_version: RELATIONS_SCHEMA_VERSION,
         endpoint_key_scheme: super::relations::ENDPOINT_KEY_SCHEME.to_string(),
         in_scope: true,
@@ -341,19 +381,30 @@ fn entry_of(
 /// `J5` a measurement rather than a tautology.
 pub fn node_relations(
     paths: &SandboxPaths,
-    fixture_id: &str,
-    node_id: i64,
+    brain: &BrainRecord,
+    reference: &BrainNodeRef,
 ) -> Result<NodeRelations, MapError> {
-    ensure_in_scope(fixture_id)?;
-    let snapshot = commands::snapshot(paths, fixture_id)?;
+    let spec = ensure_in_scope(brain)?;
+    // The pair is the boundary — `TASK-0018` §4.1 rule 4. A reference minted
+    // in another brain is refused before any store is opened.
+    if !reference.belongs_to(&brain.brain_id) {
+        return Err(MapError::BrainMismatch {
+            expected: brain.brain_id.clone(),
+            found: reference.brain_id.clone(),
+        });
+    }
+    let node_id = reference.node_id;
+    let snapshot = commands::snapshot(paths, brain)?;
+    // The node is looked up in **this** brain's snapshot. A `node_id` that
+    // only another brain holds is missing here, and says so — `K5`.
     let node = snapshot
         .nodes
         .iter()
         .find(|candidate| candidate.id == node_id)
         .ok_or(MapError::NodeMissing(node_id))?;
-    let store = RelationStore::open(&paths.relations_database(fixture_id))?;
-    let by_key = index_by_key(fixture_id, &snapshot.nodes);
-    let key = endpoint_key(fixture_id, &node.relative_path);
+    let store = RelationStore::open(&paths.brain_relations_database(&brain.brain_id))?;
+    let by_key = index_by_key(&brain.brain_id, &snapshot.nodes);
+    let key = endpoint_key(&brain.brain_id, &node.relative_path);
     let mut unresolved = Vec::new();
 
     let outgoing = store
@@ -379,8 +430,9 @@ pub fn node_relations(
         .collect::<Vec<_>>();
 
     Ok(NodeRelations {
-        fixture_id: fixture_id.to_string(),
-        node_id,
+        brain_id: brain.brain_id.clone(),
+        fixture_id: spec.id.to_string(),
+        reference: BrainNodeRef::new(&brain.brain_id, node_id),
         endpoint_key: key,
         relative_path: node.relative_path.clone(),
         outgoing_count: outgoing.len(),
@@ -398,32 +450,46 @@ pub fn node_relations(
 /// asks for the change to be observed, not assumed.
 pub fn approve_suggestion(
     paths: &SandboxPaths,
-    fixture_id: &str,
+    brain: &BrainRecord,
     suggestion_key: &str,
 ) -> Result<RelationsOverview, MapError> {
-    ensure_in_scope(fixture_id)?;
-    let snapshot = commands::snapshot(paths, fixture_id)?;
-    let mut store = RelationStore::open(&paths.relations_database(fixture_id))?;
+    let spec = ensure_in_scope(brain)?;
+    let snapshot = commands::snapshot(paths, brain)?;
+    // Opened on **this** brain's store, so the approval cannot reach another
+    // brain's copy of the same suggestion key — `K6`.
+    let database = paths.brain_relations_database(&brain.brain_id);
+    let mut store = RelationStore::open(&database)?;
     store.approve(suggestion_key)?;
-    overview(&store, fixture_id, &snapshot.nodes, 0)
+    overview(
+        &store,
+        brain,
+        spec.id,
+        paths.relative_name(&database),
+        &snapshot.nodes,
+        0,
+    )
 }
 
 /// Replays `J1` to `J5` and `J10` against the live store, and reports.
 ///
 /// Written to report rather than to assert, like `map_self_check`: a criterion
 /// that fails has to be publishable as failed.
-pub fn self_check(paths: &SandboxPaths, fixture_id: &str) -> Result<RelationsSelfCheck, MapError> {
-    ensure_in_scope(fixture_id)?;
-    let snapshot = commands::snapshot(paths, fixture_id)?;
-    let mut store = RelationStore::open(&paths.relations_database(fixture_id))?;
-    let by_key = index_by_key(fixture_id, &snapshot.nodes);
+pub fn self_check(
+    paths: &SandboxPaths,
+    brain: &BrainRecord,
+) -> Result<RelationsSelfCheck, MapError> {
+    let spec = ensure_in_scope(brain)?;
+    let brain_id = brain.brain_id.as_str();
+    let snapshot = commands::snapshot(paths, brain)?;
+    let mut store = RelationStore::open(&paths.brain_relations_database(brain_id))?;
+    let by_key = index_by_key(brain_id, &snapshot.nodes);
 
     // `J3`: derive twice, digest twice. The second replay goes through the
     // store, so what is compared is what was persisted.
-    let derived = super::relations::derive(fixture_id, &snapshot.nodes)?;
+    let derived = super::relations::derive(brain_id, &snapshot.nodes)?;
     store.replace_derived(&derived)?;
     let first = store.deterministic_digest()?;
-    let derived_again = super::relations::derive(fixture_id, &snapshot.nodes)?;
+    let derived_again = super::relations::derive(brain_id, &snapshot.nodes)?;
     store.replace_derived(&derived_again)?;
     let second = store.deterministic_digest()?;
 
@@ -455,12 +521,12 @@ pub fn self_check(paths: &SandboxPaths, fixture_id: &str) -> Result<RelationsSel
             continue;
         }
         approved_since_seed.push(suggestion.suggestion_key.clone());
-        if let Some(path) = super::relations::relative_path_of(fixture_id, &suggestion.source_key) {
+        if let Some(path) = super::relations::relative_path_of(brain_id, &suggestion.source_key) {
             if let Some(entry) = expected.get_mut(path) {
                 entry.0 += 1;
             }
         }
-        if let Some(path) = super::relations::relative_path_of(fixture_id, &suggestion.target_key) {
+        if let Some(path) = super::relations::relative_path_of(brain_id, &suggestion.target_key) {
             if let Some(entry) = expected.get_mut(path) {
                 entry.1 += 1;
             }
@@ -469,7 +535,7 @@ pub fn self_check(paths: &SandboxPaths, fixture_id: &str) -> Result<RelationsSel
 
     let mut counts = Vec::new();
     for (path, (expected_out, expected_in)) in &expected {
-        let key = endpoint_key(fixture_id, path);
+        let key = endpoint_key(brain_id, path);
         let observed_out = store.outgoing(&key)?.len();
         let observed_in = store.incoming(&key)?.len();
         counts.push(CountComparison {
@@ -486,8 +552,8 @@ pub fn self_check(paths: &SandboxPaths, fixture_id: &str) -> Result<RelationsSel
         .iter()
         .filter_map(|(source_path, target_path)| {
             let (source, target) = (
-                endpoint_key(fixture_id, source_path),
-                endpoint_key(fixture_id, target_path),
+                endpoint_key(brain_id, source_path),
+                endpoint_key(brain_id, target_path),
             );
             established
                 .iter()
@@ -526,9 +592,10 @@ pub fn self_check(paths: &SandboxPaths, fixture_id: &str) -> Result<RelationsSel
         }
     }
 
-    let rejections = super::relations::replay_rejections(fixture_id)?;
+    let rejections = super::relations::replay_rejections(brain_id)?;
     Ok(RelationsSelfCheck {
-        fixture_id: fixture_id.to_string(),
+        brain_id: brain_id.to_string(),
+        fixture_id: spec.id.to_string(),
         established_total: established.len(),
         deterministic_total: deterministic.len(),
         approved_total: established.len() - deterministic.len(),
@@ -554,23 +621,46 @@ mod tests {
 
     fn temporary_sandbox(name: &str) -> SandboxPaths {
         let root = std::env::temp_dir().join(format!(
-            "filetopo-task-0017-{name}-{}",
+            "filetopo-task-0018-{name}-{}",
             std::process::id()
         ));
         let _ = std::fs::remove_dir_all(&root);
         SandboxPaths::under(root)
     }
 
+    /// The brain the `TASK-0017` criteria were written against, now named as
+    /// the brain it always was: `brain-alpha` reads `quasi-empty`.
+    fn alpha() -> BrainRecord {
+        BrainRecord::frozen_by_id("brain-alpha").expect("brain-alpha")
+    }
+
+    /// The **other** brain on the very same fixture. `K6` turns on this pair.
+    fn gamma() -> BrainRecord {
+        BrainRecord::frozen_by_id("brain-gamma").expect("brain-gamma")
+    }
+
+    fn brain_reading(fixture_id: &str) -> BrainRecord {
+        BrainRecord {
+            brain_id: format!("brain-test-{fixture_id}"),
+            display_name: "Cerveau d'essai".to_string(),
+            color: "#333333".to_string(),
+            icon: "*".to_string(),
+            source_kind: super::super::brains::SourceKind::SyntheticFixture,
+            source_ref: fixture_id.to_string(),
+            position: 1,
+        }
+    }
+
     fn built(name: &str) -> SandboxPaths {
         let paths = temporary_sandbox(name);
-        commands::build_map(&paths, RELATIONS_FIXTURE, false).expect("map built");
+        commands::build_map(&paths, &alpha(), false).expect("map built");
         paths
     }
 
     #[test]
-    fn a_fixture_outside_the_frozen_scope_is_refused_in_words() {
+    fn a_brain_outside_the_frozen_scope_is_refused_in_words() {
         let paths = temporary_sandbox("scope");
-        let error = open_relations(&paths, "wide").expect_err("out of scope");
+        let error = open_relations(&paths, &brain_reading("wide")).expect_err("out of scope");
         assert!(
             error.to_string().starts_with("relations_out_of_scope_for_fixture"),
             "unexpected motif: {error}"
@@ -580,7 +670,8 @@ mod tests {
     #[test]
     fn an_unknown_fixture_is_still_an_unknown_fixture() {
         let paths = temporary_sandbox("unknown");
-        let error = open_relations(&paths, "inventee").expect_err("unknown fixture");
+        let error =
+            open_relations(&paths, &brain_reading("inventee")).expect_err("unknown fixture");
         assert!(error.to_string().contains("map_unknown_fixture"));
     }
 
@@ -588,9 +679,11 @@ mod tests {
     #[test]
     fn opening_relations_resolves_every_endpoint_and_matches_the_frozen_counts() {
         let paths = built("open");
-        let overview = open_relations(&paths, RELATIONS_FIXTURE).expect("relations");
+        let overview = open_relations(&paths, &alpha()).expect("relations");
 
         assert!(overview.in_scope);
+        assert_eq!(overview.brain_id, "brain-alpha");
+        assert_eq!(overview.fixture_id, RELATIONS_FIXTURE);
         assert_eq!(overview.established.len(), 12);
         assert_eq!(overview.deterministic_count, 8);
         assert_eq!(overview.approved_count, 4);
@@ -616,7 +709,7 @@ mod tests {
             }
         }
 
-        let check = self_check(&paths, RELATIONS_FIXTURE).expect("self check");
+        let check = self_check(&paths, &alpha()).expect("self check");
         assert!(check.counts_agree, "J5: {:?}", check.counts);
         assert!(check.replay_stable, "J3");
         assert!(check.all_rejected, "J1/J2: {:?}", check.rejections);
@@ -632,17 +725,18 @@ mod tests {
     #[test]
     fn a_full_rebuild_of_the_index_preserves_approved_relations_and_suggestions() {
         let paths = built("rebuild");
-        open_relations(&paths, RELATIONS_FIXTURE).expect("relations");
-        approve_suggestion(&paths, RELATIONS_FIXTURE, "S-005").expect("approval");
+        open_relations(&paths, &alpha()).expect("relations");
+        approve_suggestion(&paths, &alpha(), "S-005").expect("approval");
 
-        let before = open_relations(&paths, RELATIONS_FIXTURE).expect("before");
+        let before = open_relations(&paths, &alpha()).expect("before");
         assert_eq!(before.approved_count, 5);
         assert_eq!(before.pending_suggestion_count, 3);
 
-        // The rebuild deletes `maps/<fixture>/map.sqlite` and rebuilds it.
-        commands::build_map(&paths, RELATIONS_FIXTURE, true).expect("rebuilt");
+        // The rebuild deletes `brains/<brain>/map/index.sqlite` and rebuilds
+        // it. The relations sit beside it, not inside it, and survive.
+        commands::build_map(&paths, &alpha(), true).expect("rebuilt");
 
-        let after = open_relations(&paths, RELATIONS_FIXTURE).expect("after");
+        let after = open_relations(&paths, &alpha()).expect("after");
         assert_eq!(after.approved_count, 5, "J10: approved relations must persist");
         assert_eq!(
             after.pending_suggestion_count, 3,
@@ -663,11 +757,11 @@ mod tests {
     #[test]
     fn approval_moves_a_suggestion_into_the_counts_and_only_then() {
         let paths = built("approve");
-        open_relations(&paths, RELATIONS_FIXTURE).expect("relations");
+        open_relations(&paths, &alpha()).expect("relations");
 
         // `S-005` runs `dossier-a/note-1.txt` → `racine-2.txt`.
         let source_id = |paths: &SandboxPaths, path: &str| {
-            commands::snapshot(paths, RELATIONS_FIXTURE)
+            commands::snapshot(paths, &alpha())
                 .expect("snapshot")
                 .nodes
                 .iter()
@@ -678,15 +772,18 @@ mod tests {
         let a1 = source_id(&paths, "dossier-a/note-1.txt");
         let r2 = source_id(&paths, "racine-2.txt");
 
-        let before = node_relations(&paths, RELATIONS_FIXTURE, a1).expect("before");
+        let before =
+            node_relations(&paths, &alpha(), &BrainNodeRef::new("brain-alpha", a1))
+                .expect("before");
         assert_eq!(before.outgoing_count, 3);
         assert_eq!(before.incoming_count, 1);
         assert_eq!(before.suggestions.len(), 1);
         assert_eq!(before.suggestions[0].suggestion_key, "S-005");
 
-        approve_suggestion(&paths, RELATIONS_FIXTURE, "S-005").expect("approval");
+        approve_suggestion(&paths, &alpha(), "S-005").expect("approval");
 
-        let after = node_relations(&paths, RELATIONS_FIXTURE, a1).expect("after");
+        let after = node_relations(&paths, &alpha(), &BrainNodeRef::new("brain-alpha", a1))
+            .expect("after");
         assert_eq!(after.outgoing_count, 4, "J4: exactly one more outgoing");
         assert_eq!(after.incoming_count, 1);
         assert!(after.suggestions.is_empty(), "J4: the suggestion is decided");
@@ -699,7 +796,8 @@ mod tests {
             "J4: the approved relation is the one that was suggested"
         );
 
-        let target = node_relations(&paths, RELATIONS_FIXTURE, r2).expect("target");
+        let target = node_relations(&paths, &alpha(), &BrainNodeRef::new("brain-alpha", r2))
+            .expect("target");
         assert_eq!(target.incoming_count, 2, "J5: the other end counts it too");
         assert_eq!(target.outgoing_count, 1, "J5: no inverse is invented");
 
@@ -712,15 +810,15 @@ mod tests {
     #[test]
     fn the_frozen_expectation_survives_an_approval_and_names_the_adjustment() {
         let paths = built("after-approval");
-        open_relations(&paths, RELATIONS_FIXTURE).expect("relations");
+        open_relations(&paths, &alpha()).expect("relations");
 
-        let before = self_check(&paths, RELATIONS_FIXTURE).expect("before");
+        let before = self_check(&paths, &alpha()).expect("before");
         assert!(before.counts_agree, "{:?}", before.counts);
         assert!(before.approved_since_seed.is_empty());
 
-        approve_suggestion(&paths, RELATIONS_FIXTURE, "S-005").expect("approval");
+        approve_suggestion(&paths, &alpha(), "S-005").expect("approval");
 
-        let after = self_check(&paths, RELATIONS_FIXTURE).expect("after");
+        let after = self_check(&paths, &alpha()).expect("after");
         assert_eq!(after.approved_since_seed, vec!["S-005".to_string()]);
         assert!(after.counts_agree, "J5 after approval: {:?}", after.counts);
         assert_eq!(after.established_total, 13);
@@ -742,18 +840,144 @@ mod tests {
     #[test]
     fn a_directory_with_no_relation_reports_empty_rather_than_failing() {
         let paths = built("empty");
-        open_relations(&paths, RELATIONS_FIXTURE).expect("relations");
-        let snapshot = commands::snapshot(&paths, RELATIONS_FIXTURE).expect("snapshot");
+        open_relations(&paths, &alpha()).expect("relations");
+        let snapshot = commands::snapshot(&paths, &alpha()).expect("snapshot");
         let dossier_a = snapshot
             .nodes
             .iter()
             .find(|node| node.relative_path == "dossier-a")
             .expect("node");
 
-        let relations = node_relations(&paths, RELATIONS_FIXTURE, dossier_a.id).expect("read");
+        let relations =
+            node_relations(&paths, &alpha(), &BrainNodeRef::new("brain-alpha", dossier_a.id))
+                .expect("read");
         assert_eq!(relations.outgoing_count, 0);
         assert_eq!(relations.incoming_count, 0);
         assert!(relations.suggestions.is_empty());
+
+        let _ = std::fs::remove_dir_all(PathBuf::from(&paths.fixtures).parent().unwrap());
+    }
+
+    /// `K6` — the frozen isolation scenario of `TASK-0018` §4.5, step by step.
+    ///
+    /// Alpha and Gamma read the **same** fixture, derive the **same** eight
+    /// relations, and hold the **same** suggestion keys. Approving in one must
+    /// leave the other exactly where it was. Nothing here compares a brain to
+    /// itself: every assertion reads the other brain back from its own store.
+    #[test]
+    fn approving_in_one_brain_never_moves_a_count_in_the_other() {
+        let paths = built("isolation");
+        commands::build_map(&paths, &gamma(), false).expect("gamma map");
+
+        // Initial state — identical, and separately stored.
+        let alpha_start = open_relations(&paths, &alpha()).expect("alpha");
+        let gamma_start = open_relations(&paths, &gamma()).expect("gamma");
+        for (label, overview) in [("alpha", &alpha_start), ("gamma", &gamma_start)] {
+            assert_eq!(overview.deterministic_count, 8, "{label}");
+            assert_eq!(overview.approved_count, 4, "{label}");
+            assert_eq!(overview.pending_suggestion_count, 4, "{label}");
+        }
+        assert_ne!(
+            alpha_start.relations_path, gamma_start.relations_path,
+            "K3: two brains, two relation stores"
+        );
+
+        // The same suggestion key exists in both — its identity space is the
+        // brain, `TASK-0018` §4.5.
+        assert!(
+            alpha_start
+                .pending_suggestions
+                .iter()
+                .any(|s| s.suggestion_key == "S-005")
+        );
+        assert!(
+            gamma_start
+                .pending_suggestions
+                .iter()
+                .any(|s| s.suggestion_key == "S-005")
+        );
+
+        // Step 1 — approve `S-005` in Alpha.
+        approve_suggestion(&paths, &alpha(), "S-005").expect("alpha approval");
+
+        let alpha_after = open_relations(&paths, &alpha()).expect("alpha after");
+        assert_eq!(alpha_after.deterministic_count, 8);
+        assert_eq!(alpha_after.approved_count, 5);
+        assert_eq!(alpha_after.pending_suggestion_count, 3);
+
+        let gamma_untouched = open_relations(&paths, &gamma()).expect("gamma after");
+        assert_eq!(gamma_untouched.deterministic_count, 8);
+        assert_eq!(gamma_untouched.approved_count, 4, "K6: Gamma must not move");
+        assert_eq!(gamma_untouched.pending_suggestion_count, 4, "K6");
+        assert!(
+            gamma_untouched
+                .pending_suggestions
+                .iter()
+                .any(|s| s.suggestion_key == "S-005"),
+            "K6: Gamma's own S-005 is still pending"
+        );
+
+        // Step 2 — approve a **different** suggestion in Gamma.
+        approve_suggestion(&paths, &gamma(), "S-006").expect("gamma approval");
+
+        let gamma_final = open_relations(&paths, &gamma()).expect("gamma final");
+        assert_eq!(gamma_final.approved_count, 5);
+        assert_eq!(gamma_final.pending_suggestion_count, 3);
+
+        let alpha_final = open_relations(&paths, &alpha()).expect("alpha final");
+        assert_eq!(alpha_final.approved_count, 5, "K6: Alpha must not move");
+        assert_eq!(alpha_final.pending_suggestion_count, 3, "K6");
+        assert!(
+            alpha_final
+                .pending_suggestions
+                .iter()
+                .any(|s| s.suggestion_key == "S-006"),
+            "K6: Alpha's own S-006 was never approved"
+        );
+
+        // And both brains still pass their own self-check, independently.
+        for (label, brain) in [("alpha", alpha()), ("gamma", gamma())] {
+            let check = self_check(&paths, &brain).expect("self check");
+            assert_eq!(check.brain_id, brain.brain_id);
+            assert!(check.counts_agree, "{label}: {:?}", check.counts);
+            assert!(check.invented_inverses.is_empty(), "{label}");
+            assert!(check.suggestions_in_established.is_empty(), "{label}");
+            assert!(check.unresolved_endpoints.is_empty(), "{label}");
+        }
+
+        let _ = std::fs::remove_dir_all(PathBuf::from(&paths.fixtures).parent().unwrap());
+    }
+
+    /// An endpoint key belongs to a brain, and to no other.
+    ///
+    /// This is what makes the isolation structural rather than incidental: even
+    /// if the two stores were ever merged, Alpha's keys would not match
+    /// Gamma's nodes.
+    #[test]
+    fn endpoint_keys_of_two_brains_never_collide_on_the_same_fixture() {
+        let paths = built("keys");
+        commands::build_map(&paths, &gamma(), false).expect("gamma map");
+
+        let alpha_keys = open_relations(&paths, &alpha())
+            .expect("alpha")
+            .established
+            .iter()
+            .map(|edge| edge.source.key.clone())
+            .collect::<std::collections::BTreeSet<_>>();
+        let gamma_keys = open_relations(&paths, &gamma())
+            .expect("gamma")
+            .established
+            .iter()
+            .map(|edge| edge.source.key.clone())
+            .collect::<std::collections::BTreeSet<_>>();
+
+        assert_eq!(alpha_keys.len(), gamma_keys.len(), "same tree, same shape");
+        assert!(
+            alpha_keys.is_disjoint(&gamma_keys),
+            "two brains on one fixture must share no endpoint key"
+        );
+        assert!(alpha_keys.iter().all(|key| key.contains("brain-alpha")));
+        assert!(gamma_keys.iter().all(|key| key.contains("brain-gamma")));
 
         let _ = std::fs::remove_dir_all(PathBuf::from(&paths.fixtures).parent().unwrap());
     }

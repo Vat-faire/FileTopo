@@ -424,3 +424,4 @@ de §4 ne sera pas retouché.*
 |---|---|---|
 | 2026-09-01 | `PROPOSED` | Fiche créée sous `DEC-0017` |
 | 2026-09-01 | `APPROVED` | GO technique de l'orchestrateur, périmètre écrit en §2 et §3 |
+| 2026-09-01 | `IN_PROGRESS` | Exécution commencée après le gel `51bb687`; §4 n'est pas retouchée |

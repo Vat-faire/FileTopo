@@ -24,15 +24,23 @@
 
 .PARAMETER TimeoutSeconds
     How long to keep watching. The watcher exits on its own afterwards.
+
+.PARAMETER Marker
+    Substring the page prints when it wants a key. The default matches both
+    `J12-KEY-READY` and `K12-KEY-READY`, so a scenario can name its own
+    criterion without this watcher having to know it. TASK-0018 needs the same
+    real keystroke for `K10`, and duplicating the watcher would have meant two
+    versions of one guarantee.
 #>
 [CmdletBinding()]
 param(
     [Parameter(Mandatory = $true)][string]$LogPath,
-    [int]$TimeoutSeconds = 600
+    [int]$TimeoutSeconds = 600,
+    [string]$Marker = '-KEY-READY'
 )
 
 $ErrorActionPreference = 'Stop'
-$marker = 'J12-KEY-READY'
+$marker = $Marker
 $shell = New-Object -ComObject WScript.Shell
 $handled = 0
 $deadline = (Get-Date).AddSeconds($TimeoutSeconds)

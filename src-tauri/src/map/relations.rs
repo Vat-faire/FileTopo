@@ -161,8 +161,8 @@ impl Provenance {
 /// **This is not `I-E`.** `VolumeSerialNumber` + `FileId`, and real moves and
 /// renames, stay outside this slice. This is the deterministic fallback, and
 /// it is declared as one.
-pub fn endpoint_key(fixture_id: &str, relative_path: &str) -> String {
-    format!("{ENDPOINT_KEY_SCHEME}|{fixture_id}|{relative_path}")
+pub fn endpoint_key(brain_id: &str, relative_path: &str) -> String {
+    format!("{ENDPOINT_KEY_SCHEME}|{brain_id}|{relative_path}")
 }
 
 /// One established relation, as stored.
@@ -257,7 +257,7 @@ fn parent_path(relative_path: &str) -> &str {
 /// The output is **sorted**, which is what makes `J3` — two replays produce
 /// exactly the same set — a property of the function rather than of SQLite's
 /// row order.
-pub fn derive(fixture_id: &str, nodes: &[MapNode]) -> Result<Vec<DerivedRelation>, RelationError> {
+pub fn derive(brain_id: &str, nodes: &[MapNode]) -> Result<Vec<DerivedRelation>, RelationError> {
     let files = nodes
         .iter()
         .filter(|node| node.kind == NodeKind::File)
@@ -282,8 +282,8 @@ pub fn derive(fixture_id: &str, nodes: &[MapNode]) -> Result<Vec<DerivedRelation
                     continue;
                 }
                 derived.push(DerivedRelation {
-                    source_key: endpoint_key(fixture_id, left),
-                    target_key: endpoint_key(fixture_id, right),
+                    source_key: endpoint_key(brain_id, left),
+                    target_key: endpoint_key(brain_id, right),
                     relation_type: RULES[0].relation_type,
                     rule: RULES[0],
                 });
@@ -316,8 +316,8 @@ pub fn derive(fixture_id: &str, nodes: &[MapNode]) -> Result<Vec<DerivedRelation
                 continue;
             };
             derived.push(DerivedRelation {
-                source_key: endpoint_key(fixture_id, path),
-                target_key: endpoint_key(fixture_id, next),
+                source_key: endpoint_key(brain_id, path),
+                target_key: endpoint_key(brain_id, next),
                 relation_type: RULES[1].relation_type,
                 rule: RULES[1],
             });
@@ -1118,13 +1118,13 @@ pub const FORBIDDEN_INVERSES: [(&str, &str); 8] = [
 /// declares approved — **through `approve`**, never by writing a row directly.
 ///
 /// Idempotent: a second call inserts nothing and decides nothing.
-pub fn seed_fixture(store: &mut RelationStore, fixture_id: &str) -> Result<usize, MapError> {
+pub fn seed_fixture(store: &mut RelationStore, brain_id: &str) -> Result<usize, MapError> {
     let mut seeded = 0;
     for suggestion in SEEDED_SUGGESTIONS {
         let inserted = store.seed_suggestion(
             suggestion.key,
-            &endpoint_key(fixture_id, suggestion.source_path),
-            &endpoint_key(fixture_id, suggestion.target_path),
+            &endpoint_key(brain_id, suggestion.source_path),
+            &endpoint_key(brain_id, suggestion.target_path),
             suggestion.relation_type,
             SEEDED_BASIS,
         )?;
@@ -1163,19 +1163,19 @@ fn motif_of(error: &MapError) -> String {
 
 /// Runs the five frozen attempts. **Nothing is asserted here** — every outcome
 /// is reported, so a failure is publishable as a failure.
-pub fn replay_rejections(fixture_id: &str) -> Result<Vec<RejectionOutcome>, MapError> {
+pub fn replay_rejections(brain_id: &str) -> Result<Vec<RejectionOutcome>, MapError> {
     let store = RelationStore::open_temporary()?;
     // The pending suggestion `X-e` will try to smuggle in as a relation.
     let smuggled = SEEDED_SUGGESTIONS[4];
     store.seed_suggestion(
         smuggled.key,
-        &endpoint_key(fixture_id, smuggled.source_path),
-        &endpoint_key(fixture_id, smuggled.target_path),
+        &endpoint_key(brain_id, smuggled.source_path),
+        &endpoint_key(brain_id, smuggled.target_path),
         smuggled.relation_type,
         SEEDED_BASIS,
     )?;
 
-    let key = |path: &str| endpoint_key(fixture_id, path);
+    let key = |path: &str| endpoint_key(brain_id, path);
     let mut outcomes = Vec::new();
 
     let attempts: [(&str, &str, &str, Box<dyn Fn(&RelationStore) -> Result<i64, MapError>>); 5] = [
@@ -1305,13 +1305,13 @@ impl RelationStore {
     }
 }
 
-/// The relative path an endpoint key names, when the key belongs to `fixture_id`.
+/// The relative path an endpoint key names, when the key belongs to `brain_id`.
 ///
 /// The inverse of [`endpoint_key`], and deliberately strict: a key of another
 /// brain returns `None` rather than a path that would then be compared against
 /// the wrong tree.
-pub fn relative_path_of<'a>(fixture_id: &str, key: &'a str) -> Option<&'a str> {
-    key.strip_prefix(&format!("{ENDPOINT_KEY_SCHEME}|{fixture_id}|"))
+pub fn relative_path_of<'a>(brain_id: &str, key: &'a str) -> Option<&'a str> {
+    key.strip_prefix(&format!("{ENDPOINT_KEY_SCHEME}|{brain_id}|"))
 }
 
 #[cfg(test)]

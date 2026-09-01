@@ -1,10 +1,18 @@
 import { invoke } from "@tauri-apps/api/core";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import BrainSelector from "./BrainSelector";
 import DetailsPanel, { type PanelStrings } from "./DetailsPanel";
 import MapView from "./MapView";
 import RelationsPanel from "./RelationsPanel";
+import {
+  emptySessionMemory,
+  recallBrainSession,
+  rememberBrainSession,
+  type BrainSessionMemory,
+} from "./brainSession";
 import { buildHierarchy } from "./hierarchy";
 import { establishedNeighbours, relationSegments } from "./relations";
+import { runBrainScenario as runBrains } from "./brainScenario";
 import { runRelationScenario as runScenario } from "./relationScenario";
 import {
   FRAMES_PER_RUN,
@@ -22,6 +30,8 @@ import {
 } from "./measure";
 import "./map.css";
 import type {
+  BrainCatalogView,
+  BrainRecord,
   FixtureIntegrity,
   FixtureSummary,
   HostInfo,
@@ -49,7 +59,12 @@ import { fitToBox, fitView, panBy, zoomAbout, type View, type Viewport } from ".
 const strings = {
   fr: {
     appTitle: "FileTopo — carte de blocs",
-    subtitle: "Tranche verticale TASK-0016 · fixtures synthétiques seulement",
+    subtitle: "Tranche verticale TASK-0018 · cerveaux synthétiques seulement",
+    brains: "Cerveau actif",
+    brainActive: "actif",
+    brainSource: "source",
+    brainSwitching: "Bascule…",
+    brainsDiagnostic: "Diagnostic développeur · sources synthétiques",
     fixtures: "Fixtures synthétiques",
     open: "Ouvrir",
     rebuild: "Reconstruire l'index",
@@ -125,7 +140,11 @@ function fixtureLabel(fixture: FixtureSummary): string {
 export default function MapApp() {
   const [fixtures, setFixtures] = useState<FixtureSummary[]>([]);
   const [host, setHost] = useState<HostInfo | null>(null);
-  const [activeFixture, setActiveFixture] = useState<string | null>(null);
+  // `TASK-0018`. The catalogue is the source of a brain's identity; the active
+  // brain is a **record**, not an identifier, so name, colour and icon on
+  // screen are the ones the catalogue holds — `K7`.
+  const [catalog, setCatalog] = useState<BrainCatalogView | null>(null);
+  const [activeBrain, setActiveBrain] = useState<BrainRecord | null>(null);
   const [snapshot, setSnapshot] = useState<MapSnapshot | null>(null);
   const [report, setReport] = useState<MapBuildReport | null>(null);
   const [integrity, setIntegrity] = useState<FixtureIntegrity | null>(null);
@@ -147,6 +166,10 @@ export default function MapApp() {
   const [relationsLoading, setRelationsLoading] = useState(false);
   const [approving, setApproving] = useState<string | null>(null);
   const [relationsCheck, setRelationsCheck] = useState<RelationsSelfCheck | null>(null);
+  // `K8` — where each brain was left, for the length of this session only.
+  // Not persisted: view persistence across a restart is `P-19`, not claimed
+  // here. Only the **active brain** survives a restart, in the catalogue.
+  const [sessions, setSessions] = useState<BrainSessionMemory>(emptySessionMemory);
 
   // The measurement loop drives the same state the interface does, so what it
   // times is what a person would experience — not a parallel code path.
@@ -154,11 +177,20 @@ export default function MapApp() {
   viewRef.current = view;
   const viewportRef = useRef(viewport);
   viewportRef.current = viewport;
+  // Read when leaving a brain, so what is stored is what was on screen at the
+  // moment of the switch rather than whatever a later render produced.
+  const selectedIdRef = useRef(selectedId);
+  selectedIdRef.current = selectedId;
+  const activeBrainRef = useRef<BrainRecord | null>(activeBrain);
+  activeBrainRef.current = activeBrain;
+  /** A view to restore once the next snapshot has landed — `K8`. */
+  const restoreViewRef = useRef<View | null>(null);
   // Declared before `runMeasurement` exists so the auto-start effect above can
   // reach it without depending on declaration order.
   const runMeasurementRef = useRef<(() => Promise<void>) | null>(null);
   const runVerificationRef = useRef<(() => Promise<void>) | null>(null);
   const runRelationScenarioRef = useRef<(() => Promise<void>) | null>(null);
+  const runBrainScenarioRef = useRef<(() => Promise<void>) | null>(null);
 
   const world: Rect = useMemo(
     () => ({
@@ -196,13 +228,17 @@ export default function MapApp() {
     Promise.all([
       invoke<FixtureSummary[]>("map_fixtures"),
       invoke<HostInfo>("map_host_info"),
+      invoke<BrainCatalogView>("map_brains"),
     ])
-      .then(([nextFixtures, nextHost]) => {
+      .then(([nextFixtures, nextHost, nextCatalog]) => {
         setFixtures(nextFixtures);
         setHost(nextHost);
+        setCatalog(nextCatalog);
         hostLog(
           "info",
-          `hôte prêt: ${nextFixtures.length} fixtures, WebView2 ${nextHost.webviewVersion}, ` +
+          `hôte prêt: ${nextCatalog.brains.length} cerveaux, cerveau actif ` +
+            `${nextCatalog.activeBrainId}, ${nextFixtures.length} fixtures, ` +
+            `WebView2 ${nextHost.webviewVersion}, ` +
             `mesure automatique=${nextHost.autoMeasure}, visibilité=${document.visibilityState}`,
         );
       })
@@ -229,6 +265,12 @@ export default function MapApp() {
       void runRelationScenarioRef.current?.();
       return;
     }
+    if (host.autoBrainsPass === 1 || host.autoBrainsPass === 2) {
+      autoStarted.current = true;
+      hostLog("info", `démarrage automatique du scénario K12, passe ${host.autoBrainsPass}`);
+      void runBrainScenarioRef.current?.();
+      return;
+    }
     if (host.autoMeasure) {
       autoStarted.current = true;
       hostLog("info", "démarrage automatique de la campagne H9");
@@ -236,29 +278,73 @@ export default function MapApp() {
     }
   }, [fixtures.length, host]);
 
-  const openFixture = useCallback(async (fixtureId: string, rebuild: boolean) => {
+  /**
+   * Switches to a brain, and **loads it** — `K4`.
+   *
+   * Everything below the identity is replaced: the index, the snapshot, the
+   * integrity reading, the relations store. Nothing of the previous brain is
+   * left on screen presented as current, which is the sentence `K4` turns on.
+   *
+   * The brain is made active **in the catalogue** as well, because `K9` asks
+   * for the choice to survive a real restart, and a value held only in React
+   * would not.
+   */
+  const openBrain = useCallback(async (brainId: string, rebuild: boolean) => {
     setBusy(true);
     setStatus(null);
+
+    // `K8` — remember where the brain being left was, before anything changes.
+    const leaving = activeBrainRef.current;
+    if (leaving && leaving.brainId !== brainId) {
+      const state = { selectedId: selectedIdRef.current, view: { ...viewRef.current } };
+      setSessions((memory) => rememberBrainSession(memory, leaving.brainId, state));
+    }
+
     try {
-      const nextReport = await invoke<MapBuildReport>("map_open", { fixtureId, rebuild });
-      const nextSnapshot = await invoke<MapSnapshot>("map_snapshot", { fixtureId });
-      const nextIntegrity = await invoke<FixtureIntegrity>("map_integrity", { fixtureId });
+      const record = await invoke<BrainRecord>("map_brain_activate", { brainId });
+      const nextReport = await invoke<MapBuildReport>("map_open", { brainId, rebuild });
+      const nextSnapshot = await invoke<MapSnapshot>("map_snapshot", { brainId });
+      const nextIntegrity = await invoke<FixtureIntegrity>("map_integrity", { brainId });
+
+      // The snapshot has to be the one that was asked for. A mismatch here
+      // would be exactly the leak `K3` and `K4` forbid, so it is refused
+      // rather than displayed.
+      if (nextSnapshot.brainId !== brainId || nextReport.brainId !== brainId) {
+        throw new Error(
+          `incohérence de cerveau: demandé ${brainId}, reçu ${nextSnapshot.brainId}`,
+        );
+      }
+
+      const restored = recallBrainSession(sessionsRef.current, brainId);
+      restoreViewRef.current = restored?.view ?? null;
+
+      setActiveBrain(record);
       setReport(nextReport);
       setSnapshot(nextSnapshot);
       setIntegrity(nextIntegrity);
       setSelfCheck(null);
-      setActiveFixture(fixtureId);
-      setSelectedId(nextSnapshot.rootId);
+      setSelectedId(restored?.selectedId ?? nextSnapshot.rootId);
       setMeasurement(null);
       setRelationsCheck(null);
-      // Relations are opened separately, and a fixture outside the frozen
-      // relations scope is a *stated* outcome rather than an error banner.
+      setCatalog((current) =>
+        current
+          ? {
+              ...current,
+              activeBrainId: brainId,
+              brains: current.brains.map((brain) =>
+                brain.brainId === brainId ? record : brain,
+              ),
+            }
+          : current,
+      );
+      // Relations are opened separately, and a brain whose source is outside
+      // the frozen relations scope is a *stated* outcome, not an error banner.
       setRelationsLoading(true);
       try {
-        setRelations(await invoke<RelationsOverview>("map_relations_open", { fixtureId }));
+        setRelations(await invoke<RelationsOverview>("map_relations_open", { brainId }));
       } catch (error) {
         setRelations(null);
-        hostLog("info", `relations indisponibles pour ${fixtureId}: ${String(error)}`);
+        hostLog("info", `relations indisponibles pour ${brainId}: ${String(error)}`);
       } finally {
         setRelationsLoading(false);
       }
@@ -269,48 +355,73 @@ export default function MapApp() {
     }
   }, []);
 
-  // A fresh map opens fitted, and that view is the one `reset` reproduces.
+  // Read inside `openBrain`, which is deliberately dependency-free so that a
+  // switch never races a stale closure over the session memory.
+  const sessionsRef = useRef(sessions);
+  sessionsRef.current = sessions;
+
+  // `K9` — the application starts on the brain the catalogue calls active.
+  const bootedBrain = useRef(false);
+  useEffect(() => {
+    if (bootedBrain.current || !catalog) return;
+    bootedBrain.current = true;
+    hostLog("info", `cerveau actif au démarrage: ${catalog.activeBrainId}`);
+    void openBrain(catalog.activeBrainId, false);
+  }, [catalog, openBrain]);
+
+  // A fresh map opens fitted, and that view is the one `reset` reproduces —
+  // unless this brain was already visited in this session, in which case `K8`
+  // asks for the view it was left at.
   useEffect(() => {
     if (!snapshot) return;
-    setView(fitView({ x: 0, y: 0, w: snapshot.layoutWidth, h: snapshot.layoutHeight }, viewport));
+    const restored = restoreViewRef.current;
+    restoreViewRef.current = null;
+    setView(
+      restored ??
+        fitView({ x: 0, y: 0, w: snapshot.layoutWidth, h: snapshot.layoutHeight }, viewport),
+    );
   }, [snapshot, viewport.width, viewport.height]);
 
   useEffect(() => {
-    if (!activeFixture || selectedId === null) {
+    if (!activeBrain || selectedId === null) {
       setDetail(null);
       return;
     }
     let live = true;
     setDetailLoading(true);
-    invoke<NodeDetail>("map_node_detail", { fixtureId: activeFixture, nodeId: selectedId })
+    // The **pair** goes to the backend, never a loose row number: the same id
+    // exists in another brain and would resolve there — `TASK-0018` §4.1
+    // rule 5.
+    invoke<NodeDetail>("map_node_detail", {
+      reference: { brainId: activeBrain.brainId, nodeId: selectedId },
+    })
       .then((next) => live && setDetail(next))
       .catch((error) => live && setStatus(`Détail indisponible : ${String(error)}`))
       .finally(() => live && setDetailLoading(false));
     return () => {
       live = false;
     };
-  }, [activeFixture, selectedId]);
+  }, [activeBrain, selectedId]);
 
   // The panel reads the relations of the selection from the store, on every
   // change of selection and after every approval. `relations` is in the
   // dependency list on purpose: an approval replaces it, and that is what makes
   // the panel show counts that came back rather than counts it guessed.
   useEffect(() => {
-    if (!activeFixture || selectedId === null || !relations) {
+    if (!activeBrain || selectedId === null || !relations) {
       setNodeRelations(null);
       return;
     }
     let live = true;
     invoke<NodeRelations>("map_relations_for_node", {
-      fixtureId: activeFixture,
-      nodeId: selectedId,
+      reference: { brainId: activeBrain.brainId, nodeId: selectedId },
     })
       .then((next) => live && setNodeRelations(next))
       .catch(() => live && setNodeRelations(null));
     return () => {
       live = false;
     };
-  }, [activeFixture, relations, selectedId]);
+  }, [activeBrain, relations, selectedId]);
 
   /**
    * The one explicit act that turns a suggestion into a relation.
@@ -320,11 +431,11 @@ export default function MapApp() {
    */
   const approveSuggestion = useCallback(
     async (suggestionKey: string) => {
-      if (!activeFixture) return;
+      if (!activeBrain) return;
       setApproving(suggestionKey);
       try {
         const next = await invoke<RelationsOverview>("map_relations_approve", {
-          fixtureId: activeFixture,
+          brainId: activeBrain.brainId,
           suggestionKey,
         });
         setRelations(next);
@@ -335,28 +446,32 @@ export default function MapApp() {
         setApproving(null);
       }
     },
-    [activeFixture],
+    [activeBrain],
   );
 
   const runRelationsCheck = useCallback(async () => {
-    if (!activeFixture) return;
+    if (!activeBrain) return;
     try {
       setRelationsCheck(
-        await invoke<RelationsSelfCheck>("map_relations_self_check", { fixtureId: activeFixture }),
+        await invoke<RelationsSelfCheck>("map_relations_self_check", {
+          brainId: activeBrain.brainId,
+        }),
       );
     } catch (error) {
       setStatus(`Contrôle des relations impossible : ${String(error)}`);
     }
-  }, [activeFixture]);
+  }, [activeBrain]);
 
   const runSelfCheck = useCallback(async () => {
-    if (!activeFixture) return;
+    if (!activeBrain) return;
     try {
-      setSelfCheck(await invoke<MapSelfCheck>("map_self_check", { fixtureId: activeFixture }));
+      setSelfCheck(
+        await invoke<MapSelfCheck>("map_self_check", { brainId: activeBrain.brainId }),
+      );
     } catch (error) {
       setStatus(`Contrôle impossible : ${String(error)}`);
     }
-  }, [activeFixture]);
+  }, [activeBrain]);
 
   /**
    * Replays `H1` to `H7`, `H10` and `H11` against the running host, and writes
@@ -368,28 +483,39 @@ export default function MapApp() {
    * rather than asserting it away.
    */
   const runVerification = useCallback(async () => {
-    if (fixtures.length === 0) return;
+    const brains = catalog?.brains ?? [];
+    if (brains.length === 0) return;
     const findings: unknown[] = [];
     try {
-      for (const fixture of fixtures) {
-        hostLog("info", `vérification ${fixture.id}: ouverture`);
+      // Driven **by brain** since `TASK-0018`: the runtime has no fixture-keyed
+      // command left. The campaign therefore covers the sources the three
+      // frozen brains read — `quasi-empty` twice and `deep` — and no longer
+      // `wide` or `mixed`. The published `TASK-0016` campaign is unaffected and
+      // remains the record for those two.
+      for (const brain of brains) {
+        const fixture = fixtures.find((entry) => entry.id === brain.sourceRef) ?? null;
+        hostLog("info", `vérification ${brain.brainId}: ouverture`);
         const first = await invoke<MapBuildReport>("map_open", {
-          fixtureId: fixture.id,
+          brainId: brain.brainId,
           rebuild: false,
         });
-        const check = await invoke<MapSelfCheck>("map_self_check", { fixtureId: fixture.id });
-        const before = await invoke<FixtureIntegrity>("map_integrity", { fixtureId: fixture.id });
+        const check = await invoke<MapSelfCheck>("map_self_check", { brainId: brain.brainId });
+        const before = await invoke<FixtureIntegrity>("map_integrity", {
+          brainId: brain.brainId,
+        });
 
-        hostLog("info", `vérification ${fixture.id}: index supprimé puis reconstruit`);
+        hostLog("info", `vérification ${brain.brainId}: index supprimé puis reconstruit`);
         const rebuilt = await invoke<MapBuildReport>("map_open", {
-          fixtureId: fixture.id,
+          brainId: brain.brainId,
           rebuild: true,
         });
-        const after = await invoke<FixtureIntegrity>("map_integrity", { fixtureId: fixture.id });
+        const after = await invoke<FixtureIntegrity>("map_integrity", { brainId: brain.brainId });
 
         const entry = {
-          fixtureId: fixture.id,
-          declaredCeiling: fixture.maxNodes,
+          brainId: brain.brainId,
+          indexPath: first.indexPath,
+          fixtureId: first.fixtureId,
+          declaredCeiling: fixture?.maxNodes ?? first.nodeCeiling,
           nodeCount: first.nodeCount,
           plannedNodes: first.plannedNodes,
           maxDepth: first.maxDepth,
@@ -424,7 +550,7 @@ export default function MapApp() {
           h7_equivalent: first.reconstructibleDigest === rebuilt.reconstructibleDigest,
           h7_nonReconstructible: rebuilt.nonReconstructible,
           h11_withinCeilings:
-            first.nodeCount <= fixture.maxNodes &&
+            first.nodeCount <= (fixture?.maxNodes ?? first.nodeCeiling) &&
             first.nodeCount <= first.nodeCeiling &&
             first.maxDepth <= first.depthCeiling,
           integrityBefore: before,
@@ -432,7 +558,7 @@ export default function MapApp() {
         findings.push(entry);
         hostLog(
           "info",
-          `vérification ${fixture.id}: H1=${entry.h1_pathsAgree} ` +
+          `vérification ${brain.brainId}: H1=${entry.h1_pathsAgree} ` +
             `H2=${entry.h2_layoutViolations.length} H3=${entry.h3_hierarchyMismatches.length} ` +
             `H5=${entry.h5_detailMismatches.length} H6=${entry.h6_fingerprintUnchanged} ` +
             `H7=${entry.h7_equivalent} H10=${entry.layoutInvocations} H11=${entry.h11_withinCeilings}`,
@@ -459,28 +585,32 @@ export default function MapApp() {
       hostLog("error", `vérification interrompue: ${String(error)}`);
       setStatus(`Vérification interrompue : ${String(error)}`);
     }
-  }, [fixtures, host]);
+  }, [catalog, fixtures, host]);
 
   runVerificationRef.current = runVerification;
 
   /** `H9`, on every fixture, five runs each. */
   const runMeasurement = useCallback(async () => {
-    if (measuring || fixtures.length === 0) return;
+    const brains = catalog?.brains ?? [];
+    if (measuring || brains.length === 0) return;
     setMeasuring(true);
     setStatus(null);
     const results: FixtureMeasurement[] = [];
 
     try {
-      for (const fixture of fixtures) {
-        hostLog("info", `fixture ${fixture.id}: ouverture`);
+      // Like the verification above, this now walks **brains**. `TASK-0018`
+      // takes no measurement and sets no threshold; the loop is migrated so it
+      // keeps running, not so it produces a new campaign.
+      for (const brain of brains) {
+        hostLog("info", `cerveau ${brain.brainId}: ouverture`);
         const built = await invoke<MapBuildReport>("map_open", {
-          fixtureId: fixture.id,
+          brainId: brain.brainId,
           rebuild: false,
         });
-        const loaded = await invoke<MapSnapshot>("map_snapshot", { fixtureId: fixture.id });
+        const loaded = await invoke<MapSnapshot>("map_snapshot", { brainId: brain.brainId });
         setReport(built);
         setSnapshot(loaded);
-        setActiveFixture(fixture.id);
+        setActiveBrain(brain);
         setSelectedId(loaded.rootId);
         await afterPaint();
         const measuredViewport = await awaitLaidOutViewport(() => viewportRef.current);
@@ -494,12 +624,12 @@ export default function MapApp() {
 
         hostLog(
           "info",
-          `fixture ${fixture.id}: ${loaded.nodeCount} nœuds chargés, ` +
+          `cerveau ${brain.brainId}: ${loaded.nodeCount} nœuds chargés, ` +
             `fenêtre ${viewportRef.current.width}x${viewportRef.current.height}`,
         );
 
         for (let run = 1; run <= RUNS_PER_FIXTURE; run += 1) {
-          hostLog("info", `fixture ${fixture.id}: exécution ${run}/${RUNS_PER_FIXTURE}`);
+          hostLog("info", `cerveau ${brain.brainId}: exécution ${run}/${RUNS_PER_FIXTURE}`);
           setView(fitView(box, viewportRef.current));
           for (let warm = 0; warm < WARMUP_FRAMES; warm += 1) await nextFrame();
 
@@ -530,7 +660,7 @@ export default function MapApp() {
           runs.push({ run, frameTimesMs, selectionLatenciesMs });
         }
 
-        const summary = aggregate(fixture.id, loaded.nodeCount, measuredViewport, runs);
+        const summary = aggregate(brain.brainId, loaded.nodeCount, measuredViewport, runs);
         results.push(summary);
         // Deliberately not published to the interface until the campaign ends:
         // showing the results table mid-run would reflow the page and measure
@@ -538,7 +668,7 @@ export default function MapApp() {
         
         hostLog(
           "info",
-          `fixture ${fixture.id}: terminé — image médiane ${summary.frameTime.median.toFixed(2)} ms, ` +
+          `cerveau ${brain.brainId}: terminé — image médiane ${summary.frameTime.median.toFixed(2)} ms, ` +
             `pire ${summary.worstFrameMs.toFixed(2)} ms, sélection médiane ` +
             `${summary.selectionLatency.median.toFixed(2)} ms`,
         );
@@ -594,7 +724,7 @@ export default function MapApp() {
     } finally {
       setMeasuring(false);
     }
-  }, [fixtures, host, measuring]);
+  }, [catalog, host, measuring]);
 
   runMeasurementRef.current = runMeasurement;
 
@@ -603,15 +733,36 @@ export default function MapApp() {
       runScenario({
         invoke: (command, args) => invoke(command, args),
         host,
-        openFixture,
+        openBrain,
         setSelectedId,
         setStatus,
         log: hostLog,
       }),
-    [host, openFixture],
+    [host, openBrain],
   );
 
   runRelationScenarioRef.current = runRelationScenario;
+
+  const runBrainScenario = useCallback(() => {
+    const pass = host?.autoBrainsPass === 2 ? 2 : 1;
+    return runBrains(
+      {
+        invoke: (command, args) => invoke(command, args),
+        host,
+        openBrain,
+        setSelectedId,
+        setView,
+        // Read at the moment it is asked for, so what the scenario publishes is
+        // the state on screen rather than a value captured a render earlier.
+        readSession: () => ({ selectedId: selectedIdRef.current, view: viewRef.current }),
+        setStatus,
+        log: hostLog,
+      },
+      pass,
+    );
+  }, [host, openBrain]);
+
+  runBrainScenarioRef.current = runBrainScenario;
 
   const selectedNode = selectedId === null ? null : hierarchy?.byId.get(selectedId) ?? null;
 
@@ -664,37 +815,35 @@ export default function MapApp() {
         ) : null}
       </header>
 
-      <nav className="app__fixtures" aria-label={t.fixtures}>
-        <ul>
-          {fixtures.map((fixture) => (
-            <li key={fixture.id}>
-              <button
-                type="button"
-                className="fixture"
-                aria-pressed={fixture.id === activeFixture}
-                disabled={busy || measuring}
-                onClick={() => openFixture(fixture.id, false)}
-              >
-                <span className="fixture__name">{fixture.labelFr}</span>
-                <span className="fixture__meta">{fixtureLabel(fixture)}</span>
-              </button>
-            </li>
-          ))}
-        </ul>
+      <nav className="app__brains" aria-label={t.brains}>
+        <BrainSelector
+          brains={catalog?.brains ?? []}
+          activeBrainId={activeBrain?.brainId ?? catalog?.activeBrainId ?? null}
+          disabled={busy || measuring}
+          busy={busy}
+          onSelect={(brainId) => void openBrain(brainId, false)}
+          strings={{
+            label: t.brains,
+            active: t.brainActive,
+            source: t.brainSource,
+            switching: t.brainSwitching,
+          }}
+          showSource
+        />
         <div className="app__actions">
           <button
             type="button"
-            disabled={!activeFixture || busy || measuring}
-            onClick={() => activeFixture && openFixture(activeFixture, true)}
+            disabled={!activeBrain || busy || measuring}
+            onClick={() => activeBrain && openBrain(activeBrain.brainId, true)}
           >
             {busy ? t.building : t.rebuild}
           </button>
-          <button type="button" disabled={!activeFixture || measuring} onClick={runSelfCheck}>
+          <button type="button" disabled={!activeBrain || measuring} onClick={runSelfCheck}>
             {t.selfCheck}
           </button>
           <button
             type="button"
-            disabled={!activeFixture || !relations || measuring}
+            disabled={!activeBrain || !relations || measuring}
             onClick={runRelationsCheck}
           >
             {t.relationsCheck}
@@ -711,8 +860,28 @@ export default function MapApp() {
         </p>
       ) : null}
 
+      {/*
+        The synthetic sources, kept on screen as a **developer diagnostic** —
+        `TASK-0018` §4.6. They are no longer the user-facing concept, and they
+        are not clickable: a brain is chosen above, and the source it reads is
+        the backend's business.
+      */}
+      {fixtures.length > 0 ? (
+        <section className="app__sources" aria-label={t.brainsDiagnostic}>
+          <span className="app__sources-title">{t.brainsDiagnostic}</span>
+          <ul>
+            {fixtures.map((fixture) => (
+              <li key={fixture.id}>{fixtureLabel(fixture)}</li>
+            ))}
+          </ul>
+        </section>
+      ) : null}
+
       {report ? (
         <section className="app__report" aria-label="Rapport de construction">
+          <span data-testid="report-brain">
+            {report.brainId} · {report.indexPath}
+          </span>
           <span>
             {report.nodeCount} {t.nodes} / {t.ceiling} {report.nodeCeiling}
           </span>
