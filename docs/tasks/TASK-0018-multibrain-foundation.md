@@ -415,8 +415,136 @@ ne s'auto-vérifie pas.**
 
 ## 7. Résultat
 
-*Section vide au moment du gel. Elle sera écrite après l'exécution, et le gel
-de §4 ne sera pas retouché.*
+**Écrit après l'exécution. §4 n'a pas été retouchée** — le gel `51bb687`
+précède le premier commit de code `4cb1cf4`, et aucun critère `K1`–`K12` n'a
+été modifié après le premier résultat.
+
+### 7.1 Les douze critères gelés
+
+| Critère | Verdict | Où c'est prouvé |
+|---|---|---|
+| `K1` catalogue, trois cerveaux, `brain_id` unique, `source_ref` partagé | **TENU** | `brains.rs` tests; `K12` passe 1 §1 : 3 cerveaux, `brains/catalog.sqlite` |
+| `K2` identité, `brain_id` frontière, inconnu = erreur nommée | **TENU** | `MapError::UnknownBrain`; `map_brains`/`map_brain_*` + toutes les commandes carte et relations scopées |
+| `K3` isolation physique | **TENU** | `brains/brain-alpha/map/index.sqlite` ≠ `brains/brain-gamma/map/index.sqlite`, **chemins réels publiés** |
+| `K4` bascule réelle 12 → 157 → 12 → 12 | **TENU** | `K12` passe 1 §2–4, comptes lus par commande |
+| `K5` collision d'identifiants locaux | **TENU** | même `node_id`, deux clés d'extrémité; une référence d'un autre cerveau est **refusée** |
+| `K6` relations isolées | **TENU** | Alpha 4→5 approuvées / 4→3 en attente; Gamma **inchangé**, sa `S-005` toujours en attente |
+| `K7` métadonnées | **TENU** | modification par le chemin applicatif, les autres cerveaux inchangés, conservée après redémarrage |
+| `K8` état de session par cerveau | **TENU** | `alphaRestored=true`, `betaRestored=true`, les deux états différents |
+| `K9` cerveau actif persistant | **TENU** | après **fermeture et redémarrage réels** : Gamma actif dans le catalogue **et** dans l'interface |
+| `K10` sélecteur accessible, **vraie frappe** | **TENU** | 4 bascules, `activationIsTrusted=true`, `keydownIsTrusted=true`, **0** clic programmatique |
+| `K11` lecture seule / `X2` | **TENU** | empreintes identiques avant/après ×3, **0** artefact FileTopo dans les racines, surface `map_` seule |
+| `K12` hôte réel, douze étapes | **TENU** | `TASK-0018-K12-webview2-pass{1,2}.json`, WebView2 `151.0.4129.107` |
+
+### 7.2 Ce qui rend l'isolation structurelle
+
+**Le `brain_id` est le nom d'un répertoire, pas une colonne.** `brain-alpha` et
+`brain-gamma` lisent la **même** fixture; leurs états ne peuvent pas se
+rencontrer parce qu'ils ne sont pas dans le même fichier, et non parce qu'une
+clause `WHERE` les sépare.
+
+**L'index dit pour quel cerveau il a été construit.** Le schéma passe en
+**version 2** et `map_meta` porte `brain_id`. `open_store` refuse un index
+construit pour un autre cerveau — `MapError::BrainMismatch` — et un index de
+version 1, qui ne nomme aucun cerveau, n'est celui de personne. Le test qui le
+prouve **copie réellement** l'index d'Alpha à la place de celui de Gamma.
+
+**Un `node_id` ne voyage jamais seul.** `map_node_detail` et
+`map_relations_for_node` prennent un **`BrainNodeRef`**. Ce n'est pas une
+formalité : après une bascule, l'interface tient encore la sélection du cerveau
+précédent, et `12` est une ligne valide dans Alpha **comme** dans Gamma. Un
+numéro nu se résoudrait, silencieusement, dans le mauvais cerveau.
+
+**Les clés d'extrémité sont construites sur le cerveau.** Deux cerveaux sur une
+même source produisent deux espaces de clés **disjoints**, ce qu'un test
+vérifie plutôt que de le supposer.
+
+### 7.3 Trouvés en chemin, et publiés
+
+**Deux défauts du produit**, tous deux trouvés par les critères eux-mêmes :
+
+1. **Le menu du sélecteur se refermait sur un `blur` à `relatedTarget` nul.**
+   Une **désactivation de fenêtre** produit exactement ce `blur`. La frappe
+   réelle de `K10` arrivait donc sur un bouton démonté à l'instant où l'hôte
+   ramenait la fenêtre au premier plan. **Le critère avait raison, le contrôle
+   avait tort.** Le menu ne se referme plus que si le focus part vers un autre
+   élément **de la page**; un appui pointeur hors du contrôle le ferme aussi.
+   Deux tests de régression.
+2. **La vue était ré-ajustée quand le viewport se stabilisait une image plus
+   tard**, ce qui effaçait la vue qu'un cerveau venait de retrouver. `K12` a
+   publié `alphaRestored=false` **sur un produit dont la sélection revenait
+   parfaitement**. La règle est maintenant écrite une seule fois —
+   `shouldFitOnOpen` — et testée : on ajuste **une fois par cerveau**, et de
+   nouveau seulement si le premier ajustement précédait toute mesure du
+   viewport.
+
+**Deux défauts d'outillage**, publiés avec ce qu'ils ont produit :
+
+3. **Un binaire `release` ne peut pas écrire d'artefact** —
+   `map_write_run_artifact` n'existe qu'en `debug`. La première tentative de
+   `K12` a donc **échoué en ne publiant rien du tout**, pas même son abandon.
+   Le scénario construit désormais son évidence dans un objet fourni par
+   l'appelant : un échec publie ce qu'il savait au moment de tomber. C'est
+   ainsi que le défaut n° 1 a été diagnostiqué, sur la ligne
+   `focus atteint=false`.
+4. **`Write-Output` dans une fonction PowerShell entre dans sa valeur de
+   retour.** Le lanceur a donc **annoncé un succès** alors que la passe 1 avait
+   abandonné. Corrigé en `Write-Host`, et la boucle d'attente s'arrête
+   désormais aussi sur l'artefact d'abandon.
+
+### 7.4 Ce que cette tranche ne prouve pas
+
+- **`J12` n'a pas été rejoué dans l'hôte.** Le scénario a été migré vers
+  `brain-alpha` — même fixture gelée, même mécanisme de frappe réelle, extrait
+  dans `realInput.ts` sans changement — et il compile et typecheck, mais il
+  **n'a pas été exécuté**. Le rejouer aurait **écrasé
+  `TASK-0017-J12-webview2.json`**, preuve publiée d'une tâche `VERIFIED`.
+  **Déclaré non testé.**
+- **La campagne `H9` n'a pas été reprise**, et aucune mesure n'a été faite.
+  `R8` reste entière.
+- **Les boucles de vérification et de mesure marchent désormais par cerveau**,
+  puisque le runtime n'expose plus aucune commande indexée par fixture. Elles
+  couvrent donc `quasi-empty` (deux fois) et `deep`, **et non** `wide` ni
+  `mixed`. Les artefacts publiés de `TASK-0016` sont **inchangés** et restent
+  le relevé pour ces deux fixtures.
+- **La persistance complète `P-19` n'est pas revendiquée** : l'état de vue est
+  **session seulement**. Seul le **cerveau actif** et les **métadonnées**
+  survivent au redémarrage.
+- **La révocation de `P-04` n'est toujours pas implémentée.** `P-04` demeure
+  **PARTIELLE**.
+- **`ek1` n'est pas `I-E`**, et rien ne prétend qu'il est globalement unique
+  entre cerveaux — l'isolation vient du **stockage**, pas de la clé.
+- **`P-21` n'est pas satisfaite** : français seulement, aucun audit WCAG
+  complet, **aucun lecteur d'écran réel**. `K10` prouve une **vraie frappe**,
+  ce qui n'est pas un audit d'accessibilité.
+- **`B0` s'est reproduit une quatrième fois** pendant cette tranche, sur un
+  `pnpm tauri build --debug`. **Rien n'a été supprimé ni renommé** dans
+  `src-tauri/target/`; `CARGO_INCREMENTAL=0` suffit à contourner.
+- **Une seule machine, un seul écran, un seul runtime WebView2.**
+
+### 7.5 Validations exécutées
+
+| Validation | Résultat |
+|---|---|
+| Tests Rust | **104/104** (84 → 104) |
+| Tests TypeScript | **97/97** (82 → 97) |
+| `pnpm check` | **PASS** |
+| `pnpm build` | **PASS** |
+| Build Tauri `debug --no-bundle` | **PASS** |
+| Build Tauri `release --no-bundle` | **PASS**, 33,17 s |
+| Tests-gardes `X2` | **PASS**, plus un test positif sur la surface cerveaux |
+| Tests `X3` / `X4` | **PASS**, inchangés |
+| `K11` dans l'hôte réel | **PASS** — `TASK-0018-K11-readonly-and-isolation.json` |
+| `K12` dans l'hôte réel, deux passes | **PASS** — `pass1` et `pass2` |
+| Redémarrage réel pour `K9` et `K12` | **PASS** |
+| Nouvelle dépendance | **aucune** — `package.json`, `pnpm-lock.yaml`, `Cargo.toml` inchangés |
+
+### 7.6 État final
+
+**`IMPLEMENTED`.** L'exécuteur ne s'attribue pas `VERIFIED`.
+
+`NEXT_ACTION` = **contrôle indépendant de `TASK-0018`**, par une instance
+distincte de l'exécuteur, **sur preuves**.
 
 ## Historique d'état
 
@@ -425,3 +553,4 @@ de §4 ne sera pas retouché.*
 | 2026-09-01 | `PROPOSED` | Fiche créée sous `DEC-0017` |
 | 2026-09-01 | `APPROVED` | GO technique de l'orchestrateur, périmètre écrit en §2 et §3 |
 | 2026-09-01 | `IN_PROGRESS` | Exécution commencée après le gel `51bb687`; §4 n'est pas retouchée |
+| 2026-09-01 | `IMPLEMENTED` | `K1`–`K12` tenus, preuves publiées; `VERIFIED` non attribué par l'exécuteur |

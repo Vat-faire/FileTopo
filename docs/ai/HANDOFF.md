@@ -1,17 +1,18 @@
 # HANDOFF — passage de relais
 
 - **Dernière mise à jour :** 2026-09-01
-- **Branche active :** **`build/v0.2-a2-relations`**, créée depuis le tip
-  contrôlé `33704a1` de `build/v0.2-p4-vertical-slice`
-- **Dernière tâche vérifiée :** **`TASK-0016`, `VERIFIED`** le 2026-08-31, sur
+- **Branche active :** **`build/v0.2-a3-multibrain-foundation`**, créée depuis
+  le tip contrôlé `50de16b` de `build/v0.2-a2-relations`
+- **Dernière tâche vérifiée :** **`TASK-0017`, `VERIFIED`** le 2026-09-01, sur
   re-contrôle indépendant
-  [`ACTION-0026`](../reviews/ACTION-0026-independent-control.md) du commit
-  `a6cf092` — **`X2` : `CLOSED`**, **`ACTION-0026` : `CLOSED`**
-- **Tâche livrée, NON vérifiée :** **`TASK-0017`, `IMPLEMENTED`** le
-  2026-09-01 — relations transversales avec provenance. Contrôle indépendant
-  [`ACTION-0027`](../reviews/ACTION-0027-independent-control.md) :
-  **`CHANGES_REQUIRED`**, réserves **`X3`** et **`X4`** **corrigées mais non
-  closes**. **Attend son re-contrôle indépendant.**
+  [`ACTION-0027`](../reviews/ACTION-0027-independent-control.md) — **`X3` et
+  `X4` : `CLOSED`**. `TASK-0016` est `VERIFIED` depuis le 2026-08-31
+  ([`ACTION-0026`](../reviews/ACTION-0026-independent-control.md), `X2`
+  `CLOSED`)
+- **Tâche livrée, NON vérifiée :** **`TASK-0018`, `IMPLEMENTED`** le
+  2026-09-01 — **fondation multi-cerveaux**. Gel `K1`–`K12` en `51bb687`,
+  code en `4cb1cf4`, preuves en `2424ef2`. **Les douze critères sont tenus.**
+  **Attend son contrôle indépendant.**
 - **Tâche IN_PROGRESS :** aucune
 - **Porte `P4` :** **FRANCHIE** —
   [`DEC-0016`](../decisions/DEC-0016-p4-gate-crossing-and-first-slice.md)
@@ -78,7 +79,72 @@ strictement limités au périmètre déjà déclaré**.
 12. **Aucune donnée réelle, aucun sélecteur de dossier, aucun chemin local
     personnel dans le dépôt** — artefacts de mesure compris.
 
-## TASK-0017 — la deuxième tranche, livrée et non vérifiée
+## TASK-0018 — la troisième tranche, livrée et non vérifiée
+
+**FileTopo a des cerveaux.** Un cerveau est une **identité FileTopo**, pas une
+source : `brain-alpha` et `brain-gamma` lisent la **même** fixture
+`quasi-empty` et sont totalement indépendants.
+
+1. **Le `brain_id` est le nom d'un répertoire, pas une colonne.**
+   `<bac>/brains/catalog.sqlite`, `<bac>/brains/<brain_id>/map/index.sqlite`,
+   `<bac>/brains/<brain_id>/relations/relations.sqlite`. Deux cerveaux ne
+   peuvent pas se rencontrer parce qu'ils **ne sont pas dans le même fichier**.
+   **Ne pas remplacer cela par une colonne `brain_id` dans un magasin
+   partagé** : ce serait rendre l'isolation dépendante d'une clause `WHERE`.
+2. **L'index nomme le cerveau pour lequel il a été construit** — schéma
+   **version 2**, `map_meta.brain_id`. `open_store` **refuse** un index
+   construit pour un autre cerveau (`MapError::BrainMismatch`), et un index de
+   version 1 n'est celui de personne. **Ne pas assouplir cette garde.**
+3. **Un `node_id` ne voyage jamais seul.** `map_node_detail` et
+   `map_relations_for_node` prennent un **`BrainNodeRef`**. **Ne jamais
+   revenir à un `nodeId` nu** : après une bascule, l'interface tient encore la
+   sélection du cerveau précédent, et `12` est valide dans les deux.
+4. **Le seed du catalogue crée, il ne corrige jamais.** Un cerveau renommé
+   reste renommé au démarrage suivant — `K7`. **Ne pas transformer le
+   `INSERT … ON CONFLICT DO NOTHING` en upsert.**
+5. **L'état de vue par cerveau est SESSION SEULEMENT.** Seuls le **cerveau
+   actif** et les **métadonnées** survivent au redémarrage. **Ne pas prétendre
+   que `P-19` est faite.**
+6. **`K10` s'exerce par une vraie frappe Windows**, comme `J12` : le mécanisme
+   est partagé dans `realInput.ts`. **Ne jamais remplacer la frappe par un
+   `.click()`** — la preuve est `isTrusted` et les compteurs à zéro.
+7. **Le menu du sélecteur ne se referme pas sur un `blur` à `relatedTarget`
+   nul.** Ce n'est pas un détail : une **désactivation de fenêtre** produit ce
+   `blur`, et refermer dessus faisait arriver la frappe réelle sur un bouton
+   démonté. **Ne pas « simplifier » ce gestionnaire.**
+8. **La vue n'est ajustée qu'une fois par cerveau** — `shouldFitOnOpen`. Un
+   second ajustement, quand le viewport se stabilise, **effaçait** la vue
+   qu'un cerveau venait de retrouver. **Ne pas remettre un `fitView`
+   inconditionnel dans cet effet.**
+9. **`J12` n'a pas été rejoué dans l'hôte** : le rejouer aurait écrasé
+   `TASK-0017-J12-webview2.json`, preuve publiée d'une tâche `VERIFIED`.
+   **Déclaré non testé.**
+10. **Les campagnes de vérification et de mesure marchent par cerveau** et ne
+    couvrent donc plus `wide` ni `mixed`. **Les artefacts publiés de
+    `TASK-0016` sont inchangés** et restent le relevé pour ces deux fixtures.
+11. **Ne pas afficher deux cerveaux dans le même graphique** (`TASK-0019`) et
+    **ne créer aucune relation inter-cerveaux** (`TASK-0020`).
+12. **`B0` s'est reproduit une quatrième fois.** Rien n'a été supprimé dans
+    `src-tauri/target/`; `CARGO_INCREMENTAL=0` suffit.
+
+### Comment rejouer `K12`
+
+`K12` demande **deux processus et deux passes**, avec une fermeture et un
+redémarrage **réels** :
+
+    CARGO_INCREMENTAL=0 pnpm tauri build --debug --no-bundle
+    rm -rf .filetopo-sandbox/brains          # repartir du catalogue neuf
+    pwsh scripts/k12-run-real-host.ps1
+
+**Le binaire doit être `debug`.** `map_write_run_artifact` n'existe qu'en
+`debug` : un binaire `release` ne peut écrire aucune preuve, pas même son
+abandon. La première tentative a été perdue exactement ainsi.
+
+Le lanceur démarre `scripts/j12-send-real-key.ps1` pour la passe 1 — **le même
+guetteur que `J12`**, sur la même convention de marqueur. Sans lui, `K10`
+échoue, et c'est voulu.
+
+## TASK-0017 — la deuxième tranche, VERIFIED
 
 **Un modèle de provenance existe.** C'est la première fois du projet.
 
@@ -129,9 +195,14 @@ Les quatre fixtures sont **engendrées** au premier clic, dans
 
 Deux modes non surveillés, **développement seulement** :
 
-    CARGO_INCREMENTAL=0 FILETOPO_AUTO_VERIFY=1 pnpm tauri dev     # rejoue H1-H7, H10, H11
-    CARGO_INCREMENTAL=0 FILETOPO_AUTO_MEASURE=1 pnpm tauri dev    # rejoue H9
+    CARGO_INCREMENTAL=0 FILETOPO_AUTO_VERIFY=1 pnpm tauri dev     # lecture seule et isolation, par cerveau
+    CARGO_INCREMENTAL=0 FILETOPO_AUTO_MEASURE=1 pnpm tauri dev    # campagne d'images, par cerveau
     CARGO_INCREMENTAL=0 FILETOPO_AUTO_RELATIONS=1 pnpm tauri dev  # rejoue J12
+    FILETOPO_AUTO_BRAINS=1|2                                      # les deux passes de K12
+
+Depuis `TASK-0018`, **les deux premières marchent par cerveau** : le runtime
+n'expose plus aucune commande indexée par fixture. Elles couvrent donc
+`quasi-empty` (deux fois) et `deep`, **et non** `wide` ni `mixed`.
 
 Chacun écrit son artefact sous `docs/performance/runs/`.
 
@@ -219,7 +290,9 @@ avant de contrôler GitHub, ce qui permet au rapport terminal de rester court.
     git show 51a8cac --stat    # TASK-0017 : le gel, AVANT tout code
     git show a98676e --stat    # TASK-0017 : le premier code de production
     git show 8a259e9 --stat    # TASK-0017 : les corrections X3 et X4
-    git log --oneline 50de16b..HEAD   # TASK-0018 : le gel, puis le code
+    git show 51bb687 --stat    # TASK-0018 : le gel, AVANT tout code
+    git show 4cb1cf4 --stat    # TASK-0018 : le premier code de production
+    git show 2424ef2 --stat    # TASK-0018 : les preuves K11 et K12
 
     CARGO_INCREMENTAL=0 cargo test --manifest-path src-tauri/Cargo.toml --lib
     pnpm check && pnpm test
@@ -229,7 +302,8 @@ avant de contrôler GitHub, ce qui permet au rapport terminal de rester court.
 Lance `/debut-session`. Elle lit ce qu'il faut, dans l'ordre, et rien de plus.
 
 `TASK-0012` à `TASK-0017` sont **closes et `VERIFIED`**; **`TASK-0018` est
-`APPROVED`**, son **gel `K1`–`K12` est commité avant tout code**.
+`IMPLEMENTED`** — gel `K1`–`K12` commité avant tout code, douze critères
+tenus, preuves publiées — et **attend son contrôle indépendant**.
 
 **FileTopo est multi-cerveaux** — `DEC-0017`. **Un `brain_id` n'est pas un
 `fixture_id`** : deux cerveaux peuvent partager une source et **doivent** rester

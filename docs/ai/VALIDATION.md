@@ -2445,3 +2445,91 @@ commités **avant la première ligne de code**, comme pour `TASK-0016` et
 
 **Non testé, et déclaré tel :** tout ce que `K1` à `K12` décrivent. Rien n'est
 encore exécuté.
+
+## AC. TASK-0018 — exécution : K1 à K12, contrôles d'exécution
+
+**Date :** 2026-09-01. **Branche :** `build/v0.2-a3-multibrain-foundation`.
+**Statut de la tâche : `IMPLEMENTED`.** **`VERIFIED` n'est pas attribué** —
+l'exécuteur ne s'auto-vérifie pas. Cette entrée enregistre des **contrôles
+d'exécution**, pas une vérification indépendante.
+
+**Le gel précède le code :** `51bb687` (gel §4), puis `4cb1cf4` (premier code),
+puis `2424ef2` (preuves). **Aucun critère retouché après le premier résultat.**
+
+### AC.1 Les douze critères
+
+| Critère | Preuve | Verdict |
+|---|---|---|
+| `K1` catalogue, 3 cerveaux, `brain_id` unique, `source_ref` partagé | tests `brains.rs`; `K12` passe 1 §1 | **TENU** |
+| `K2` `brain_id` frontière, inconnu = erreur nommée | `MapError::UnknownBrain`; test `an_unknown_brain_is_refused_by_name_rather_than_defaulted` | **TENU** |
+| `K3` isolation physique, chemins réels comparés | `brains/brain-alpha/map/index.sqlite` ≠ `brains/brain-gamma/map/index.sqlite`, publiés | **TENU** |
+| `K4` bascule 12 → 157 → 12 → 12 | `K12` passe 1, comptes lus par commande | **TENU** |
+| `K5` collision d'identifiants locaux | deux clés d'extrémité pour un même `node_id`; référence d'un autre cerveau **refusée** | **TENU** |
+| `K6` relations isolées, scénario §4.5 | Alpha 4→5 / 4→3; Gamma **inchangé**, sa `S-005` en attente | **TENU** |
+| `K7` métadonnées propres, seed non destructif | modification applicative, autres cerveaux inchangés, conservée après redémarrage | **TENU** |
+| `K8` état de session par cerveau | `alphaRestored=true`, `betaRestored=true`, états différents | **TENU** |
+| `K9` cerveau actif persistant | **fermeture et redémarrage réels**, Gamma actif au catalogue **et** à l'écran | **TENU** |
+| `K10` sélecteur clavier, **frappe réelle** | 4 bascules, `activationIsTrusted=true`, `keydownIsTrusted=true`, **0** clic programmatique | **TENU** |
+| `K11` lecture seule / `X2` | empreintes identiques ×3, **0** artefact dans les racines, surface `map_` seule | **TENU** |
+| `K12` hôte réel, 12 étapes | `TASK-0018-K12-webview2-pass{1,2}.json`, WebView2 `151.0.4129.107` | **TENU** |
+
+### AC.2 Validations exécutées
+
+| Validation | Commande | Résultat |
+|---|---|---|
+| Tests Rust | `CARGO_INCREMENTAL=0 cargo test --lib` | **PASS** — **104/104** (84 → 104) |
+| Tests TypeScript | `pnpm test` | **PASS** — **97/97** (82 → 97) |
+| Types | `pnpm check` | **PASS** |
+| Bundle web | `pnpm build` | **PASS** |
+| Build Tauri debug | `pnpm tauri build --debug --no-bundle` | **PASS** |
+| Build Tauri release | `pnpm tauri build --no-bundle` | **PASS**, 33,17 s |
+| Tests-gardes `X2` | suite Rust | **PASS**, plus un test **positif** sur la surface cerveaux |
+| Tests `X3` / `X4` | suite Rust | **PASS**, inchangés |
+| `K11` hôte réel | `FILETOPO_AUTO_VERIFY=1` | **PASS** — `TASK-0018-K11-readonly-and-isolation.json` |
+| `K12` hôte réel, 2 passes | `scripts/k12-run-real-host.ps1` | **PASS** — `pass1` et `pass2` |
+| Redémarrage réel `K9`/`K12` | deux processus, deux artefacts | **PASS** |
+| Nouvelle dépendance | `git diff` sur les manifestes | **aucune** |
+
+### AC.3 Empreintes de `K11`, telles que relevées
+
+| Cerveau | Source | Empreinte avant | Empreinte après reconstruction | Artefacts FileTopo dans la racine |
+|---|---|---|---|---|
+| `brain-alpha` | `quasi-empty` | `fnv1a64:bddfe1a16cac350f` | **identique** | **0** |
+| `brain-beta` | `deep` | `fnv1a64:075a9c069126e8f1` | **identique** | **0** |
+| `brain-gamma` | `quasi-empty` | `fnv1a64:bddfe1a16cac350f` | **identique** | **0** |
+
+**Alpha et Gamma ont la même empreinte de source** — c'est bien la **même**
+fixture — **et deux index dans deux fichiers différents.** C'est exactement ce
+que `K3` demande de prouver.
+
+### AC.4 Défauts trouvés en chemin, publiés
+
+| # | Défaut | Ce qu'il a produit | Correction |
+|---|---|---|---|
+| 1 | Le menu se refermait sur un `blur` à `relatedTarget` nul | une désactivation de fenêtre fermait le menu; la frappe réelle arrivait sur un bouton démonté | fermeture seulement si le focus part vers un autre élément **de la page**; 2 tests de régression |
+| 2 | La vue était ré-ajustée quand le viewport se stabilisait | `alphaRestored=false` **sur un produit dont la sélection revenait** — un faux négatif | `shouldFitOnOpen`, règle écrite une fois et testée |
+| 3 | Un binaire `release` ne peut pas écrire d'artefact | la 1re tentative de `K12` **n'a rien publié, pas même son abandon** | évidence construite dans un objet fourni par l'appelant; lanceur sur binaire `debug` |
+| 4 | `Write-Output` dans une fonction PowerShell entre dans sa valeur de retour | le lanceur a **annoncé un succès** alors que la passe 1 avait abandonné | `Write-Host`; l'attente s'arrête aussi sur l'artefact d'abandon |
+
+### AC.5 Non testé, et déclaré tel
+
+- **`J12` n'a PAS été rejoué dans l'hôte.** Le scénario a été migré vers
+  `brain-alpha` — même fixture, même mécanisme, extrait dans `realInput.ts` —
+  et il compile et typecheck, mais **il n'a pas été exécuté** : le rejouer
+  aurait **écrasé `TASK-0017-J12-webview2.json`**, preuve publiée d'une tâche
+  `VERIFIED`.
+- **Aucune mesure de performance, aucun seuil.** `R8` reste entière.
+- **Les campagnes de vérification et de mesure marchent désormais par cerveau**
+  et ne couvrent plus `wide` ni `mixed`. Les artefacts publiés de `TASK-0016`
+  sont **inchangés**.
+- **Persistance de la vue** : `P-19`, **non revendiquée**.
+- **Révocation de `P-04`** : **non implémentée**, `P-04` demeure **PARTIELLE**.
+- **`P-21`** : français seulement, aucun audit WCAG, **aucun lecteur d'écran
+  réel**.
+- **`B0` s'est reproduit une quatrième fois**; rien n'a été supprimé ni renommé
+  dans `src-tauri/target/`.
+- **Une seule machine, un seul runtime WebView2.**
+
+**Aucune réserve n'est levée par cette entrée.** `V1` à `V4`, `W1` à `W4`,
+`R2` à `R9` restent en vigueur.
+

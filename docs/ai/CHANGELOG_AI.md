@@ -2360,3 +2360,102 @@ entière** et le **contrat de parité n'est pas retouché**.
 ### Prochaine action unique
 
 **Exécuter `TASK-0018`** sur ses critères gelés.
+
+---
+
+## 2026-09-01 — TASK-0018 — Fondation multi-cerveaux, exécution
+
+**Agent :** exécuteur Claude Code
+**Statut à l'issue :** **`IMPLEMENTED`** — **`VERIFIED` non attribué**,
+l'exécuteur ne s'auto-vérifie pas
+**Branche :** `build/v0.2-a3-multibrain-foundation`
+**Commits :** `51bb687` (gel `K1`–`K12`, **avant tout code**) → `4cb1cf4`
+(premier code) → `2424ef2` (preuves `K11` et `K12`)
+
+### Fait
+
+**FileTopo a des cerveaux, et l'isolation est une affaire de stockage.**
+
+- **`src-tauri/src/map/brains.rs`** — `SourceKind` à une seule variante,
+  `FROZEN_BRAINS` (§4.2), `BrainRecord`, **`BrainNodeRef`**, et `BrainCatalog`
+  : seed **idempotent qui ne corrige jamais** un nom modifié, cerveau actif
+  persistant, métadonnées éditables et validées au niveau du magasin.
+  `source_ref` **n'a délibérément aucune contrainte `UNIQUE`** : deux cerveaux
+  sur une source sont un cas **supporté**, pas un accident à empêcher.
+- **`sandbox.rs`** — disposition §4.4 : `brains/catalog.sqlite`,
+  `brains/<brain_id>/map/index.sqlite`,
+  `brains/<brain_id>/relations/relations.sqlite`. `relative_name()` publie un
+  chemin **relatif au bac**, pour qu'aucun chemin local personnel n'entre dans
+  le dépôt. Les anciens `maps/` et `relations/` **restent, inutilisés** :
+  aucun accesseur n'y mène, **rien n'est supprimé**.
+- **`store.rs`** — schéma **version 2** : `map_meta` porte le **`brain_id` pour
+  lequel l'index a été construit**, et `built_for_brain()` le rend lisible. Un
+  index de version 1 ne nomme **aucun** cerveau, donc n'est celui de personne.
+- **`commands.rs`** — pipeline scopé par cerveau; `open_store` **refuse** un
+  index construit pour un autre cerveau (`MapError::BrainMismatch`); `detail`
+  prend un **`BrainNodeRef`** et refuse une référence frappée ailleurs.
+- **`relation_commands.rs`** — clés d'extrémité et magasin **par cerveau**.
+  Alpha et Gamma lisent `quasi-empty` et ne partagent **ni fichier ni clé**.
+- **`lib.rs`** — `map_brains`, `map_brain_activate`, `map_brain_update`; toutes
+  les commandes carte et relations prennent `brain_id`. **La surface reste
+  `map_`**, et un test **positif** l'exige désormais aussi.
+- **Interface** — `BrainSelector` (menu accessible, opérable au clavier seul,
+  actif marqué **par le mot « actif » et `aria-checked`**, jamais par la seule
+  couleur), `brainSession.ts` (mémoire de vue **par cerveau**, session
+  seulement), `MapApp` démarre sur le **cerveau actif du catalogue** et bascule
+  réellement. Le choix de fixture devient un **diagnostic développeur**.
+- **`brainScenario.ts` + `scripts/k12-run-real-host.ps1`** — `K12` en **deux
+  passes**, avec une **fermeture et un redémarrage réels**, et de **vraies
+  frappes Windows**. `realInput.ts` extrait `pressRealKey`/`waitUntil` de
+  `relationScenario` **sans changer le mécanisme**, pour que `J12` et `K10`
+  aient une seule implémentation de « une vraie frappe ».
+
+### Les douze critères gelés sont tenus
+
+`K1` à `K12`. Comptes `12 → 157 → 12 → 12`, index distincts pour Alpha et
+Gamma, approbation dans Alpha sans effet sur Gamma, session par cerveau
+restaurée à l'identique, cerveau actif et métadonnées **survivant à un
+redémarrage réel**, quatre bascules par frappe réelle avec
+`activationIsTrusted = true` et **0** clic programmatique.
+
+### Trouvé et publié
+
+- **Le menu se refermait sur un `blur` à `relatedTarget` nul** — ce qu'une
+  **désactivation de fenêtre** produit exactement. La frappe réelle arrivait
+  sur un bouton démonté. **`K10` avait raison, le contrôle avait tort.**
+- **La vue était ré-ajustée** quand le viewport se stabilisait, effaçant la vue
+  qu'un cerveau venait de retrouver : `K12` a publié `alphaRestored=false`
+  **sur un produit dont la sélection revenait parfaitement**. Règle désormais
+  écrite une fois — `shouldFitOnOpen` — et testée.
+- **Un binaire `release` ne peut pas écrire d'artefact**, si bien que la
+  première tentative de `K12` **n'a rien publié, pas même son abandon**.
+- **`Write-Output` dans une fonction PowerShell entre dans sa valeur de
+  retour**, ce qui a fait **annoncer un succès** après un abandon.
+
+### Validations
+
+104/104 Rust (84 → 104), 97/97 TypeScript (82 → 97), `pnpm check` **PASS**,
+`pnpm build` **PASS**, builds Tauri `debug` et `release` **PASS**, `K11` et
+`K12` **PASS** dans WebView2 `151.0.4129.107`.
+
+### Non fait, et déclaré tel
+
+- **`J12` n'a pas été rejoué dans l'hôte** : le rejouer aurait **écrasé** la
+  preuve publiée d'une tâche `VERIFIED`. **Non testé.**
+- **Aucune mesure de performance, aucun seuil.** `R8` entière.
+- **Les campagnes de vérification et de mesure marchent par cerveau** et ne
+  couvrent plus `wide` ni `mixed`; les artefacts de `TASK-0016` sont
+  **inchangés**.
+- **`P-19` non revendiquée**, **révocation de `P-04` non implémentée**,
+  **`P-21` non satisfaite**, **`ek1` toujours pas `I-E`**.
+- **`B0` s'est reproduit une quatrième fois**; **rien supprimé ni renommé**
+  dans `src-tauri/target/`.
+- **Aucune nouvelle dépendance, aucune donnée réelle, aucun sélecteur de
+  dossier.**
+- **Aucune fusion, PR, release, étiquette, `force push`**, aucune réécriture.
+
+### Prochaine action unique
+
+**Contrôle indépendant de `TASK-0018`**, par une instance distincte de
+l'exécuteur, **sur preuves**.
+

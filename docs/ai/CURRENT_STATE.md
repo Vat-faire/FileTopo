@@ -24,20 +24,24 @@
   **`X2` : `CLOSED`**); `TASK-0015`, `VERIFIED`
   ([`ACTION-0025`](../reviews/ACTION-0025-independent-control.md)), avec la
   réserve normative `X1`, corrigée
-- **Tâche ouverte :** **`TASK-0018`, `APPROVED`** le 2026-09-01 —
-  [fiche](../tasks/TASK-0018-multibrain-foundation.md), sous
+- **Tâche livrée, NON vérifiée :** **`TASK-0018`, `IMPLEMENTED`** le
+  2026-09-01 — fondation multi-cerveaux,
+  [fiche](../tasks/TASK-0018-multibrain-foundation.md) §7, sous
   [`DEC-0017`](../decisions/DEC-0017-multibrain-and-composed-views.md). **Gel
-  `K1`–`K12` commité avant toute ligne de code**
+  `K1`–`K12` commité avant toute ligne de code** — `51bb687`, puis le code en
+  `4cb1cf4`, puis les preuves en `2424ef2`. **`VERIFIED` non attribué :
+  l'exécuteur ne s'auto-vérifie pas.** **Attend son contrôle indépendant.**
 - **Tâche IN_PROGRESS :** aucune
 - **Porte `P4` :** **FRANCHIE** —
   [`DEC-0016`](../decisions/DEC-0016-p4-gate-crossing-and-first-slice.md)
 
 ## Ce qui a changé, en une phrase
 
-**FileTopo n'a plus une seule carte : il a des cerveaux.** La direction produit
-a tranché — l'application est **multi-cerveaux**, un cerveau a une **identité
-propre, distincte de sa source**, et une vue pourra un jour en composer
-plusieurs **sans jamais les fusionner**.
+**FileTopo n'a plus une seule carte : il a des cerveaux, et ils existent.** La
+direction produit avait tranché; la fondation est maintenant écrite. Deux
+cerveaux qui lisent **la même source** ont une identité, un index, des
+relations et un état **entièrement séparés** — et c'est le **stockage** qui
+l'impose, pas une convention d'appel.
 
 **Et ce qui avait changé à la tranche précédente tient :** FileTopo sait dire
 d'où vient une relation, avec un modèle de **provenance** bâti de telle sorte
@@ -74,16 +78,109 @@ pas une modification silencieuse.
 bascule → `TASK-0019` vue composée → `TASK-0020` relations inter-cerveaux.
 **`TASK-0018` n'implémente que la première ligne.**
 
-## TASK-0018 — le gel précède le code
+## TASK-0018 — la troisième tranche verticale
 
 Le **gel** de `TASK-0018` §4 — modèle de cerveau, **trois cerveaux synthétiques
-figés**, disposition du stockage, et **critères `K1` à `K12`** — est commité
+figés**, disposition du stockage, et **critères `K1` à `K12`** — a été commité
 **avant la première ligne de code**, comme pour `TASK-0016` et `TASK-0017`.
+**Aucun critère n'a été retouché après le premier résultat.**
+
+### Les douze critères gelés sont tenus
+
+| Critère | Verdict |
+|---|---|
+| `K1` catalogue, trois cerveaux, identité unique | **TENU** |
+| `K2` `brain_id` frontière, inconnu = erreur nommée | **TENU** |
+| `K3` isolation physique, chemins réels comparés | **TENU** |
+| `K4` bascule réelle 12 → 157 → 12 → 12 | **TENU** |
+| `K5` collision d'identifiants locaux | **TENU** |
+| `K6` relations isolées, scénario §4.5 | **TENU** |
+| `K7` métadonnées, propres au cerveau | **TENU** |
+| `K8` état de session par cerveau | **TENU** |
+| `K9` cerveau actif persistant | **TENU**, redémarrage réel |
+| `K10` sélecteur accessible, **vraie frappe** | **TENU**, 0 clic programmatique |
+| `K11` lecture seule, `X2` respectée | **TENU** |
+| `K12` hôte réel, douze étapes | **TENU**, WebView2 `151.0.4129.107` |
+
+### L'isolation est une affaire de stockage, pas de discipline
+
+**Le `brain_id` est le nom d'un répertoire.** `brains/<brain_id>/map/` et
+`brains/<brain_id>/relations/` : `brain-alpha` et `brain-gamma` lisent la
+**même** fixture `quasi-empty` et leurs états ne peuvent pas se rencontrer,
+parce qu'ils ne sont **pas dans le même fichier** — et non parce qu'une clause
+`WHERE` les sépare. Les deux chemins réels sont **publiés** dans la preuve.
+
+**L'index dit pour quel cerveau il a été construit.** Le schéma passe en
+**version 2** et `map_meta` porte `brain_id`. `open_store` **refuse** un index
+construit pour un autre cerveau, et un index de version 1 — qui ne nomme aucun
+cerveau — n'est celui de personne. Le test qui l'établit **copie réellement**
+l'index d'Alpha à la place de celui de Gamma.
+
+**Un `node_id` ne voyage jamais seul.** Les commandes de nœud prennent un
+**`BrainNodeRef`**. Après une bascule, l'interface tient encore la sélection du
+cerveau précédent, et `12` est une ligne valide dans Alpha **comme** dans
+Gamma : un numéro nu se résoudrait, silencieusement, dans le mauvais cerveau.
+
+**Les clés d'extrémité sont construites sur le cerveau**, donc deux cerveaux
+sur une même source produisent deux espaces de clés **disjoints**.
+
+### Ce qui a été trouvé en chemin, et publié
+
+**Deux défauts du produit, trouvés par les critères eux-mêmes.**
+
+Le **menu du sélecteur se refermait sur un `blur` à `relatedTarget` nul** — ce
+qu'une **désactivation de fenêtre** produit exactement. La frappe réelle de
+`K10` arrivait donc sur un bouton démonté à l'instant où l'hôte ramenait la
+fenêtre au premier plan. **Le critère avait raison, le contrôle avait tort.**
+
+**La vue était ré-ajustée** quand le viewport se stabilisait une image plus
+tard, effaçant la vue qu'un cerveau venait de retrouver : `K12` a publié
+`alphaRestored=false` **sur un produit dont la sélection revenait
+parfaitement**. La règle est désormais écrite **une seule fois**,
+`shouldFitOnOpen`, et testée.
+
+**Deux défauts d'outillage, publiés avec ce qu'ils ont produit.** Un binaire
+`release` **ne peut pas écrire d'artefact**, si bien que la première tentative
+de `K12` a **échoué sans rien publier, pas même son abandon** — le scénario
+construit maintenant son évidence dans un objet fourni par l'appelant, et c'est
+ainsi que le premier défaut a été diagnostiqué. Et **`Write-Output` dans une
+fonction PowerShell entre dans sa valeur de retour**, ce qui a fait **annoncer
+un succès** alors que la passe 1 avait abandonné.
+
+## Ce que TASK-0018 ne prouve pas
+
+- **`J12` n'a PAS été rejoué dans l'hôte.** Le scénario a été migré vers
+  `brain-alpha` — même fixture gelée, même mécanisme de frappe réelle, extrait
+  dans `realInput.ts` sans changement — mais **il n'a pas été exécuté** : le
+  rejouer aurait **écrasé** `TASK-0017-J12-webview2.json`, preuve publiée d'une
+  tâche `VERIFIED`. **Déclaré non testé.**
+- **Les boucles de vérification et de mesure marchent désormais par cerveau**,
+  le runtime n'exposant plus aucune commande indexée par fixture. Elles
+  couvrent donc `quasi-empty` (deux fois) et `deep`, **et non** `wide` ni
+  `mixed`. **Les artefacts publiés de `TASK-0016` sont inchangés** et restent
+  le relevé pour ces deux fixtures.
+- **Aucune mesure de performance, aucun seuil.** `R8` reste entière.
+- **La persistance complète `P-19` n'est pas revendiquée** : l'état de vue est
+  **session seulement**. Seuls le **cerveau actif** et les **métadonnées**
+  survivent au redémarrage.
+- **La révocation de `P-04` n'est toujours pas implémentée** : `P-04` demeure
+  **PARTIELLE**.
+- **`ek1` n'est pas `I-E`**, et rien ne prétend qu'il soit globalement unique
+  entre cerveaux — l'isolation vient du **stockage**.
+- **`B0` s'est reproduit une quatrième fois**, sur un `pnpm tauri build
+  --debug`. **Rien n'a été supprimé ni renommé** dans `src-tauri/target/`;
+  `CARGO_INCREMENTAL=0` suffit à contourner — `DEC-0013` E.
+- **`P-21` n'est pas satisfaite** : français seulement, aucun audit WCAG
+  complet, **aucun lecteur d'écran réel**.
+
+## TASK-0018 — le gel a précédé le code
 
 **`brain-alpha` et `brain-gamma` partagent volontairement la fixture
-`quasi-empty`.** C'est le test principal : même source, mêmes chemins relatifs,
-mêmes identifiants locaux possibles, et **deux cerveaux totalement
-indépendants**.
+`quasi-empty`.** C'était le test principal : même source, mêmes chemins
+relatifs, mêmes identifiants locaux possibles, et **deux cerveaux totalement
+indépendants**. La preuve le confirme sur les **empreintes** : les deux racines
+analysées ont la même empreinte `fnv1a64:bddfe1a1…`, et les deux index sont
+dans deux fichiers différents.
 
 **Hors périmètre et déclaré tel :** affichage simultané, relations
 inter-cerveaux, racine utilisateur, sélecteur de dossier, `P-08`, `P-09`,
@@ -351,7 +448,7 @@ transversale. `X1` contraint la tranche qui implémentera `P-04`, `P-05`, `P-07`
 
 | Étape | Objet | État |
 |---|---|---|
-| **A** | **Parité fonctionnelle MVP** | **EN COURS** — `TASK-0016` **`VERIFIED`**, `TASK-0017` **`VERIFIED`**, `TASK-0018` **`APPROVED`** (gel commité); **douze exigences restent entières**, dont `P-20` |
+| **A** | **Parité fonctionnelle MVP** | **EN COURS** — `TASK-0016` **`VERIFIED`**, `TASK-0017` **`VERIFIED`**, `TASK-0018` **`IMPLEMENTED`**, en attente de contrôle indépendant; **douze exigences restent entières**, dont `P-20` |
 | **B** | Finition visuelle moderne | PROPOSED — **ne commence pas** avant que **A** soit contrôlée |
 | **C** | Validation Windows/WebView2 réelle. **`R8` ne peut être levée qu'ici** | PROPOSED |
 | **D** | Empaquetage et publication — **réservé à Sébastien** | PROPOSED |
@@ -377,7 +474,9 @@ réalité de la frappe clavier de `J12`. **Pas** le reste du contrat de parité.
 implémentée**. Elle reste **déclarée manquante et hors périmètre**, et
 **`P-04` demeure PARTIELLE**. **`TASK-0018` ne l'implémente pas.**
 
-**L'action unique suivante est l'exécution de `TASK-0018`.**
+**`TASK-0018` est `IMPLEMENTED`, et NON `VERIFIED`.** L'exécuteur ne s'est
+rien attribué. **L'action unique suivante est le contrôle indépendant de
+`TASK-0018`**, par une instance distincte de l'exécuteur et **sur preuves**.
 
 **Une tranche suivante exigera sa propre fiche, ses critères gelés d'avance et
 son propre GO.**
