@@ -4,21 +4,28 @@
 - **Titre :** Première tranche de code de production — **une tranche verticale
   minimale** de la racine synthétique jusqu'à la carte sélectionnable, dans un
   **véritable hôte Tauri/WebView2**
-- **Statut :** **`PROPOSED`**
+- **Statut :** **`APPROVED`** le 2026-08-31, porte `P4` **franchie** par
+  [DEC-0016](../decisions/DEC-0016-p4-gate-crossing-and-first-slice.md);
+  **gelée avant exécution** — voir §12
 - **Phase :** étape **A** de la feuille de route — parité fonctionnelle MVP,
   première tranche
 - **Proposée le :** 2026-08-31
 - **Rédacteur de la fiche :** Claude Code, sous le GO technique de
   l'orchestrateur pour `TASK-0015`
-- **Exécuteur :** non désigné
-- **GO d'exécution :** **NON ACQUIS.** Cette fiche **ne s'exécute pas.**
+- **Exécuteur :** Claude Code, session `filetopo-p4-vertical-slice`
+- **GO d'exécution :** **ACQUIS** le 2026-08-31 — GO technique de
+  l'orchestrateur nommant cette fiche, après le franchissement de `P4`
+- **Branche :** `build/v0.2-p4-vertical-slice`, créée depuis le tip contrôlé
+  `73f03273101f43096bafd4ac634253a2dd3dd5a9` **après** le commit documentaire
+  de clôture d'`ACTION-0025`
 
-> **Rien de cette fiche n'est autorisé aujourd'hui.** Elle **spécifie** une
-> tâche future. Son exécution suppose que la porte **`P4` soit franchie**, ce
-> qui n'est pas le cas.
+> **§1 à §11 sont le texte d'origine du 2026-08-31, conservé intact.** Elles
+> décrivaient une tâche qui ne s'exécutait pas encore. **Elles ne sont pas
+> réécrites** : le **gel** et l'**exécution** s'ajoutent en §12 et suivantes.
 >
-> Elle ne contient **aucun résultat**, **aucune mesure** et **aucun engagement
-> de performance**.
+> **§12 fige, avant la première ligne de code**, les critères `H1` à `H11`, les
+> quatre fixtures et la borne de charge. **Rien de §12 ne se retouche après le
+> premier résultat.**
 
 ## 1. Ce qui doit être vrai avant que cette fiche puisse démarrer
 
@@ -199,6 +206,11 @@ juge pas ses propres preuves.
 
 - 2026-08-31 — `PROPOSED` : fiche rédigée par `TASK-0015`, **non approuvée,
   non exécutée**. Aucune ligne de code, aucune mesure, aucune branche créée.
+- 2026-08-31 — `APPROVED` : porte `P4` **franchie** par `ACTION-0025` et
+  `DEC-0016`; GO technique de l'orchestrateur nommant cette fiche.
+- 2026-08-31 — **GEL** : §12 écrite et commitée **avant toute modification de
+  code**, sur `build/v0.2-p4-vertical-slice`. Critères `H1` à `H11`, quatre
+  fixtures et borne de charge **figés**.
 
 ## 11. Ce que cette fiche ne fait pas
 
@@ -206,3 +218,117 @@ Elle **n'exécute rien**, **ne franchit pas `P4`**, **n'écrit aucune ligne de
 code**, **ne crée aucune branche**, **n'installe aucune dépendance** et **ne
 mesure rien**. Elle ne lève aucune réserve : `V1` à `V4`, `W1` à `W4` et `R2` à
 `R9` restent en vigueur.
+
+---
+
+## 12. GEL AVANT EXÉCUTION — écrit et commité avant la première ligne de code
+
+- **Date du gel :** 2026-08-31
+- **Branche :** `build/v0.2-p4-vertical-slice`
+- **Autorité :** `ACTION-0025` `D7` et `DEC-0016` C
+
+> **Rien de cette section ne se retouche après le premier résultat.** Une cible
+> manquée **se publie comme manquée**. Un critère qui s'avère mal posé **se
+> déclare bloqué**, comme `G3` de `TASK-0014`; il ne se réécrit pas.
+
+### 12.1 Les quatre fixtures synthétiques — graine et structure figées
+
+**Toutes sont générées par du code déterministe du dépôt**, à partir d'une
+graine fixe et d'une règle structurelle écrite ici. **Aucune donnée réelle,
+aucun contenu utilisateur, aucun nom personnel.** Le contenu des fichiers est
+un texte synthétique dérivé du chemin relatif.
+
+| Fixture | Graine | Règle structurelle figée | Borne de nœuds |
+|---|---|---|---|
+| `QUASI_EMPTY` | `20260831001` | racine; 2 dossiers de premier niveau; le premier contient 3 fichiers; le second contient 1 sous-dossier de 2 fichiers et 1 fichier; 2 fichiers à la racine | **≤ 25** |
+| `DEEP` | `20260831002` | chaîne de **39 dossiers imbriqués** `niveau-01` … `niveau-39`; **chaque** niveau contient 2 fichiers **et** 1 dossier vide `annexe`. **Profondeur maximale = 40**, atteinte par les fichiers et l'`annexe` du niveau 39 | **≤ 500** |
+| `WIDE` | `20260831003` | racine; 12 dossiers de premier niveau; **chacun** 20 sous-dossiers; **chaque** sous-dossier contient entre **5 et 11** fichiers, tiré de la graine | **≤ 3 000** |
+| `MIXED` | `20260831004` | six branches de formes différentes : `large` 20 sous-dossiers de 10 à 20 fichiers; `profond` chaîne de 30 niveaux de 2 à 4 fichiers; `plat` un seul dossier de 1 200 à 1 800 fichiers; `equilibre` 8 fois 8 sous-dossiers de 5 à 12 fichiers; `vide` 4 dossiers vides; `noms` 60 fichiers à noms longs et non ASCII | **≤ 5 000** |
+
+**Aucune fixture de cette tranche ne dépasse 5 000 nœuds.**
+
+**Ce que cette borne est, et ce qu'elle n'est pas.** C'est une **limite de
+`TASK-0016`**, choisie pour que la tranche soit exécutable et mesurable
+aujourd'hui. **Ce n'est pas une limite produit finale**, ni un plafond de
+capacité, ni une mesure. Le contrat de parité exige, lui, `P-08` sur
+**100 000 nœuds** : cette volumétrie appartient aux tranches suivantes de
+l'étape **A**.
+
+**Le nombre exact de nœuds produit par chaque graine est un résultat**, publié
+après exécution. Seules la **graine**, la **règle** et la **borne** sont
+figées ici.
+
+### 12.2 La borne de charge de §5.2 — déclarée d'avance
+
+| # | Borne | Valeur figée |
+|---|---|---|
+| `B-1` | **Plafond de nœuds par carte**, appliqué par l'indexeur | **5 000**. Au-delà, la construction **échoue avec une erreur explicite**. **Aucune troncature silencieuse**, aucun échantillonnage, aucun niveau de détail |
+| `B-2` | **Profondeur maximale de fixture** | **40** |
+| `B-3` | **Aire minimale d'un bloc de calepinage** | **2 400 unités² de l'espace de calepinage**. **C'est un choix, pas une mesure**, et il se déclare comme tel |
+| `B-4` | **Bornes de zoom** | de **0,25 fois** à **4 096 fois** l'échelle d'ajustement, calculées par carte à l'ouverture. **Aucun état hors bornes n'est atteignable** |
+
+**`B-1` est la borne exigée par `DEC-0015` F.** Elle est un **plafond de blocs
+construits**, exprimé et appliqué, **pas** un budget adaptatif : elle ne
+s'ajuste à rien, ne mesure rien et ne se règle pas en cours d'exécution.
+
+**Aucun contrôleur de `TASK-0013` ni de `TASK-0014` n'est repris, en tout ou en
+partie.**
+
+### 12.3 Critères d'acceptation figés — H1 à H11
+
+| # | Énoncé falsifiable, figé |
+|---|---|
+| `H1` | Sur **les quatre** fixtures, l'ensemble des chemins relatifs présents dans l'index **égale** l'ensemble attendu calculé indépendamment par le générateur de fixture, **et** l'ensemble réellement présent sur disque énuméré par un parcours indépendant. **Trois ensembles, une seule égalité.** Toute différence est un échec |
+| `H2` | Sur **les quatre** fixtures, pour **chaque** nœud : largeur et hauteur **strictement positives**; pour **chaque** paire de frères : aire d'intersection **nulle**; pour **chaque** enfant : rectangle **entièrement contenu** dans celui de son parent. **Zéro violation** exigée |
+| `H3` | Pour **chaque** nœud des quatre fixtures, le parent et l'ensemble des enfants directs rendus par l'API de détail **égalent** ceux obtenus par une requête indépendante sur l'index |
+| `H4` | Panoramique, zoom, ajuster et réinitialiser sont atteignables **à la souris et au clavier**; sur une séquence pseudo-aléatoire de **10 000 opérations** de vue, **aucun état hors des bornes `B-4` n'est atteignable**; « réinitialiser » reproduit **exactement** la vue d'ouverture, comparée **paramètre par paramètre** — échelle, translation en x, translation en y |
+| `H5` | Le panneau de détails affiche, pour chaque nœud, des valeurs **égales à l'index** : nom, type, chemin relatif, taille, date de modification, parent, nombre d'enfants, **et diagnostics d'accès**. Les diagnostics sont **affichés**, jamais masqués |
+| `H6` | **Empreinte de la fixture identique avant et après** une session complète exerçant `H1` à `H5` — noms, structure, contenu, tailles et horodatages de modification. **Aucun fichier de FileTopo dans la racine analysée** |
+| `H7` | Supprimer le fichier d'index puis relancer produit un index **équivalent** : mêmes nœuds, même hiérarchie, **mêmes rectangles de calepinage**, comparés par empreinte. **L'état non reconstructible est énuméré**, jamais présumé vide |
+| `H8` | L'application **démarre et rend dans WebView2** sur Windows. Le **moteur employé et sa version** sont **relevés et déclarés** |
+| `H9` | Temps d'image et latence de sélection relevés **dans WebView2**, sur les quatre fixtures, **cinq exécutions par fixture**, avec **médiane** et **écart min–max**. **`H9` n'impose aucune cible d'images par seconde.** Le succès est d'**obtenir honnêtement les mesures** et de les **publier sans sélection favorable** : toutes les exécutions comptent, et la pire est citée avec la médiane. L'écart avec les mesures Edge et Chrome des spikes est **publié tel quel**, **sans être expliqué a posteriori**. **Les performances finales appartiennent à l'étape C** |
+| `H10` | Le calepinage est payé **une fois par arborescence** : son coût est mesuré **séparément** du coût par image, et le nombre d'invocations du calepinage pendant la navigation est **exactement zéro** |
+| `H11` | Les bornes `B-1` à `B-4` de §12.2 sont **déclarées avant exécution** — le présent commit le prouve — et **respectées**. Un dépassement de `B-1` produit une **erreur explicite**, jamais une troncature |
+
+### 12.4 Ce que l'exécution n'a pas le droit de faire
+
+En plus des conditions d'arrêt de §7, **figées ici** :
+
+- **aucune donnée réelle**, **aucun sélecteur vers un dossier utilisateur** —
+  la seule source est une fixture synthétique générée par le dépôt;
+- **aucune relation transversale** — `P-04`, `P-05`, `P-07` sont hors
+  périmètre;
+- **aucune recherche, aucun filtre, aucune légende, aucun watcher, aucun
+  journal de changements, aucun état vu/non vu, aucun multi-cerveaux**;
+- **aucun contrôleur de budget** de `TASK-0013` ni de `TASK-0014`;
+- **ni Canvas 2D, ni WebGL** — le rendu est **HTML/SVG accessible**;
+- **`CAL-B` est un candidat technique, pas une obligation visuelle** :
+  l'apparence reste libre, et **aucune fonction de parité couverte ne peut
+  être sacrifiée au calepinage**. Si le calepinage rend une exigence
+  inatteignable, **c'est l'algorithme qui cède**;
+- **aucune écriture ni modification dans les fixtures analysées** après leur
+  matérialisation — invariant `I-1`;
+- **aucune suppression, aucun nettoyage, aucun renommage** dans
+  `src-tauri/target/` — `DEC-0013` E. Si le défaut `B0` se reproduit, il est
+  **enregistré comme reproduction connue** et contourné par
+  `CARGO_INCREMENTAL=0` **pour les builds de cette tâche seulement**. **`B0`
+  n'est pas corrigé par cette tranche**, et rien ne peut le laisser entendre;
+- **aucune dépendance nouvelle** sans arrêt préalable, justification et
+  licence rapportées.
+
+### 12.5 Où vivent les données d'exécution
+
+- **La fixture analysée** est matérialisée dans un **bac à sable contrôlé**,
+  hors de l'arborescence versionnée du dépôt — `.filetopo-sandbox/`, ignoré
+  par Git — en développement, et dans l'**espace applicatif** de l'application
+  en production. **Elle n'est jamais un dossier de l'utilisateur.**
+- **L'index et tout état de FileTopo** vivent **hors de la racine analysée** —
+  invariant `I-2`.
+- **Les tests automatisés** travaillent dans des **répertoires temporaires**.
+- **Aucun dossier utilisateur n'est lu, listé ni écrit.**
+
+### 12.6 État final attendu
+
+**`TASK-0016` se termine `IMPLEMENTED`.** L'exécuteur **ne s'attribue pas
+`VERIFIED`**. L'action suivante sera le **contrôle indépendant** de cette
+tranche.
