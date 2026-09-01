@@ -42,6 +42,10 @@
   `TASK-0018-J12-relations-regression-webview2.json` — sont **protégées à la
   porte d'écriture**, et **le runtime de `TASK-0019` n'écrit plus aucun
   résultat sous un nom `TASK-0018`**.
+- **Tâche APPROVED, en cours d'exécution :** **`TASK-0019`** — **vue composée
+  multi-cerveaux**, [fiche](../tasks/TASK-0019-composed-multibrain-view.md),
+  sous [`DEC-0017`](../decisions/DEC-0017-multibrain-and-composed-views.md),
+  fonction **`F-040`**. **Gel `L1`–`L12` commité avant toute ligne de code.**
 - **Tâche IN_PROGRESS :** aucune
 - **Porte `P4` :** **FRANCHIE** —
   [`DEC-0016`](../decisions/DEC-0016-p4-gate-crossing-and-first-slice.md)
