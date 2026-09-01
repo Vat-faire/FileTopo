@@ -494,12 +494,15 @@ vérifie plutôt que de le supposer.
 
 ### 7.4 Ce que cette tranche ne prouve pas
 
-- **`J12` n'a pas été rejoué dans l'hôte.** Le scénario a été migré vers
-  `brain-alpha` — même fixture gelée, même mécanisme de frappe réelle, extrait
-  dans `realInput.ts` sans changement — et il compile et typecheck, mais il
-  **n'a pas été exécuté**. Le rejouer aurait **écrasé
+- **`J12` n'avait pas été rejoué dans l'hôte au moment de `7.1`.** Le scénario
+  avait été migré vers `brain-alpha` — même fixture gelée, même mécanisme de
+  frappe réelle, extrait dans `realInput.ts` sans changement — mais il
+  **n'avait pas été exécuté** : le rejouer aurait **écrasé
   `TASK-0017-J12-webview2.json`**, preuve publiée d'une tâche `VERIFIED`.
-  **Déclaré non testé.**
+  **C'est exactement la réserve `X5`.** Depuis la correction enregistrée en
+  **§8**, le scénario écrit sous un nom `TASK-0018` de régression et **il a été
+  rejoué une fois dans le vrai WebView2**. Ce point n'est plus « non testé »;
+  voir §8.2.
 - **La campagne `H9` n'a pas été reprise**, et aucune mesure n'a été faite.
   `R8` reste entière.
 - **Les boucles de vérification et de mesure marchent désormais par cerveau**,
@@ -546,6 +549,86 @@ vérifie plutôt que de le supposer.
 `NEXT_ACTION` = **contrôle indépendant de `TASK-0018`**, par une instance
 distincte de l'exécuteur, **sur preuves**.
 
+## 8. Correction de la réserve `X5` — ACTION-0028
+
+- **Date :** 2026-09-01
+- **Origine :** contrôle indépendant enregistré dans
+  [`ACTION-0028`](../reviews/ACTION-0028-independent-control.md) —
+  **`CHANGES_REQUIRED`**, une seule réserve, **`X5`**
+- **État de la tâche :** **inchangé — `IMPLEMENTED`.** `VERIFIED` n'est pas
+  attribué
+- **Rien de §4 n'a été retouché.** Aucun critère `K`, aucune fixture, aucune
+  règle gelée. Aucun critère `H` ou `J` non plus
+
+### 8.1 Ce que `X5` reprochait, et ce qui a changé
+
+Les scénarios migrés par cette tranche écrivaient encore sous les noms
+canoniques de `TASK-0016` et de `TASK-0017`, et `write_run_artifact` écrit par
+**remplacement** : une exécution du runtime courant pouvait donc détruire la
+preuve publiée d'une tâche déjà `VERIFIED`.
+
+La règle instaurée : **une exécution d'une tâche ultérieure ne remplace jamais
+la preuve canonique d'une tâche antérieure `VERIFIED`.** Elle est tenue **à la
+porte** — `write_run_artifact` refuse les noms protégés avant tout accès au
+disque — et non par convention.
+
+| Ce qui s'exécute | Écrit désormais |
+|---|---|
+| boucle de mesure, par cerveau | `TASK-0018-H9-multibrain-regression-webview2.json` |
+| scénario relations, sur `brain-alpha` | `TASK-0018-J12-relations-regression-webview2.json` |
+
+Chaque artefact déclare `task`, `sourceCriterion`, `nature`,
+`doesNotReplace` et `replacesCanonicalEvidence: false`.
+
+**Aucune mesure `H9` n'a été exécutée** : cette tranche n'a aucun critère de
+performance. **`R8` reste entière.**
+
+### 8.2 Le `J12` de régression, rejoué dans l'hôte réel
+
+Une exécution, sur `brain-alpha`, WebView2 `151.0.4129.107`, **frappe Windows
+réelle** : `activationIsTrusted = true`, `keydownIsTrusted = true`, **0**
+`click()` programmatique, **0** `dispatchEvent(click)`, traversée réelle au
+clavier, approbation explicite de `S-005` (`3 → 4` sortantes,
+`enteredCountsOnlyAfterApproval = true`), `X3` respecté (5/5 rejets),
+comptes cohérents (`countsAgree`, `replayStable`).
+
+**Preuve :**
+[`TASK-0018-J12-relations-regression-webview2.json`](../performance/runs/TASK-0018-J12-relations-regression-webview2.json).
+
+**La preuve originale de `TASK-0017` est inchangée**, empreinte et `git diff`
+à l'appui.
+
+### 8.3 Garde de régression
+
+**9 tests neufs** — 7 en TypeScript (`src/map/runArtifacts.test.ts`), 2 en Rust
+(`map::commands::tests`) — éprouvés **par mutation**. Ils échouent si un site
+d'écriture du runtime redevient un nom protégé.
+
+### 8.4 Revalidation
+
+| Validation | Résultat |
+|---|---|
+| Tests Rust | **106/106** (104 → 106) |
+| Tests TypeScript | **104/104** (97 → 104) |
+| `pnpm check` | **PASS** |
+| `pnpm build` | **PASS** |
+| Build Tauri `debug --no-bundle` | **PASS**, 12,12 s |
+| Tests-gardes `X2` | **PASS** |
+| Tests `X3` / `X4` | **PASS**, inchangés |
+| Nouveau test `X5` | **PASS** |
+| `J12` de régression dans WebView2 | **PASS** |
+| `TASK-0016-H9-webview2.json` | **inchangé**, `git diff` vide |
+| `TASK-0017-J12-webview2.json` | **inchangé**, `git diff` vide |
+| Nouvelle dépendance | **aucune** |
+
+`K12` n'a pas été rejoué : **aucun code produit de bascule, de catalogue ou de
+session n'a été modifié.**
+
+### 8.5 État
+
+**`X5` est corrigée, NON close.** Sa clôture appartient au **re-contrôle
+indépendant**, qui reste l'action unique suivante.
+
 ## Historique d'état
 
 | Date | État | Motif |
@@ -554,3 +637,4 @@ distincte de l'exécuteur, **sur preuves**.
 | 2026-09-01 | `APPROVED` | GO technique de l'orchestrateur, périmètre écrit en §2 et §3 |
 | 2026-09-01 | `IN_PROGRESS` | Exécution commencée après le gel `51bb687`; §4 n'est pas retouchée |
 | 2026-09-01 | `IMPLEMENTED` | `K1`–`K12` tenus, preuves publiées; `VERIFIED` non attribué par l'exécuteur |
+| 2026-09-01 | `IMPLEMENTED` | Correction de la réserve `X5` d'`ACTION-0028`; `J12` de régression rejoué; statut inchangé, `VERIFIED` toujours non attribué |

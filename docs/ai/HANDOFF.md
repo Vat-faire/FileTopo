@@ -12,7 +12,13 @@
 - **Tâche livrée, NON vérifiée :** **`TASK-0018`, `IMPLEMENTED`** le
   2026-09-01 — **fondation multi-cerveaux**. Gel `K1`–`K12` en `51bb687`,
   code en `4cb1cf4`, preuves en `2424ef2`. **Les douze critères sont tenus.**
-  **Attend son contrôle indépendant.**
+- **Contrôle indépendant rendu :**
+  [`ACTION-0028`](../reviews/ACTION-0028-independent-control.md) —
+  **`CHANGES_REQUIRED`**, fond accepté, **une seule réserve : `X5`**, *les
+  outils du runtime courant pouvaient écraser les artefacts canoniques de
+  tâches déjà `VERIFIED`*. **Corrigée; `X5` reste `OPEN`.** Voir
+  [`TASK-0018` §8](../tasks/TASK-0018-multibrain-foundation.md).
+- **Attend son RE-CONTRÔLE indépendant, sur `X5` uniquement.**
 - **Tâche IN_PROGRESS :** aucune
 - **Porte `P4` :** **FRANCHIE** —
   [`DEC-0016`](../decisions/DEC-0016-p4-gate-crossing-and-first-slice.md)
@@ -116,9 +122,15 @@ source : `brain-alpha` et `brain-gamma` lisent la **même** fixture
    second ajustement, quand le viewport se stabilise, **effaçait** la vue
    qu'un cerveau venait de retrouver. **Ne pas remettre un `fitView`
    inconditionnel dans cet effet.**
-9. **`J12` n'a pas été rejoué dans l'hôte** : le rejouer aurait écrasé
-   `TASK-0017-J12-webview2.json`, preuve publiée d'une tâche `VERIFIED`.
-   **Déclaré non testé.**
+9. **UNE EXÉCUTION D'UNE TÂCHE ULTÉRIEURE N'ÉCRASE JAMAIS LA PREUVE
+   CANONIQUE D'UNE TÂCHE `VERIFIED`** — réserve `X5`. La règle est tenue **à la
+   porte** : `write_run_artifact` refuse les noms de
+   `PROTECTED_RUN_ARTIFACTS`, et tous les noms d'artefacts du runtime vivent
+   dans `src/map/runArtifacts.ts`. **Ne jamais écrire un nom d'artefact en
+   dur**, et ne jamais retirer un nom de la liste protégée pour « débloquer »
+   un scénario : renommer le scénario, pas la preuve. `J12` migré écrit
+   désormais `TASK-0018-J12-relations-regression-webview2.json`, **et il a été
+   rejoué** dans l'hôte réel.
 10. **Les campagnes de vérification et de mesure marchent par cerveau** et ne
     couvrent donc plus `wide` ni `mixed`. **Les artefacts publiés de
     `TASK-0016` sont inchangés** et restent le relevé pour ces deux fixtures.
@@ -197,7 +209,7 @@ Deux modes non surveillés, **développement seulement** :
 
     CARGO_INCREMENTAL=0 FILETOPO_AUTO_VERIFY=1 pnpm tauri dev     # lecture seule et isolation, par cerveau
     CARGO_INCREMENTAL=0 FILETOPO_AUTO_MEASURE=1 pnpm tauri dev    # campagne d'images, par cerveau
-    CARGO_INCREMENTAL=0 FILETOPO_AUTO_RELATIONS=1 pnpm tauri dev  # rejoue J12
+    CARGO_INCREMENTAL=0 FILETOPO_AUTO_RELATIONS=1 pnpm tauri dev  # rejoue J12 en regression
     FILETOPO_AUTO_BRAINS=1|2                                      # les deux passes de K12
 
 Depuis `TASK-0018`, **les deux premières marchent par cerveau** : le runtime
@@ -215,8 +227,9 @@ fichier, puis, dans un autre terminal :
 Sans ce second processus, `J12` **échoue** — et c'est voulu : il ne se rabat
 jamais sur un clic synthétique.
 
-**Avant de rejouer `J12` :** remettre le magasin de relations à neuf —
-`rm -rf .filetopo-sandbox/relations` — et **n'ouvrir qu'une seule instance de
+**Avant de rejouer `J12` :** remettre le magasin de relations **du cerveau**
+à neuf — `rm -rf .filetopo-sandbox/brains/brain-alpha/relations` — pour que
+`S-005` soit bien en attente, et **n'ouvrir qu'une seule instance de
 l'application**. Deux instances partageant le même magasin produisent des
 artefacts contradictoires; c'est arrivé, c'est déclaré, et les artefacts
 concernés ont été détruits.
@@ -275,8 +288,9 @@ avant de contrôler GitHub, ce qui permet au rapport terminal de rester court.
 
 ## Prochaine action unique
 
-**Exécuter `TASK-0018`** — fondation multi-cerveaux — sur ses critères
-**gelés** `K1` à `K12`. Détail dans [NEXT_ACTION.md](NEXT_ACTION.md).
+**Re-contrôle indépendant de `TASK-0018`, sur la réserve `X5` uniquement**, par
+une instance distincte de l'exécuteur, **sur preuves**. Détail dans
+[NEXT_ACTION.md](NEXT_ACTION.md).
 
 ## Commandes sûres
 
@@ -303,7 +317,9 @@ Lance `/debut-session`. Elle lit ce qu'il faut, dans l'ordre, et rien de plus.
 
 `TASK-0012` à `TASK-0017` sont **closes et `VERIFIED`**; **`TASK-0018` est
 `IMPLEMENTED`** — gel `K1`–`K12` commité avant tout code, douze critères
-tenus, preuves publiées — et **attend son contrôle indépendant**.
+tenus, preuves publiées. Son contrôle indépendant, `ACTION-0028`, a rendu
+**`CHANGES_REQUIRED`** sur une seule réserve, **`X5`** : elle est **corrigée et
+reste `OPEN`**, et `TASK-0018` **attend son re-contrôle**.
 
 **FileTopo est multi-cerveaux** — `DEC-0017`. **Un `brain_id` n'est pas un
 `fixture_id`** : deux cerveaux peuvent partager une source et **doivent** rester

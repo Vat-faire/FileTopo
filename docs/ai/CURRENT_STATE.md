@@ -26,11 +26,24 @@
   réserve normative `X1`, corrigée
 - **Tâche livrée, NON vérifiée :** **`TASK-0018`, `IMPLEMENTED`** le
   2026-09-01 — fondation multi-cerveaux,
-  [fiche](../tasks/TASK-0018-multibrain-foundation.md) §7, sous
+  [fiche](../tasks/TASK-0018-multibrain-foundation.md) §7 et §8, sous
   [`DEC-0017`](../decisions/DEC-0017-multibrain-and-composed-views.md). **Gel
   `K1`–`K12` commité avant toute ligne de code** — `51bb687`, puis le code en
   `4cb1cf4`, puis les preuves en `2424ef2`. **`VERIFIED` non attribué :
-  l'exécuteur ne s'auto-vérifie pas.** **Attend son contrôle indépendant.**
+  l'exécuteur ne s'auto-vérifie pas.**
+- **Contrôle indépendant de `TASK-0018` :**
+  [`ACTION-0028`](../reviews/ACTION-0028-independent-control.md) —
+  **`CHANGES_REQUIRED`**. Le fond de `K1` à `K12` est **accepté**; une seule
+  réserve bloque `VERIFIED` : **`X5`** — les outils du runtime courant
+  pouvaient **écraser les artefacts canoniques** de tâches déjà `VERIFIED`.
+  **`X5` est corrigée, et reste `OPEN`** : sa clôture appartient au
+  **re-contrôle**. `TASK-0018` **reste `IMPLEMENTED`**.
+- **Règle instaurée le 2026-09-01 :** **une exécution d'une tâche ultérieure ne
+  remplace jamais la preuve canonique d'une tâche antérieure `VERIFIED`.** Elle
+  est tenue **à la porte d'écriture** — `write_run_artifact` refuse les noms
+  protégés — et non par convention. Les scénarios migrés écrivent sous un nom
+  `TASK-0018` de **régression**, et le `J12` de régression **a été rejoué**
+  dans le vrai WebView2, sans toucher à la preuve de `TASK-0017`.
 - **Tâche IN_PROGRESS :** aucune
 - **Porte `P4` :** **FRANCHIE** —
   [`DEC-0016`](../decisions/DEC-0016-p4-gate-crossing-and-first-slice.md)
@@ -149,11 +162,16 @@ un succès** alors que la passe 1 avait abandonné.
 
 ## Ce que TASK-0018 ne prouve pas
 
-- **`J12` n'a PAS été rejoué dans l'hôte.** Le scénario a été migré vers
-  `brain-alpha` — même fixture gelée, même mécanisme de frappe réelle, extrait
-  dans `realInput.ts` sans changement — mais **il n'a pas été exécuté** : le
-  rejouer aurait **écrasé** `TASK-0017-J12-webview2.json`, preuve publiée d'une
-  tâche `VERIFIED`. **Déclaré non testé.**
+- **`J12` a été rejoué dans l'hôte — depuis la correction d'`X5`.** Il ne
+  l'avait pas été à la livraison, faute de pouvoir écrire sans **écraser**
+  `TASK-0017-J12-webview2.json`. C'était la réserve elle-même. Le scénario
+  écrit désormais sous
+  `TASK-0018-J12-relations-regression-webview2.json`, et une exécution réelle a
+  eu lieu sur `brain-alpha`, WebView2 `151.0.4129.107`, **vraie frappe
+  Windows** : `isTrusted` à `true`, **0** clic programmatique, approbation
+  explicite, `X3` respecté, comptes cohérents. **La preuve de `TASK-0017` est
+  inchangée.** Ce que ce rejeu prouve est une **non-régression**, pas une
+  réédition de `J12`.
 - **Les boucles de vérification et de mesure marchent désormais par cerveau**,
   le runtime n'exposant plus aucune commande indexée par fixture. Elles
   couvrent donc `quasi-empty` (deux fois) et `deep`, **et non** `wide` ni
@@ -167,9 +185,10 @@ un succès** alors que la passe 1 avait abandonné.
   **PARTIELLE**.
 - **`ek1` n'est pas `I-E`**, et rien ne prétend qu'il soit globalement unique
   entre cerveaux — l'isolation vient du **stockage**.
-- **`B0` s'est reproduit une quatrième fois**, sur un `pnpm tauri build
-  --debug`. **Rien n'a été supprimé ni renommé** dans `src-tauri/target/`;
-  `CARGO_INCREMENTAL=0` suffit à contourner — `DEC-0013` E.
+- **`B0` s'est reproduit une cinquième fois**, la dernière sur `cargo test`
+  pendant la correction d'`X5`. **Rien n'a été supprimé ni renommé** dans
+  `src-tauri/target/`; `CARGO_INCREMENTAL=0` suffit à contourner —
+  `DEC-0013` E.
 - **`P-21` n'est pas satisfaite** : français seulement, aucun audit WCAG
   complet, **aucun lecteur d'écran réel**.
 

@@ -2533,3 +2533,74 @@ que `K3` demande de prouver.
 **Aucune réserve n'est levée par cette entrée.** `V1` à `V4`, `W1` à `W4`,
 `R2` à `R9` restent en vigueur.
 
+
+## AD — 2026-09-01 — `ACTION-0028`, réserve `X5` corrigée : les preuves `VERIFIED` sont protégées
+
+**Objet :** correction ciblée de la réserve **`X5`** émise par le contrôle
+indépendant de `TASK-0018`. **`TASK-0018` reste `IMPLEMENTED`.** **`X5` reste
+`OPEN`** — corrigée, non close.
+
+### AD.1 Ce que `X5` établissait
+
+Les outils et scénarios du runtime courant pouvaient **écraser les artefacts
+canoniques de tâches déjà `VERIFIED`** : la boucle de mesure et le scénario de
+relations avaient été migrés vers les cerveaux mais écrivaient encore sous
+`TASK-0016-H9-webview2.json` et `TASK-0017-J12-webview2.json`, et
+`write_run_artifact` écrit par **remplacement**.
+
+### AD.2 Ce qui a été fait
+
+| Plan | Correction |
+|---|---|
+| **Structurel** | `write_run_artifact` refuse un nom de `PROTECTED_RUN_ARTIFACTS`, **avant tout accès au disque** |
+| **Nommage** | `src/map/runArtifacts.ts` : une seule orthographe de chaque nom, importée par les sept sites d'écriture |
+| **Contenu** | chaque artefact migrant porte `task`, `sourceCriterion`, `nature`, `doesNotReplace`, `replacesCanonicalEvidence: false` |
+| **Garde** | 9 tests neufs — 7 TypeScript, 2 Rust — **éprouvés par mutation** |
+
+### AD.3 Le `J12` de régression, rejoué dans l'hôte
+
+Une exécution, `brain-alpha`, WebView2 `151.0.4129.107`, **vraie frappe
+Windows** : `activationIsTrusted = true`, `keydownIsTrusted = true`, **0**
+`click()` programmatique, **0** `dispatchEvent(click)`, traversée réelle,
+approbation explicite de `S-005` (`3 → 4` sortantes,
+`enteredCountsOnlyAfterApproval = true`), `X3` respecté (5/5 rejets, dont
+`relation_rejected_suggestion_is_not_a_relation`), comptes cohérents
+(`countsAgree`, `replayStable`, 0 extrémité non résolue).
+
+**Artefact :** `docs/performance/runs/TASK-0018-J12-relations-regression-webview2.json`.
+
+**Préparation déterministe :** le magasin de relations de `brain-alpha` — écrit
+par FileTopo, reconstructible, sous `.filetopo-sandbox/` — a été remis à neuf
+pour que `S-005` soit en attente. **Aucune preuve historique n'a été touchée.**
+
+### AD.4 Validations
+
+| Contrôle | Résultat |
+|---|---|
+| Tests Rust | **106/106** (104 → 106) |
+| Tests TypeScript | **104/104** (97 → 104) |
+| Tests-gardes `X2` | **PASS** |
+| Tests `X3` / `X4` | **PASS**, inchangés |
+| Nouveau test `X5` | **PASS** |
+| `pnpm check` | **PASS** |
+| `pnpm build` | **PASS** |
+| Build Tauri `debug --no-bundle` | **PASS**, 12,12 s |
+| `J12` de régression dans WebView2 | **PASS** |
+| `TASK-0016-H9-webview2.json` | **inchangé** — `sha256 4bb12d9d…`, `git diff` vide |
+| `TASK-0017-J12-webview2.json` | **inchangé** — `sha256 95fbab51…`, `git diff` vide |
+
+### AD.5 Non testé, et déclaré tel
+
+- **Aucune campagne `H9` n'a été exécutée.** `TASK-0018` n'a aucun critère de
+  performance; **aucun seuil**, `R8` entière.
+- **`K12` n'a pas été rejoué** : aucun code produit de bascule, de catalogue ou
+  de session n'a été modifié.
+- **`P-19` non revendiquée**, **révocation de `P-04` non implémentée**,
+  **`P-21` non satisfaite**.
+- **`B0` s'est reproduit une cinquième fois**, sur `cargo test`; **rien
+  supprimé ni renommé** dans `src-tauri/target/`.
+- **Une seule machine, un seul runtime WebView2.**
+
+**Aucune réserve n'est levée par cette entrée.** `X5` reste **`OPEN`** jusqu'au
+re-contrôle indépendant. `V1` à `V4`, `W1` à `W4`, `R2` à `R9` restent en
+vigueur.

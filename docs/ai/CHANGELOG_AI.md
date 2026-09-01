@@ -2459,3 +2459,79 @@ redémarrage réel**, quatre bascules par frappe réelle avec
 **Contrôle indépendant de `TASK-0018`**, par une instance distincte de
 l'exécuteur, **sur preuves**.
 
+
+## 2026-09-01 — TASK-0018 — Correction de la réserve `X5` d'`ACTION-0028`
+
+**Contrôle indépendant enregistré :**
+[`ACTION-0028`](../reviews/ACTION-0028-independent-control.md) —
+**`CHANGES_REQUIRED`**. Le fond de `K1` à `K12` est **accepté**; une seule
+réserve bloque `VERIFIED`.
+
+**`X5` — les outils du runtime courant pouvaient écraser les artefacts
+canoniques de tâches déjà `VERIFIED`.** Le rapport de `TASK-0018` le disait
+lui-même : `J12` n'avait pas été rejoué **parce que** le rejouer aurait détruit
+la preuve publiée de `TASK-0017`. Le risque n'était pas théorique — il avait
+déjà coûté une preuve.
+
+### La règle instaurée
+
+**Une exécution d'une tâche ultérieure ne remplace jamais la preuve canonique
+d'une tâche antérieure `VERIFIED`.** Elle est tenue **à la porte** :
+`write_run_artifact` refuse un nom protégé **avant tout accès au disque**.
+Quatre artefacts sont protégés — les campagnes `H1`–`H7` et `H9` de
+`TASK-0016`, `J11` et `J12` de `TASK-0017` — et restent **bit-for-bit**
+inchangés.
+
+### Les scénarios migrants, renommés
+
+| Ce qui s'exécute | Écrit désormais |
+|---|---|
+| boucle de mesure, par cerveau | `TASK-0018-H9-multibrain-regression-webview2.json` |
+| scénario relations, sur `brain-alpha` | `TASK-0018-J12-relations-regression-webview2.json` |
+
+Chaque artefact déclare `task`, `sourceCriterion`, `nature`, `doesNotReplace`
+et `replacesCanonicalEvidence: false`. **Aucune mesure `H9` n'a été
+exécutée** : cette tranche n'a aucun critère de performance, `R8` reste
+entière.
+
+### Le `J12` de régression a été rejoué
+
+Une exécution, `brain-alpha`, WebView2 `151.0.4129.107`, **vraie frappe
+Windows** : `isTrusted` à `true` sur la traversée **et** sur l'approbation,
+**0** `click()` programmatique, **0** `dispatchEvent(click)`, `S-005` approuvée
+explicitement, `X3` respecté, comptes cohérents. **La preuve originale de
+`TASK-0017` est inchangée.**
+
+### Garde
+
+**9 tests neufs** — 7 TypeScript, 2 Rust — **éprouvés par mutation** : en
+réintroduisant `name: "TASK-0017-J12-webview2.json"`, deux tests échouent en
+nommant le fichier fautif.
+
+### Validations
+
+106/106 Rust (104 → 106), 104/104 TypeScript (97 → 104), `pnpm check`
+**PASS**, `pnpm build` **PASS**, build Tauri `debug --no-bundle` **PASS**,
+`J12` de régression **PASS** dans WebView2. Empreintes des deux artefacts
+protégés **inchangées**, `git diff` vide.
+
+### Non fait, et déclaré tel
+
+- **Aucune campagne `H9`**, aucun seuil. `R8` entière.
+- **`K12` non rejoué** : aucun code produit de bascule, de catalogue ou de
+  session n'a été modifié.
+- **`B0` s'est reproduit une cinquième fois**, sur `cargo test`; **rien
+  supprimé ni renommé** dans `src-tauri/target/`.
+- **Aucune nouvelle dépendance, aucune donnée réelle, aucun sélecteur de
+  dossier.**
+- **Aucune fusion, PR, release, étiquette, `force push`**, aucune réécriture.
+
+### État
+
+**`X5` : `OPEN`** — corrigée, **non close**. **`ACTION-0028` :
+`CHANGES_REQUIRED`**. **`TASK-0018` : `IMPLEMENTED`**, `VERIFIED` non attribué.
+
+### Prochaine action unique
+
+**Re-contrôle indépendant de `TASK-0018`, sur `X5` uniquement**, par une
+instance distincte de l'exécuteur, **sur preuves**.
