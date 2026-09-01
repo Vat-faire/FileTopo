@@ -2,7 +2,10 @@ import { invoke } from "@tauri-apps/api/core";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import DetailsPanel, { type PanelStrings } from "./DetailsPanel";
 import MapView from "./MapView";
+import RelationsPanel from "./RelationsPanel";
 import { buildHierarchy } from "./hierarchy";
+import { establishedNeighbours, relationSegments } from "./relations";
+import { runRelationScenario as runScenario } from "./relationScenario";
 import {
   FRAMES_PER_RUN,
   RUNS_PER_FIXTURE,
@@ -27,7 +30,10 @@ import type {
   MapSelfCheck,
   MapSnapshot,
   NodeDetail,
+  NodeRelations,
   Rect,
+  RelationsOverview,
+  RelationsSelfCheck,
 } from "./types";
 import { fitToBox, fitView, panBy, zoomAbout, type View, type Viewport } from "./viewState";
 
@@ -58,6 +64,8 @@ const strings = {
     measure: "Mesurer dans WebView2",
     measuring: "Mesure en cours…",
     selfCheck: "Contrôler H1–H5",
+    relationsCheck: "Contrôler J1–J5, J10",
+    relations: "Relations",
     keyboardTitle: "Clavier",
     keyboard:
       "Flèches : parent, enfant, frères · Alt+flèches : panoramique · + / − : zoom · F : ajuster · R : réinitialiser · Origine : racine",
@@ -131,6 +139,14 @@ export default function MapApp() {
   const [status, setStatus] = useState<string | null>(null);
   const [measurement, setMeasurement] = useState<FixtureMeasurement[] | null>(null);
   const [measuring, setMeasuring] = useState(false);
+  // `TASK-0017`. `relations` is the whole graph of the open brain; `nodeRelations`
+  // is what the panel shows for the selection. Both come back from the store —
+  // nothing here increments a count of its own.
+  const [relations, setRelations] = useState<RelationsOverview | null>(null);
+  const [nodeRelations, setNodeRelations] = useState<NodeRelations | null>(null);
+  const [relationsLoading, setRelationsLoading] = useState(false);
+  const [approving, setApproving] = useState<string | null>(null);
+  const [relationsCheck, setRelationsCheck] = useState<RelationsSelfCheck | null>(null);
 
   // The measurement loop drives the same state the interface does, so what it
   // times is what a person would experience — not a parallel code path.
@@ -142,6 +158,7 @@ export default function MapApp() {
   // reach it without depending on declaration order.
   const runMeasurementRef = useRef<(() => Promise<void>) | null>(null);
   const runVerificationRef = useRef<(() => Promise<void>) | null>(null);
+  const runRelationScenarioRef = useRef<(() => Promise<void>) | null>(null);
 
   const world: Rect = useMemo(
     () => ({
@@ -206,6 +223,12 @@ export default function MapApp() {
       void runVerificationRef.current?.();
       return;
     }
+    if (host.autoRelations) {
+      autoStarted.current = true;
+      hostLog("info", "démarrage automatique du scénario J12");
+      void runRelationScenarioRef.current?.();
+      return;
+    }
     if (host.autoMeasure) {
       autoStarted.current = true;
       hostLog("info", "démarrage automatique de la campagne H9");
@@ -227,6 +250,18 @@ export default function MapApp() {
       setActiveFixture(fixtureId);
       setSelectedId(nextSnapshot.rootId);
       setMeasurement(null);
+      setRelationsCheck(null);
+      // Relations are opened separately, and a fixture outside the frozen
+      // relations scope is a *stated* outcome rather than an error banner.
+      setRelationsLoading(true);
+      try {
+        setRelations(await invoke<RelationsOverview>("map_relations_open", { fixtureId }));
+      } catch (error) {
+        setRelations(null);
+        hostLog("info", `relations indisponibles pour ${fixtureId}: ${String(error)}`);
+      } finally {
+        setRelationsLoading(false);
+      }
     } catch (error) {
       setStatus(`Échec : ${String(error)}`);
     } finally {
@@ -255,6 +290,64 @@ export default function MapApp() {
       live = false;
     };
   }, [activeFixture, selectedId]);
+
+  // The panel reads the relations of the selection from the store, on every
+  // change of selection and after every approval. `relations` is in the
+  // dependency list on purpose: an approval replaces it, and that is what makes
+  // the panel show counts that came back rather than counts it guessed.
+  useEffect(() => {
+    if (!activeFixture || selectedId === null || !relations) {
+      setNodeRelations(null);
+      return;
+    }
+    let live = true;
+    invoke<NodeRelations>("map_relations_for_node", {
+      fixtureId: activeFixture,
+      nodeId: selectedId,
+    })
+      .then((next) => live && setNodeRelations(next))
+      .catch(() => live && setNodeRelations(null));
+    return () => {
+      live = false;
+    };
+  }, [activeFixture, relations, selectedId]);
+
+  /**
+   * The one explicit act that turns a suggestion into a relation.
+   *
+   * The whole overview is replaced by what the command returns, so the counts
+   * on screen are the store's, never an optimistic increment.
+   */
+  const approveSuggestion = useCallback(
+    async (suggestionKey: string) => {
+      if (!activeFixture) return;
+      setApproving(suggestionKey);
+      try {
+        const next = await invoke<RelationsOverview>("map_relations_approve", {
+          fixtureId: activeFixture,
+          suggestionKey,
+        });
+        setRelations(next);
+        setStatus(`Suggestion ${suggestionKey} approuvée : elle est désormais une relation APPROVED.`);
+      } catch (error) {
+        setStatus(`Approbation refusée : ${String(error)}`);
+      } finally {
+        setApproving(null);
+      }
+    },
+    [activeFixture],
+  );
+
+  const runRelationsCheck = useCallback(async () => {
+    if (!activeFixture) return;
+    try {
+      setRelationsCheck(
+        await invoke<RelationsSelfCheck>("map_relations_self_check", { fixtureId: activeFixture }),
+      );
+    } catch (error) {
+      setStatus(`Contrôle des relations impossible : ${String(error)}`);
+    }
+  }, [activeFixture]);
 
   const runSelfCheck = useCallback(async () => {
     if (!activeFixture) return;
@@ -505,7 +598,34 @@ export default function MapApp() {
 
   runMeasurementRef.current = runMeasurement;
 
+  const runRelationScenario = useCallback(
+    () =>
+      runScenario({
+        invoke: (command, args) => invoke(command, args),
+        host,
+        openFixture,
+        setSelectedId,
+        setStatus,
+        log: hostLog,
+      }),
+    [host, openFixture],
+  );
+
+  runRelationScenarioRef.current = runRelationScenario;
+
   const selectedNode = selectedId === null ? null : hierarchy?.byId.get(selectedId) ?? null;
+
+  // Projected from the persisted rectangles. Rebuilt when the tree, the
+  // relations or the selection change — never for a pan or a zoom, and never by
+  // recomputing a layout.
+  const relationNeighbours = useMemo(
+    () => establishedNeighbours(relations, selectedId),
+    [relations, selectedId],
+  );
+  const segments = useMemo(
+    () => (hierarchy ? relationSegments(relations, hierarchy.byId, selectedId) : []),
+    [hierarchy, relations, selectedId],
+  );
 
   const labelFor = useCallback(
     (node: MapNode) =>
@@ -572,6 +692,13 @@ export default function MapApp() {
           <button type="button" disabled={!activeFixture || measuring} onClick={runSelfCheck}>
             {t.selfCheck}
           </button>
+          <button
+            type="button"
+            disabled={!activeFixture || !relations || measuring}
+            onClick={runRelationsCheck}
+          >
+            {t.relationsCheck}
+          </button>
           <button type="button" disabled={measuring || busy} onClick={runMeasurement}>
             {measuring ? t.measuring : t.measure}
           </button>
@@ -621,6 +748,31 @@ export default function MapApp() {
           </span>
           <span className={selfCheck.detailMismatches.length === 0 ? "ok" : "ko"}>
             H5 · {selfCheck.detailMismatches.length} écart(s)
+          </span>
+        </section>
+      ) : null}
+
+      {relationsCheck ? (
+        <section className="app__report" aria-label="Contrôle J1 à J5 et J10">
+          <span className={relationsCheck.allRejected ? "ok" : "ko"}>
+            J1–J3 · {relationsCheck.rejections.filter((entry) => entry.rejected).length}/
+            {relationsCheck.rejections.length} tentative(s) invalide(s) rejetée(s)
+          </span>
+          <span className={relationsCheck.suggestionsInEstablished.length === 0 ? "ok" : "ko"}>
+            J2 · {relationsCheck.pendingSuggestionTotal} suggestion(s) en attente, hors des comptes
+          </span>
+          <span className={relationsCheck.replayStable ? "ok" : "ko"}>
+            J3 · rejeu {relationsCheck.replayStable ? "identique" : "DIVERGENT"}
+          </span>
+          <span className={relationsCheck.countsAgree ? "ok" : "ko"}>
+            J5 · {relationsCheck.counts.filter((entry) => entry.matches).length}/
+            {relationsCheck.counts.length} nœud(s) conformes à l'attendu gelé
+          </span>
+          <span className={relationsCheck.inventedInverses.length === 0 ? "ok" : "ko"}>
+            J5 · {relationsCheck.inventedInverses.length} inverse(s) inventé(s)
+          </span>
+          <span className={relationsCheck.unresolvedEndpoints.length === 0 ? "ok" : "ko"}>
+            J10 · {relationsCheck.unresolvedEndpoints.length} extrémité(s) non résolue(s)
           </span>
         </section>
       ) : null}
@@ -685,6 +837,8 @@ export default function MapApp() {
           {hierarchy && snapshot ? (
             <MapView
               hierarchy={hierarchy}
+              segments={segments}
+              relationNeighbours={relationNeighbours}
               world={world}
               view={view}
               viewport={viewport}
@@ -711,6 +865,15 @@ export default function MapApp() {
             onSelect={setSelectedId}
             locale="fr"
             strings={t.panel}
+          />
+
+          <RelationsPanel
+            relations={nodeRelations}
+            loading={relationsLoading}
+            inScope={relations !== null}
+            onSelect={setSelectedId}
+            onApprove={approveSuggestion}
+            approving={approving}
           />
 
           {measurement ? (

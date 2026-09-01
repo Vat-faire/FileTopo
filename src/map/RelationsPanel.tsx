@@ -1,0 +1,251 @@
+import type { NodeRelations, RelationProvenance, SuggestionEdge } from "./types";
+import { PROVENANCE_LABELS, entryKey, groupByType, relationTypeLabel } from "./relations";
+
+/**
+ * The relations panel — `P-07`, `P-05`, and the provenance obligation of
+ * `P-04`.
+ *
+ * Three things are true of every entry, and each one is a frozen criterion:
+ *
+ * * **Direction is a grouping, not a hint.** Outgoing and incoming are two
+ *   sections that come from two separate queries; neither is derived from the
+ *   other, and no inverse is displayed that the store did not return.
+ * * **Provenance is on screen**, in words, next to the relation — not in a
+ *   tooltip, not in a log. For a deterministic relation the rule name and
+ *   version are consultable in the same place.
+ * * **A suggestion is never in those sections.** It lives in its own, named
+ *   « Suggestions — non établies », with its own control, and it is never
+ *   counted anywhere.
+ *
+ * Every entry is a `<button>`: reachable by keyboard because it is a button,
+ * not because a key handler was bolted on.
+ */
+
+interface RelationsPanelProps {
+  relations: NodeRelations | null;
+  loading: boolean;
+  /** `false` when the open fixture carries no relations in this slice. */
+  inScope: boolean;
+  onSelect: (nodeId: number) => void;
+  onApprove: (suggestionKey: string) => void;
+  approving: string | null;
+}
+
+/**
+ * Provenance, encoded three ways: a word, a shape, and a class.
+ *
+ * The glyph is `aria-hidden` because the word beside it already says the same
+ * thing — a screen reader that read both would say it twice.
+ */
+function ProvenanceBadge({ provenance }: { provenance: RelationProvenance }) {
+  const glyph = provenance === "DETERMINISTIC" ? "◆" : "●";
+  return (
+    <span className={`relation__provenance relation__provenance--${provenance.toLowerCase()}`}>
+      <span aria-hidden="true">{glyph}</span> {PROVENANCE_LABELS[provenance]}
+    </span>
+  );
+}
+
+function DirectionGlyph({ direction }: { direction: "outgoing" | "incoming" }) {
+  return (
+    <span className="relation__direction" aria-hidden="true">
+      {direction === "outgoing" ? "→" : "←"}
+    </span>
+  );
+}
+
+function SuggestionRow({
+  suggestion,
+  onSelect,
+  onApprove,
+  approving,
+}: {
+  suggestion: SuggestionEdge;
+  onSelect: (nodeId: number) => void;
+  onApprove: (suggestionKey: string) => void;
+  approving: string | null;
+}) {
+  const busy = approving === suggestion.suggestionKey;
+  return (
+    <li className="suggestion">
+      <div className="suggestion__head">
+        <span className="suggestion__tag">suggestion</span>
+        <span className="suggestion__state">non établie</span>
+      </div>
+      <p className="suggestion__body">
+        <span className="suggestion__endpoints">
+          {suggestion.source.name} <span aria-hidden="true">⇢</span> {suggestion.target.name}
+        </span>
+        <span className="suggestion__type">{relationTypeLabel(suggestion.relationType)}</span>
+      </p>
+      <p className="suggestion__basis">Origine synthétique : {suggestion.basis}</p>
+      <div className="suggestion__actions">
+        <button
+          type="button"
+          className="suggestion__approve"
+          disabled={busy}
+          onClick={() => onApprove(suggestion.suggestionKey)}
+        >
+          {busy ? "Approbation…" : `Approuver ${suggestion.suggestionKey}`}
+        </button>
+        {suggestion.target.nodeId !== null ? (
+          <button
+            type="button"
+            className="relation__link"
+            onClick={() => onSelect(suggestion.target.nodeId as number)}
+          >
+            Voir {suggestion.target.name}
+          </button>
+        ) : null}
+      </div>
+    </li>
+  );
+}
+
+function DirectionSection({
+  title,
+  hint,
+  entries,
+  count,
+  onSelect,
+}: {
+  title: string;
+  hint: string;
+  entries: NodeRelations["outgoing"];
+  count: number;
+  onSelect: (nodeId: number) => void;
+}) {
+  return (
+    <section className="relations__direction" aria-label={`${title} (${count})`}>
+      <h3 className="relations__subtitle">
+        {title} <span className="relations__count">{count}</span>
+      </h3>
+      <p className="relations__hint">{hint}</p>
+      {entries.length === 0 ? (
+        <p className="details__empty">Aucune.</p>
+      ) : (
+        groupByType(entries).map(([relationType, group]) => (
+          <div key={relationType} className="relations__type-group">
+            <h4 className="relations__type">
+              {relationTypeLabel(relationType)} <span className="relations__count">{group.length}</span>
+            </h4>
+            <ul className="relations__list">
+              {group.map((entry) => (
+                <li key={entryKey(entry)}>
+                  <button
+                    type="button"
+                    className="relation__link"
+                    disabled={entry.other.nodeId === null}
+                    onClick={() => entry.other.nodeId !== null && onSelect(entry.other.nodeId)}
+                  >
+                    <DirectionGlyph direction={entry.direction} />
+                    <span className="relation__name">{entry.other.name}</span>
+                    <ProvenanceBadge provenance={entry.provenance} />
+                  </button>
+                  {entry.provenance === "DETERMINISTIC" ? (
+                    <p className="relation__rule">
+                      Règle : <code>{entry.ruleName}</code> version{" "}
+                      <code>{entry.ruleVersion}</code>
+                    </p>
+                  ) : (
+                    <p className="relation__rule relation__rule--approved">
+                      Approuvée par une action explicite. Aucune règle déterministe.
+                    </p>
+                  )}
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))
+      )}
+    </section>
+  );
+}
+
+export default function RelationsPanel({
+  relations,
+  loading,
+  inScope,
+  onSelect,
+  onApprove,
+  approving,
+}: RelationsPanelProps) {
+  if (!inScope) {
+    return (
+      <section className="relations" aria-label="Relations transversales">
+        <h2 className="relations__title">Relations transversales</h2>
+        <p className="details__empty">
+          Cette fixture ne porte aucune relation : <code>TASK-0017</code> §4.6 gèle{" "}
+          <code>quasi-empty</code> comme unique cerveau de relations de cette tranche.
+        </p>
+      </section>
+    );
+  }
+  if (loading) {
+    return (
+      <section className="relations" aria-label="Relations transversales">
+        <h2 className="relations__title">Relations transversales</h2>
+        <p className="details__empty">Lecture des relations…</p>
+      </section>
+    );
+  }
+  if (!relations) {
+    return (
+      <section className="relations" aria-label="Relations transversales">
+        <h2 className="relations__title">Relations transversales</h2>
+        <p className="details__empty">Sélectionnez un bloc pour voir ses relations.</p>
+      </section>
+    );
+  }
+
+  return (
+    <section className="relations" aria-label="Relations transversales">
+      <h2 className="relations__title">Relations transversales</h2>
+      <p className="relations__totals" data-testid="relation-totals">
+        {relations.outgoingCount} sortante(s) · {relations.incomingCount} entrante(s) ·{" "}
+        {relations.suggestions.length} suggestion(s) <strong>non comptée(s)</strong>
+      </p>
+
+      <DirectionSection
+        title="Sortantes"
+        hint="Ce nœud pointe vers :"
+        entries={relations.outgoing}
+        count={relations.outgoingCount}
+        onSelect={onSelect}
+      />
+      <DirectionSection
+        title="Entrantes"
+        hint="Pointent vers ce nœud :"
+        entries={relations.incoming}
+        count={relations.incomingCount}
+        onSelect={onSelect}
+      />
+
+      <section className="relations__suggestions" aria-label="Suggestions non établies">
+        <h3 className="relations__subtitle">
+          Suggestions — non établies{" "}
+          <span className="relations__count">{relations.suggestions.length}</span>
+        </h3>
+        <p className="relations__hint">
+          Une suggestion <strong>n'est pas une relation</strong> : elle n'entre dans aucun compte
+          ci-dessus tant qu'elle n'est pas approuvée.
+        </p>
+        {relations.suggestions.length === 0 ? (
+          <p className="details__empty">Aucune.</p>
+        ) : (
+          <ul className="relations__list">
+            {relations.suggestions.map((suggestion) => (
+              <SuggestionRow
+                key={suggestion.suggestionKey}
+                suggestion={suggestion}
+                onSelect={onSelect}
+                onApprove={onApprove}
+                approving={approving}
+              />
+            ))}
+          </ul>
+        )}
+      </section>
+    </section>
+  );
+}

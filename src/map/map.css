@@ -463,3 +463,276 @@ button:disabled {
     animation: none !important;
   }
 }
+
+/* --- TASK-0017 — relations transversales ---------------------------------
+ *
+ * Nothing below carries meaning by colour alone. An established relation is a
+ * solid line ending in a filled arrow head; a suggestion is a dashed line with
+ * no arrow head and an open ring at each end. Provenance repeats in the panel
+ * as a word and as a shape, never as a hue on its own.
+ */
+
+.map-node--linked rect {
+  fill-opacity: 0.75;
+  stroke-width: 2.5;
+  stroke-dasharray: 6 2;
+}
+
+.map-view__edges {
+  pointer-events: none;
+}
+
+.map-edge__line {
+  fill: none;
+  stroke: var(--ink);
+  stroke-width: 1.6;
+  stroke-opacity: 0.35;
+}
+
+.map-edge__arrow {
+  fill: var(--ink);
+  fill-opacity: 0.45;
+}
+
+.map-edge__ring {
+  fill: none;
+  stroke: var(--ink);
+  stroke-width: 1.4;
+  stroke-opacity: 0.45;
+}
+
+/* A suggestion is dashed and headless. Both are shape, not colour. */
+.map-edge--suggestion .map-edge__line {
+  stroke-dasharray: 5 5;
+  stroke-width: 1.4;
+}
+
+/* Provenance, as a stroke pattern rather than a hue. */
+.map-edge--approved .map-edge__line {
+  stroke-dasharray: 12 3 2 3;
+}
+
+/* Anything touching the selection is drawn heavier and darker. */
+.map-edge--touching .map-edge__line {
+  stroke-width: 2.6;
+  stroke-opacity: 0.95;
+  stroke: var(--accent);
+}
+.map-edge--touching .map-edge__arrow {
+  fill: var(--accent);
+  fill-opacity: 1;
+}
+.map-edge--touching .map-edge__ring {
+  stroke: var(--accent);
+  stroke-opacity: 1;
+}
+
+.relations {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.relations__title {
+  font-size: 15px;
+  margin: 0;
+}
+
+.relations__totals {
+  margin: 0;
+  font-size: 12px;
+  color: var(--ink-soft);
+}
+
+.relations__subtitle {
+  font-size: 13px;
+  margin: 8px 0 2px;
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+
+.relations__type {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ink-soft);
+  margin: 6px 0 2px;
+}
+
+.relations__count {
+  font-variant-numeric: tabular-nums;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 0 7px;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.relations__hint {
+  margin: 0;
+  font-size: 11.5px;
+  color: var(--ink-soft);
+}
+
+.relations__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.relation__link {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  text-align: left;
+  background: transparent;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 6px 8px;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+.relation__link:hover:not(:disabled) {
+  border-color: var(--accent);
+}
+
+.relation__link:focus-visible {
+  outline: 3px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.relation__link:disabled {
+  cursor: not-allowed;
+  opacity: 0.65;
+}
+
+.relation__direction {
+  font-weight: 700;
+  font-size: 15px;
+}
+
+.relation__name {
+  flex: 1;
+  overflow-wrap: anywhere;
+}
+
+.relation__provenance {
+  font-size: 11px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 1px 8px;
+  white-space: nowrap;
+}
+
+.relation__provenance--deterministic {
+  border-style: solid;
+  font-weight: 600;
+}
+
+/* Dashed border, not just another colour. */
+.relation__provenance--approved {
+  border-style: dashed;
+}
+
+.relation__rule {
+  margin: 2px 0 0 26px;
+  font-size: 11px;
+  color: var(--ink-soft);
+}
+
+.relation__rule code {
+  font-size: 11px;
+}
+
+.relations__suggestions {
+  border-top: 2px dashed var(--line);
+  padding-top: 10px;
+  margin-top: 4px;
+}
+
+.suggestion {
+  border: 2px dashed var(--line);
+  border-radius: 8px;
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.suggestion__head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.suggestion__tag {
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  border: 1px dashed var(--ink-soft);
+  border-radius: 4px;
+  padding: 1px 6px;
+}
+
+.suggestion__state {
+  font-size: 11px;
+  color: var(--ink-soft);
+}
+
+.suggestion__body {
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: baseline;
+  font-size: 12.5px;
+}
+
+.suggestion__type {
+  font-size: 11px;
+  color: var(--ink-soft);
+}
+
+.suggestion__basis {
+  margin: 0;
+  font-size: 11px;
+  color: var(--ink-soft);
+}
+
+.suggestion__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.suggestion__approve {
+  font: inherit;
+  font-size: 12px;
+  border: 1px solid var(--accent);
+  border-radius: 8px;
+  background: var(--accent-soft);
+  color: inherit;
+  padding: 5px 10px;
+  cursor: pointer;
+}
+
+.suggestion__approve:focus-visible {
+  outline: 3px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.suggestion__approve:disabled {
+  cursor: progress;
+  opacity: 0.7;
+}

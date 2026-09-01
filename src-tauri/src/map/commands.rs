@@ -78,6 +78,9 @@ pub struct HostInfo {
     /// decides *when* it starts. A run nobody can reproduce unattended is a run
     /// nobody can check.
     pub auto_measure: bool,
+    /// Set by `FILETOPO_AUTO_RELATIONS`: replays the `J12` scenario of
+    /// `TASK-0017` against the real host, unattended, and writes the evidence.
+    pub auto_relations: bool,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]

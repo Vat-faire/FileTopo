@@ -1,0 +1,146 @@
+{
+  "task": "TASK-0017",
+  "criterion": "J11",
+  "capturedAtIso": "2026-09-01T08:17:25.477237-04:00",
+  "note": "Rejeu de H1 a H7 de TASK-0016 dans le vrai WebView2, relations en place, index de chaque fixture supprime puis reconstruit. Les quatre fixtures rendent exactement les memes verdicts que le releve publie de TASK-0016; seuls les temps et l'horodatage different. L'etat du magasin de relations est lu APRES ces reconstructions.",
+  "host": {
+    "sandboxRoot": "<dépôt>/.filetopo-sandbox",
+    "appVersion": "0.1.0-alpha.1",
+    "sqliteVersion": "3.53.2",
+    "webviewVersion": "151.0.4129.107",
+    "tauriVersion": "2.11.5",
+    "platform": "windows",
+    "nodeCeiling": 5000,
+    "depthCeiling": 40,
+    "minLeafArea": 2400,
+    "autoVerify": true,
+    "autoMeasure": false,
+    "autoRelations": false
+  },
+  "h1_h7_replay": [
+    {
+      "fixtureId": "quasi-empty",
+      "nodeCount": 12,
+      "h1_pathsAgree": true,
+      "h2_layoutViolations": [],
+      "h3_hierarchyMismatches": [],
+      "h5_detailMismatches": [],
+      "h6_readOnlyConfirmed": true,
+      "h6_fingerprintBefore": "fnv1a64:bddfe1a16cac350f",
+      "h6_fingerprintAfterRebuild": "fnv1a64:bddfe1a16cac350f",
+      "h6_fingerprintUnchanged": true,
+      "h6_filetopoArtifactsInRoot": [],
+      "h7_equivalent": true,
+      "h11_withinCeilings": true
+    },
+    {
+      "fixtureId": "deep",
+      "nodeCount": 157,
+      "h1_pathsAgree": true,
+      "h2_layoutViolations": [],
+      "h3_hierarchyMismatches": [],
+      "h5_detailMismatches": [],
+      "h6_readOnlyConfirmed": true,
+      "h6_fingerprintBefore": "fnv1a64:075a9c069126e8f1",
+      "h6_fingerprintAfterRebuild": "fnv1a64:075a9c069126e8f1",
+      "h6_fingerprintUnchanged": true,
+      "h6_filetopoArtifactsInRoot": [],
+      "h7_equivalent": true,
+      "h11_withinCeilings": true
+    },
+    {
+      "fixtureId": "wide",
+      "nodeCount": 2207,
+      "h1_pathsAgree": true,
+      "h2_layoutViolations": [],
+      "h3_hierarchyMismatches": [],
+      "h5_detailMismatches": [],
+      "h6_readOnlyConfirmed": true,
+      "h6_fingerprintBefore": "fnv1a64:8e2691444371d5e9",
+      "h6_fingerprintAfterRebuild": "fnv1a64:8e2691444371d5e9",
+      "h6_fingerprintUnchanged": true,
+      "h6_filetopoArtifactsInRoot": [],
+      "h7_equivalent": true,
+      "h11_withinCeilings": true
+    },
+    {
+      "fixtureId": "mixed",
+      "nodeCount": 2420,
+      "h1_pathsAgree": true,
+      "h2_layoutViolations": [],
+      "h3_hierarchyMismatches": [],
+      "h5_detailMismatches": [],
+      "h6_readOnlyConfirmed": true,
+      "h6_fingerprintBefore": "fnv1a64:18172f4f13164c02",
+      "h6_fingerprintAfterRebuild": "fnv1a64:18172f4f13164c02",
+      "h6_fingerprintUnchanged": true,
+      "h6_filetopoArtifactsInRoot": [],
+      "h7_equivalent": true,
+      "h11_withinCeilings": true
+    }
+  ],
+  "relationStoreAfterEveryIndexRebuild": {
+    "deterministic": 8,
+    "approved": 5,
+    "suggestions_by_state": {
+      "approved": 5,
+      "pending": 3
+    },
+    "approved_rows": [
+      [
+        "S-001",
+        "reference",
+        "ek1|quasi-empty|dossier-b/note-1.txt",
+        "ek1|quasi-empty|dossier-a/note-3.txt"
+      ],
+      [
+        "S-002",
+        "reference",
+        "ek1|quasi-empty|dossier-b/sous-dossier/note-2.txt",
+        "ek1|quasi-empty|dossier-a/note-1.txt"
+      ],
+      [
+        "S-003",
+        "revision",
+        "ek1|quasi-empty|racine-2.txt",
+        "ek1|quasi-empty|dossier-b/sous-dossier/note-1.txt"
+      ],
+      [
+        "S-004",
+        "reference",
+        "ek1|quasi-empty|dossier-a/note-3.txt",
+        "ek1|quasi-empty|racine-1.txt"
+      ],
+      [
+        "S-005",
+        "reference",
+        "ek1|quasi-empty|dossier-a/note-1.txt",
+        "ek1|quasi-empty|racine-2.txt"
+      ]
+    ],
+    "columns_relations_approved": [
+      "id",
+      "source_key",
+      "target_key",
+      "relation_type",
+      "suggestion_key",
+      "approved_unix_ms"
+    ],
+    "columns_relations_deterministic": [
+      "id",
+      "source_key",
+      "target_key",
+      "relation_type",
+      "rule_name",
+      "rule_version",
+      "rule_symmetric"
+    ],
+    "meta": {
+      "schema_version": "1",
+      "endpoint_key_scheme": "ek1",
+      "seed_version": "task-0017-v1"
+    }
+  },
+  "analysedRootHasNoFiletopoArtifact": true,
+  "relationsStorePath": "<bac à sable>/relations/quasi-empty/relations.sqlite"
+}

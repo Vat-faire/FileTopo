@@ -3,6 +3,7 @@ import { useState } from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import DetailsPanel from "./DetailsPanel";
 import MapView from "./MapView";
+import type { RelationSegment } from "./relations";
 import { buildHierarchy, hierarchicalNeighbourhood, move } from "./hierarchy";
 import { aggregate, selectionTargets, summarize } from "./measure";
 import type { MapNode, NodeDetail, Rect } from "./types";
@@ -72,13 +73,23 @@ const panelStrings = {
   kinds: { root: "racine", directory: "dossier", file: "fichier", skipped: "ignoré" },
 };
 
-function Harness({ onSelect }: { onSelect?: (id: number) => void }) {
+function Harness({
+  onSelect,
+  segments = [],
+  relationNeighbours = new Set<number>(),
+}: {
+  onSelect?: (id: number) => void;
+  segments?: RelationSegment[];
+  relationNeighbours?: Set<number>;
+}) {
   const viewport = { width: 800, height: 600 };
   const [view, setView] = useState<View>(() => fitView(world, viewport));
   const [selectedId, setSelectedId] = useState<number | null>(1);
   return (
     <MapView
       hierarchy={hierarchy}
+      segments={segments}
+      relationNeighbours={relationNeighbours}
       world={world}
       view={view}
       viewport={viewport}

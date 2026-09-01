@@ -594,7 +594,54 @@ fn map_host_info(app: tauri::AppHandle) -> map::commands::HostInfo {
         min_leaf_area: map::layout::MIN_LEAF_AREA,
         auto_measure: std::env::var("FILETOPO_AUTO_MEASURE").is_ok_and(|value| value == "1"),
         auto_verify: std::env::var("FILETOPO_AUTO_VERIFY").is_ok_and(|value| value == "1"),
+        auto_relations: std::env::var("FILETOPO_AUTO_RELATIONS").is_ok_and(|value| value == "1"),
     }
+}
+
+/// `TASK-0017` — the relations of a brain, derivation replayed and frozen
+/// synthetic suggestions seeded once.
+#[tauri::command]
+fn map_relations_open(
+    app: tauri::AppHandle,
+    fixture_id: String,
+) -> Result<map::relation_commands::RelationsOverview, String> {
+    map::relation_commands::open_relations(&map_sandbox(&app)?, &fixture_id).map_err(String::from)
+}
+
+/// Incoming and outgoing relations of one node, read with two separate
+/// queries so neither direction is ever derived from the other.
+#[tauri::command]
+fn map_relations_for_node(
+    app: tauri::AppHandle,
+    fixture_id: String,
+    node_id: i64,
+) -> Result<map::relation_commands::NodeRelations, String> {
+    map::relation_commands::node_relations(&map_sandbox(&app)?, &fixture_id, node_id)
+        .map_err(String::from)
+}
+
+/// The one explicit act that turns a suggestion into a relation.
+///
+/// Returns the whole overview, so the interface displays counts that came back
+/// from the store rather than counts it incremented itself.
+#[tauri::command]
+fn map_relations_approve(
+    app: tauri::AppHandle,
+    fixture_id: String,
+    suggestion_key: String,
+) -> Result<map::relation_commands::RelationsOverview, String> {
+    map::relation_commands::approve_suggestion(&map_sandbox(&app)?, &fixture_id, &suggestion_key)
+        .map_err(String::from)
+}
+
+/// Replays `J1` to `J5` and `J10` against the live store and reports what it
+/// found — reported, never asserted away.
+#[tauri::command]
+fn map_relations_self_check(
+    app: tauri::AppHandle,
+    fixture_id: String,
+) -> Result<map::relation_commands::RelationsSelfCheck, String> {
+    map::relation_commands::self_check(&map_sandbox(&app)?, &fixture_id).map_err(String::from)
 }
 
 /// Development-only: writes a measurement artefact into the repository.
@@ -652,6 +699,10 @@ pub fn run() {
             map_node_detail,
             map_integrity,
             map_self_check,
+            map_relations_open,
+            map_relations_for_node,
+            map_relations_approve,
+            map_relations_self_check,
             map_host_info,
             map_log,
             map_write_run_artifact

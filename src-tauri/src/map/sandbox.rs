@@ -7,6 +7,9 @@
 //!   real data as a stop point reserved to Sébastien.
 //! * `maps/` — the SQLite index, **beside** the analysed tree, never inside it
 //!   (`I-2`).
+//! * `relations/` — cross-cutting relations and suggestions (`TASK-0017`),
+//!   **beside** the index rather than inside it, so a rebuild of `maps/`
+//!   cannot take an approved relation with it.
 //! * `runs/` — measurement artefacts, development builds only.
 //!
 //! In a development build the sandbox sits in the repository, under the
@@ -20,6 +23,10 @@ use std::path::{Path, PathBuf};
 pub struct SandboxPaths {
     pub fixtures: PathBuf,
     pub maps: PathBuf,
+    /// Cross-cutting relations — `TASK-0017`. **Beside** the index rather than
+    /// inside it: `map_open(rebuild)` deletes `maps/`, and approved relations
+    /// and suggestions must survive that.
+    pub relations: PathBuf,
     /// How the sandbox is *named* on screen and in artefacts.
     ///
     /// Never the absolute path. `AGENTS.md` forbids a personal local path from
@@ -41,12 +48,19 @@ impl SandboxPaths {
         Self {
             fixtures: root.join("fixtures"),
             maps: root.join("maps"),
+            relations: root.join("relations"),
             label: label.to_string(),
         }
     }
 
     pub fn map_database(&self, fixture_id: &str) -> PathBuf {
         self.maps.join(fixture_id).join("map.sqlite")
+    }
+
+    /// Where the relations of a brain live. **Never** under `maps/`, which a
+    /// rebuild wipes, and never inside the analysed tree.
+    pub fn relations_database(&self, fixture_id: &str) -> PathBuf {
+        self.relations.join(fixture_id).join("relations.sqlite")
     }
 
     /// Where the sandbox lives, named rather than spelled out, so a reader can
@@ -115,6 +129,19 @@ mod tests {
         assert!(database.starts_with(&paths.maps));
     }
 
+    /// `J10`, structurally: the rebuild deletes `maps/`, so relations must not
+    /// live there.
+    #[test]
+    fn relations_live_outside_the_rebuildable_index() {
+        let paths = SandboxPaths::under(PathBuf::from("/sandbox"));
+        let relations = paths.relations_database("quasi-empty");
+        let fixture_root = paths.fixtures.join("quasi-empty");
+
+        assert!(!relations.starts_with(&paths.maps));
+        assert!(!relations.starts_with(&fixture_root));
+        assert!(relations.starts_with(&paths.relations));
+    }
+
     #[test]
     fn the_published_label_never_carries_an_absolute_path() {
         let paths = SandboxPaths::labelled(
@@ -133,5 +160,6 @@ mod tests {
         let paths = SandboxPaths::under(app_data.join("sandbox"));
         assert!(paths.fixtures.starts_with(&app_data));
         assert!(paths.maps.starts_with(&app_data));
+        assert!(paths.relations.starts_with(&app_data));
     }
 }

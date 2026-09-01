@@ -19,6 +19,8 @@
 pub mod commands;
 pub mod fixtures;
 pub mod layout;
+pub mod relation_commands;
+pub mod relations;
 pub mod sandbox;
 pub mod store;
 
@@ -39,6 +41,10 @@ pub enum MapError {
     Io(#[from] std::io::Error),
     #[error("map_sqlite_failed: {0}")]
     Sqlite(#[from] rusqlite::Error),
+    /// A refusal from the relations model. Forwarded verbatim so the named
+    /// motif frozen by `TASK-0017` §4.6.4 reaches the caller unchanged.
+    #[error("{0}")]
+    Relation(#[from] relations::RelationError),
     #[error("map_scan_failed: {0}")]
     Scan(String),
     #[error("map_unknown_fixture: {0}")]
