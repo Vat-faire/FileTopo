@@ -1,5 +1,6 @@
 mod domain;
 mod index;
+mod map;
 mod registry;
 mod scanner;
 mod synthetic;
@@ -407,6 +408,120 @@ fn index_registered_collection_controlled(
     Ok(snapshot)
 }
 
+// ---------------------------------------------------------------------------
+// TASK-0016 — the production vertical slice.
+//
+// These commands are the whole surface of the slice: four synthetic fixtures,
+// one build pipeline, and read-only access to what it produced. No folder
+// picker, no real data, no cross-cutting relations, no search, no watcher.
+// ---------------------------------------------------------------------------
+
+/// Where this slice is allowed to write: the development sandbox in the
+/// repository, or the application data directory in a release build. Never a
+/// user folder — the slice ships no picker at all.
+fn map_sandbox(app: &tauri::AppHandle) -> Result<map::sandbox::SandboxPaths, String> {
+    let app_data = app
+        .path()
+        .app_data_dir()
+        .map_err(|_| "app_data_unavailable".to_string())?;
+    Ok(map::sandbox::resolve(&app_data))
+}
+
+#[tauri::command]
+fn map_fixtures() -> Vec<map::commands::FixtureSummary> {
+    map::commands::fixture_summaries()
+}
+
+#[tauri::command]
+async fn map_open(
+    app: tauri::AppHandle,
+    fixture_id: String,
+    rebuild: bool,
+) -> Result<map::commands::MapBuildReport, String> {
+    let paths = map_sandbox(&app)?;
+    // Scanning and indexing block; keeping them off the UI thread is what lets
+    // the frame-time measurement of `H9` mean anything at all.
+    tauri::async_runtime::spawn_blocking(move || {
+        map::commands::build_map(&paths, &fixture_id, rebuild).map_err(String::from)
+    })
+    .await
+    .map_err(|_| "map_worker_failed".to_string())?
+}
+
+#[tauri::command]
+fn map_snapshot(
+    app: tauri::AppHandle,
+    fixture_id: String,
+) -> Result<map::store::MapSnapshot, String> {
+    map::commands::snapshot(&map_sandbox(&app)?, &fixture_id).map_err(String::from)
+}
+
+#[tauri::command]
+fn map_node_detail(
+    app: tauri::AppHandle,
+    fixture_id: String,
+    node_id: i64,
+) -> Result<map::store::NodeDetail, String> {
+    map::commands::detail(&map_sandbox(&app)?, &fixture_id, node_id).map_err(String::from)
+}
+
+#[tauri::command]
+fn map_integrity(
+    app: tauri::AppHandle,
+    fixture_id: String,
+) -> Result<map::commands::FixtureIntegrity, String> {
+    map::commands::integrity(&map_sandbox(&app)?, &fixture_id).map_err(String::from)
+}
+
+#[tauri::command]
+fn map_self_check(
+    app: tauri::AppHandle,
+    fixture_id: String,
+) -> Result<map::commands::MapSelfCheck, String> {
+    map::commands::self_check(&map_sandbox(&app)?, &fixture_id).map_err(String::from)
+}
+
+/// `H8` — the engine actually rendering, read from the host.
+///
+/// `tauri::webview_version()` reports the WebView2 runtime on Windows. It is
+/// asked of the system rather than parsed out of `navigator.userAgent`, which
+/// a Chromium-based engine deliberately makes ambiguous.
+#[tauri::command]
+fn map_host_info(app: tauri::AppHandle) -> map::commands::HostInfo {
+    map::commands::HostInfo {
+        sandbox_root: map_sandbox(&app)
+            .map(|paths| paths.display_root())
+            .unwrap_or_else(|error| error),
+        app_version: env!("CARGO_PKG_VERSION").to_string(),
+        sqlite_version: rusqlite::version().to_string(),
+        webview_version: tauri::webview_version()
+            .unwrap_or_else(|error| format!("indisponible: {error}")),
+        tauri_version: tauri::VERSION.to_string(),
+        platform: std::env::consts::OS.to_string(),
+        node_ceiling: map::MAX_NODES_PER_MAP,
+        depth_ceiling: map::MAX_FIXTURE_DEPTH,
+        min_leaf_area: map::layout::MIN_LEAF_AREA,
+    }
+}
+
+/// Development-only: writes a measurement artefact into the repository.
+///
+/// Measurements taken inside WebView2 are evidence, and evidence belongs in the
+/// repository rather than in an application directory nobody reviews. The
+/// destination is resolved at run time and confined to `docs/performance/runs/`;
+/// a release build has no such command at all.
+#[cfg(debug_assertions)]
+#[tauri::command]
+fn map_write_run_artifact(name: String, contents: String) -> Result<String, String> {
+    map::commands::write_run_artifact(&name, &contents).map_err(String::from)
+}
+
+#[cfg(not(debug_assertions))]
+#[tauri::command]
+fn map_write_run_artifact(_name: String, _contents: String) -> Result<String, String> {
+    Err("run_artifacts_unavailable_in_release".to_string())
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
@@ -423,7 +538,15 @@ pub fn run() {
             index_progress,
             query_collection_nodes,
             mark_node_seen,
-            reveal_indexed_node
+            reveal_indexed_node,
+            map_fixtures,
+            map_open,
+            map_snapshot,
+            map_node_detail,
+            map_integrity,
+            map_self_check,
+            map_host_info,
+            map_write_run_artifact
         ])
         .run(tauri::generate_context!())
         .expect("FileTopo could not start");

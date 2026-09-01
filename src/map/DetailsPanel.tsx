@@ -1,0 +1,139 @@
+import type { MapNode, NodeDetail } from "./types";
+
+/**
+ * The details panel — `P-12`, and the parent/children reach of `P-03`.
+ *
+ * Every value comes from the index, unchanged. Access diagnostics are shown
+ * with the same weight as the rest: `H5` requires them displayed, never hidden,
+ * and a diagnostic tucked behind a tooltip is hidden.
+ */
+
+interface DetailsPanelProps {
+  detail: NodeDetail | null;
+  loading: boolean;
+  onSelect: (nodeId: number) => void;
+  locale: "fr" | "en";
+  strings: PanelStrings;
+}
+
+export interface PanelStrings {
+  title: string;
+  empty: string;
+  loading: string;
+  name: string;
+  kind: string;
+  path: string;
+  size: string;
+  modified: string;
+  parent: string;
+  children: string;
+  diagnostic: string;
+  noDiagnostic: string;
+  noParent: string;
+  noChildren: string;
+  rootPath: string;
+  kinds: Record<MapNode["kind"], string>;
+}
+
+export function formatBytes(bytes: number, locale: "fr" | "en"): string {
+  const units = ["B", "kB", "MB", "GB", "TB"];
+  if (bytes <= 0) return `0 ${units[0]}`;
+  const exponent = Math.min(Math.floor(Math.log(bytes) / Math.log(1024)), units.length - 1);
+  const value = bytes / 1024 ** exponent;
+  return `${new Intl.NumberFormat(locale === "fr" ? "fr-CA" : "en-CA", {
+    maximumFractionDigits: value >= 10 ? 0 : 1,
+  }).format(value)} ${units[exponent]}`;
+}
+
+export function formatInstant(unixMs: number | null, locale: "fr" | "en"): string {
+  if (unixMs === null) return "—";
+  return new Intl.DateTimeFormat(locale === "fr" ? "fr-CA" : "en-CA", {
+    dateStyle: "medium",
+    timeStyle: "short",
+  }).format(new Date(unixMs));
+}
+
+export default function DetailsPanel({
+  detail,
+  loading,
+  onSelect,
+  locale,
+  strings,
+}: DetailsPanelProps) {
+  if (loading) {
+    return (
+      <section className="details" aria-label={strings.title}>
+        <p className="details__empty">{strings.loading}</p>
+      </section>
+    );
+  }
+  if (!detail) {
+    return (
+      <section className="details" aria-label={strings.title}>
+        <p className="details__empty">{strings.empty}</p>
+      </section>
+    );
+  }
+
+  const { node, parent, children } = detail;
+  return (
+    <section className="details" aria-label={strings.title}>
+      <h2 className="details__name">{node.name}</h2>
+
+      <dl className="details__list">
+        <div className="details__row">
+          <dt>{strings.kind}</dt>
+          <dd>{strings.kinds[node.kind]}</dd>
+        </div>
+        <div className="details__row">
+          <dt>{strings.path}</dt>
+          <dd className="details__path">{node.relativePath || strings.rootPath}</dd>
+        </div>
+        <div className="details__row">
+          <dt>{strings.size}</dt>
+          <dd>{formatBytes(node.sizeBytes, locale)}</dd>
+        </div>
+        <div className="details__row">
+          <dt>{strings.modified}</dt>
+          <dd>{formatInstant(node.modifiedUnixMs, locale)}</dd>
+        </div>
+        <div className="details__row">
+          <dt>{strings.diagnostic}</dt>
+          <dd className={node.accessDiagnostic ? "details__diagnostic" : undefined}>
+            {node.accessDiagnostic ?? strings.noDiagnostic}
+          </dd>
+        </div>
+      </dl>
+
+      <h3 className="details__subtitle">{strings.parent}</h3>
+      {parent ? (
+        <button type="button" className="details__link" onClick={() => onSelect(parent.id)}>
+          {parent.name}
+        </button>
+      ) : (
+        <p className="details__empty">{strings.noParent}</p>
+      )}
+
+      <h3 className="details__subtitle">
+        {strings.children} <span className="details__count">{children.length}</span>
+      </h3>
+      {children.length === 0 ? (
+        <p className="details__empty">{strings.noChildren}</p>
+      ) : (
+        <ul className="details__children">
+          {children.map((child) => (
+            <li key={child.id}>
+              <button type="button" className="details__link" onClick={() => onSelect(child.id)}>
+                <span className="details__child-kind" aria-hidden="true">
+                  {child.kind === "directory" ? "▸" : child.kind === "skipped" ? "⃠" : "·"}
+                </span>
+                {child.name}
+                <span className="details__child-meta">{strings.kinds[child.kind]}</span>
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+    </section>
+  );
+}
