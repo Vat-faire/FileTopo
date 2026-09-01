@@ -2015,3 +2015,67 @@ Conformément à §8.2 du contrat de parité.
 `TASK-0016` est **`IMPLEMENTED`**, jamais auto-déclarée `VERIFIED`. Aucune
 tâche n'est `IN_PROGRESS`. L'action unique suivante est **`ACTION-0026`** — le
 **contrôle indépendant de la première tranche de code de production**.
+
+---
+
+## ACTION-0026 — Contrôle indépendant de TASK-0016 : X2, et correction (2026-08-31)
+
+### X.1 Verdict du contrôle
+
+**`CHANGES_REQUIRED`.** `H1` à `H11` et les preuves publiées sont acceptables
+**sous réserve de `X2`**, bloquante. **`TASK-0016` reste `IMPLEMENTED`.**
+
+### X.2 Réserve X2
+
+Le runtime du produit courant enregistrait encore huit commandes héritées de la
+0.1 — dont `choose_collection`, un **sélecteur de dossier réel** — et
+initialisait `tauri_plugin_dialog`, contre `TASK-0016` §12.4.
+
+**Ce que la clôture précédente avait mal contrôlé :** elle avait jugé sur ce
+que l'interface **appelle**, pas sur ce que le runtime **expose**. Une commande
+enregistrée est invocable depuis la WebView, qu'un bouton la propose ou non.
+
+### X.3 Correction, et preuve qu'elle tient
+
+| Contrôle | Résultat |
+|---|---|
+| Commandes exposées par le runtime | **9**, toutes `map_*` |
+| Les 8 commandes héritées, `health`, `demo_snapshot`, `scan_synthetic_fixture` | **aucune enregistrée** |
+| `tauri_plugin_dialog::init()` dans `run()` | **absent** |
+| `.manage(IndexJobs)` | **retiré** |
+| Appels du frontend actif | **9**, toutes `map_*` |
+| `src/main.tsx` | monte **`MapApp` seul** |
+| Code historique | **conservé**, aucune fonction supprimée, `src/App.tsx` et ses 12 tests intacts |
+| Tests-gardes | **2 ajoutés**, et **éprouvés** : réintroduire `choose_collection` les fait échouer tous les deux |
+
+### X.4 Validation rejouée sur le binaire corrigé
+
+| Contrôle | Résultat |
+|---|---|
+| Tests Rust | **42 passés** |
+| Tests TypeScript | **59 passés**, dont les 12 du prototype |
+| Avertissements, configuration livrée | **0** |
+| `H1`, `H2`, `H3`, `H5`, `H6`, `H7`, `H10`, `H11` | **tenus**, 4 fixtures, dans l'hôte réel |
+| `H8` | **tenu** — WebView2 `151.0.4129.107` |
+| `H9` | **rejoué complet**, protocole gelé inchangé |
+| Chemins locaux personnels dans les artefacts | **aucun** |
+| `B0` | **troisième reproduction**, non corrigé, rien supprimé de `target/` |
+
+### X.5 H9 moins bon, publié tel quel
+
+`wide` **17,80 ms** contre 16,70; `mixed` **21,35 ms** contre 20,20. **Aucune
+explication a posteriori.** L'écart est du même ordre que la dispersion entre
+exécutions — `wide` s'étale de 17,40 à 18,50 ms — et **rien dans les mesures ne
+permet de trancher**.
+
+### X.6 Ce qui n'a pas changé
+
+**Aucun critère `H1` à `H11` modifié. Aucune borne `B-1` à `B-4` retouchée.
+Aucune optimisation de performance. Aucune dépendance nouvelle. Aucune donnée
+réelle. Aucune fusion, PR, release, étiquette, `force push`, ni réécriture
+d'historique.** Aucune réserve levée; `R8` reste entière.
+
+### X.7 Conséquence
+
+**`TASK-0016` reste `IMPLEMENTED`.** La correction vient de l'exécuteur : elle
+appelle un **re-contrôle indépendant**, qui est l'action unique suivante.

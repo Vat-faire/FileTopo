@@ -7,6 +7,9 @@
   réserve normative **`X1`, corrigée**
 - **Tâche livrée, NON vérifiée :** **`TASK-0016`, `IMPLEMENTED`** le
   2026-08-31 — première tranche verticale de **code de production**
+- **Contrôle indépendant :**
+  [`ACTION-0026`](../reviews/ACTION-0026-independent-control.md) →
+  **`CHANGES_REQUIRED`**, réserve **`X2`** corrigée, **re-contrôle attendu**
 - **Tâche IN_PROGRESS :** aucune
 - **Porte `P4` :** **FRANCHIE** —
   [`DEC-0016`](../decisions/DEC-0016-p4-gate-crossing-and-first-slice.md)
@@ -24,8 +27,14 @@ un véritable hôte Tauri/WebView2** → navigation → sélection → détails.
 **Les onze critères gelés sont tenus**, et pour la première fois du projet des
 temps d'image ont été relevés **dans le moteur de production**.
 
-**Rien n'est vérifié.** `TASK-0016` est `IMPLEMENTED` et attend
-**`ACTION-0026`**, le contrôle indépendant.
+`ACTION-0026` a **contrôlé** cette tranche et rendu **`CHANGES_REQUIRED`** :
+la réserve bloquante **`X2`** a établi que le runtime enregistrait encore huit
+commandes héritées de la 0.1, dont un **sélecteur de dossier réel**. La
+correction est faite — le gestionnaire n'expose plus que les neuf commandes de
+la tranche — et **deux tests-gardes** empêchent la régression.
+
+**Rien n'est vérifié.** La correction vient de l'exécuteur de la tranche;
+`TASK-0016` **reste `IMPLEMENTED`** et attend le **re-contrôle indépendant**.
 
 ## Ce qu'il faut savoir en douze lignes
 
@@ -50,13 +59,15 @@ temps d'image ont été relevés **dans le moteur de production**.
    atteinte, ni cible manquée** à annoncer.
 8. **`4,20 ms` est une butée**, pas une mesure : synchronisation verticale à
    4,1667 ms sur un écran 240 Hz. **Jamais citable comme performance.** Seuls
-   `wide` (16,70 ms) et `mixed` (20,20 ms) sont au-dessus de la butée.
+   `wide` (**17,80 ms**) et `mixed` (**21,35 ms**) sont au-dessus de la butée —
+   valeurs du **binaire corrigé**, légèrement moins bonnes que celles de
+   `8cb752b` et publiées telles quelles.
 9. **`R8` n'est pas levée** et ne peut l'être qu'à l'**étape C** : une machine,
    un **binaire de développement**, des fixtures **≤ 2 420 nœuds**.
 10. **Aucun budget adaptatif** n'est employé, adopté, abandonné ni validé. La
     borne `B-1` de 5 000 nœuds est un **plafond déclaré**, qui ne s'ajuste à
     rien. Réserve `W2` : **aucune stabilité n'est prouvée**.
-11. **`B0` s'est reproduit deux fois et n'est pas corrigé.** **Ne rien
+11. **`B0` s'est reproduit trois fois et n'est pas corrigé.** **Ne rien
     supprimer** dans `src-tauri/target/` — `DEC-0013` E. Employer
     `CARGO_INCREMENTAL=0`.
 12. **Aucune donnée réelle, aucun sélecteur de dossier, aucun chemin local
@@ -108,7 +119,8 @@ aucune réécriture d'historique, aucune suppression de branche.
 
 | # | Point | Ce qui est demandé |
 |---|---|---|
-| 1 | **`TASK-0016` est `IMPLEMENTED`** | **`ACTION-0026`** : contrôle indépendant, par une instance **distincte de l'exécuteur**. Première fois que du code de production est contrôlé |
+| 1 | **`TASK-0016` est `IMPLEMENTED`**, `X2` corrigée | **RE-CONTRÔLE** d'`ACTION-0026`, par une instance **distincte de l'exécuteur** : corriger son propre livrable ne le vérifie pas |
+| 1 bis | **La surface runtime doit rester celle de la tranche** | Les deux tests-gardes échouent si une commande hors tranche est réenregistrée. **Ne pas les contourner** |
 | 2 | **Seize exigences de parité non commencées** | Chaque tranche suivante exige sa **propre fiche**, ses **critères gelés** et son **GO**. Les relations transversales portent la correction `X1` |
 | 3 | **`P-12` et `P-06` sont partielles** | Masquage du panneau, survie au redémarrage, relations transversales et atténuation liée à `F-017` restent à faire |
 | 4 | **`P-08` exige 100 000 nœuds** | La borne de 5 000 est une **limite de `TASK-0016`**, pas une limite produit |

@@ -8,9 +8,9 @@ pub struct Index {
 }
 
 impl Index {
-    /// Unused in a release build: only the development fixture and the tests
-    /// need an index that never touches the disk.
-    #[cfg_attr(not(debug_assertions), allow(dead_code))]
+    /// Used by the tests only: the current runtime reaches neither the
+    /// development fixture nor the prototype index — reserve `X2`.
+    #[allow(dead_code)]
     pub fn in_memory() -> Result<Self> {
         let connection = Connection::open_in_memory()?;
         let index = Self { connection };
@@ -110,9 +110,8 @@ impl Index {
         transaction.commit()
     }
 
-    /// Unused in a release build: the application reads through the paged and
-    /// filtered query instead.
-    #[cfg_attr(not(debug_assertions), allow(dead_code))]
+    /// Used by the tests only — reserve `X2`.
+    #[allow(dead_code)]
     pub fn list_nodes(&self, limit: usize, offset: usize) -> Result<Vec<NodeDto>> {
         let bounded_limit = limit.clamp(1, 50_000) as i64;
         let bounded_offset = offset as i64;
@@ -182,6 +181,9 @@ impl Index {
             > 0)
     }
 
+    /// Read by a prototype command the current runtime does not expose —
+    /// reserve `X2`.
+    #[allow(dead_code)]
     pub fn node(&self, node_id: i64) -> Result<Option<NodeDto>> {
         let mut statement = self.connection.prepare(
             "SELECT id, parent_id, name, relative_path, kind, depth, size_bytes,

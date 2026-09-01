@@ -5,7 +5,9 @@
   [TASK-0016-p4-vertical-slice-results.md](../research/TASK-0016-p4-vertical-slice-results.md)
 - **Preuves brutes :** [`runs/TASK-0016-H9-webview2.json`](runs/TASK-0016-H9-webview2.json),
   [`runs/TASK-0016-H1-H7-verification.json`](runs/TASK-0016-H1-H7-verification.json)
-- **Date de mesure :** 2026-08-31
+- **Date de mesure :** 2026-08-31; **rejouées intégralement** après la
+  correction de la réserve bloquante `X2`
+  ([ACTION-0026](../reviews/ACTION-0026-independent-control.md))
 - **Statut :** premières mesures **dans le moteur de production**. **Aucune
   n'est une performance annoncée de FileTopo.**
 
@@ -62,12 +64,16 @@ l'image **suivant** celle qui peint la sélection.
 
 ## 3. Temps d'image et latence de sélection
 
+**Mesures de référence : celles du binaire corrigé de `X2`.** Les valeurs du
+commit `8cb752b` sont conservées plus bas, à titre de comparaison, et **elles
+étaient meilleures**.
+
 | Fixture | Nœuds | Image médiane | Image min | Image max | Sélection médiane | Sélection min | Sélection max |
 |---|---:|---:|---:|---:|---:|---:|---:|
-| `quasi-empty` | 12 | **4,20 ms** | 2,80 | 6,30 | **8,30 ms** | 8,20 | 8,60 |
-| `deep` | 157 | **4,20 ms** | 2,20 | 7,10 | **8,30 ms** | 8,00 | 8,80 |
-| `wide` | 2 207 | **16,70 ms** | 4,10 | **21,00** | **34,65 ms** | 32,40 | **60,30** |
-| `mixed` | 2 420 | **20,20 ms** | 3,70 | **28,90** | **38,20 ms** | 35,80 | **62,50** |
+| `quasi-empty` | 12 | **4,20 ms** | 2,00 | 8,80 | **8,30 ms** | 6,40 | 9,80 |
+| `deep` | 157 | **4,20 ms** | 2,20 | 8,70 | **8,40 ms** | 4,90 | 12,30 |
+| `wide` | 2 207 | **17,80 ms** | 4,10 | 32,10 | **38,45 ms** | 33,90 | 63,90 |
+| `mixed` | 2 420 | **21,35 ms** | 4,60 | 40,30 | **42,95 ms** | 37,70 | 77,50 |
 
 ### Médianes des cinq exécutions, aucune écartée
 
@@ -75,8 +81,23 @@ l'image **suivant** celle qui peint la sélection.
 |---|---:|---:|---:|---:|---:|
 | `quasi-empty` | 4,20 | 4,20 | 4,20 | 4,20 | 4,20 |
 | `deep` | 4,20 | 4,20 | 4,20 | 4,20 | 4,20 |
-| `wide` | 16,70 | 16,60 | 16,80 | 16,60 | 16,80 |
-| `mixed` | 20,10 | 20,20 | 20,30 | 20,30 | 20,30 |
+| `wide` | 17,60 | 17,80 | 17,60 | 17,40 | 18,50 |
+| `mixed` | 21,90 | 20,90 | 21,60 | 22,00 | 21,20 |
+
+### Comparaison avec le binaire d'avant la correction de X2
+
+| Fixture | Avant `X2` (`8cb752b`) | Après correction | Écart |
+|---|---:|---:|---:|
+| `wide` | 16,70 ms | **17,80 ms** | **+1,10 ms** |
+| `mixed` | 20,20 ms | **21,35 ms** | **+1,15 ms** |
+
+**Le binaire corrigé est légèrement plus lent, et c'est publié tel quel.**
+**Aucune explication a posteriori n'est proposée.** La correction retire des
+enregistrements de commandes, ce qui n'a aucun rapport connu avec le coût d'une
+image, et l'écart est du même ordre que la dispersion entre exécutions d'une
+même campagne — `wide` s'étale de 17,40 à 18,50 ms. **Rien dans les mesures ne
+permet de trancher**, et rien ne sera affirmé au-delà. Le protocole gelé n'a
+pas changé d'un paramètre.
 
 ### Lecture obligatoire : 4,20 ms est une butée
 
@@ -96,10 +117,10 @@ navigation : exactement zéro**, sur les quatre fixtures.
 
 | Fixture | Nœuds | Scan | **Calepinage** | Index |
 |---|---:|---:|---:|---:|
-| `quasi-empty` | 12 | 0,7 ms | **0,0 ms** | 5,3 ms |
-| `deep` | 157 | 11,1 ms | **0,1 ms** | 6,7 ms |
-| `wide` | 2 207 | 86,8 ms | **0,9 ms** | 27,5 ms |
-| `mixed` | 2 420 | 89,9 ms | **1,1 ms** | 29,6 ms |
+| `quasi-empty` | 12 | 0,7 ms | **0,0 ms** | 7,3 ms |
+| `deep` | 157 | 11,6 ms | **0,1 ms** | 6,7 ms |
+| `wide` | 2 207 | 95,9 ms | **0,9 ms** | 27,6 ms |
+| `mixed` | 2 420 | 91,1 ms | **1,1 ms** | 31,2 ms |
 
 **Binaire de développement non optimisé.** Le **rapport** entre ces colonnes
 est instructif — le calepinage pèse moins de 1 % de la construction; leurs
@@ -122,7 +143,8 @@ deux campagnes **ne mesurent pas la même chose**.
 
 Pour mémoire, **sans en déduire quoi que ce soit** : `CAL-B` sur `SYN-WIDE` à
 **2 856 blocs visibles** rendait **119,05 ips** sur Edge — soit **≈ 8,4 ms**
-par image —, contre **16,70 ms** ici sur `wide` à **2 207 nœuds**.
+par image —, contre **17,80 ms** ici sur `wide` à
+**2 207 nœuds**.
 
 **Ce rapprochement ne fonde aucun verdict.** Les grandeurs diffèrent, les
 charges ne sont pas comparables, le chemin de rendu a changé, et le profil de

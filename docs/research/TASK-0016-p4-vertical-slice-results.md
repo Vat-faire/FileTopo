@@ -10,6 +10,11 @@
   `73f0327` après le commit documentaire de clôture d'`ACTION-0025`
 - **Statut de la tâche à l'issue :** **`IMPLEMENTED`, jamais `VERIFIED`.**
   L'exécuteur ne juge pas ses propres preuves.
+- **Contrôle indépendant :**
+  [ACTION-0026](../reviews/ACTION-0026-independent-control.md) →
+  **`CHANGES_REQUIRED`**, réserve bloquante **`X2`**. **Corrigée**, et
+  **toutes les mesures de ce journal ont été rejouées sur le binaire
+  corrigé** — voir §13. En attente de **re-contrôle**.
 
 ---
 
@@ -146,12 +151,14 @@ sélection.
 **Toutes les fixtures sont mesurées à la même taille de carte, 870 × 488
 points**, et cette taille est publiée avec les chiffres.
 
+**Chiffres du binaire corrigé de `X2`** — les seuls qui font foi.
+
 | Fixture | Nœuds | Image médiane | Image min–max | Sélection médiane | Sélection min–max |
 |---|---:|---:|---:|---:|---:|
-| `quasi-empty` | 12 | **4,20 ms** | 2,80 – 6,30 | **8,30 ms** | 8,20 – 8,60 |
-| `deep` | 157 | **4,20 ms** | 2,20 – 7,10 | **8,30 ms** | 8,00 – 8,80 |
-| `wide` | 2 207 | **16,70 ms** | 4,10 – **21,00** | **34,65 ms** | 32,40 – **60,30** |
-| `mixed` | 2 420 | **20,20 ms** | 3,70 – **28,90** | **38,20 ms** | 35,80 – **62,50** |
+| `quasi-empty` | 12 | **4,20 ms** | 2,00 – 8,80 | **8,30 ms** | 6,40 – 9,80 |
+| `deep` | 157 | **4,20 ms** | 2,20 – 8,70 | **8,40 ms** | 4,90 – 12,30 |
+| `wide` | 2 207 | **17,80 ms** | 4,10 – **32,10** | **38,45 ms** | 33,90 – **63,90** |
+| `mixed` | 2 420 | **21,35 ms** | 4,60 – **40,30** | **42,95 ms** | 37,70 – **77,50** |
 
 **Médianes par exécution**, les cinq, sans en écarter aucune :
 
@@ -159,8 +166,8 @@ points**, et cette taille est publiée avec les chiffres.
 |---|---:|---:|---:|---:|---:|
 | `quasi-empty` | 4,20 | 4,20 | 4,20 | 4,20 | 4,20 |
 | `deep` | 4,20 | 4,20 | 4,20 | 4,20 | 4,20 |
-| `wide` | 16,70 | 16,60 | 16,80 | 16,60 | 16,80 |
-| `mixed` | 20,10 | 20,20 | 20,30 | 20,30 | 20,30 |
+| `wide` | 17,60 | 17,80 | 17,60 | 17,40 | 18,50 |
+| `mixed` | 21,90 | 20,90 | 21,60 | 22,00 | 21,20 |
 
 ### 6.1 Une lecture obligatoire : 4,20 ms est une butée, pas une mesure
 
@@ -171,7 +178,7 @@ pour `quasi-empty` et `deep`, **la mesure dit seulement que le rendu tient dans
 une image**, pas combien de temps il prend. **Aucun chiffre de 4,20 ms ne peut
 être cité comme une performance.**
 
-`wide` et `mixed`, eux, sont **au-dessus de la butée** : 16,70 ms et 20,20 ms
+`wide` et `mixed`, eux, sont **au-dessus de la butée** : 17,80 ms et 21,35 ms
 sont des durées réellement observées.
 
 ### 6.2 L'écart avec les mesures de spike, publié tel quel
@@ -190,7 +197,7 @@ deux campagnes **ne mesurent pas la même chose**.
 
 À titre indicatif, et **sans en déduire quoi que ce soit** : `CAL-B` sur
 `SYN-WIDE` à 2 856 blocs visibles rendait **119,05 ips** sur Edge — soit
-**≈ 8,4 ms** par image —, contre **16,70 ms** ici sur `wide` à 2 207 nœuds.
+**≈ 8,4 ms** par image —, contre **17,80 ms** ici sur `wide` à 2 207 nœuds.
 
 **Ce rapprochement ne fonde aucun verdict**, pour trois raisons écrites
 d'avance : les grandeurs diffèrent, les charges ne sont pas comparables, et le
@@ -205,10 +212,10 @@ panoramique change un attribut.
 
 | Fixture | Nœuds | Scan | **Calepinage** | Index | Part du calepinage |
 |---|---:|---:|---:|---:|---:|
-| `quasi-empty` | 12 | 0,7 ms | **0,0 ms** | 5,3 ms | négligeable |
-| `deep` | 157 | 11,1 ms | **0,1 ms** | 6,7 ms | 0,6 % |
-| `wide` | 2 207 | 86,8 ms | **0,9 ms** | 27,5 ms | 0,8 % |
-| `mixed` | 2 420 | 89,9 ms | **1,1 ms** | 29,6 ms | 0,9 % |
+| `quasi-empty` | 12 | 0,7 ms | **0,0 ms** | 7,3 ms | négligeable |
+| `deep` | 157 | 11,6 ms | **0,1 ms** | 6,7 ms | 0,5 % |
+| `wide` | 2 207 | 95,9 ms | **0,9 ms** | 27,6 ms | 0,7 % |
+| `mixed` | 2 420 | 91,1 ms | **1,1 ms** | 31,2 ms | 0,9 % |
 
 **Ces trois colonnes viennent d'un binaire de développement**, non optimisé —
 §8. Le rapport entre elles est instructif; leurs valeurs absolues ne sont pas
@@ -247,8 +254,12 @@ une performance du produit.
 11. **Le premier essai de mesure a été abandonné**, et le renderer a changé
     ensuite — §10. **Aucun chiffre n'existait avant ce changement**, donc rien
     n'a été réglé sur un résultat; mais le fait est consigné plutôt que tu.
+12. **Une réserve bloquante `X2` a échappé à ce journal** dans sa première
+    rédaction — §13. Elle portait sur la **surface exposée par le runtime**,
+    que ce journal n'avait pas contrôlée : il avait jugé sur ce que
+    l'interface *appelle*, pas sur ce que le runtime *expose*.
 
-## 9. B0 s'est reproduit, deux fois, et n'a pas été corrigé
+## 9. B0 s'est reproduit, trois fois, et n'a pas été corrigé
 
 `cargo build --locked` et `tauri dev` ont **tous deux** déclenché la panique
 interne de `rustc 1.98.0` décrite par `DEC-0013` E, sur le cache de compilation
@@ -259,6 +270,9 @@ incrémentale de `src-tauri/target/`. Le message est identique à celui du banc
 **Rien n'a été supprimé, nettoyé ni renommé dans `src-tauri/target/`.** La
 reproduction est **conservée**, conformément à `DEC-0013` E. Tous les builds de
 cette tâche ont employé `CARGO_INCREMENTAL=0`, qui réussit.
+
+**Une troisième reproduction** a eu lieu lors de la correction de `X2`, sur
+`cargo build --locked`, identique aux précédentes.
 
 **`B0` n'est pas corrigé, et rien ici ne doit laisser entendre le contraire.**
 
@@ -302,3 +316,67 @@ avant ce remplacement** : il n'y avait pas de résultat à améliorer.
 - [`TASK-0016-H1-H7-verification.json`](../performance/runs/TASK-0016-H1-H7-verification.json)
 - [ACTION-0025](../reviews/ACTION-0025-independent-control.md), [DEC-0016](../decisions/DEC-0016-p4-gate-crossing-and-first-slice.md)
 - [CARTETOPO_FUNCTIONAL_PARITY.md](../product/CARTETOPO_FUNCTIONAL_PARITY.md)
+
+---
+
+## 13. Réserve bloquante X2 du contrôle indépendant, et correction
+
+Ajouté après le contrôle
+[ACTION-0026](../reviews/ACTION-0026-independent-control.md), qui a rendu
+**`CHANGES_REQUIRED`**.
+
+### 13.1 Ce que ce journal avait manqué
+
+Le contrôle a établi que `src-tauri/src/lib.rs` **enregistrait encore**, dans
+l'`invoke_handler` **actif du produit courant**, huit commandes héritées de la
+0.1 — `list_collections`, `choose_collection`, `index_collection`,
+`cancel_indexing`, `index_progress`, `query_collection_nodes`,
+`mark_node_seen`, `reveal_indexed_node` — et **initialisait
+`tauri_plugin_dialog`**.
+
+**§11 de ce journal affirmait « aucun sélecteur de dossier utilisateur dans
+cette tranche ».** C'était vrai de l'**interface**, et faux du **runtime** :
+une commande enregistrée est invocable depuis la WebView, qu'un bouton la
+propose ou non. Le contrôle a jugé sur la surface exposée; le journal avait
+jugé sur les appels de l'interface. **La distinction est exactement celle qui
+manquait**, et elle est la leçon utile de cette réserve.
+
+### 13.2 Correction
+
+L'`invoke_handler` n'enregistre plus que les **neuf commandes `map_*`** de la
+tranche; le plugin de dialogue n'est plus initialisé; `.manage(IndexJobs)` est
+retiré. **Aucune fonction n'a été supprimée**, `src/App.tsx` et ses douze tests
+sont intacts, et **aucun historique n'a été réécrit** : le code du prototype
+reste dans le binaire, mais **inatteignable**.
+
+**Deux tests-gardes** lisent la source embarquée à la compilation et échouent
+si une commande hors tranche est réenregistrée. **Éprouvés en réintroduisant
+temporairement `choose_collection`** : les deux ont échoué, puis l'état corrigé
+a été restauré.
+
+### 13.3 Tout a été rejoué sur le binaire corrigé
+
+42 tests Rust, 59 tests TypeScript, **0 avertissement** en configuration
+livrée. `H1` à `H11` rejoués dans le véritable hôte, **`H9` complet** — 4
+fixtures × 5 exécutions, **protocole gelé inchangé**.
+
+**Les chiffres de `H9` sont légèrement moins bons qu'avant la correction** :
+`wide` **17,80 ms** contre 16,70 ms, `mixed` **21,35 ms** contre 20,20 ms.
+**Ils sont publiés tels quels et remplacent les précédents** dans tout ce
+journal, puisqu'ils portent sur le binaire corrigé.
+
+**Aucune explication a posteriori n'est proposée.** La correction retire des
+enregistrements de commandes, sans rapport connu avec le coût d'une image, et
+l'écart est du même ordre que la dispersion entre exécutions — `wide` s'étale
+de 17,40 à 18,50 ms sur cette campagne. **Rien dans les mesures ne permet de
+trancher.**
+
+### 13.4 Ce que la correction ne change pas
+
+**`TASK-0016` reste `IMPLEMENTED`.** La correction vient de l'exécuteur de la
+tranche : **corriger son propre livrable ne le vérifie pas**. `ACTION-0026`
+reste en attente d'un **re-contrôle indépendant**.
+
+**Aucun critère `H1` à `H11` n'a été modifié, aucune borne `B-1` à `B-4` n'a
+été retouchée, aucune optimisation n'a été faite à cette occasion, aucune
+dépendance n'a été ajoutée.**

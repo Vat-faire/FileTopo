@@ -2016,3 +2016,63 @@ résultat, §14 historique); et la mémoire obligatoire — `CURRENT_STATE.md`,
 
 **`ACTION-0026`** — **contrôle indépendant de `TASK-0016`**, par une instance
 **distincte de son exécuteur**. `TASK-0016` reste **`IMPLEMENTED`**.
+
+---
+
+## 2026-08-31 — ACTION-0026 : réserve bloquante X2, et correction
+
+**Verdict du contrôle indépendant : `CHANGES_REQUIRED`.** `TASK-0016` **reste
+`IMPLEMENTED`**.
+
+### Fait
+
+- **`X2` enregistrée.** Le runtime du produit courant enregistrait encore huit
+  commandes héritées de la 0.1 — dont `choose_collection`, un **sélecteur de
+  dossier réel** — et initialisait `tauri_plugin_dialog`, contre §12.4.
+  **Une commande enregistrée est invocable**, qu'un bouton la propose ou non.
+- **Runtime isolé.** L'`invoke_handler` n'enregistre plus que les **neuf
+  commandes `map_*`**; plugin de dialogue et `.manage(IndexJobs)` retirés.
+- **Code historique conservé** : aucune fonction supprimée, `src/App.tsx` et
+  ses douze tests intacts, aucun historique réécrit. Les éléments devenus
+  inatteignables portent une annotation qui dit **pourquoi** ils sont gardés.
+- **Deux tests-gardes**, qui lisent la source embarquée à la compilation faute
+  de pouvoir introspecter `generate_handler!`, et **éprouvés en réintroduisant
+  temporairement le défaut** : les deux échouent alors.
+- **Validation intégralement rejouée** sur le binaire corrigé : 42 tests Rust,
+  59 TypeScript, 0 avertissement, `H1` à `H11` dans l'hôte réel, **`H9`
+  complet**.
+- **`H9` est légèrement moins bon** — `wide` 17,80 ms contre 16,70, `mixed`
+  21,35 contre 20,20 — **publié tel quel, sans explication a posteriori**.
+- **Chiffres inventés corrigés.** Quatre minima de latence de sélection avaient
+  été écrits de mémoire dans `PERF-0006` au lieu d'être lus dans l'artefact;
+  ils sont remplacés par les valeurs réelles.
+- **`B0` : troisième reproduction**, identique, non corrigé, rien supprimé de
+  `src-tauri/target/`.
+
+### Non fait, volontairement
+
+- **Aucun critère `H1` à `H11` modifié. Aucune borne `B-1` à `B-4` retouchée.**
+- **Aucune optimisation de performance** à l'occasion de la correction.
+- **Aucune dépendance nouvelle**, et **`tauri-plugin-dialog` reste au
+  manifeste** : ce n'est pas un nettoyage général.
+- **Aucune fonctionnalité de la tranche `map` modifiée** hors ce que `X2`
+  exigeait.
+- **Aucune réserve levée**; `R8` reste entière.
+- **Aucune donnée réelle, aucune fusion, PR, release, étiquette, `force
+  push`**, aucune réécriture d'historique.
+
+### Fichiers
+
+**Créés :** `docs/reviews/ACTION-0026-independent-control.md`.
+
+**Modifiés :** `src-tauri/src/lib.rs` (gestionnaire, runtime, 2 tests-gardes,
+annotations); `src-tauri/src/{domain,index,scanner}.rs` (annotations
+uniquement); `docs/tasks/TASK-0016-p4-vertical-slice.md` (§15, §16);
+`docs/research/TASK-0016-p4-vertical-slice-results.md` (§13, chiffres rejoués);
+`docs/performance/PERF-0006-p4-vertical-slice.md`;
+`docs/performance/runs/*.json` (preuves rejouées); et la mémoire obligatoire.
+
+### Prochaine action unique
+
+**RE-CONTRÔLE indépendant de `TASK-0016`**, par une instance **distincte de son
+exécuteur**. Corriger son propre livrable ne le vérifie pas.

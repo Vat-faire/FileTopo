@@ -11,7 +11,7 @@
     "H10",
     "H11"
   ],
-  "capturedAtIso": "2026-09-01T03:35:44.574Z",
+  "capturedAtIso": "2026-09-01T04:36:07.472Z",
   "host": {
     "sandboxRoot": "<dépôt>/.filetopo-sandbox",
     "appVersion": "0.1.0-alpha.1",
@@ -37,14 +37,14 @@
       "schemaVersion": 1,
       "layoutInvocations": 1,
       "timingsMs": {
-        "scan": 0.6775,
-        "layout": 0.034999999999999996,
-        "index": 5.252
+        "scan": 0.6867000000000001,
+        "layout": 0.0342,
+        "index": 7.3276
       },
       "rebuiltTimingsMs": {
-        "scan": 0.7295,
-        "layout": 0.017499999999999998,
-        "index": 10.5337
+        "scan": 0.8513999999999999,
+        "layout": 0.02,
+        "index": 11.520000000000001
       },
       "h1_pathsAgree": true,
       "h1_counts": {
@@ -87,14 +87,14 @@
       "schemaVersion": 1,
       "layoutInvocations": 1,
       "timingsMs": {
-        "scan": 11.1439,
-        "layout": 0.0883,
-        "index": 6.7
+        "scan": 11.6455,
+        "layout": 0.0862,
+        "index": 6.6799
       },
       "rebuiltTimingsMs": {
-        "scan": 11.1542,
-        "layout": 0.08650000000000001,
-        "index": 11.4937
+        "scan": 11.729,
+        "layout": 0.0871,
+        "index": 11.7698
       },
       "h1_pathsAgree": true,
       "h1_counts": {
@@ -137,14 +137,14 @@
       "schemaVersion": 1,
       "layoutInvocations": 1,
       "timingsMs": {
-        "scan": 86.82960000000001,
-        "layout": 0.8681,
-        "index": 27.5162
+        "scan": 95.8913,
+        "layout": 0.8828,
+        "index": 27.585700000000003
       },
       "rebuiltTimingsMs": {
-        "scan": 86.39099999999999,
-        "layout": 0.8389,
-        "index": 28.852
+        "scan": 94.7042,
+        "layout": 0.9138,
+        "index": 25.029200000000003
       },
       "h1_pathsAgree": true,
       "h1_counts": {
@@ -187,14 +187,14 @@
       "schemaVersion": 1,
       "layoutInvocations": 1,
       "timingsMs": {
-        "scan": 89.93289999999999,
-        "layout": 1.1165,
-        "index": 29.6276
+        "scan": 91.0501,
+        "layout": 1.0588,
+        "index": 31.184199999999997
       },
       "rebuiltTimingsMs": {
-        "scan": 91.07329999999999,
-        "layout": 1.0312,
-        "index": 27.449
+        "scan": 94.5561,
+        "layout": 1.0057,
+        "index": 29.896900000000002
       },
       "h1_pathsAgree": true,
       "h1_counts": {

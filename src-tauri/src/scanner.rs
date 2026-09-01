@@ -36,9 +36,9 @@ struct PendingDirectory {
     depth: u32,
 }
 
-/// Unused in a release build: only the development fixture and the tests
-/// scan a tree without a cancellation token.
-#[cfg_attr(not(debug_assertions), allow(dead_code))]
+/// Used by the tests and the retired development fixture only. The current
+/// runtime always scans through `scan_tree_controlled` — reserve `X2`.
+#[allow(dead_code)]
 pub fn scan_tree(root: &Path) -> Result<ScanResult, ScanError> {
     scan_tree_controlled(root, || false, |_| {})
 }

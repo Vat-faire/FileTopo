@@ -1,83 +1,70 @@
 # Prochaine action
 
-## ACTION-0026 — Contrôle indépendant de TASK-0016
+## ACTION-0026 — RE-CONTRÔLE indépendant de TASK-0016, après correction de X2
 
-- **Statut :** PROPOSED
+- **Statut :** **`CHANGES_REQUIRED`**, correction exécutée, **en attente de
+  re-contrôle**
 - **Responsable :** une instance **distincte de l'exécuteur** de `TASK-0016` —
   orchestrateur technique, **ou Sébastien** s'il choisit de reprendre ce
-  contrôle, ce qu'il peut faire à tout moment
-- **Action unique :** **contrôler la première tranche verticale livrée par
-  [TASK-0016](../tasks/TASK-0016-p4-vertical-slice.md)** — code de production,
-  onze critères gelés `H1` à `H11`, preuves commitées et premières mesures dans
-  WebView2 — puis décider si elle passe à `VERIFIED`, avec ou sans réserves, ou
-  si elle est renvoyée.
-- **Résultat attendu :** `TASK-0016` passe de `IMPLEMENTED` à `VERIFIED`, avec
-  ou sans réserves, ou elle est renvoyée. **Par écrit**, jamais implicitement.
+  contrôle
+- **Action unique :** **re-contrôler `TASK-0016` après la correction de la
+  réserve bloquante `X2`**, puis décider si la tranche passe à `VERIFIED`, avec
+  ou sans réserves, ou si elle est renvoyée.
+- **Résultat attendu :** `TASK-0016` passe de `IMPLEMENTED` à `VERIFIED`, ou
+  est renvoyée. **Par écrit**, jamais implicitement.
 
 ### Pourquoi c'est la seule action
 
-`TASK-0016` est livrée **`IMPLEMENTED`** et **ne s'est pas auto-attribué
-`VERIFIED`** : l'exécuteur ne juge pas ses propres preuves. Aucune tâche n'est
-`IN_PROGRESS`. **C'est la première fois que du code de production est soumis à
-un contrôle** — le précédent compte.
+Le premier contrôle a émis **`X2`**, bloquante : le runtime du produit courant
+enregistrait encore huit commandes héritées de la 0.1 — dont un **sélecteur de
+dossier réel** — et initialisait le plugin de dialogue, en contradiction avec
+`TASK-0016` §12.4.
 
-### Ce que le contrôle doit regarder en priorité
+**La correction a été faite par l'exécuteur de la tranche.** Corriger son
+propre livrable ne le vérifie pas : `TASK-0016` **reste `IMPLEMENTED`**, et le
+re-contrôle appartient à une instance distincte.
 
-1. **La préséance du gel sur les mesures.** §12 de la fiche a-t-elle bien été
-   commitée **avant** la première ligne de code ? L'historique Git le
-   montre-t-il — commit `6edd5bd` du gel, puis `130b670` du code ? **Aucun
-   critère n'a-t-il été retouché** après le premier résultat ?
-2. **`H1` est-il non circulaire ?** Il compare **trois** ensembles : le plan de
-   la fixture, un parcours indépendant du disque, et l'index. Le plan
-   est-il réellement calculé **sans regarder le disque**, et le parcours
-   est-il réellement **indépendant du scanner de production** ? Comparer le
-   scanner à lui-même ne prouverait rien.
-3. **Les trois défauts de protocole de §10 du journal.** Fenêtre occultée,
-   carte de 1 × 1 pixel, remise en page pendant la course. Chacun aurait
-   produit un chiffre flatteur. Sont-ils **complètement** décrits ? Est-il
-   exact qu'**aucune mesure n'existait avant leur correction** — donc que rien
-   n'a été réglé sur un résultat ? Le changement de chemin de rendu est-il
-   acceptable à ce titre ?
-4. **La butée de 4,20 ms.** Est-elle déclarée comme butée **partout** où elle
-   apparaît, et jamais citée comme performance ? `wide` et `mixed`
-   sont-ils bien au-dessus de la butée ?
-5. **L'écart avec les mesures de spike.** Est-il publié **tel quel**, sans
-   explication a posteriori ? Les quatre raisons de non-comparabilité —
-   grandeur, charge, chemin de rendu, profil de compilation — sont-elles
-   énoncées **avant** le rapprochement chiffré ?
-6. **`H6` et `H7` sur disque.** L'empreinte couvre-t-elle **contenu et
-   horodatages**, pas seulement les noms ? L'état non reconstructible est-il
-   **réellement énuméré** et non présumé vide — et le test prouve-t-il qu'il
-   **diffère effectivement** après reconstruction ?
-7. **La borne `B-1` n'est-elle pas un budget déguisé ?** Elle doit être un
-   plafond **déclaré**, qui ne s'ajuste à rien et ne mesure rien —
-   `DEC-0015` F. Un dépassement produit-il bien une **erreur explicite**, sans
-   troncature, échantillonnage ni niveau de détail ?
-8. **Le périmètre.** Aucune relation transversale, aucune recherche, aucun
-   watcher, aucun multi-cerveaux, **aucun sélecteur de dossier réel**, aucun
-   contrôleur de budget de spike, ni Canvas 2D ni WebGL, **aucune dépendance
-   nouvelle** ?
-9. **`B0`.** La reproduction est-elle enregistrée **sans être présentée comme
-   corrigée**, et **rien** n'a-t-il été supprimé, nettoyé ou renommé dans
-   `src-tauri/target/` — `DEC-0013` E ?
-10. **Confidentialité.** **Aucun chemin local personnel** dans le dépôt, y
-    compris dans les artefacts de mesure ? Le bac à sable est-il **nommé** et
-    jamais épelé ?
+### Ce que le re-contrôle doit regarder en priorité
 
-### Ce que le contrôle ne doit pas conclure
+1. **L'`invoke_handler` lui-même.** N'expose-t-il que les **neuf commandes
+   `map_*`** ? Les huit commandes héritées, plus `health`, `demo_snapshot` et
+   `scan_synthetic_fixture`, en sont-elles bien absentes ? Le plugin de
+   dialogue est-il bien retiré du runtime ?
+2. **Les deux tests-gardes.** `exposed_commands_stay_within_the_slice` et
+   `no_exposed_command_can_open_a_folder_picker` lisent la source embarquée à
+   la compilation, faute de pouvoir introspecter `generate_handler!`.
+   **Est-ce une garde solide ou une astuce fragile ?** La preuve qu'ils
+   échouent quand `choose_collection` est réenregistrée est-elle convaincante ?
+   Le second test se bornait-il correctement pour ne pas se lire lui-même ?
+3. **La conservation du code historique.** **Aucune fonction supprimée**,
+   `src/App.tsx` et ses douze tests intacts, aucun historique réécrit ? Les
+   annotations `#[allow(dead_code)]` expliquent-elles *pourquoi* le code est
+   conservé, plutôt que de simplement taire un avertissement ?
+4. **L'immuabilité des critères.** `H1` à `H11` **inchangés** ? Bornes `B-1` à
+   `B-4` **non retouchées** ? Aucune optimisation de performance glissée dans
+   la correction ? Aucune dépendance nouvelle ?
+5. **Le `H9` moins bon, publié tel quel.** `wide` passe de 16,70 à **17,80 ms**,
+   `mixed` de 20,20 à **21,35 ms**. Est-ce présenté **sans atténuation**, et
+   l'**absence d'explication** est-elle assumée plutôt que comblée par une
+   hypothèse commode ?
+6. **La portée réelle de la garantie.** Le code du prototype **existe toujours**
+   dans le binaire : la garantie est qu'il est **inatteignable**, pas qu'il a
+   disparu. Est-ce suffisant à ce stade, ou faut-il davantage ?
+7. **Confidentialité.** Aucun chemin local personnel dans les artefacts
+   rejoués ?
 
-- **Ne pas lever `R8`.** Elle appartient à l'**étape C**. Les mesures de cette
-  tranche sont un **point de comparaison**, pas une validation.
+### Ce que le re-contrôle ne doit pas conclure
+
+- **Ne pas lever `R8`** : elle appartient à l'**étape C**.
 - **Ne pas déclarer une exigence de parité satisfaite au-delà de ce que la
-  tranche a prouvé.** Six le sont **sur ce périmètre**, deux sont
-  **partielles**, seize ne sont **pas commencées**.
-- **Ne pas conclure quoi que ce soit sur le budget adaptatif** : il n'est ni
-  employé, ni adopté, ni abandonné, ni validé. Réserve `W2` inchangée.
+  tranche a prouvé** — six *sur ce périmètre*, deux partielles, seize non
+  commencées.
+- **Ne rien conclure sur le budget adaptatif** : ni employé, ni adopté, ni
+  abandonné, ni validé.
 
-### Interdit tant que ce contrôle n'a pas conclu
+### Interdit tant que ce re-contrôle n'a pas conclu
 
-**Ne pas ouvrir la tranche suivante de l'étape A** : elle exigera sa propre
-fiche, ses propres critères gelés et son propre GO. **Ne pas commencer
-l'étape B** — la parité précède l'esthétique. Ne pas corriger `B0` ni rien
-supprimer dans `src-tauri/target/`. Ne pas fusionner vers `main`, ne créer ni
-PR, ni release, ni étiquette, ne pas réécrire l'historique.
+**Ne pas ouvrir la tranche suivante de l'étape A.** Ne pas commencer
+l'étape **B**. Ne pas corriger `B0` ni rien supprimer dans `src-tauri/target/`.
+Ne pas fusionner vers `main`, ne créer ni PR, ni release, ni étiquette, ne pas
+réécrire l'historique.

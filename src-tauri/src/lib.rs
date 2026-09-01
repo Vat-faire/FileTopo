@@ -23,15 +23,27 @@ use std::sync::{Arc, Mutex};
 use tauri::Manager;
 use tauri_plugin_dialog::DialogExt;
 
+/// Retained from the 0.1 alpha prototype, and deliberately **not exposed**
+/// by the current runtime — reserve `X2`. `DEC-0015` A keeps the prototype
+/// as the technical audit it is; `TASK-0016` §12.4 keeps it out of reach.
+#[allow(dead_code)]
 #[derive(Default)]
 struct IndexJob {
     cancelled: AtomicBool,
     visited_nodes: AtomicUsize,
 }
 
+/// Retained from the 0.1 alpha prototype, and deliberately **not exposed**
+/// by the current runtime — reserve `X2`. `DEC-0015` A keeps the prototype
+/// as the technical audit it is; `TASK-0016` §12.4 keeps it out of reach.
+#[allow(dead_code)]
 #[derive(Clone, Default)]
 struct IndexJobs(Arc<Mutex<HashMap<String, Arc<IndexJob>>>>);
 
+/// Retained from the 0.1 alpha prototype, and deliberately **not exposed**
+/// by the current runtime — reserve `X2`. `DEC-0015` A keeps the prototype
+/// as the technical audit it is; `TASK-0016` §12.4 keeps it out of reach.
+#[allow(dead_code)]
 impl IndexJobs {
     fn start(&self, collection_id: &str) -> Result<Arc<IndexJob>, String> {
         let mut jobs = self
@@ -57,6 +69,12 @@ impl IndexJobs {
     }
 }
 
+/// Exercised by the tests, and no longer reachable from the running
+/// product: the current runtime exposes only the slice's commands —
+/// reserve `X2`. Kept because the 0.1 audit is worth preserving
+/// (`DEC-0015` A), annotated because keeping it must stay a visible
+/// choice rather than a silent warning.
+#[allow(dead_code)]
 #[tauri::command]
 fn health() -> AppHealth {
     AppHealth {
@@ -67,6 +85,10 @@ fn health() -> AppHealth {
     }
 }
 
+/// Retained from the 0.1 alpha prototype, and deliberately **not exposed**
+/// by the current runtime — reserve `X2`. `DEC-0015` A keeps the prototype
+/// as the technical audit it is; `TASK-0016` §12.4 keeps it out of reach.
+#[allow(dead_code)]
 #[tauri::command]
 fn demo_snapshot() -> CollectionSnapshot {
     synthetic::demo_snapshot(96)
@@ -78,6 +100,12 @@ fn demo_snapshot() -> CollectionSnapshot {
 /// Deliberately not `env!("CARGO_MANIFEST_DIR")`: that macro is expanded by the
 /// compiler into a string literal, which would bake the absolute path of the
 /// developer's checkout into every binary produced from this source.
+/// Exercised by the tests, and no longer reachable from the running
+/// product: the current runtime exposes only the slice's commands —
+/// reserve `X2`. Kept because the 0.1 audit is worth preserving
+/// (`DEC-0015` A), annotated because keeping it must stay a visible
+/// choice rather than a silent warning.
+#[allow(dead_code)]
 #[cfg(debug_assertions)]
 fn synthetic_fixture_root() -> Option<PathBuf> {
     let cwd = std::env::current_dir().ok()?;
@@ -89,6 +117,12 @@ fn synthetic_fixture_root() -> Option<PathBuf> {
 }
 
 /// Development-only: runs the real scanner over the synthetic fixture.
+/// Exercised by the tests, and no longer reachable from the running
+/// product: the current runtime exposes only the slice's commands —
+/// reserve `X2`. Kept because the 0.1 audit is worth preserving
+/// (`DEC-0015` A), annotated because keeping it must stay a visible
+/// choice rather than a silent warning.
+#[allow(dead_code)]
 #[cfg(debug_assertions)]
 #[tauri::command]
 fn scan_synthetic_fixture() -> Result<CollectionSnapshot, String> {
@@ -112,12 +146,22 @@ fn scan_synthetic_fixture() -> Result<CollectionSnapshot, String> {
 
 /// Release builds carry no fixture path at all, so nothing about the machine
 /// that compiled them can leak through this command.
+/// Exercised by the tests, and no longer reachable from the running
+/// product: the current runtime exposes only the slice's commands —
+/// reserve `X2`. Kept because the 0.1 audit is worth preserving
+/// (`DEC-0015` A), annotated because keeping it must stay a visible
+/// choice rather than a silent warning.
+#[allow(dead_code)]
 #[cfg(not(debug_assertions))]
 #[tauri::command]
 fn scan_synthetic_fixture() -> Result<CollectionSnapshot, String> {
     Err("synthetic_fixture_unavailable_in_release".to_string())
 }
 
+/// Retained from the 0.1 alpha prototype, and deliberately **not exposed**
+/// by the current runtime — reserve `X2`. `DEC-0015` A keeps the prototype
+/// as the technical audit it is; `TASK-0016` §12.4 keeps it out of reach.
+#[allow(dead_code)]
 fn registry_for(app: &tauri::AppHandle) -> Result<Registry, String> {
     let app_data = app
         .path()
@@ -126,6 +170,10 @@ fn registry_for(app: &tauri::AppHandle) -> Result<Registry, String> {
     Registry::open(app_data.join("registry.sqlite")).map_err(|error| error.to_string())
 }
 
+/// Retained from the 0.1 alpha prototype, and deliberately **not exposed**
+/// by the current runtime — reserve `X2`. `DEC-0015` A keeps the prototype
+/// as the technical audit it is; `TASK-0016` §12.4 keeps it out of reach.
+#[allow(dead_code)]
 #[tauri::command]
 fn list_collections(app: tauri::AppHandle) -> Result<Vec<CollectionSummary>, String> {
     registry_for(&app)?
@@ -133,6 +181,10 @@ fn list_collections(app: tauri::AppHandle) -> Result<Vec<CollectionSummary>, Str
         .map_err(|error| error.to_string())
 }
 
+/// Retained from the 0.1 alpha prototype, and deliberately **not exposed**
+/// by the current runtime — reserve `X2`. `DEC-0015` A keeps the prototype
+/// as the technical audit it is; `TASK-0016` §12.4 keeps it out of reach.
+#[allow(dead_code)]
 #[tauri::command]
 async fn choose_collection(app: tauri::AppHandle) -> Result<Option<CollectionSummary>, String> {
     let picked = app
@@ -153,6 +205,10 @@ async fn choose_collection(app: tauri::AppHandle) -> Result<Option<CollectionSum
         .map_err(|error| error.to_string())
 }
 
+/// Retained from the 0.1 alpha prototype, and deliberately **not exposed**
+/// by the current runtime — reserve `X2`. `DEC-0015` A keeps the prototype
+/// as the technical audit it is; `TASK-0016` §12.4 keeps it out of reach.
+#[allow(dead_code)]
 #[tauri::command]
 async fn index_collection(
     app: tauri::AppHandle,
@@ -185,6 +241,10 @@ async fn index_collection(
     result?
 }
 
+/// Retained from the 0.1 alpha prototype, and deliberately **not exposed**
+/// by the current runtime — reserve `X2`. `DEC-0015` A keeps the prototype
+/// as the technical audit it is; `TASK-0016` §12.4 keeps it out of reach.
+#[allow(dead_code)]
 #[tauri::command]
 fn cancel_indexing(jobs: tauri::State<'_, IndexJobs>, collection_id: String) -> bool {
     let Some(job) = jobs.get(&collection_id) else {
@@ -194,6 +254,10 @@ fn cancel_indexing(jobs: tauri::State<'_, IndexJobs>, collection_id: String) -> 
     true
 }
 
+/// Retained from the 0.1 alpha prototype, and deliberately **not exposed**
+/// by the current runtime — reserve `X2`. `DEC-0015` A keeps the prototype
+/// as the technical audit it is; `TASK-0016` §12.4 keeps it out of reach.
+#[allow(dead_code)]
 #[tauri::command]
 fn index_progress(
     jobs: tauri::State<'_, IndexJobs>,
@@ -212,6 +276,10 @@ fn index_progress(
     })
 }
 
+/// Retained from the 0.1 alpha prototype, and deliberately **not exposed**
+/// by the current runtime — reserve `X2`. `DEC-0015` A keeps the prototype
+/// as the technical audit it is; `TASK-0016` §12.4 keeps it out of reach.
+#[allow(dead_code)]
 #[tauri::command]
 fn query_collection_nodes(
     app: tauri::AppHandle,
@@ -252,6 +320,10 @@ fn query_collection_nodes(
     })
 }
 
+/// Retained from the 0.1 alpha prototype, and deliberately **not exposed**
+/// by the current runtime — reserve `X2`. `DEC-0015` A keeps the prototype
+/// as the technical audit it is; `TASK-0016` §12.4 keeps it out of reach.
+#[allow(dead_code)]
 #[tauri::command]
 fn mark_node_seen(
     app: tauri::AppHandle,
@@ -308,6 +380,10 @@ fn metadata_is_reparse_point(_metadata: &fs::Metadata) -> bool {
     false
 }
 
+/// Retained from the 0.1 alpha prototype, and deliberately **not exposed**
+/// by the current runtime — reserve `X2`. `DEC-0015` A keeps the prototype
+/// as the technical audit it is; `TASK-0016` §12.4 keeps it out of reach.
+#[allow(dead_code)]
 #[tauri::command]
 fn reveal_indexed_node(
     app: tauri::AppHandle,
@@ -539,11 +615,23 @@ fn map_write_run_artifact(_name: String, _contents: String) -> Result<String, St
     Err("run_artifacts_unavailable_in_release".to_string())
 }
 
+/// The commands the current product exposes to the WebView — and no others.
+///
+/// `TASK-0016` §12.4 makes the synthetic fixtures the **only** source of the
+/// current slice. Registering a command is what makes it reachable, so the
+/// prototype's commands — folder picker, real-root indexing, collection search,
+/// seen/unseen, Explorer reveal — are **deliberately absent** from the handler
+/// below. Their code is kept (`DEC-0015` A: the 0.1 alpha is a technical audit
+/// worth preserving), but keeping code and exposing it are different acts.
+///
+/// The reserve `X2` of the independent control was raised precisely because
+/// this handler had grown by addition: the slice's commands were added without
+/// the prototype's being removed, leaving a real folder picker one `invoke`
+/// away from a slice that must not have one. `exposed_commands_stay_within_the_slice`
+/// now fails if that happens again.
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
-        .plugin(tauri_plugin_dialog::init())
-        .manage(IndexJobs::default())
         .setup(|app| {
             // An unattended H9 run needs frames, and Chromium stops delivering
             // them to a window it treats as occluded. Keeping the window on top
@@ -558,17 +646,6 @@ pub fn run() {
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
-            health,
-            demo_snapshot,
-            scan_synthetic_fixture,
-            list_collections,
-            choose_collection,
-            index_collection,
-            cancel_indexing,
-            index_progress,
-            query_collection_nodes,
-            mark_node_seen,
-            reveal_indexed_node,
             map_fixtures,
             map_open,
             map_snapshot,
@@ -589,6 +666,98 @@ mod integration_tests {
     use std::collections::hash_map::DefaultHasher;
     use std::fs;
     use std::hash::{Hash, Hasher};
+
+    /// The source of this file, embedded at compile time.
+    ///
+    /// Reading the handler back is the only way to assert what the runtime
+    /// actually exposes: `generate_handler!` expands to an opaque closure, so
+    /// there is nothing to introspect at run time. `include_str!` embeds the
+    /// **contents**, never the path, so no local path reaches the binary.
+    const THIS_SOURCE: &str = include_str!("lib.rs");
+
+    fn registered_commands() -> Vec<String> {
+        let start = THIS_SOURCE
+            .find(".invoke_handler(tauri::generate_handler![")
+            .expect("the runtime must register a handler");
+        let block = &THIS_SOURCE[start..];
+        let end = block.find("])").expect("unterminated handler");
+        block[..end]
+            .lines()
+            .skip(1)
+            .map(|line| line.trim().trim_end_matches(',').to_string())
+            .filter(|name| !name.is_empty())
+            .collect()
+    }
+
+    /// Reserve `X2` of the independent control, locked down.
+    ///
+    /// The prototype's commands stay in this file as the 0.1 audit they are,
+    /// but a command that is not registered cannot be invoked. This test fails
+    /// the moment one of them is exposed again — which is exactly how the
+    /// defect arose the first time: by addition, without anyone noticing that
+    /// a real folder picker was still reachable.
+    #[test]
+    fn exposed_commands_stay_within_the_slice() {
+        let exposed = registered_commands();
+
+        // Every legacy command named by the independent control, plus the two
+        // prototype commands that feed the 0.1 screen.
+        for forbidden in [
+            "list_collections",
+            "choose_collection",
+            "index_collection",
+            "cancel_indexing",
+            "index_progress",
+            "query_collection_nodes",
+            "mark_node_seen",
+            "reveal_indexed_node",
+            "health",
+            "demo_snapshot",
+            "scan_synthetic_fixture",
+        ] {
+            assert!(
+                !exposed.iter().any(|name| name == forbidden),
+                "X2: `{forbidden}` is out of the slice's scope and must not be \
+                 registered; it is reachable from the WebView the moment it is"
+            );
+        }
+
+        // Stated positively as well, so an unrelated command cannot slip in.
+        for name in &exposed {
+            assert!(
+                name.starts_with("map_"),
+                "the current runtime exposes `{name}`, which is not part of the \
+                 TASK-0016 slice"
+            );
+        }
+        assert!(!exposed.is_empty(), "the slice needs its own commands");
+    }
+
+    /// The dialogue plugin is what makes a real folder picker possible at all.
+    #[test]
+    fn no_exposed_command_can_open_a_folder_picker() {
+        let start = THIS_SOURCE
+            .find("pub fn run() {")
+            .expect("runtime entry point");
+        // Bounded at the end of `run`, or this test would read itself: its own
+        // body mentions the plugin it is asserting the absence of.
+        let length = THIS_SOURCE[start..]
+            .find(".run(tauri::generate_context!())")
+            .expect("runtime must end by running");
+        let runtime = &THIS_SOURCE[start..start + length];
+        assert!(
+            !runtime.contains("tauri_plugin_dialog::init()"),
+            "X2: the current runtime must not initialise the dialogue plugin"
+        );
+        // `choose_collection` is the only caller of the picker, and it is kept
+        // as history rather than deleted — so the guarantee has to be that it
+        // is unreachable, not that it is gone.
+        assert!(
+            !registered_commands()
+                .iter()
+                .any(|name| name == "choose_collection"),
+        );
+    }
     use std::path::Path;
 
     fn fixture_fingerprint(root: &Path) -> u64 {

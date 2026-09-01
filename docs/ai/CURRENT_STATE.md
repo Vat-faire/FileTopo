@@ -15,6 +15,10 @@
   réserve normative `X1`, corrigée**
 - **Tâche livrée, NON vérifiée :** **`TASK-0016`, `IMPLEMENTED` le
   2026-08-31** — première tranche verticale de **code de production**
+- **Contrôle indépendant :**
+  [`ACTION-0026`](../reviews/ACTION-0026-independent-control.md) →
+  **`CHANGES_REQUIRED`**, réserve bloquante **`X2`**, **corrigée**, en attente
+  de **re-contrôle**
 - **Tâche IN_PROGRESS :** aucune
 - **Porte `P4` :** **FRANCHIE** —
   [`DEC-0016`](../decisions/DEC-0016-p4-gate-crossing-and-first-slice.md)
@@ -69,14 +73,40 @@ résultat.**
 
 **Ces bornes sont des limites de `TASK-0016`, pas des limites produit.**
 
-### Premières mesures dans WebView2
+### La réserve bloquante X2, et sa correction
+
+**Constat du contrôle indépendant.** Le runtime du produit courant
+**enregistrait encore** huit commandes héritées de la 0.1 — dont
+`choose_collection`, un **sélecteur de dossier réel** — et initialisait
+`tauri_plugin_dialog`. **Enregistrer une commande est ce qui la rend
+invocable** depuis la WebView, que l'interface propose ou non un bouton : un
+sélecteur de dossier réel était donc à **un `invoke` de distance** d'une
+tranche qui ne doit pas en avoir. Le défaut était né **par addition**, et le
+rapport de clôture avait jugé sur ce que l'interface *appelle* plutôt que sur
+ce que le runtime *expose*.
+
+**Corrigé.** L'`invoke_handler` n'enregistre plus que les **neuf commandes
+`map_*`**; le plugin de dialogue n'est plus initialisé. **Le code historique
+est conservé** — aucune fonction supprimée, `src/App.tsx` et ses douze tests
+intacts — et **deux tests-gardes** échouent désormais si une commande hors
+tranche est réenregistrée, ce qui a été **éprouvé en réintroduisant
+temporairement le défaut**.
+
+### Mesures dans WebView2 — binaire corrigé
 
 | Fixture | Nœuds | Image médiane | Image min–max | Sélection médiane |
 |---|---:|---:|---:|---:|
-| `quasi-empty` | 12 | 4,20 ms **(butée)** | 2,80 – 6,30 | 8,30 ms |
-| `deep` | 157 | 4,20 ms **(butée)** | 2,20 – 7,10 | 8,30 ms |
-| `wide` | 2 207 | **16,70 ms** | 4,10 – 21,00 | 34,65 ms |
-| `mixed` | 2 420 | **20,20 ms** | 3,70 – 28,90 | 38,20 ms |
+| `quasi-empty` | 12 | 4,20 ms **(butée)** | 2,00 – 8,80 | 8,30 ms |
+| `deep` | 157 | 4,20 ms **(butée)** | 2,20 – 8,70 | 8,40 ms |
+| `wide` | 2 207 | **17,80 ms** | 4,10 – 32,10 | 38,45 ms |
+| `mixed` | 2 420 | **21,35 ms** | 4,60 – 40,30 | 42,95 ms |
+
+**Ces chiffres sont légèrement moins bons que ceux du commit `8cb752b`** —
+`wide` 17,80 contre 16,70 ms, `mixed` 21,35 contre 20,20 ms. **Publiés tels
+quels**, ils **remplacent** les précédents : ils portent sur le binaire
+corrigé. **Aucune explication a posteriori n'est proposée** — l'écart est du
+même ordre que la dispersion entre exécutions, et rien dans les mesures ne
+permet de trancher.
 
 **`4,20 ms` est butée** par la synchronisation verticale à 4,1667 ms sur cet
 écran 240 Hz : la mesure dit que le rendu **tient dans une image**, pas ce
@@ -97,7 +127,7 @@ performance.**
   fenêtre occultée, carte de 1 × 1 pixel, remise en page pendant la course.
   Chacun aurait produit un chiffre flatteur; tous sont publiés avec ce qu'ils
   auraient produit. **Aucune mesure n'existait avant leur correction.**
-- **`B0` s'est reproduit deux fois et n'est pas corrigé.** Rien n'a été
+- **`B0` s'est reproduit trois fois et n'est pas corrigé.** Rien n'a été
   supprimé, nettoyé ni renommé dans `src-tauri/target/` — `DEC-0013` E.
 
 ## Ce qui n'a pas changé
@@ -155,9 +185,11 @@ transversale. `X1` contraint la tranche qui implémentera `P-04`, `P-05`, `P-07`
 
 ## Porte humaine
 
-`TASK-0016` est livrée **`IMPLEMENTED`, jamais auto-déclarée `VERIFIED`**.
-L'action unique suivante est **`ACTION-0026`** : le **contrôle indépendant de
-la première tranche de code de production**, par une instance **distincte de
-son exécuteur**.
+`TASK-0016` reste **`IMPLEMENTED`**. Le contrôle indépendant `ACTION-0026` a
+rendu **`CHANGES_REQUIRED`** sur la réserve bloquante `X2`; **la correction a
+été exécutée par l'exécuteur de la tranche**, ce qui ne la vérifie pas.
 
-**Aucune tranche suivante ne s'ouvre avant ce contrôle.**
+L'action unique suivante est le **RE-CONTRÔLE indépendant de `TASK-0016`**, par
+une instance **distincte de son exécuteur**.
+
+**Aucune tranche suivante ne s'ouvre avant ce re-contrôle.**

@@ -5,6 +5,10 @@
   minimale** de la racine synthétique jusqu'à la carte sélectionnable, dans un
   **véritable hôte Tauri/WebView2**
 - **Statut :** **`IMPLEMENTED`** le 2026-08-31 — **jamais `VERIFIED`**.
+  Contrôle indépendant
+  [`ACTION-0026`](../reviews/ACTION-0026-independent-control.md) →
+  **`CHANGES_REQUIRED`**, réserve bloquante **`X2`** corrigée, **re-contrôle
+  attendu** — voir §15.
   Porte `P4` franchie par
   [DEC-0016](../decisions/DEC-0016-p4-gate-crossing-and-first-slice.md);
   critères **gelés avant exécution** en §12; résultat en §13
@@ -419,3 +423,78 @@ sans preuve.
   production et tourne dans un véritable hôte Tauri/WebView2; les onze critères
   gelés sont tenus et les preuves sont commitées. **`VERIFIED` appartient au
   contrôle indépendant.** L'exécuteur ne juge pas ses propres preuves.
+
+---
+
+## 15. Réserve bloquante X2, et correction
+
+Émise par le contrôle indépendant
+[`ACTION-0026`](../reviews/ACTION-0026-independent-control.md), qui a rendu
+**`CHANGES_REQUIRED`** après examen direct du commit `8cb752b`.
+
+### 15.1 Le défaut
+
+L'`invoke_handler` **actif du produit courant** enregistrait encore huit
+commandes héritées de la 0.1 — `list_collections`, `choose_collection`,
+`index_collection`, `cancel_indexing`, `index_progress`,
+`query_collection_nodes`, `mark_node_seen`, `reveal_indexed_node` — et
+initialisait `tauri_plugin_dialog`, en contradiction avec **§12.4**.
+
+**Une commande enregistrée est invocable depuis la WebView**, qu'un bouton la
+propose ou non : un **sélecteur de dossier réel** se trouvait à un `invoke` de
+distance d'une tranche dont la seule source doit être les fixtures
+synthétiques. Le défaut était né **par addition** — les commandes de la tranche
+ajoutées sans que celles du prototype soient retirées.
+
+### 15.2 La correction
+
+| # | Geste |
+|---|---|
+| `C1` | L'`invoke_handler` n'enregistre plus que les **neuf commandes `map_*`** |
+| `C2` | `tauri_plugin_dialog::init()` **retiré** du runtime |
+| `C3` | `.manage(IndexJobs)` retiré — il ne servait qu'aux commandes non exposées |
+| `C4` | **Code historique conservé** : aucune fonction supprimée, `src/App.tsx` et ses 12 tests intacts, aucun historique réécrit |
+| `C5` | **Deux tests-gardes**, éprouvés en réintroduisant temporairement le défaut |
+
+**La dépendance `tauri-plugin-dialog` reste au manifeste** : ce n'est pas un
+nettoyage général, et aucune nécessité de la retirer n'a été démontrée.
+
+### 15.3 Les cinq capacités interdites, vérifiées
+
+Sélecteur de dossier utilisateur, enregistrement ou indexation d'une racine
+réelle, recherche dans une ancienne collection, marquage vu/non vu, ouverture
+de l'Explorateur : **aucune n'est atteignable par un chemin normal de
+l'application courante**. Le détail figure en §4 d'`ACTION-0026`.
+
+**Portée exacte de la garantie :** le code du prototype **existe toujours**
+dans le binaire; il est **inatteignable**, pas absent — c'est le compromis
+qu'impose la conservation du code historique.
+
+### 15.4 Validation rejouée
+
+42 tests Rust, 59 tests TypeScript, **0 avertissement** en configuration
+livrée. `H1` à `H11` rejoués dans le véritable hôte, **`H9` complet** : 4
+fixtures × 5 exécutions, **protocole gelé inchangé**.
+
+**Aucun critère `H1` à `H11` modifié. Aucune borne `B-1` à `B-4` retouchée.
+Aucune optimisation de performance. Aucune dépendance nouvelle.**
+
+**`H9` est légèrement moins bon** sur le binaire corrigé — `wide` 17,80 ms
+contre 16,70, `mixed` 21,35 contre 20,20 — **publié tel quel, sans explication
+a posteriori**.
+
+**`B0` s'est reproduit une troisième fois**, identique; rien n'a été supprimé
+de `src-tauri/target/`.
+
+### 15.5 État
+
+**`TASK-0016` reste `IMPLEMENTED`.** La correction vient de l'exécuteur de la
+tranche : **corriger son propre livrable ne le vérifie pas**. `ACTION-0026`
+attend un **re-contrôle indépendant**.
+
+## 16. Historique de l'état, suite
+
+- 2026-08-31 — **`CHANGES_REQUIRED`** : contrôle indépendant `ACTION-0026`,
+  réserve bloquante `X2` sur la surface runtime héritée.
+- 2026-08-31 — **correction de `X2` exécutée**, validation intégralement
+  rejouée. **Statut inchangé : `IMPLEMENTED`.** En attente de re-contrôle.

@@ -79,6 +79,9 @@ pub struct CollectionSnapshot {
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
+/// Returned by a command the current runtime does not expose — reserve
+/// `X2`. Kept so the 0.1 audit still compiles.
+#[allow(dead_code)]
 pub struct AppHealth {
     pub app_version: String,
     pub sqlite_version: String,
@@ -103,6 +106,9 @@ pub struct CollectionSummary {
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
+/// Carried by a prototype command the current runtime does not expose —
+/// reserve `X2`. Kept so the 0.1 audit still compiles.
+#[allow(dead_code)]
 pub struct IndexProgress {
     pub collection_id: String,
     pub visited_nodes: usize,
@@ -111,6 +117,9 @@ pub struct IndexProgress {
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
+/// Carried by a prototype command the current runtime does not expose —
+/// reserve `X2`. Kept so the 0.1 audit still compiles.
+#[allow(dead_code)]
 pub struct NodePage {
     pub items: Vec<NodeDto>,
     pub total: usize,
@@ -120,6 +129,9 @@ pub struct NodePage {
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
+/// Carried by a prototype command the current runtime does not expose —
+/// reserve `X2`. Kept so the 0.1 audit still compiles.
+#[allow(dead_code)]
 pub struct NodeQueryRequest {
     pub collection_id: String,
     pub query: String,
