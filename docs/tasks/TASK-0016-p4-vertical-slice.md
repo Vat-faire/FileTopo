@@ -4,9 +4,10 @@
 - **Titre :** Première tranche de code de production — **une tranche verticale
   minimale** de la racine synthétique jusqu'à la carte sélectionnable, dans un
   **véritable hôte Tauri/WebView2**
-- **Statut :** **`APPROVED`** le 2026-08-31, porte `P4` **franchie** par
+- **Statut :** **`IMPLEMENTED`** le 2026-08-31 — **jamais `VERIFIED`**.
+  Porte `P4` franchie par
   [DEC-0016](../decisions/DEC-0016-p4-gate-crossing-and-first-slice.md);
-  **gelée avant exécution** — voir §12
+  critères **gelés avant exécution** en §12; résultat en §13
 - **Phase :** étape **A** de la feuille de route — parité fonctionnelle MVP,
   première tranche
 - **Proposée le :** 2026-08-31
@@ -332,3 +333,89 @@ En plus des conditions d'arrêt de §7, **figées ici** :
 **`TASK-0016` se termine `IMPLEMENTED`.** L'exécuteur **ne s'attribue pas
 `VERIFIED`**. L'action suivante sera le **contrôle indépendant** de cette
 tranche.
+
+---
+
+## 13. Résultat — état `IMPLEMENTED`
+
+- **Date :** 2026-08-31
+- **Branche :** `build/v0.2-p4-vertical-slice`
+- **Journal, preuves et verdicts :**
+  [TASK-0016-p4-vertical-slice-results.md](../research/TASK-0016-p4-vertical-slice-results.md)
+- **Mesures :** [PERF-0006](../performance/PERF-0006-p4-vertical-slice.md)
+- **Preuves brutes :** `docs/performance/runs/`
+
+### 13.1 Les onze critères gelés sont tenus
+
+| Critère | Verdict |
+|---|---|
+| `H1` plan = disque = index, sur les quatre fixtures | **TENU** |
+| `H2` aucune dimension nulle, aucun chevauchement, inclusion = hiérarchie | **TENU**, 0 violation |
+| `H3` parent et enfants directs = index, pour chaque nœud | **TENU**, 0 écart |
+| `H4` souris **et** clavier, aucun état hors bornes sur 10 000 opérations, réinitialisation exacte | **TENU** |
+| `H5` détails = index, diagnostics d'accès **affichés** | **TENU**, 0 écart |
+| `H6` empreinte de la source identique avant/après | **TENU**, 4 fixtures sur 4 |
+| `H7` index supprimé puis reconstruit, équivalent; non reconstructible **énuméré** | **TENU** — `built_unix_ms` |
+| `H8` démarre et rend dans **WebView2 `151.0.4129.107`** | **TENU** |
+| `H9` temps d'image et latence, **5 exécutions par fixture**, publiées sans sélection | **TENU** — aucune cible n'était fixée |
+| `H10` calepinage payé **une fois** par arborescence, 0 appel en navigation | **TENU**, < 1 % de la construction |
+| `H11` bornes `B-1` à `B-4` déclarées d'avance et respectées | **TENU** |
+
+**Aucun critère n'a été retouché après le premier résultat.**
+
+### 13.2 Fixtures réalisées
+
+| Fixture | Nœuds obtenus | Plafond gelé | Profondeur |
+|---|---:|---:|---:|
+| `QUASI_EMPTY` | 12 | 25 | 3 |
+| `DEEP` | 157 | 500 | **40** |
+| `WIDE` | 2 207 | 3 000 | 3 |
+| `MIXED` | 2 420 | 5 000 | 32 |
+
+### 13.3 Ce qui n'est pas prouvé
+
+- **`R8` n'est pas levée** et ne peut pas l'être ici : une machine, un écran
+  240 Hz, un **binaire de développement**, des fixtures ≤ 2 420 nœuds.
+- **Les valeurs de 4,20 ms sont butées** par la synchronisation verticale à
+  4,1667 ms — elles disent que le rendu tient dans une image, pas ce qu'il coûte.
+- **`P-21` n'est pas satisfaite** : interface **en français seulement**, aucun
+  audit WCAG complet, aucun lecteur d'écran réel.
+- **Seize exigences de parité restent entières**, dont toutes les relations
+  transversales.
+- **`B0` s'est reproduit deux fois et n'est pas corrigé**; rien n'a été
+  supprimé de `src-tauri/target/`.
+- **Aucun budget adaptatif** n'est employé, adopté, abandonné ni validé.
+
+### 13.4 Trois défauts de protocole, trouvés et corrigés avant la campagne publiée
+
+Fenêtre occultée suspendant les images, carte mesurée à 1 × 1 pixel, remise en
+page pendant la course. Chacun aurait produit un chiffre flatteur; chacun est
+décrit en §10 du journal avec ce qu'il aurait produit. **Aucune mesure
+n'existait avant ces corrections.**
+
+### 13.5 État de chaque exigence de parité touchée
+
+Conformément à §8.2 du contrat de parité, qui exige qu'une tranche déclare
+l'état de chaque exigence qu'elle touche.
+
+| Exigence | État déclaré |
+|---|---|
+| `P-01` carte construite depuis l'arborescence réelle | **satisfaite sur ce périmètre** — prouvée par `H1`, sur ≤ 2 420 nœuds |
+| `P-02` blocs hiérarchiques lisibles | **satisfaite sur ce périmètre** — prouvée par `H2` |
+| `P-03` parent et enfants directs | **satisfaite sur ce périmètre** — prouvée par `H3` |
+| `P-11` panoramique, zoom borné, ajuster, réinitialiser | **satisfaite sur ce périmètre** — prouvée par `H4` |
+| `P-12` panneau de détails | **partielle** — contenu et diagnostics prouvés par `H5`; le **masquage** et la **survie au redémarrage** sont hors périmètre |
+| `P-22` aucun changement physique | **satisfaite sur ce périmètre** — prouvée par `H6`, à rejouer à chaque tranche |
+| `P-06` sélection et accentuation | **partielle**, déclarée telle d'avance — sélection et accentuation **hiérarchique** seulement |
+
+**Aucune autre exigence n'est touchée**, et aucune n'est déclarée satisfaite
+sans preuve.
+
+## 14. Historique de l'état, suite
+
+- 2026-08-31 — `IN_PROGRESS` : branche `build/v0.2-p4-vertical-slice`, arbre
+  Git propre vérifié, aucune autre tâche `IN_PROGRESS`.
+- 2026-08-31 — **`IMPLEMENTED`** : la chaîne verticale existe en code de
+  production et tourne dans un véritable hôte Tauri/WebView2; les onze critères
+  gelés sont tenus et les preuves sont commitées. **`VERIFIED` appartient au
+  contrôle indépendant.** L'exécuteur ne juge pas ses propres preuves.

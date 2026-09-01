@@ -1888,3 +1888,130 @@ suggestion n'est pas une relation**.
 `TASK-0015` est **`VERIFIED`**. La porte **`P4` est FRANCHIE** — `DEC-0016`.
 Elle autorise **`TASK-0016`, et rien d'autre**. L'action unique suivante est
 **figer puis exécuter `TASK-0016`**, sur `build/v0.2-p4-vertical-slice`.
+
+---
+
+## TASK-0016 — Première tranche verticale de code de production (2026-08-31)
+
+### W.1 Nature de cette étape
+
+**Code de production, exécuté et mesuré.** Première tâche du projet à écrire du
+code de production, à le faire tourner dans un **véritable hôte
+Tauri/WebView2** et à en relever des mesures.
+
+**Préséance du gel :** les critères `H1` à `H11`, les quatre fixtures et les
+bornes `B-1` à `B-4` ont été **écrits et commités avant la première ligne de
+code** — commit `6edd5bd`, code en `130b670`. **Aucun critère n'a été retouché
+après le premier résultat.**
+
+### W.2 Contrôles exécutés
+
+Chaque critère est rejoué **deux fois** : par les tests automatisés en
+répertoires temporaires, et **à travers les vraies commandes dans l'hôte réel**,
+ce second passage étant écrit dans
+[`TASK-0016-H1-H7-verification.json`](../performance/runs/TASK-0016-H1-H7-verification.json).
+
+| # | Critère | Résultat |
+|---|---|---|
+| `H1` | Ensembles plan / disque / index égaux, 4 fixtures | **TENU** — 0 manquant, 0 inattendu |
+| `H2` | Aucune dimension nulle, aucun chevauchement, inclusion = hiérarchie | **TENU** — 0 violation |
+| `H3` | Parent et enfants directs = index, pour chaque nœud | **TENU** — 0 écart |
+| `H4` | Souris **et** clavier; 10 000 opérations sans état hors bornes; réinitialisation paramètre par paramètre | **TENU** |
+| `H5` | Détails = index, diagnostics d'accès **affichés** | **TENU** — 0 écart |
+| `H6` | Empreinte source identique avant/après — noms, structure, tailles, **contenus**, horodatages | **TENU** — 4/4, aucun fichier de FileTopo dans la racine |
+| `H7` | Index supprimé puis reconstruit, équivalent; non reconstructible **énuméré** | **TENU** — `built_unix_ms`, dont un test prouve qu'il **diffère réellement** |
+| `H8` | Démarre et rend dans WebView2, moteur relevé | **TENU** — **WebView2 `151.0.4129.107`**, Tauri `2.11.5`, SQLite `3.53.2` |
+| `H9` | Temps d'image et latence, **5 exécutions par fixture**, médiane et min–max | **TENU** — 750 images et 60 sélections par fixture |
+| `H10` | Calepinage payé une fois, mesuré séparément | **TENU** — 1 invocation, **0** pendant la navigation, < 1 % de la construction |
+| `H11` | Bornes déclarées d'avance et respectées | **TENU** |
+
+**Tests automatisés :** 40 tests Rust, 59 tests TypeScript, tous verts.
+
+### W.3 Mesures, publiées sans sélection
+
+| Fixture | Nœuds | Image médiane | Image min–max | Sélection médiane | Sélection min–max |
+|---|---:|---:|---:|---:|---:|
+| `quasi-empty` | 12 | 4,20 ms **(butée)** | 2,80 – 6,30 | 8,30 ms | 8,20 – 8,60 |
+| `deep` | 157 | 4,20 ms **(butée)** | 2,20 – 7,10 | 8,30 ms | 8,00 – 8,80 |
+| `wide` | 2 207 | **16,70 ms** | 4,10 – 21,00 | 34,65 ms | 32,40 – 60,30 |
+| `mixed` | 2 420 | **20,20 ms** | 3,70 – 28,90 | 38,20 ms | 35,80 – 62,50 |
+
+**Toutes les exécutions comptent**, et les cinq médianes par fixture sont
+publiées dans le journal. **`H9` n'imposait aucune cible d'images par
+seconde :** il n'y a ni cible atteinte, ni cible manquée.
+
+### W.4 Trois défauts de protocole, trouvés et publiés
+
+Trouvés en essayant de mesurer sans surveillance. **Chacun aurait produit un
+chiffre flatteur**, et chacun est corrigé **avant** la campagne publiée.
+
+| # | Défaut | Ce qu'il aurait produit |
+|---|---|---|
+| `E1` | Fenêtre occultée : Chromium suspend `requestAnimationFrame` | Attente indéfinie, **indiscernable d'une course lente** |
+| `E2` | Première fixture mesurée dans une vue de **1 × 1 pixel** | Images **rapides parce que rien n'était affiché** |
+| `E3` | Tableau des résultats remettant la page en page pendant la course | Chaque fixture mesurée à une **taille de carte différente** |
+
+**Un quatrième point, de rendu :** la première version reprojetait chaque nœud à
+chaque image; elle a été remplacée par un **groupe unique transformé**.
+**Aucune mesure n'existait avant ce remplacement** — il n'y avait pas de
+résultat à améliorer.
+
+### W.5 Contrôles de périmètre
+
+- **Aucun code de spike repris**; **aucun contrôleur de budget** de `TASK-0013`
+  ni de `TASK-0014` — `DEC-0015` F.
+- **Ni Canvas 2D, ni WebGL.** Rendu **HTML/SVG accessible**.
+- **Aucune dépendance nouvelle** : `rusqlite`, `tauri`, `serde`, `thiserror`,
+  `uuid`, `tempfile` étaient déjà au manifeste.
+- **Aucune relation transversale, aucune recherche, aucun filtre, aucune
+  légende, aucun watcher, aucun journal, aucun état vu/non vu, aucun
+  multi-cerveaux.**
+- **Aucun sélecteur de dossier utilisateur.** Les quatre fixtures sont
+  **engendrées** depuis des graines fixes.
+- **Aucune donnée réelle. Aucun dossier personnel lu, listé ou écrit.**
+- **Index et état hors de la racine analysée** — `I-2`, vérifié sur disque.
+- **Aucun chemin local personnel dans le dépôt**, artefacts compris : le bac à
+  sable est **nommé** et jamais épelé, et un test verrouille cette propriété.
+  Un défaut inverse a été trouvé et corrigé **avant** tout commit d'artefact.
+- **Rien n'a été supprimé, nettoyé ni renommé dans `src-tauri/target/`** —
+  `DEC-0013` E.
+- **`src/App.tsx` et ses douze tests sont intacts.**
+- **Aucune dépense, aucune publication externe, aucune fusion, PR, release,
+  étiquette, `force push`**, aucune réécriture d'historique.
+
+### W.6 Ce qui n'est pas prouvé, et doit être dit
+
+- **`R8` n'est pas levée** : une machine, écran **240 Hz**, **binaire de
+  développement non optimisé**, fixtures **≤ 2 420 nœuds**. **Étape C.**
+- **Les valeurs de 4,20 ms sont butées** par la synchronisation verticale à
+  4,1667 ms. **Jamais citables comme performance.**
+- **Les temps de scan, calepinage et index viennent d'un binaire `dev`.**
+  Leur **rapport** est instructif; leurs valeurs absolues ne sont pas une
+  performance du produit.
+- **`P-21` n'est pas satisfaite** : français seulement, aucun audit WCAG
+  complet, **aucun lecteur d'écran réel**.
+- **Seize exigences de parité ne sont pas commencées**; `P-12` et `P-06` sont
+  **partielles** et déclarées telles.
+- **L'aire minimale de bloc de 2 400 unités² est un choix, pas une mesure.**
+- **Aucun budget adaptatif** n'est employé, adopté, abandonné ni validé.
+  Réserve `W2` : **aucune stabilité n'est prouvée**.
+- **`B0` s'est reproduit deux fois et n'est pas corrigé.**
+
+### W.7 État déclaré de chaque exigence touchée
+
+Conformément à §8.2 du contrat de parité.
+
+| Exigence | État |
+|---|---|
+| `P-01`, `P-02`, `P-03`, `P-11`, `P-22` | **satisfaites sur ce périmètre**, chacune avec sa preuve |
+| `P-12` | **partielle** — contenu et diagnostics prouvés; masquage et survie au redémarrage hors périmètre |
+| `P-06` | **partielle**, déclarée telle d'avance — sélection et accentuation **hiérarchique** seulement |
+| Les seize autres | **non commencées** |
+
+**Aucune exigence n'est déclarée satisfaite sans preuve.**
+
+### W.8 Conséquence
+
+`TASK-0016` est **`IMPLEMENTED`**, jamais auto-déclarée `VERIFIED`. Aucune
+tâche n'est `IN_PROGRESS`. L'action unique suivante est **`ACTION-0026`** — le
+**contrôle indépendant de la première tranche de code de production**.

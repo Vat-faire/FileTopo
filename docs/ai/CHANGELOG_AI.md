@@ -1928,3 +1928,91 @@ aucune exécution, aucune dépendance.
 
 **Figer puis exécuter `TASK-0016`** — première tranche verticale de
 production, branche `build/v0.2-p4-vertical-slice`.
+
+---
+
+## 2026-08-31 — TASK-0016 : première tranche verticale de code de production
+
+**Nature : code de production, exécuté et mesuré dans un véritable hôte
+Tauri/WebView2.** Première tâche du projet à écrire du code de production.
+
+### Fait
+
+- **La chaîne verticale existe** : fixture synthétique → scan Rust en lecture
+  seule → index SQLite persistant et reconstructible → calepinage hiérarchique
+  → carte HTML/SVG accessible dans **WebView2** → panoramique, zoom, ajuster,
+  réinitialiser → sélection **souris et clavier** → détails avec parent et
+  enfants directs.
+- **Les critères ont été gelés AVANT le code.** Commit `6edd5bd` fige `H1` à
+  `H11`, les quatre fixtures et les bornes `B-1` à `B-4`; le premier code
+  arrive en `130b670`. **Aucun critère n'a été retouché après le premier
+  résultat.**
+- **Les onze critères sont tenus**, chacun rejoué deux fois : par les tests
+  automatisés en répertoires temporaires, et **à travers les vraies commandes
+  dans l'hôte réel**.
+- **`H8` : le moteur de production est enfin nommé** — **WebView2
+  `151.0.4129.107`**, Tauri `2.11.5`, SQLite `3.53.2`.
+- **`H9` : premières mesures du projet dans WebView2**, cinq exécutions par
+  fixture, 750 images et 60 sélections chacune. `wide` 2 207 nœuds à
+  **16,70 ms** d'image médiane, `mixed` 2 420 nœuds à **20,20 ms**.
+- **`H10` : le calepinage est bien un coût d'indexation** — une invocation par
+  arborescence, **zéro** pendant la navigation, moins de 1 % du temps de
+  construction.
+- **Un calepinage qui ne perd aucun nœud.** Un treemap pondéré par la taille
+  effondrerait les dossiers vides en lamelles nulles; la propagation d'aire
+  minimale ascendante garantit à chaque nœud une aire utilisable, et la racine
+  dérive sa taille de la demande. `DEC-0015` D veut que **l'algorithme cède**,
+  pas l'exigence.
+- **Trois défauts de protocole trouvés en mesurant, et publiés** avec ce que
+  chacun aurait produit : fenêtre occultée suspendant les images, carte mesurée
+  à 1 × 1 pixel, remise en page pendant la course.
+- **Une fuite de confidentialité trouvée et corrigée avant tout commit
+  d'artefact** : le chemin du bac à sable était publié en absolu. Il est
+  désormais **nommé** et jamais épelé, et un test le verrouille.
+- **`B0` s'est reproduit deux fois**, exactement comme `DEC-0013` E le décrit.
+  **Enregistré comme reproduction connue**, contourné par `CARGO_INCREMENTAL=0`.
+
+### Non fait, volontairement
+
+- **`B0` n'est pas corrigé**, et **rien n'a été supprimé, nettoyé ni renommé**
+  dans `src-tauri/target/` — `DEC-0013` E.
+- **Aucun budget adaptatif** employé, adopté, abandonné ni validé. **Aucun
+  contrôleur de spike repris** — `DEC-0015` F. La borne `B-1` est un **plafond
+  déclaré** qui ne s'ajuste à rien.
+- **Ni Canvas 2D, ni WebGL.** **Aucune dépendance nouvelle.**
+- **Aucune relation transversale, recherche, filtre, légende, surveillance,
+  journal, état vu/non vu, multi-cerveaux, bilinguisme intégral.**
+- **Aucun sélecteur de dossier utilisateur, aucune donnée réelle**, aucun
+  dossier personnel lu, listé ou écrit.
+- **Aucune réserve levée** : `V1` à `V4`, `W1` à `W4`, `R2` à `R9`. **`R8`
+  reste entière** — sa levée appartient à l'étape **C**.
+- **Aucune exigence de parité déclarée satisfaite sans preuve.** Six le sont
+  **sur ce périmètre**, deux sont **partielles**, **seize ne sont pas
+  commencées**.
+- **`src/App.tsx` et ses douze tests sont intacts.**
+- **Aucune fusion, PR, release, étiquette, `force push`**, aucune réécriture
+  d'historique, aucun push vers `main`.
+
+### Fichiers
+
+**Créés :** `src-tauri/src/map/{mod,fixtures,layout,store,sandbox,commands}.rs`;
+`src/map/{types,viewState,hierarchy,measure,MapView,DetailsPanel,MapApp}.tsx|ts`;
+`src/map/map.css`; `src/map/{viewState,mapView}.test.*`;
+`docs/research/TASK-0016-p4-vertical-slice-results.md`;
+`docs/performance/PERF-0006-p4-vertical-slice.md`;
+`docs/performance/runs/TASK-0016-H9-webview2.json`;
+`docs/performance/runs/TASK-0016-H1-H7-verification.json`.
+
+**Modifiés :** `src-tauri/src/lib.rs` (commandes de la tranche, ajoutées sans
+retirer les commandes existantes); `src/main.tsx` (démarre sur la tranche);
+`.gitignore`; `docs/tasks/TASK-0016-p4-vertical-slice.md` (§12 gel, §13
+résultat, §14 historique); et la mémoire obligatoire — `CURRENT_STATE.md`,
+`NEXT_ACTION.md`, `HANDOFF.md`, `VALIDATION.md`, `CHANGELOG_AI.md`.
+
+**Inchangés :** `graph/`, `spikes/`, `scripts/`, `.github/`, `public/`,
+`src/App.tsx` et ses tests, `PROJECT_VISION.md`, `DEC-0014`, `DEC-0015`.
+
+### Prochaine action unique
+
+**`ACTION-0026`** — **contrôle indépendant de `TASK-0016`**, par une instance
+**distincte de son exécuteur**. `TASK-0016` reste **`IMPLEMENTED`**.

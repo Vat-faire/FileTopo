@@ -1,110 +1,105 @@
 # HANDOFF — passage de relais
 
 - **Dernière mise à jour :** 2026-08-31
-- **Branche active :** `spike/v0.2-budget-controller`, publiée sur origin
-- **Dernière tâche vérifiée :** `TASK-0015`, **`VERIFIED`** le 2026-08-31, sur
-  contrôle indépendant
-  [`ACTION-0025`](../reviews/ACTION-0025-independent-control.md), **avec la
-  réserve normative `X1`, corrigée**
-- **Porte `P4` :** **FRANCHIE** —
-  [`DEC-0016`](../decisions/DEC-0016-p4-gate-crossing-and-first-slice.md). Elle
-  autorise **`TASK-0016`, et rien d'autre**
+- **Branche active :** `build/v0.2-p4-vertical-slice`
+- **Dernière tâche vérifiée :** `TASK-0015`, **`VERIFIED`** le 2026-08-31
+  ([`ACTION-0025`](../reviews/ACTION-0025-independent-control.md)), avec la
+  réserve normative **`X1`, corrigée**
+- **Tâche livrée, NON vérifiée :** **`TASK-0016`, `IMPLEMENTED`** le
+  2026-08-31 — première tranche verticale de **code de production**
 - **Tâche IN_PROGRESS :** aucune
+- **Porte `P4` :** **FRANCHIE** —
+  [`DEC-0016`](../decisions/DEC-0016-p4-gate-crossing-and-first-slice.md)
 
 ## Où en est le projet
 
-`ACTION-0024` a **clos** `TASK-0014` : contrôle **accepté**, `VERIFIED` sur
-preuves, quatre réserves — **et la correction minimale du budget est
-REJETÉE**. Deux contrôleurs de budget auto-régulé successifs ont maintenant été
-éprouvés sur leurs propres critères; **les deux sont rejetés**. Le principe
-reste une piste, mais **cesse d'être un prérequis à `P4`**.
+`ACTION-0025` a **clos** `TASK-0015` — contrôle accepté, `VERIFIED`, réserve
+normative `X1` corrigée dans le même geste — et **franchi la porte `P4`**.
 
-`TASK-0015` a ensuite **corrigé la référence produit**. Le projet n'est plus
-aligné sur son propre prototype : **CarteTopo est la référence fonctionnelle**,
-et un **contrat de parité** de 22 exigences devient exigible.
+`TASK-0016` a ensuite produit **la première ligne de code de production du
+projet**, et la chaîne complète existe : fixture synthétique → scan en lecture
+seule → index SQLite persistant → calepinage → carte HTML/SVG accessible **dans
+un véritable hôte Tauri/WebView2** → navigation → sélection → détails.
 
-`ACTION-0025` a **contrôlé** ce réalignement — contrôle **accepté**,
-`TASK-0015` **`VERIFIED`** — et émis la réserve normative **`X1`**, corrigée
-dans le même geste : **une suggestion n'est pas une provenance de relation**.
+**Les onze critères gelés sont tenus**, et pour la première fois du projet des
+temps d'image ont été relevés **dans le moteur de production**.
 
-**Dans le même geste, la porte `P4` a été FRANCHIE**
-([`DEC-0016`](../decisions/DEC-0016-p4-gate-crossing-and-first-slice.md)).
-Elle autorise **`TASK-0016`, et rien d'autre** : une **tranche verticale**, sur
-fixtures synthétiques, dans un **véritable hôte Tauri/WebView2**, **sans
-budget adaptatif**, avec une **borne de charge déclarée d'avance**.
+**Rien n'est vérifié.** `TASK-0016` est `IMPLEMENTED` et attend
+**`ACTION-0026`**, le contrôle indépendant.
 
-**Rien n'a encore été mesuré dans WebView2.** `R8` reste en vigueur; sa levée
-appartient à l'**étape C**.
+## Ce qu'il faut savoir en douze lignes
 
-## Ce qu'il faut savoir en dix lignes
-
-1. **CarteTopo est la RÉFÉRENCE FONCTIONNELLE.** L'**ancienne version publique
-   de FileTopo est un prototype et un audit technique**, jamais la référence
-   produit. « L'ancienne version ne le faisait pas » **n'est plus un argument
-   recevable**.
-2. **L'interface visuelle est entièrement libre** — formes, couleurs,
-   typographie, panneaux, animations, organisation. **Aucune copie pixel pour
-   pixel.** Une nouvelle UX est **encouragée**. **Mais aucune amélioration
-   visuelle ne peut supprimer la parité fonctionnelle.** En cas de conflit,
-   **la parité gagne**, et une suppression exige une fiche `DEC`.
+1. **CarteTopo est la RÉFÉRENCE FONCTIONNELLE.** L'ancienne version publique de
+   FileTopo est un **prototype et un audit technique**. « L'ancienne version ne
+   le faisait pas » **n'est pas un argument recevable**.
+2. **L'apparence est entièrement libre** et peut être **entièrement
+   modernisée**; **aucune amélioration visuelle ne supprime la parité**. En cas
+   de conflit, **la parité gagne**.
 3. **Le contrat exigible est
    [`CARTETOPO_FUNCTIONAL_PARITY.md`](../product/CARTETOPO_FUNCTIONAL_PARITY.md)** :
-   22 exigences `P-01` à `P-22`, trois invariants `I-1` à `I-3`. **Non testé :
-   aucun critère n'a été exécuté.**
-4. **Quatre fonctions remontent** — `F-013`, `F-017`, `F-018`, `F-019`,
-   d'`ULTÉRIEUR` à `MVP`. Répartition courante : **`MVP` 35, `ULTÉRIEUR` 0,
-   `DIFFÉRÉ` 4**, sur 39 lignes. **IA, OCR, extraction, RAG et GraphRAG restent
-   `DIFFÉRÉ`**, et **aucune exigence de parité ne peut être satisfaite au moyen
-   de l'une de ces couches**.
-5. **Les relations transversales ne sont jamais inventées** — corrigé par
-   `X1` : une **relation établie** a pour provenance **`déterministe`** ou
-   **`approuvée`**, **sans troisième valeur**; provenance **visible à
-   l'écran**; stockage **hors de l'arborescence analysée**. Une **suggestion**
-   est un **objet et un état distincts** — affichable, **jamais** présentée
-   comme relation établie, **jamais** comptée dans les relations entrantes ou
-   sortantes. L'approbation la **transforme** en relation `approuvée`.
-6. **`CAL-B` n'est pas un contrat** — `DEC-0015` D. C'est un **candidat
-   technique performant** et une **primitive de calepinage possible**. Ses
-   mesures et ses trois restrictions — `V1`, `V2`, `R8` — demeurent. **Si un
-   calepinage rend une exigence inatteignable, c'est l'algorithme qui cède.**
-7. **Le budget adaptatif cesse d'être un prérequis à `P4`** — `DEC-0015` F.
-   **Aucun contrôleur de `TASK-0013` ni de `TASK-0014` ne devient du code de
-   production.** Interdit d'écrire qu'il est abandonné; interdit d'écrire qu'il
-   est validé; interdit de fixer une constante de budget sans mesure.
-8. **Aucune stabilité n'est prouvée** — réserve `W2`. `G3` est **bloqué** : sa
-   mesure était **vacueuse par construction**. Ne jamais écrire que le
-   contrôleur corrigé est stable.
-9. **Aucune mesure de production n'existe encore.** `R8` en vigueur et
-   renforcée : `B2`, `B2 bis` et `B2 ter` mesurent **Edge et Chrome**, jamais
-   WebView2. Aucun de ces chiffres ne borne ce que FileTopo rendra.
-10. **La feuille de route a quatre étapes** : **A** parité fonctionnelle MVP,
-    **B** finition visuelle moderne, **C** validation Windows/WebView2 réelle,
-    **D** empaquetage et publication. **La parité précède l'esthétique.**
+   22 exigences, 3 invariants. **Six sont satisfaites sur le seul périmètre de
+   la première tranche, deux sont partielles, seize ne sont pas commencées.**
+4. **Correction `X1` :** une **suggestion n'est pas une provenance de
+   relation**. Une relation établie a pour provenance **`déterministe`** ou
+   **`approuvée`**, sans troisième valeur; une suggestion est un **objet et un
+   état distincts**, affichable mais **jamais** comptée comme relation.
+5. **`TASK-0016` est `IMPLEMENTED`, jamais auto-déclarée `VERIFIED`.**
+6. **Les critères ont été gelés AVANT le code** — commit `6edd5bd`, code en
+   `130b670`. **Aucun n'a été retouché après le premier résultat.**
+7. **`H9` n'imposait aucune cible d'images par seconde.** Il n'y a **ni cible
+   atteinte, ni cible manquée** à annoncer.
+8. **`4,20 ms` est une butée**, pas une mesure : synchronisation verticale à
+   4,1667 ms sur un écran 240 Hz. **Jamais citable comme performance.** Seuls
+   `wide` (16,70 ms) et `mixed` (20,20 ms) sont au-dessus de la butée.
+9. **`R8` n'est pas levée** et ne peut l'être qu'à l'**étape C** : une machine,
+   un **binaire de développement**, des fixtures **≤ 2 420 nœuds**.
+10. **Aucun budget adaptatif** n'est employé, adopté, abandonné ni validé. La
+    borne `B-1` de 5 000 nœuds est un **plafond déclaré**, qui ne s'ajuste à
+    rien. Réserve `W2` : **aucune stabilité n'est prouvée**.
+11. **`B0` s'est reproduit deux fois et n'est pas corrigé.** **Ne rien
+    supprimer** dans `src-tauri/target/` — `DEC-0013` E. Employer
+    `CARGO_INCREMENTAL=0`.
+12. **Aucune donnée réelle, aucun sélecteur de dossier, aucun chemin local
+    personnel dans le dépôt** — artefacts de mesure compris.
+
+## Comment faire tourner la tranche
+
+    pnpm install
+    CARGO_INCREMENTAL=0 pnpm tauri dev
+
+Les quatre fixtures sont **engendrées** au premier clic, dans
+`.filetopo-sandbox/` — ignoré par Git, reproductible depuis les graines fixes
+`20260831001` à `20260831004`.
+
+Deux modes non surveillés, **développement seulement** :
+
+    CARGO_INCREMENTAL=0 FILETOPO_AUTO_VERIFY=1 pnpm tauri dev   # rejoue H1-H7, H10, H11
+    CARGO_INCREMENTAL=0 FILETOPO_AUTO_MEASURE=1 pnpm tauri dev  # rejoue H9
+
+Chacun écrit son artefact sous `docs/performance/runs/`.
+
+**Si une course reste muette :** la fenêtre doit rester visible. Chromium
+suspend `requestAnimationFrame` pour une fenêtre occultée; la course échoue
+alors explicitement au bout de 8 s au lieu d'attendre indéfiniment.
 
 ## Gouvernance en vigueur
 
-Depuis le 2026-08-31, les **GO techniques** viennent de l'**orchestrateur
-technique**, sous délégation de Sébastien (`AGENTS.md`, section « Délégation
-d'orchestration technique »). **Restent réservés à Sébastien**, sans
-délégation : dépense, donnée réelle ou personnelle, publication externe
-exceptionnelle (fusion vers `main`, PR, release, étiquette, nouveau distant),
-opération destructive ou hors dépôt, **changement important de portée
-produit**.
-
-**Les points `A`, `B` et `C` de `DEC-0015` relèvent de ce dernier point** :
-c'est **Sébastien** qui a décidé de la référence produit, du contrat de parité
-et du reclassement. L'orchestrateur technique n'a décidé que des points `D`,
-`E` et `F`.
+Les **GO techniques** viennent de l'**orchestrateur technique**, sous
+délégation de Sébastien. **Restent réservés à Sébastien**, sans délégation :
+dépense, **donnée réelle ou personnelle**, publication externe exceptionnelle
+(fusion vers `main`, PR, release, étiquette, nouveau distant), opération
+destructive ou hors dépôt, **changement important de portée produit**.
 
 ## État Git
 
 | Référence | SHA |
 |---|---|
 | `main` locale et distante | `91bbe90f0f99026c28cd345784d4f579a0016db2` — **non touchée** |
-| `rebuild/v0.2-project-brain` locale et distante | `db8d3de0b20e7efbfe463a17c218cc14face39a8` — **non touchée** |
-| `spike/v0.2-technical-risk-gates` locale et distante | `746f1b5f93c9d7085516c0e56473a95dc2c2d178` — **non touchée** |
-| `spike/v0.2-render-budget` | `933bd0d5e7e05e4e7fe233c5fc6b9320a194264d` — **non touchée** depuis la clôture de `TASK-0013` |
-| `spike/v0.2-budget-controller` | branche de travail de `TASK-0014` puis `TASK-0015`, voir `git rev-parse HEAD`, égal à `origin/` |
+| `rebuild/v0.2-project-brain` | `db8d3de0b20e7efbfe463a17c218cc14face39a8` — **non touchée** |
+| `spike/v0.2-technical-risk-gates` | `746f1b5f93c9d7085516c0e56473a95dc2c2d178` — **non touchée** |
+| `spike/v0.2-render-budget` | `933bd0d5e7e05e4e7fe233c5fc6b9320a194264d` — **non touchée** |
+| `spike/v0.2-budget-controller` | porte la clôture d'`ACTION-0025` |
+| `build/v0.2-p4-vertical-slice` | branche de `TASK-0016`, voir `git rev-parse HEAD` |
 
 Aucune fusion, aucune PR, aucune release, aucune étiquette, aucun `force push`,
 aucune réécriture d'historique, aucune suppression de branche.
@@ -113,21 +108,19 @@ aucune réécriture d'historique, aucune suppression de branche.
 
 | # | Point | Ce qui est demandé |
 |---|---|---|
-| 1 | **`TASK-0015` est `VERIFIED`** | Clos par `ACTION-0025`, avec la réserve normative **`X1`**, **corrigée**. Le contrat de parité reste **non testé** |
-| 2 | **`TASK-0016` est `APPROVED`** | `P4` est **franchie**. Les critères `H1` à `H11`, les fixtures et la **borne de charge** se figent **avant** la première ligne de code, et **ne se retouchent pas** après le premier résultat |
-| 3 | **Aucun critère de parité n'a été exécuté** | Les 22 exigences sont des **cibles à falsifier**. Un `MVP` impossible à tenir **redescend par décision écrite**, jamais par omission |
-| 4 | **Manque `M-1`** — persistance des préférences sans fonction propre | Une révision de la matrice devra créer une fonction ou rattacher explicitement chaque valeur. **Aucune fonction n'a été inventée** |
-| 5 | **Charge accrue du MVP** | Quatre fonctions de plus, dont un **modèle de provenance entièrement à écrire**. Aucune estimation d'effort n'existe |
-| 6 | **Réserves `W1` à `W4`** d'`ACTION-0024` | Toutes en vigueur |
-| 7 | **Réserves `V1` à `V4`** d'`ACTION-0023` | Toutes en vigueur. Aucune levée par `TASK-0014` ni `TASK-0015` |
-| 8 | **Réserve `R8`** | En vigueur, **renforcée**. `R1` levée; `R2` à `R7` et `R9` inchangées. **`R8` ne peut être levée qu'à l'étape C** |
-| 9 | **WebView2 non mesuré** | `DEC-0014` F visait l'absence d'**hôte embarqueur**. Cet hôte est le premier livrable de `TASK-0016`; hors de lui, aucune tentative |
-| 10 | **`B3` inter-volume, `B0` échec, `B4` question 3** | Inchangés : écrire hors du dépôt reste réservé à Sébastien; le cache fautif est conservé; la question 3 se ferme avant l'identité persistante |
+| 1 | **`TASK-0016` est `IMPLEMENTED`** | **`ACTION-0026`** : contrôle indépendant, par une instance **distincte de l'exécuteur**. Première fois que du code de production est contrôlé |
+| 2 | **Seize exigences de parité non commencées** | Chaque tranche suivante exige sa **propre fiche**, ses **critères gelés** et son **GO**. Les relations transversales portent la correction `X1` |
+| 3 | **`P-12` et `P-06` sont partielles** | Masquage du panneau, survie au redémarrage, relations transversales et atténuation liée à `F-017` restent à faire |
+| 4 | **`P-08` exige 100 000 nœuds** | La borne de 5 000 est une **limite de `TASK-0016`**, pas une limite produit |
+| 5 | **Manque `M-1`** — persistance des préférences | À résoudre **avant** la tranche qui implémente réellement `P-19` — `DEC-0016` D |
+| 6 | **`R8`** | En vigueur. **Levée seulement à l'étape C** |
+| 7 | **Réserves `V1`–`V4`, `W1`–`W4`, `R2`–`R9`** | Toutes en vigueur; `R1` levée depuis `ACTION-0023` |
+| 8 | **`B0`, `B3` inter-volume, `B4` question 3** | Inchangés. Le cache fautif est **conservé**; la question 3 se ferme **avant** l'identité persistante et l'état vu/non vu |
+| 9 | **`P-21`** | Interface **en français seulement**; bilinguisme intégral et audit WCAG restent à faire |
 
 ## Prochaine action unique
 
-**Figer puis exécuter `TASK-0016`** — la première tranche verticale de
-production, sur la branche `build/v0.2-p4-vertical-slice`. Détail dans
+**`ACTION-0026`** — contrôle indépendant de `TASK-0016`. Détail dans
 [NEXT_ACTION.md](NEXT_ACTION.md).
 
 ## Commandes sûres
@@ -136,40 +129,26 @@ production, sur la branche `build/v0.2-p4-vertical-slice`. Détail dans
     git branch --show-current
     git rev-parse HEAD
     git status --short
-    git log --oneline db8d3de..HEAD
-    git diff --stat db8d3de -- src src-tauri tests public scripts .github graph
+    git log --oneline 73f0327..HEAD
+    git show 6edd5bd --stat    # le gel des critères, AVANT tout code
+    git show 130b670 --stat    # le premier code de production
 
-La dernière doit rendre **une sortie vide** : aucun fichier de production n'a
-changé.
-
-Pour rejouer les bancs d'essai, voir
-[`spikes/b2ter-budget-controller/README.md`](../../spikes/b2ter-budget-controller/README.md)
-et
-[`spikes/b2bis-layout-and-budget/README.md`](../../spikes/b2bis-layout-and-budget/README.md).
-Les mesures brutes ne sont **pas** commitées : elles vivent sous
-`spikes/.work/`, ignoré par Git, et sont reproductibles depuis la graine fixe
-`20260831`.
+    CARGO_INCREMENTAL=0 cargo test --manifest-path src-tauri/Cargo.toml --lib
+    pnpm test
 
 ## Message court pour Claude Code
 
 Lis seulement CLAUDE.md, docs/ai/START_HERE.md, docs/ai/CURRENT_STATE.md et
-docs/ai/NEXT_ACTION.md. `TASK-0012`, `TASK-0013` et `TASK-0014` sont **closes
-et `VERIFIED`**; `TASK-0015` est **`IMPLEMENTED` et attend un contrôle
-indépendant**; `TASK-0016` est **`PROPOSED` et ne s'exécute pas**.
+docs/ai/NEXT_ACTION.md. `TASK-0012` à `TASK-0015` sont **closes et
+`VERIFIED`**; **`TASK-0016` est `IMPLEMENTED` et attend un contrôle
+indépendant**.
 
-**La référence produit est CarteTopo**, pas l'ancienne version publique de
-FileTopo. Le contrat exigible est `docs/product/CARTETOPO_FUNCTIONAL_PARITY.md`.
-**Le visuel est libre; la parité fonctionnelle ne l'est pas.**
+**La porte `P4` est franchie**, mais elle n'autorisait que `TASK-0016`. **Une
+tranche suivante exige sa propre fiche, ses critères gelés d'avance et son
+GO.** Ne t'attribue pas `VERIFIED`.
 
-Les arbitrages en vigueur sont dans `DEC-0013`, `DEC-0014` et `DEC-0015`.
-**Aucun budget n'est adopté** et **aucun contrôleur de spike ne devient du code
-de production**. **Ne rejoue aucun banc d'essai** sans GO et **ne t'attribue pas
-`VERIFIED`**.
-
-**La porte `P4` est franchie** : le code de production est autorisé, **pour
-`TASK-0016` seulement** et dans son périmètre écrit. **N'ouvre pas Canvas 2D
-ni WebGL.** **Ne mesure WebView2 que dans l'hôte Tauri réel** construit par la
-tranche. **Ne corrige pas l'échec de `B0` et
-ne supprime rien** dans `src-tauri/target/`. **Ne teste pas l'inter-volume.**
-**Ne retouche aucune preuve** de `TASK-0012` à `TASK-0014`, ni le texte de
-`DEC-0014`. Ne fusionne rien, ne crée ni PR, ni release, ni étiquette.
+**N'ouvre pas Canvas 2D ni WebGL.** **Ne reprends aucun contrôleur de budget de
+spike.** **Ne corrige pas `B0` et ne supprime rien** dans `src-tauri/target/`.
+**Ne cite jamais 4,20 ms comme une performance** — c'est une butée de
+synchronisation verticale. **Ne lève pas `R8`.** Ne fusionne rien, ne crée ni
+PR, ni release, ni étiquette.
