@@ -8,8 +8,10 @@
   [`ACTION-0026`](../reviews/ACTION-0026-independent-control.md) du commit
   `a6cf092` — **`X2` : `CLOSED`**, **`ACTION-0026` : `CLOSED`**
 - **Tâche livrée, NON vérifiée :** **`TASK-0017`, `IMPLEMENTED`** le
-  2026-09-01 — relations transversales avec provenance. **Attend son contrôle
-  indépendant.**
+  2026-09-01 — relations transversales avec provenance. Contrôle indépendant
+  [`ACTION-0027`](../reviews/ACTION-0027-independent-control.md) :
+  **`CHANGES_REQUIRED`**, réserves **`X3`** et **`X4`** **corrigées mais non
+  closes**. **Attend son re-contrôle indépendant.**
 - **Tâche IN_PROGRESS :** aucune
 - **Porte `P4` :** **FRANCHIE** —
   [`DEC-0016`](../decisions/DEC-0016-p4-gate-crossing-and-first-slice.md)
@@ -104,7 +106,17 @@ strictement limités au périmètre déjà déclaré**.
    n'est pas implémentée, alors que la parité §5.2 l'exige. Déclarée manquante.
 8. **Aucune mesure de performance n'a été prise et aucun seuil n'a été
    inventé** : `TASK-0017` n'en demandait aucun.
-9. **Ne pas s'attribuer `VERIFIED`.** La tâche est `IMPLEMENTED`.
+9. **La création d'une relation `APPROVED` est verrouillée par le stockage**
+   — réserve `X3`. `approve()` est la **seule** voie applicative; le schéma de
+   **version 2** ajoute `suggestion_key` **`UNIQUE`**, une **clé étrangère** et
+   **trois déclencheurs** qui exigent que la ligne approuvée **soit exactement
+   sa suggestion**. **Ne pas rouvrir cette porte** en ajoutant un chemin
+   d'écriture.
+10. **`J12` s'exerce par une vraie frappe clavier Windows** — réserve `X4`.
+    Le scénario n'active rien : il attend `scripts/j12-send-real-key.ps1`.
+    **Ne jamais remplacer la frappe par un `.click()`** : la preuve est
+    `isTrusted` et les compteurs à zéro.
+11. **Ne pas s'attribuer `VERIFIED`.** La tâche est `IMPLEMENTED`.
 
 ## Comment faire tourner la tranche
 
@@ -122,6 +134,15 @@ Deux modes non surveillés, **développement seulement** :
     CARGO_INCREMENTAL=0 FILETOPO_AUTO_RELATIONS=1 pnpm tauri dev  # rejoue J12
 
 Chacun écrit son artefact sous `docs/performance/runs/`.
+
+**`J12` demande deux processus.** Le scénario n'active rien lui-même : il pose
+le focus et attend une **vraie frappe Windows**. Rediriger la sortie vers un
+fichier, puis, dans un autre terminal :
+
+    pwsh scripts/j12-send-real-key.ps1 -LogPath run.log
+
+Sans ce second processus, `J12` **échoue** — et c'est voulu : il ne se rabat
+jamais sur un clic synthétique.
 
 **Avant de rejouer `J12` :** remettre le magasin de relations à neuf —
 `rm -rf .filetopo-sandbox/relations` — et **n'ouvrir qu'une seule instance de
@@ -197,6 +218,7 @@ code. Détail dans [NEXT_ACTION.md](NEXT_ACTION.md).
     git show 130b670 --stat    # TASK-0016 : le premier code de production
     git show 51a8cac --stat    # TASK-0017 : le gel, AVANT tout code
     git show a98676e --stat    # TASK-0017 : le premier code de production
+    git show 8a259e9 --stat    # TASK-0017 : les corrections X3 et X4
 
     CARGO_INCREMENTAL=0 cargo test --manifest-path src-tauri/Cargo.toml --lib
     pnpm check && pnpm test
@@ -213,8 +235,9 @@ son propre GO.** Ne t'attribue pas `VERIFIED`.
 
 **Une suggestion n'est jamais une relation** — correction `X1`. **La provenance
 d'une relation établie n'a que deux valeurs**, et c'est la table qui la porte.
-**N'implémente aucune heuristique réelle de suggestion.** **Ne prétends pas que
-`ek1` implémente `I-E`.**
+**`approve()` est la seule voie vers une relation approuvée**, et le stockage
+l'impose — réserve `X3`. **N'implémente aucune heuristique réelle de
+suggestion.** **Ne prétends pas que `ek1` implémente `I-E`.**
 
 **N'ouvre pas Canvas 2D ni WebGL.** **Ne reprends aucun contrôleur de budget de
 spike.** **Ne corrige pas `B0` et ne supprime rien** dans `src-tauri/target/`.

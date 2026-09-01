@@ -20,7 +20,10 @@
   réserve normative `X1`, corrigée
 - **Tâche livrée, NON vérifiée :** **`TASK-0017`, `IMPLEMENTED`** le
   2026-09-01 — [fiche](../tasks/TASK-0017-crosscutting-relations.md), gel
-  `51a8cac`, code `a98676e`. **Attend son contrôle indépendant.**
+  `51a8cac`, code `a98676e`, corrections `X3`/`X4` `8a259e9`.
+  **Contrôle indépendant [`ACTION-0027`](../reviews/ACTION-0027-independent-control.md) :
+  `CHANGES_REQUIRED`, réserves `X3` et `X4` corrigées mais NON CLOSES.
+  Attend son re-contrôle indépendant.**
 - **Tâche IN_PROGRESS :** aucune
 - **Porte `P4` :** **FRANCHIE** —
   [`DEC-0016`](../decisions/DEC-0016-p4-gate-crossing-and-first-slice.md)
@@ -73,16 +76,58 @@ relation — et **aucune n'a laissé la moindre ligne**.
 **Aucun inverse n'est jamais déduit** : aucune des deux règles n'est déclarée
 symétrique, et l'absence des huit inverses est vérifiée.
 
+### Le contrôle indépendant, et les deux réserves
+
+**`ACTION-0027` a rendu `CHANGES_REQUIRED`.** Le gel `51a8cac` est accepté
+comme antérieur au code `a98676e`, et `J1` à `J11` sont acceptables sous
+réserve de `X3`.
+
+**`X3` — la création d'une relation `APPROVED` n'était pas verrouillée.**
+`insert_established()` acceptait `provenance=APPROVED` dès lors que la
+suggestion nommée était déjà approuvée, **sans vérifier que source, cible et
+type correspondaient à cette suggestion**. Une suggestion pouvait donc
+justifier une relation qui n'était pas elle-même. **La garde contrôlait qu'une
+clé existe, pas ce qu'elle désigne** — le même défaut de famille que `X2` :
+juger ce que le code *appelle* plutôt que ce que le stockage *permet*.
+
+**Corrigé, et structurellement.** `insert_established` refuse `APPROVED` sans
+condition; `approve()` est la seule voie applicative; et le **schéma passe en
+version 2** : `suggestion_key` **`UNIQUE`**, **clé étrangère** vers
+`relation_suggestions`, et **trois déclencheurs** SQLite qui exigent que la
+ligne approuvée **soit exactement sa suggestion**, à l'insertion comme à la
+mise à jour, et qui empêchent la suggestion de dériver ensuite. La migration
+d'un magasin de version 1 **nomme** la ligne qu'elle écarte, dans
+`relation_meta`, plutôt que de l'effacer en silence.
+
+**`X4` — `J12` n'était pas prouvé intégralement.** L'artefact précédent
+déclarait lui-même qu'aucune frappe `Enter` de confiance n'avait été jouée.
+**Une déclaration d'honnêteté n'est pas une preuve.**
+
+**Corrigé.** Le scénario n'active plus rien : il pose le focus, écrit un
+marqueur, et attend une **vraie frappe Windows** envoyée par
+`scripts/j12-send-real-key.ps1` via `WScript.Shell`. La preuve enregistre
+`activationIsTrusted: true`, `keydownIsTrusted: true`, et **0** appel
+programmatique à `click()` comme **0** `dispatchEvent` de type `click` pendant
+toute la fenêtre. **Si la frappe n'arrive pas, le scénario échoue** — il ne se
+rabat jamais sur un clic synthétique. L'approbation passe par le même chemin.
+
+**Les deux réserves sont corrigées, pas closes.** Leur clôture appartient au
+re-contrôle.
+
 ### Ce qui a été trouvé en chemin, et publié
 
 **Une lacune du modèle :** le type d'une relation était vérifié non vide mais
 **jamais confronté aux deux types déclarés**. Corrigé avant publication.
 
-**Quatre défauts de protocole**, publiés **avec ce qu'ils auraient produit** —
+**Cinq défauts de protocole**, publiés **avec ce qu'ils auraient produit** —
 panneau lu trop tôt, attente bornée en images plutôt qu'en temps, atténuation
-lue sur le mauvais élément, et **deux instances de l'application en parallèle**
-sur le même magasin. Les artefacts contradictoires ont été **détruits**; la
-campagne publiée provient d'une **exécution unique sur le binaire final**.
+lue sur le mauvais élément, **deux instances de l'application en parallèle** sur
+le même magasin, et une **extrémité attendue calculée depuis l'ordre de
+l'index** alors que le panneau groupe par direction puis par type. Ce dernier
+a publié un **faux négatif** sur un produit qui avait raison; l'entrée porte
+désormais son extrémité en attribut `data-`, et la preuve la lit sur l'entrée
+activée. Les artefacts contradictoires ont été **détruits**; la campagne
+publiée provient d'une **exécution unique sur le binaire final**.
 
 ## Ce que TASK-0017 ne prouve pas
 
@@ -265,9 +310,10 @@ conformité de sa surface exposée. **Pas** la faisabilité du reste du contrat 
 parité — **seize exigences ne sont pas commencées**.
 
 **`TASK-0017` est `IMPLEMENTED`, et rien de plus.** L'exécuteur ne s'est pas
-auto-attribué `VERIFIED`. L'action unique suivante est son **contrôle
-indépendant**, mené par une instance **distincte de l'exécuteur** et se
-prononçant **sur preuves** :
+auto-attribué `VERIFIED`. Le contrôle indépendant `ACTION-0027` a rendu
+**`CHANGES_REQUIRED`**; les réserves `X3` et `X4` sont **corrigées, non
+closes**. L'action unique suivante est le **re-contrôle indépendant**, mené par
+une instance **distincte de l'exécuteur** et se prononçant **sur preuves** :
 `docs/performance/runs/TASK-0017-J12-webview2.json` et
 `docs/performance/runs/TASK-0017-J11-isolation.json`.
 

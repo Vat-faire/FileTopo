@@ -2215,3 +2215,98 @@ toute lecture, lecture minimale respectée, aucun travail interrompu.
 
 **Contrôle indépendant de `TASK-0017`**, par une instance **distincte de
 l'exécuteur**, **sur preuves**.
+
+---
+
+## 2026-09-01 — TASK-0017 : contrôle indépendant `ACTION-0027`, réserves `X3` et `X4`
+
+**Branche `build/v0.2-a2-relations`.** Corrections en `8a259e9`.
+**`TASK-0017` reste `IMPLEMENTED`. `VERIFIED` n'est pas attribué.**
+
+### Verdict enregistré
+
+**`CHANGES_REQUIRED`**, rendu par l'orchestrateur technique, instance distincte
+de l'exécuteur, après lecture directe du code, du gel et des preuves.
+Le gel `51a8cac` est **accepté comme antérieur** au code `a98676e`; `J1` à
+`J11` sont acceptables **sous réserve de `X3`**; `J12` n'était **pas** prouvé
+intégralement — `X4`.
+
+### Fait — `X3`
+
+- **Le défaut :** `insert_established()` acceptait `provenance=APPROVED` dès
+  lors que la suggestion nommée était déjà approuvée, **sans vérifier que
+  source, cible et type correspondaient à cette suggestion**. Une suggestion
+  pouvait donc justifier **une relation qui n'était pas elle-même**. La garde
+  contrôlait qu'une clé **existe**, pas ce qu'elle **désigne**.
+- `insert_established` refuse désormais `APPROVED` **sans condition**.
+  **`approve()` est la seule voie applicative.**
+- **Schéma en version 2 :** `suggestion_key` **`UNIQUE`** dans
+  `relations_approved`, **clé étrangère** vers `relation_suggestions`, et
+  **trois déclencheurs** SQLite qui exigent que la ligne approuvée **soit
+  exactement sa suggestion** — à l'insertion, à la mise à jour, et en empêchant
+  la suggestion de dériver ensuite. **La correspondance est portée par le
+  stockage, plus par le Rust.**
+- `approve()` écrit un `INSERT` **simple** : `OR IGNORE` transformait un refus
+  en non-événement silencieux, ce que `J4` interdit.
+- **Migration explicite** d'un magasin de version 1 : la ligne qui ne
+  correspond pas à sa suggestion **n'est pas reprise**, et sa clé est écrite
+  dans `relation_meta` sous `migration_v2_discarded` — **jamais effacée en
+  silence**. Données **synthétiques** uniquement.
+- **Neuf tests ajoutés**, dont **cinq écrivent directement en SQL** pour
+  prouver les contraintes **au niveau du stockage**.
+
+### Fait — `X4`
+
+- **Le défaut :** l'artefact `J12` **déclarait lui-même** qu'aucune frappe
+  `Enter` de confiance n'avait été jouée. **Une déclaration d'honnêteté n'est
+  pas une preuve.**
+- Le scénario **n'active plus rien**. Il pose le focus, écrit un marqueur, et
+  attend une **vraie frappe Windows** envoyée par
+  `scripts/j12-send-real-key.ps1` via `WScript.Shell` après `AppActivate`.
+  **Aucune nouvelle dépendance** — `WScript.Shell` fait partie de Windows.
+- **Trois instruments simultanés :** `isTrusted` de l'activation; les compteurs
+  d'appels à `HTMLElement.prototype.click` et de `dispatchEvent` de type
+  `click`, qui doivent rester à **zéro**; et le changement observable.
+- **Si la frappe n'arrive pas, le scénario échoue.** Jamais de repli sur un
+  clic synthétique. **L'approbation d'une suggestion passe par le même
+  chemin.**
+- **Relevé :** activation de confiance **`true`**, `keydown` de confiance
+  **`true`** touche `Enter`, **0** appel `click()`, **0** `dispatchEvent` de
+  type `click`, sélection passée de `map-node-6` à **`map-node-9`**, extrémité
+  attendue lue **sur l'entrée activée** et confirmée par l'index.
+
+### Trouvé, et publié
+
+**Un cinquième défaut de protocole, dans ma preuve et non dans le produit.**
+L'extrémité attendue était calculée depuis `outgoing[0]` **de l'index**, alors
+que le panneau **groupe par direction puis par type** : la preuve a publié
+`selectionFollowedTheRelation: false` pour un produit qui avait raison.
+**Corrigé à la source** — l'entrée porte son extrémité en attributs `data-`, la
+preuve la lit sur l'entrée activée, et l'index confirme. Test unitaire ajouté.
+**Faux négatif**, publié comme les quatre autres.
+
+### Non fait, volontairement
+
+- **La révocation de `P-04` n'a pas été ajoutée** : explicitement hors du
+  périmètre gelé, réservée à une tranche future. **`P-04` reste PARTIELLE.**
+- **Aucun critère `J1` à `J12`, aucune fixture gelée, aucune règle gelée**
+  modifié.
+- **Aucune optimisation de performance, aucune mesure, aucun seuil.** `R8`
+  entière.
+- **Aucune nouvelle dépendance, aucune donnée réelle, aucun sélecteur de
+  dossier.**
+- **`B0` non corrigé**, rien supprimé dans `src-tauri/target/`.
+- **Aucune fusion, PR, release, étiquette, `force push`**, aucune réécriture
+  d'historique.
+
+### Revalidation
+
+**84 / 84** tests Rust, **82 / 82** tests TypeScript, `pnpm check`, `pnpm
+build`, build Tauri release sans empaquetage, `J1`–`J5`, `J10`, `J11`,
+tests-gardes `X2`, et **`J12` complet dans WebView2 `151.0.4129.107` sur le
+binaire final corrigé**.
+
+### Prochaine action unique
+
+**Re-contrôle indépendant de `TASK-0017`.** `X3` et `X4` sont **corrigées, pas
+closes**; `ACTION-0027` reste **`OPEN`**.

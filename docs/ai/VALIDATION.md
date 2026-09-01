@@ -2258,3 +2258,152 @@ deux types déclarés** en §4.2. Corrigé avant publication, motif
 `TASK-0017` est **`IMPLEMENTED`**. L'action unique suivante est son **contrôle
 indépendant**, mené par une instance **distincte de l'exécuteur** et se
 prononçant **sur preuves**.
+
+---
+
+## Z-bis. TASK-0017 — contrôle indépendant `ACTION-0027`, réserves `X3` et `X4`
+
+**Verdict du contrôle indépendant : `CHANGES_REQUIRED`.** Enregistré en
+[`ACTION-0027`](../reviews/ACTION-0027-independent-control.md). **`TASK-0017`
+reste `IMPLEMENTED`; `VERIFIED` n'est pas attribué.**
+
+Le contrôle a **accepté** que le gel `51a8cac` précède le code `a98676e`, et
+que `J1` à `J11` soient acceptables sous réserve de `X3`. **La révocation de
+`P-04` n'est pas une réserve** : elle était hors du périmètre gelé.
+
+### Z-bis.1 `X3` — corrigée, NON close
+
+**Le défaut.** `insert_established()` acceptait `provenance=APPROVED` dès lors
+que la suggestion nommée était déjà `approved`, **sans vérifier que la source,
+la cible et le type correspondaient à cette suggestion**. Une suggestion déjà
+approuvée pouvait **justifier une relation qui n'était pas elle-même**.
+
+**La garde contrôlait qu'une clé existe, pas ce qu'elle désigne.** Même famille
+que `X2` : juger ce que le code *appelle*, pas ce que le stockage *permet*.
+
+**La correction, vérifiée dans le fichier SQLite après exécution** —
+`TASK-0017-J11-isolation.json` :
+
+| Garantie | Constat |
+|---|---|
+| `user_version` | **2** |
+| `suggestion_key` | index **unique** (`sqlite_autoindex_relations_approved_2`) |
+| Clé étrangère | `relations_approved.suggestion_key` → `relation_suggestions.suggestion_key` |
+| Déclencheurs | `approved_must_match_its_suggestion_on_insert`, `..._on_update`, `suggestion_cannot_drift_from_its_relation` |
+| Lignes approuvées ne correspondant pas à leur suggestion | **0** |
+
+`insert_established` refuse désormais `APPROVED` **sans condition**;
+`approve()` est la **seule** voie applicative; et `approve()` écrit un `INSERT`
+**simple** — `OR IGNORE` transformait un refus en non-événement silencieux.
+
+**La migration est explicite et auditable :** une ligne de version 1 qui ne
+correspond pas à sa suggestion **n'est pas reprise**, et sa clé est écrite dans
+`relation_meta` sous `migration_v2_discarded`. Données **synthétiques**
+uniquement.
+
+**Neuf tests ajoutés**, dont **cinq écrivent directement en SQL** en contournant
+toute garde Rust — c'est ce qui prouve la contrainte **au niveau du stockage**
+et non au niveau de l'API qui refuse déjà :
+
+- `an_already_approved_suggestion_cannot_justify_a_direct_write`
+- `insert_established_can_never_create_an_approved_relation`
+- `the_storage_refuses_a_relation_that_is_not_its_suggestion` — 3 variantes
+- `the_storage_refuses_a_pending_suggestion`
+- `an_approved_relation_cannot_exist_without_its_suggestion`
+- `one_suggestion_can_never_carry_two_approved_relations`
+- `an_approved_suggestion_cannot_drift_away_from_its_relation`
+- `migrating_a_version_1_store_drops_the_mismatched_row_and_names_it`
+- `reopening_a_version_2_store_is_a_no_operation`
+
+### Z-bis.2 `X4` — corrigée, preuve rejouée, NON close
+
+**Le défaut.** Le gel exige « parcourir au clavier au moins une relation ».
+L'artefact précédent **déclarait lui-même** qu'aucune frappe `Enter` de
+confiance n'avait été jouée. **Une déclaration d'honnêteté n'est pas une
+preuve** : le critère n'était pas tenu.
+
+**La correction.** Le scénario **n'active plus rien**. Il pose le focus, écrit
+un marqueur sur la sortie de l'hôte, et attend une **vraie frappe Windows**
+envoyée par `scripts/j12-send-real-key.ps1` via **`WScript.Shell`**, après
+`AppActivate`. **Aucune nouvelle dépendance** : `WScript.Shell` fait partie de
+Windows.
+
+**Trois instruments simultanés**, aucun ne suffisant seul : `isTrusted` de
+l'événement d'activation; les compteurs d'appels à
+`HTMLElement.prototype.click` et de `dispatchEvent` de type `click`, qui
+doivent rester à **zéro** sur toute la fenêtre; et le changement observable.
+**Si la frappe n'arrive pas, le scénario échoue** — jamais de repli sur un clic
+synthétique.
+
+**Relevé dans `TASK-0017-J12-webview2.json`, WebView2 `151.0.4129.107`, sur le
+binaire portant les deux corrections :**
+
+| | Traversée d'une relation | Approbation de `S-005` |
+|---|---|---|
+| Méthode d'entrée | `WScript.Shell SendKeys` après `AppActivate` | idem |
+| Touche envoyée | `{ENTER}` | `{ENTER}` |
+| Élément focalisé avant | `BUTTON` `relation__link` | `BUTTON` `suggestion__approve` |
+| Focus atteint | **oui** | **oui** |
+| `keydown` de confiance | **`true`**, touche `Enter` | **`true`**, touche `Enter` |
+| Activation de confiance | **`true`** | **`true`** |
+| Appels `click()` programmatiques | **0** | **0** |
+| `dispatchEvent` de type `click` | **0** | **0** |
+| Endpoint avant | `map-node-6` | — |
+| Endpoint après | **`map-node-9`** | — |
+| Endpoint attendu, lu sur l'entrée activée | **`map-node-9`** | — |
+| L'index confirme que c'est une relation | **`true`** | — |
+| Changement dû à la frappe | **`true`** | **`true`** |
+
+### Z-bis.3 Un cinquième défaut de protocole
+
+**Ma preuve était fausse, pas le produit.** Le premier rejeu avec frappe réelle
+a publié `selectionFollowedTheRelation: false` : l'extrémité attendue était
+calculée depuis `outgoing[0]` **de l'index**, alors que le panneau **groupe par
+direction puis par type**. La sélection était allée **exactement** où l'entrée
+activée menait.
+
+**Corrigé à la source :** l'entrée porte son extrémité en attributs `data-`; la
+preuve la lit **sur l'entrée activée**, puis l'index confirme que c'est bien
+une relation de ce nœud. Un test unitaire verrouille la correspondance.
+**Faux négatif**, mais publié comme les quatre autres.
+
+### Z-bis.4 Revalidation complète
+
+| Contrôle | Commande | Résultat |
+|---|---|---|
+| Tests Rust | `CARGO_INCREMENTAL=0 cargo test --lib` | **84 / 84** (75 → 84) |
+| Tests-gardes `X2` | idem | **PASS** |
+| Tests TypeScript | `pnpm test` | **82 / 82** (81 → 82) |
+| Types | `pnpm check` | **PASS** |
+| Build interface | `pnpm build` | **PASS** |
+| Build Tauri release, sans empaquetage | `pnpm tauri build --no-bundle` | **PASS**, `47,8 s` |
+| `J1` à `J5` dans l'hôte | `map_relations_self_check` | 5/5 rejets, rejeu stable, **12/12 nœuds**, 0 inverse |
+| `J10` | reconstruction des 4 index | **PASS** — 8 déterministes, **5 approuvées**, 3 en attente, **0** correspondance rompue |
+| `J11` | rejeu `FILETOPO_AUTO_VERIFY=1` | **PASS** — `H1`–`H7` identiques, **0 artefact** dans la racine analysée |
+| `J12` complet | `FILETOPO_AUTO_RELATIONS=1` + frappe réelle | **PASS** sur le binaire final |
+
+**Aucune nouvelle dépendance** : `package.json`, `pnpm-lock.yaml` et
+`Cargo.toml` inchangés.
+
+### Z-bis.5 Ce qui n'a PAS changé, et ce qui n'est PAS déclaré PASS
+
+- **Aucun critère `J1` à `J12`, aucune fixture gelée, aucune règle gelée** n'a
+  été modifié.
+- **Aucune mesure de performance, aucun seuil.** `R8` reste entière.
+- **`P-04` reste PARTIELLE** : la **révocation** n'est pas implémentée, et ne
+  devait pas l'être dans cette correction.
+- **`ek1` n'implémente toujours pas `I-E`.**
+- **`P-21` non satisfaite** : français seulement, aucun audit WCAG complet,
+  **aucun lecteur d'écran réel**. `J12` prouve désormais une **vraie** frappe
+  clavier, ce qui n'est pas un audit d'accessibilité.
+- **`B0` non corrigé**, rien supprimé dans `src-tauri/target/`. L'avertissement
+  `unused import: self` de `map/commands.rs` est **antérieur** et hors
+  périmètre.
+- **`$debut-session` en session Codex reste non testé.**
+- **`X3` et `X4` sont corrigées, PAS closes.** `ACTION-0027` reste **`OPEN`**.
+
+### Z-bis.6 Conséquence
+
+`TASK-0017` reste **`IMPLEMENTED`**. L'action unique suivante est le
+**re-contrôle indépendant**, mené par une instance **distincte de l'exécuteur**
+et se prononçant **sur preuves**.

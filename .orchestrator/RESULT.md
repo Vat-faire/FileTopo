@@ -1,134 +1,134 @@
-TASK_ID: TASK-0017 — relations transversales avec provenance (étape A, tranche 2)
+TASK_ID: TASK-0017 — correction ciblée du contrôle indépendant, réserves X3 et X4
 AGENT: CLAUDE
 RESULT: DONE
 BRANCH: build/v0.2-a2-relations
-FINAL_HEAD: 0236a1c1759505f3985db1e7dd5c786350663d34
-TASK_STATE: IMPLEMENTED — jamais VERIFIED, l'exécuteur ne s'auto-vérifie pas
+FINAL_HEAD: <renseigné au commit de clôture>
+TASK_STATE: IMPLEMENTED — VERIFIED NON attribué, re-contrôle indépendant attendu
+CONTROLE: ACTION-0027, verdict CHANGES_REQUIRED. X3 et X4 CORRIGÉES, NON CLOSES.
 
 SUMMARY:
-- Gel COMMITÉ AVANT TOUT CODE (51a8cac) : modèle normatif, deux types, clé
-  d'endpoint ek1, lieu de stockage, deux règles déterministes versionnées,
-  fixture synthétique (12 relations, 8 suggestions, 5 tentatives invalides,
-  comptes attendus nœud par nœud) et critères J1 à J12. Premier code de
-  production : a98676e. AUCUN critère retouché après le premier résultat.
-- La provenance est STRUCTURELLE : relations_deterministic et
-  relations_approved sont deux tables séparées (DEC-0009 R-C). Le schéma lu
-  dans le SQLite ne contient NULLE PART de colonne `provenance`, et la table
-  des approuvées n'a AUCUNE colonne de règle. Une relation établie sans
-  provenance n'est pas seulement interdite : elle est NON REPRÉSENTABLE.
-- Correction X1 implémentée : une suggestion est un objet et un état distincts,
-  dans sa propre table, jamais dans un compte, transformable seulement par une
-  approbation explicite qui bascule l'état et écrit la ligne dans une seule
-  transaction.
-- Aucun inverse n'est jamais déduit : aucune des deux règles n'est déclarée
-  symétrique, et l'absence des huit inverses est vérifiée.
-- 4 commandes nouvelles, toutes préfixées map_, donc SOUS la protection des
-  tests-gardes X2, qui restent PASS. Aucune commande héritée de la 0.1
-  réactivée.
-- Interface : panneau groupé par direction puis par type, provenance en toutes
-  lettres, règle et version consultables, chaque entrée étant un <button> qui
-  sélectionne l'autre extrémité; suggestions dans leur propre section nommée;
-  arêtes projetées sur les rectangles DÉJÀ PERSISTÉS, sans recalcul de
-  calepinage; relation établie en trait plein à tête de flèche, suggestion en
-  trait tireté SANS tête et à anneaux ouverts. Jamais la couleur seule.
+- X3 — la création d'une relation APPROVED n'était pas verrouillée.
+  Le défaut : insert_established() acceptait provenance=APPROVED dès lors que
+  la suggestion nommée était déjà approved, SANS vérifier que source, cible et
+  type correspondaient à cette suggestion. Une suggestion déjà approuvée
+  pouvait donc justifier une relation qui n'était pas elle-même. La garde
+  contrôlait qu'une clé EXISTE, pas ce qu'elle DÉSIGNE — même famille que X2 :
+  juger ce que le code appelle plutôt que ce que le stockage permet.
+  Corrigé sur trois plans, dont deux structurels :
+  * insert_established refuse APPROVED SANS CONDITION; approve() est la seule
+    voie applicative;
+  * schéma version 2 : suggestion_key UNIQUE, clé étrangère vers
+    relation_suggestions, et TROIS déclencheurs SQLite exigeant que la ligne
+    approuvée SOIT EXACTEMENT sa suggestion — à l'insertion, à la mise à jour,
+    et en empêchant la suggestion de dériver ensuite;
+  * approve() écrit un INSERT simple : OR IGNORE transformait un refus en
+    non-événement silencieux, ce que J4 interdit.
+  Migration explicite d'un magasin version 1 : la ligne non conforme n'est pas
+  reprise et sa clé est écrite dans relation_meta sous migration_v2_discarded
+  — jamais effacée en silence. Données synthétiques uniquement.
+  NEUF tests ajoutés, dont CINQ écrivent directement en SQL pour prouver les
+  contraintes AU NIVEAU DU STOCKAGE, pas au niveau de l'API qui refuse déjà.
 
-CRITERES J1 A J12: 12 / 12 TENUS. Détail chiffré en §7 de la fiche.
-- J1/J2/J3 : les 5 tentatives invalides rejetées avec EXACTEMENT le motif gelé,
-  aucune n'ayant laissé de ligne établie.
-- J5 : 12/12 nœuds conformes à l'attendu gelé, 0 inverse inventé.
-- J10 : après reconstruction complète des 4 index, 5 relations approuvées et
-  3 suggestions intactes, digest déterministe identique, 0 extrémité non
-  résolue.
-- J12 : scénario complet dans WebView2 151.0.4129.107.
+- X4 — J12 n'était pas prouvé intégralement.
+  Le défaut : l'artefact déclarait LUI-MÊME qu'aucune frappe Enter de confiance
+  n'avait été jouée. Une déclaration d'honnêteté n'est pas une preuve.
+  Corrigé : le scénario n'active plus rien. Il pose le focus, écrit un marqueur
+  sur la sortie de l'hôte, et attend une VRAIE frappe Windows envoyée par
+  scripts/j12-send-real-key.ps1 via WScript.Shell après AppActivate.
+  Trois instruments simultanés : isTrusted de l'activation; les compteurs
+  d'appels à HTMLElement.click et de dispatchEvent de type click, qui doivent
+  rester à ZÉRO sur toute la fenêtre; et le changement observable.
+  Si la frappe n'arrive pas, le scénario ÉCHOUE — jamais de repli sur un clic
+  synthétique. L'approbation d'une suggestion passe par le même chemin.
+  Aucune nouvelle dépendance : WScript.Shell fait partie de Windows.
+
+PREUVE X3 — lue dans le fichier SQLite après exécution:
+- user_version = 2
+- suggestion_key : index UNIQUE (sqlite_autoindex_relations_approved_2)
+- clé étrangère relations_approved.suggestion_key -> relation_suggestions
+- déclencheurs présents : approved_must_match_its_suggestion_on_insert,
+  approved_must_match_its_suggestion_on_update,
+  suggestion_cannot_drift_from_its_relation
+- lignes approuvées ne correspondant pas à leur suggestion : 0
+
+PREUVE X4 — TASK-0017-J12-webview2.json, WebView2 151.0.4129.107, binaire final:
+- Traversée : méthode WScript.Shell SendKeys après AppActivate; touche {ENTER};
+  focus sur BUTTON relation__link « →note-1.txt ◆ déterministe »;
+  keydownIsTrusted = true (Enter); activationIsTrusted = TRUE;
+  programmaticClickCalls = 0; programmaticClickDispatches = 0;
+  endpoint avant map-node-6 -> après map-node-9;
+  endpoint attendu LU SUR L'ENTRÉE ACTIVÉE = map-node-9, confirmé par l'index;
+  selectionFollowedTheRelation = true; changeCameFromTheKeystroke = true.
+- Approbation de S-005 : même méthode, activationIsTrusted = TRUE,
+  0 clic programmatique, sortantes 3 -> 4, provenance APPROVED, aucune règle,
+  enteredCountsOnlyAfterApproval = true.
+
+TROUVÉ ET PUBLIÉ — un cinquième défaut de protocole, dans MA PREUVE:
+- L'extrémité attendue était calculée depuis outgoing[0] DE L'INDEX, alors que
+  le panneau groupe par direction puis par type. La preuve a publié
+  selectionFollowedTheRelation=false POUR UN PRODUIT QUI AVAIT RAISON — un faux
+  négatif. Corrigé à la source : chaque entrée porte son extrémité en attributs
+  data-, la preuve la lit sur l'entrée activée, et l'index confirme que c'est
+  bien une relation. Test unitaire ajouté. Publié comme les quatre autres.
 
 VALIDATIONS:
-- Tests Rust : 75/75, dont exposed_commands_stay_within_the_slice et
-  no_exposed_command_can_open_a_folder_picker (gardes X2).
-- Tests TypeScript : 81/81, dont 22 nouveaux sur J6 à J9.
-- pnpm check (tsc --noEmit) : PASS. pnpm build : PASS.
-- Build Tauri release sans empaquetage : PASS, 1 min 21 s.
-- J12 dans le vrai WebView2 : PASS — docs/performance/runs/TASK-0017-J12-webview2.json
-- J11 isolation : PASS — docs/performance/runs/TASK-0017-J11-isolation.json
-  Rejeu de H1 à H7 de TASK-0016 avec les relations en place : verdicts
-  IDENTIQUES au relevé publié sur les 4 fixtures.
-- Aucune nouvelle dépendance : package.json, pnpm-lock.yaml et Cargo.toml
+- Tests Rust : 84/84 (75 -> 84, +9 pour X3), dont les deux tests-gardes X2.
+- Tests TypeScript : 82/82 (81 -> 82, +1 pour la correspondance des entrées).
+- pnpm check : PASS. pnpm build : PASS.
+- Build Tauri release sans empaquetage : PASS, 47,8 s.
+- J1 à J5 dans l'hôte : 5/5 rejets, rejeu stable, 12/12 nœuds conformes,
+  0 inverse inventé, 0 suggestion dans les établies.
+- J10 : après reconstruction des 4 index — 8 déterministes, 5 approuvées,
+  3 suggestions en attente, 0 correspondance rompue, 0 extrémité non résolue.
+- J11 : verdicts H1 à H7 identiques au relevé publié, 0 artefact FileTopo dans
+  la racine analysée.
+- J12 : COMPLET dans WebView2 sur le binaire final corrigé.
+- Aucune nouvelle dépendance : package.json, pnpm-lock.yaml, Cargo.toml
   inchangés.
 
-TROUVÉ ET PUBLIÉ:
-- Une LACUNE DU MODÈLE : le type d'une relation était vérifié non vide mais
-  jamais confronté aux deux types déclarés, ce que le gel exige. Corrigé
-  (relation_rejected_unknown_type), couvert par un test. Trouvée en supprimant
-  du code mort signalé par le compilateur.
-- QUATRE défauts de protocole, publiés AVEC ce qu'ils auraient produit :
-  panneau lu trop tôt (aurait publié les chiffres de la sélection précédente),
-  attente bornée en images et non en temps (une seconde ici, autre chose
-  ailleurs), atténuation lue sur le groupe et non sur le rectangle (aurait fait
-  croire à une absence d'atténuation), et DEUX INSTANCES de l'application en
-  parallèle sur le même magasin. Les artefacts contradictoires ont été
-  DÉTRUITS; la campagne publiée provient d'une EXÉCUTION UNIQUE sur le BINAIRE
-  FINAL, relancée après le dernier changement de code.
-
 IMPORTANT_FILES:
-- docs/tasks/TASK-0017-crosscutting-relations.md (gel en §4, résultat en §7)
-- src-tauri/src/map/relations.rs, src-tauri/src/map/relation_commands.rs
-- src-tauri/src/map/{mod,sandbox,commands}.rs, src-tauri/src/lib.rs
-- src/map/{relations.ts,RelationsPanel.tsx,relationScenario.ts,relations.test.tsx}
-- src/map/{MapApp.tsx,MapView.tsx,types.ts,map.css,mapView.test.tsx}
+- docs/reviews/ACTION-0027-independent-control.md
+- docs/tasks/TASK-0017-crosscutting-relations.md (§9 : X3 et X4)
+- src-tauri/src/map/relations.rs (schéma v2, déclencheurs, migration, tests)
+- src/map/relationScenario.ts, src/map/RelationsPanel.tsx
+- scripts/j12-send-real-key.ps1
 - docs/performance/runs/TASK-0017-{J12-webview2,J11-isolation}.json
 - docs/ai/{CURRENT_STATE,NEXT_ACTION,HANDOFF,VALIDATION,CHANGELOG_AI}.md
 
-GOUVERNANCE:
-- /debut-session RÉELLEMENT EXERCÉE avec succès dans Claude Code 2.1.252, dans
-  une NOUVELLE session ouverte après l'installation des skills : skill découvert
-  et résolu, protocole partagé .orchestrator/protocols/debut-session.md lu et
-  exécuté, Git vérifié AVANT toute lecture, lecture minimale respectée, aucun
-  travail interrompu. La réserve « non testé » du 2026-08-31 est LEVÉE pour
-  Claude Code. Elle RESTE ENTIÈRE pour Codex : aucun $debut-session n'a été
-  joué en session Codex.
-
 LIMITS_OR_BLOCKERS:
-- P-04 reste PARTIELLE : la RÉVOCATION d'une relation approuvée n'est pas
-  implémentée, alors que la parité §5.2 l'exige. Aucun critère gelé ne la
-  nomme, le GO ne la nomme pas. DÉCLARÉE MANQUANTE, reportée.
-- ek1 n'implémente PAS I-E. VolumeSerialNumber + FileId, déplacements et
-  renommages réels restent entiers.
-- Aucune heuristique réelle de suggestion. Les 8 suggestions sont écrites
-  d'avance dans la fiche.
-- Les relations ne sont ouvertes que pour la fixture gelée quasi-empty. Toute
-  autre est refusée EN TOUTES LETTRES (relations_out_of_scope_for_fixture) :
-  la règle homonymes est quadratique et produirait des centaines de milliers de
-  paires sur wide. Une borne MAX_DERIVED_RELATIONS = 5 000 refuse au lieu de
-  tronquer — garde AJOUTÉE, pas un critère gelé. C'est une portée, pas une
-  troncature.
-- AUCUNE mesure de performance n'a été prise, AUCUN seuil inventé. R8 reste
-  entière.
-- L'activation au clavier d'une entrée de panneau n'a PAS été jouée par une
-  frappe de confiance : un script ne peut pas en forger une. Ce qui est prouvé
-  est l'atteignabilité par le focus et l'activation par le comportement propre
-  du bouton, celui qu'Enter déclenche. L'artefact le dit explicitement. Les
-  flèches de la carte, elles, sont exercées pour de vrai.
+- X3 et X4 sont CORRIGÉES, PAS CLOSES. ACTION-0027 reste OPEN. Leur clôture
+  appartient au re-contrôle indépendant.
+- La révocation de P-04 n'a PAS été ajoutée, conformément au GO : elle était
+  hors du périmètre gelé. P-04 demeure PARTIELLE.
+- ek1 n'implémente toujours pas I-E.
+- Aucune mesure de performance, aucun seuil. R8 entière.
 - P-21 non satisfaite : français seulement, aucun audit WCAG complet, aucun
-  lecteur d'écran réel.
-- Douze exigences de parité restent entières, dont P-08, P-09, P-19, P-20.
-- B0 non corrigé, rien supprimé dans src-tauri/target/. Un avertissement de
-  compilation ANTÉRIEUR subsiste (unused import: self dans map/commands.rs) :
-  hors périmètre, non touché.
-- Aucune fusion, PR, release, étiquette, force push, réécriture d'historique.
+  lecteur d'écran réel. J12 prouve une VRAIE frappe clavier, ce qui n'est pas
+  un audit d'accessibilité.
+- J12 exige DEUX processus : l'application et scripts/j12-send-real-key.ps1.
+  Sans le second, J12 échoue — et c'est voulu.
+- B0 non corrigé, rien supprimé dans src-tauri/target. L'avertissement
+  unused import: self de map/commands.rs est ANTÉRIEUR et hors périmètre.
+- $debut-session en session Codex reste non testé.
 
 ACTIONS_DISTANTES:
-- Branche build/v0.2-a2-relations CRÉÉE et POUSSÉE sur origin, nommée par le GO.
-  Aucune autre écriture distante. Aucune opération destructive hors du bac à
-  sable applicatif .filetopo-sandbox/, que FileTopo a lui-même écrit.
+- Push sur build/v0.2-a2-relations, déjà publiée. Aucune fusion, PR, release,
+  étiquette, force push, réécriture d'historique. Aucune opération destructive
+  hors du bac à sable applicatif .filetopo-sandbox/, écrit par FileTopo.
 
-COMMIT: 0236a1c1759505f3985db1e7dd5c786350663d34 (cloture) / a98676e (code) / 51a8cac (gel)
-PUSHED: yes
+COMMIT: <renseigné au commit de clôture> (clôture) / 8a259e9 (corrections X3 et X4)
+PUSHED: <renseigné au push>
 
 NEXT_ORCHESTRATOR_DECISION:
-- CONTRÔLE INDÉPENDANT de TASK-0017, par une instance DISTINCTE de l'exécuteur,
-  SUR PREUVES. Points à ne pas manquer : que le gel précède le code
-  (51a8cac avant a98676e); que J1 et J2 soient STRUCTURELS et pas seulement
-  vérifiés en API; que l'ajustement approved_since_seed du contrôle J5 soit
-  LISTÉ et non silencieux; et les quatre défauts de protocole déclarés en §7.5.
-- Puis choisir la tranche suivante de l'étape A. Candidates restantes :
-  révocation + fin de P-04, recherche P-08 sur 100 000 nœuds, persistance P-19
-  (qui exige de résoudre M-1 d'abord, DEC-0016 D), cerveaux multiples P-20.
+- RE-CONTRÔLE INDÉPENDANT de TASK-0017, par une instance DISTINCTE de
+  l'exécuteur, SUR PREUVES. À trancher :
+  * X3 : la garantie est-elle STRUCTURELLE ? À lire dans le schéma — UNIQUE,
+    clé étrangère, trois déclencheurs — et non dans le Rust.
+  * X4 : activationIsTrusted et keydownIsTrusted à true, compteurs de clics
+    programmatiques à 0, et selectionFollowedTheRelation vrai CONTRE
+    l'extrémité lue sur l'entrée activée.
+  * Que rien de gelé n'a bougé : aucun critère J1-J12, aucune fixture, aucune
+    règle.
+- Puis, seulement ensuite, choisir la tranche suivante de l'étape A.
+  Candidates : révocation + fin de P-04, recherche P-08 sur 100 000 nœuds,
+  persistance P-19 (qui exige M-1 d'abord, DEC-0016 D), cerveaux multiples P-20.

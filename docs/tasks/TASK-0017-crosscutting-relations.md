@@ -5,8 +5,9 @@
   transversales explicites avec provenance**, entrantes et sortantes
   distinguées, panneau des relations, et la part « relations transversales » de
   l'accentuation de sélection
-- **Statut :** **`IMPLEMENTED`** le 2026-09-01 — résultat en §7. **Pas
-  `VERIFIED` :** l'exécuteur ne s'auto-vérifie pas
+- **Statut :** **`IMPLEMENTED`** le 2026-09-01 — résultat en §7, contrôle
+  indépendant et corrections `X3`/`X4` en §9. **Pas `VERIFIED` :** l'exécuteur
+  ne s'auto-vérifie pas, et le re-contrôle indépendant reste à faire
 - **Phase :** étape **A** de la feuille de route — parité fonctionnelle MVP,
   **deuxième** tranche
 - **Proposée le :** 2026-09-01
@@ -602,3 +603,142 @@ l'écran. **Ce n'est pas une troncature, c'est une portée.**
 | Date | État | Motif |
 |---|---|---|
 | 2026-09-01 | `IMPLEMENTED` | Douze critères tenus, preuves publiées, contrôle indépendant à faire |
+
+---
+
+## 9. Contrôle indépendant — réserves `X3` et `X4`, corrigées
+
+**Verdict du contrôle indépendant :** **`CHANGES_REQUIRED`**, deux réserves.
+Enregistré en
+[`ACTION-0027`](../reviews/ACTION-0027-independent-control.md).
+**`TASK-0017` reste `IMPLEMENTED`. `VERIFIED` n'est pas attribué.**
+
+Le contrôle a **accepté** que le gel `51a8cac` précède le code `a98676e`, et
+que `J1` à `J11` soient acceptables sous réserve de `X3`. Il a aussi confirmé
+que **la révocation de `P-04` reste hors périmètre** — §2.2 — et n'est donc
+**pas** une réserve.
+
+### 9.1 `X3` — la création d'une relation `APPROVED` n'était pas verrouillée
+
+**Le constat.** `insert_established()` acceptait `provenance=APPROVED` dès lors
+que la suggestion nommée était déjà `approved`, **sans vérifier que la source,
+la cible et le type correspondaient à cette suggestion**. Une suggestion déjà
+approuvée pouvait donc **justifier une relation qui n'était pas elle-même**.
+
+**Pourquoi c'était bloquant.** La garde contrôlait qu'une clé **existe**, pas
+ce qu'elle **désigne**. Cela contredisait §4.1 — une suggestion ne devient
+relation que par approbation explicite — et `J4` — **exactement une** relation
+`APPROVED` **correspondante**, **aucun passage silencieux**. **Le défaut était
+de la même famille que `X2` :** ce qui avait été jugé, c'est ce que le code
+*appelle*, pas ce que le stockage *permet*.
+
+**La correction, sur trois plans dont deux structurels.**
+
+| Plan | Ce qui a changé |
+|---|---|
+| API | `insert_established` refuse `APPROVED` **sans condition**. `approve()` est la **seule** voie applicative |
+| Schéma, **version 2** | `suggestion_key` **`UNIQUE`**, **clé étrangère** vers `relation_suggestions`, **trois déclencheurs** SQLite |
+| Transaction | `approve()` écrit un `INSERT` **simple** — `OR IGNORE` transformait un refus en non-événement silencieux |
+
+Les trois déclencheurs, lus dans le fichier après exécution :
+`approved_must_match_its_suggestion_on_insert`,
+`approved_must_match_its_suggestion_on_update`, et
+`suggestion_cannot_drift_from_its_relation`. **La correspondance n'est plus
+vérifiée en Rust : elle est portée par le stockage.** Une garantie qui ne tient
+que si l'appelant emploie la bonne fonction n'est pas une garantie.
+
+**La migration est explicite.** Un magasin de version 1 peut contenir la ligne
+que `X3` décrit. Elle **n'est pas reprise**, et **n'est pas supprimée en
+silence** : sa clé est écrite dans `relation_meta` sous
+`migration_v2_discarded`. Données **synthétiques** uniquement.
+
+**Neuf tests ajoutés**, dont **cinq écrivent directement en SQL** pour prouver
+les contraintes **au niveau du stockage**, et non au niveau de l'API qui refuse
+déjà.
+
+### 9.2 `X4` — `J12` n'était pas prouvé intégralement
+
+**Le constat.** Le gel exige « parcourir au clavier au moins une relation ».
+L'artefact précédent prouvait le focus, le bouton natif et une activation
+fonctionnelle — mais **déclarait lui-même qu'aucune frappe `Enter` de confiance
+n'avait été jouée**. **Une déclaration d'honnêteté n'est pas une preuve.**
+
+**La correction.** Le scénario **n'active plus rien lui-même**. Il pose le
+focus, écrit un marqueur sur la sortie de l'hôte, et attend une **frappe réelle
+Windows** envoyée par
+[`scripts/j12-send-real-key.ps1`](../../scripts/j12-send-real-key.ps1) via
+`WScript.Shell`, après `AppActivate`. **Aucune nouvelle dépendance :**
+`WScript.Shell` fait partie de Windows.
+
+**Trois instruments simultanés**, parce qu'aucun ne suffit seul : `isTrusted`
+de l'événement d'activation; les compteurs d'appels à
+`HTMLElement.prototype.click` et de `dispatchEvent` de type `click`, qui
+doivent rester à **zéro**; et le changement observable lui-même. **Si la frappe
+n'arrive pas, le scénario échoue.** Il ne se rabat **jamais** sur un clic
+synthétique. **L'approbation passe par le même chemin** : un clic envoyé par un
+script n'est pas quelqu'un qui approuve.
+
+**La preuve rejouée**, `TASK-0017-J12-webview2.json`, **WebView2
+`151.0.4129.107`**, sur le **binaire portant les deux corrections** :
+
+| Élément | Traversée | Approbation |
+|---|---|---|
+| Méthode d'entrée | `WScript.Shell SendKeys` après `AppActivate` | idem |
+| Touche | `{ENTER}` | `{ENTER}` |
+| Focus avant | `BUTTON` `relation__link`, « →note-1.txt ◆ déterministe » | `BUTTON` `suggestion__approve`, « Approuver S-005 » |
+| `keydown` de confiance | **`true`**, `Enter` | **`true`**, `Enter` |
+| Activation de confiance | **`true`** | **`true`** |
+| Appels `click()` programmatiques | **0** | **0** |
+| `dispatchEvent` de type `click` | **0** | **0** |
+| Endpoint avant → après | `map-node-6` → **`map-node-9`** | — |
+| Endpoint attendu, lu **sur l'entrée activée** | `map-node-9` | — |
+| L'index confirme la relation | **`true`** | — |
+| Changement dû à la frappe | **`true`** | **`true`** |
+
+### 9.3 Un cinquième défaut de protocole, trouvé en rejouant
+
+**Ma preuve était fausse, pas le produit.** Le premier rejeu avec frappe réelle
+a publié `selectionFollowedTheRelation: false` : l'extrémité attendue était
+calculée depuis `outgoing[0]` **de l'index**, alors que le panneau **groupe par
+direction puis par type**. La sélection était allée **exactement** où l'entrée
+activée menait.
+
+**Corrigé à la source :** chaque entrée porte son extrémité en attributs
+`data-`; la preuve la lit **sur l'entrée activée**, puis demande à l'index si
+c'est bien une relation de ce nœud — ni hypothèse d'ordre, ni tautologie. Un
+test unitaire verrouille la correspondance.
+
+**Ce défaut allait dans le bon sens** — un faux négatif — mais il est publié
+comme les quatre autres.
+
+### 9.4 Revalidation complète
+
+| Contrôle | Résultat |
+|---|---|
+| Tests Rust | **84 / 84** (75 avant, **+9** pour `X3`) |
+| Tests-gardes `X2` | **PASS** |
+| Tests TypeScript | **82 / 82** (81 avant, **+1**) |
+| `pnpm check`, `pnpm build` | **PASS** |
+| Build Tauri release, sans empaquetage | **PASS**, `47,8 s` |
+| `J1` à `J5` dans l'hôte | 5/5 rejets, rejeu stable, **12/12 nœuds**, 0 inverse |
+| `J10` | **PASS** — après reconstruction des 4 index : 8 déterministes, **5 approuvées**, 3 en attente, **0 correspondance rompue** |
+| `J11` | **PASS** — `H1` à `H7` identiques, **0 artefact** dans la racine analysée |
+| `J12` | **PASS**, complet, sur le binaire final |
+
+Schéma lu dans le fichier : `user_version = 2`, `suggestion_key` en index
+**unique**, clé étrangère présente, **trois déclencheurs**, et **0** ligne
+approuvée ne correspondant pas à sa suggestion.
+
+### 9.5 Ce qui n'a pas changé
+
+**Aucun critère `J1` à `J12`, aucune fixture gelée, aucune règle gelée** n'a
+été modifié. **Aucune mesure de performance, aucun seuil, aucune nouvelle
+dépendance, aucune donnée réelle, aucun sélecteur de dossier.** `R8` entière,
+`B0` non corrigé, rien supprimé dans `src-tauri/target/`. **La révocation de
+`P-04` n'est toujours pas implémentée** : `P-04` demeure **PARTIELLE**.
+
+## 10. Historique de l'état, suite
+
+| Date | État | Motif |
+|---|---|---|
+| 2026-09-01 | `IMPLEMENTED` | Contrôle indépendant `ACTION-0027` : `X3` et `X4` **corrigées**, **non closes**. **`VERIFIED` non attribué.** Re-contrôle indépendant attendu |
