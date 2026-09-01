@@ -20,6 +20,7 @@ import {
   recallBrainSession,
   rememberBrainSession,
   sameBrainSession,
+  shouldFitOnOpen,
 } from "./brainSession";
 import type { BrainRecord } from "./types";
 import type { View } from "./viewState";
@@ -182,6 +183,38 @@ describe("sélecteur de cerveau — K7 et K10", () => {
     expect(document.activeElement).toBe(trigger);
   });
 
+  it("reste ouvert quand le focus quitte la fenêtre, pas la page — K10", () => {
+    // A window deactivation raises `blur` with a null `relatedTarget`, exactly
+    // like focus going nowhere. Closing on both is what made the real
+    // keystroke of `K10` land on a button that had just been unmounted: the
+    // host brings the window forward, the menu vanishes, the key hits nothing.
+    const onSelect = vi.fn();
+    renderSelector("brain-alpha", onSelect);
+    fireEvent.keyDown(screen.getByTestId("brain-trigger"), { key: "ArrowDown" });
+    const item = screen.getByTestId("brain-item-brain-alpha");
+    expect(document.activeElement).toBe(item);
+
+    fireEvent.blur(item, { relatedTarget: null });
+
+    expect(screen.queryByRole("menu")).toBeTruthy();
+    expect(screen.getByTestId("brain-item-brain-alpha")).toBeTruthy();
+  });
+
+  it("se referme quand le focus part vers un autre élément de la page", () => {
+    const onSelect = vi.fn();
+    const { container } = renderSelector("brain-alpha", onSelect);
+    const outside = document.createElement("button");
+    container.appendChild(outside);
+    fireEvent.keyDown(screen.getByTestId("brain-trigger"), { key: "ArrowDown" });
+
+    fireEvent.blur(screen.getByTestId("brain-item-brain-alpha"), {
+      relatedTarget: outside,
+    });
+
+    expect(screen.queryByRole("menu")).toBeNull();
+    expect(onSelect).not.toHaveBeenCalled();
+  });
+
   it("montre la source synthétique en diagnostic, jamais comme identité", () => {
     renderSelector("brain-alpha", () => {}, true);
     fireEvent.click(screen.getByTestId("brain-trigger"));
@@ -292,6 +325,22 @@ describe("mémoire de session par cerveau — K8", () => {
     expect(sameBrainSession(alpha, gamma)).toBe(false);
     expect(alpha.view).toEqual(alphaView);
     expect(gamma.view).toEqual(betaView);
+  });
+
+  it("n'ajuste la vue qu'une fois par cerveau — la régression que K12 a trouvée", () => {
+    // The viewport is measured after the first render, so the placeholder 1×1
+    // fit has to be redone. Redoing it a second time is what erased a restored
+    // view in the real host, with `K12` publishing `alphaRestored=false`.
+    const measured = { brainId: "brain-alpha", width: 1200, height: 800 };
+    const placeholder = { brainId: "brain-alpha", width: 1, height: 1 };
+
+    // Never positioned, or positioned for another brain: fit.
+    expect(shouldFitOnOpen(null, "brain-alpha")).toBe(true);
+    expect(shouldFitOnOpen(measured, "brain-gamma")).toBe(true);
+    // Fitted against the placeholder viewport: that fit meant nothing, redo it.
+    expect(shouldFitOnOpen(placeholder, "brain-alpha")).toBe(true);
+    // Already positioned against a real viewport: leave it alone.
+    expect(shouldFitOnOpen(measured, "brain-alpha")).toBe(false);
   });
 
   it("compare deux états de session sur leurs valeurs, pas sur leur identité", () => {

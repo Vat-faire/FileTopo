@@ -8,7 +8,9 @@ import {
   emptySessionMemory,
   recallBrainSession,
   rememberBrainSession,
+  shouldFitOnOpen,
   type BrainSessionMemory,
+  type ViewPositioning,
 } from "./brainSession";
 import { buildHierarchy } from "./hierarchy";
 import { establishedNeighbours, relationSegments } from "./relations";
@@ -185,6 +187,8 @@ export default function MapApp() {
   activeBrainRef.current = activeBrain;
   /** A view to restore once the next snapshot has landed — `K8`. */
   const restoreViewRef = useRef<View | null>(null);
+  /** Which brain the current view was positioned for, and at which size. */
+  const positionedRef = useRef<ViewPositioning | null>(null);
   // Declared before `runMeasurement` exists so the auto-start effect above can
   // reach it without depending on declaration order.
   const runMeasurementRef = useRef<(() => Promise<void>) | null>(null);
@@ -372,14 +376,31 @@ export default function MapApp() {
   // A fresh map opens fitted, and that view is the one `reset` reproduces —
   // unless this brain was already visited in this session, in which case `K8`
   // asks for the view it was left at.
+  //
+  // The guard is not decoration. Without it the fit runs again when the
+  // viewport settles a frame later, and that second fit erased the view a
+  // brain had just been given back: `K12` published `alphaRestored=false` on
+  // a product whose selection had restored perfectly.
   useEffect(() => {
     if (!snapshot) return;
     const restored = restoreViewRef.current;
-    restoreViewRef.current = null;
-    setView(
-      restored ??
-        fitView({ x: 0, y: 0, w: snapshot.layoutWidth, h: snapshot.layoutHeight }, viewport),
-    );
+    if (restored) {
+      restoreViewRef.current = null;
+      positionedRef.current = {
+        brainId: snapshot.brainId,
+        width: viewport.width,
+        height: viewport.height,
+      };
+      setView(restored);
+      return;
+    }
+    if (!shouldFitOnOpen(positionedRef.current, snapshot.brainId)) return;
+    positionedRef.current = {
+      brainId: snapshot.brainId,
+      width: viewport.width,
+      height: viewport.height,
+    };
+    setView(fitView({ x: 0, y: 0, w: snapshot.layoutWidth, h: snapshot.layoutHeight }, viewport));
   }, [snapshot, viewport.width, viewport.height]);
 
   useEffect(() => {
@@ -565,12 +586,22 @@ export default function MapApp() {
         );
       }
 
+      // Written under `TASK-0018`, because that is what it now is: the loop
+      // walks brains, so it covers `quasi-empty` twice and `deep`, and not
+      // `wide` or `mixed`. The published `TASK-0016-H1-H7-verification.json`
+      // is **not** overwritten — it remains the record of a verified task, and
+      // a per-brain rerun has no business replacing it.
       const written = await invoke<string>("map_write_run_artifact", {
-        name: "TASK-0016-H1-H7-verification.json",
+        name: "TASK-0018-K11-readonly-and-isolation.json",
         contents: JSON.stringify(
           {
-            task: "TASK-0016",
-            criteria: ["H1", "H2", "H3", "H5", "H6", "H7", "H8", "H10", "H11"],
+            task: "TASK-0018",
+            criteria: ["K11", "K3", "H1", "H2", "H3", "H5", "H6", "H7", "H8", "H10", "H11"],
+            note:
+              "Driven by brain since TASK-0018: the runtime exposes no " +
+              "fixture-keyed command. Covers the sources the three frozen " +
+              "brains read. TASK-0016's own campaign is unchanged and stays " +
+              "the record for `wide` and `mixed`.",
             capturedAtIso: new Date().toISOString(),
             host,
             findings,

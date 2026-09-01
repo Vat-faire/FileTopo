@@ -1,0 +1,56 @@
+{
+  "task": "TASK-0018",
+  "criterion": "K12",
+  "pass": 2,
+  "capturedAtIso": "2026-09-01T21:35:34.332Z",
+  "host": {
+    "sandboxRoot": "<dépôt>/.filetopo-sandbox",
+    "appVersion": "0.1.0-alpha.1",
+    "sqliteVersion": "3.53.2",
+    "webviewVersion": "151.0.4129.107",
+    "tauriVersion": "2.11.5",
+    "platform": "windows",
+    "nodeCeiling": 5000,
+    "depthCeiling": 40,
+    "minLeafArea": 2400,
+    "autoVerify": false,
+    "autoMeasure": false,
+    "autoRelations": false,
+    "autoBrainsPass": 2
+  },
+  "evidence": {
+    "pass": 2,
+    "steps": "K12.10 a K12.12 — apres une fermeture et un redemarrage reels",
+    "selectorReady": true,
+    "activeBrainId": "brain-gamma",
+    "gammaStillActive": true,
+    "triggerShows": "◆Cerveau Gamma▾",
+    "interfaceShowsTheActiveBrain": true,
+    "seededOnThisStart": 0,
+    "seedCreatedNothing": true,
+    "renamedBrain": {
+      "brainId": "brain-beta",
+      "displayName": "Cerveau Bêta renommé K7",
+      "color": "#2E5FA3",
+      "icon": "◧",
+      "sourceKind": "SYNTHETIC_FIXTURE",
+      "sourceRef": "deep",
+      "position": 2
+    },
+    "metadataSurvived": true,
+    "otherBrains": [
+      {
+        "brainId": "brain-alpha",
+        "displayName": "Cerveau Alpha",
+        "icon": "▲",
+        "color": "#1F6F5C"
+      },
+      {
+        "brainId": "brain-gamma",
+        "displayName": "Cerveau Gamma",
+        "icon": "◆",
+        "color": "#9A5A18"
+      }
+    ]
+  }
+}

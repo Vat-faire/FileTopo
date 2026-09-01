@@ -25,7 +25,17 @@
     process it stops is the one it started.
 
 .PARAMETER Executable
-    The FileTopo binary to run. Defaults to the release build in the checkout.
+    The FileTopo binary to run. Defaults to the DEBUG build in the checkout.
+
+    Debug, deliberately. `map_write_run_artifact` exists only in a debug build
+    — a release build answers `run_artifacts_unavailable_in_release` — so a
+    release binary cannot write the evidence K12 is for. The first attempt at
+    this run used one and published nothing at all. Build it with:
+
+        pnpm tauri build --debug --no-bundle
+
+    which produces the same bundled front end as a release build, running on a
+    binary that can still write its own evidence.
 
 .PARAMETER LogDirectory
     Where the two run logs go. Defaults to the system temporary directory, so
@@ -45,20 +55,24 @@ $ErrorActionPreference = 'Stop'
 
 $repository = Split-Path -Parent $PSScriptRoot
 if (-not $Executable) {
-    $Executable = Join-Path $repository 'src-tauri/target/release/filetopo.exe'
+    $Executable = Join-Path $repository 'src-tauri/target/debug/filetopo.exe'
 }
 if (-not (Test-Path -LiteralPath $Executable)) {
-    throw "binaire introuvable: $Executable — construire d'abord la version release"
+    throw "binaire introuvable: $Executable — construire d'abord: pnpm tauri build --debug --no-bundle"
 }
 
 $runs = Join-Path $repository 'docs/performance/runs'
 $watcher = Join-Path $PSScriptRoot 'j12-send-real-key.ps1'
 
+# Waits for the pass to finish, either way. A pass that abandons writes its own
+# artefact and says why; waiting the full timeout for a file that will never
+# appear would turn a clear failure into a silent one.
 function Wait-ForArtifact {
-    param([string]$Path, [int]$Seconds)
+    param([string]$Path, [string]$AbandonPath, [int]$Seconds)
     $deadline = (Get-Date).AddSeconds($Seconds)
     while ((Get-Date) -lt $deadline) {
         if (Test-Path -LiteralPath $Path) { return $true }
+        if (Test-Path -LiteralPath $AbandonPath) { return $false }
         Start-Sleep -Milliseconds 500
     }
     return $false
@@ -78,7 +92,7 @@ function Invoke-Pass {
         if (Test-Path -LiteralPath $stale) { Remove-Item -LiteralPath $stale -Force }
     }
 
-    Write-Output "K12: passe $Pass — demarrage, journal $log"
+    Write-Host "K12: passe $Pass — demarrage, journal $log"
     $env:FILETOPO_AUTO_BRAINS = "$Pass"
     $application = Start-Process -FilePath $Executable -PassThru `
         -RedirectStandardOutput $log -RedirectStandardError "$log.err"
@@ -94,9 +108,9 @@ function Invoke-Pass {
                             '-TimeoutSeconds', "$TimeoutSeconds")
     }
 
-    $produced = Wait-ForArtifact -Path $artifact -Seconds $TimeoutSeconds
+    $produced = Wait-ForArtifact -Path $artifact -AbandonPath $abandoned -Seconds $TimeoutSeconds
     if (-not $produced -and (Test-Path -LiteralPath $abandoned)) {
-        Write-Output "K12: passe $Pass ABANDONNEE — voir $abandoned"
+        Write-Host "K12: passe $Pass ABANDONNEE — voir $abandoned"
     }
 
     # Step 10 asks for the application to be really closed. The window is asked
@@ -105,7 +119,7 @@ function Invoke-Pass {
     if (-not $application.HasExited) {
         $null = $application.CloseMainWindow()
         if (-not $application.WaitForExit(15000)) {
-            Write-Output "K12: la fenetre n'a pas repondu, arret du processus demarre ici"
+            Write-Host "K12: la fenetre n'a pas repondu, arret du processus demarre ici"
             Stop-Process -Id $application.Id -ErrorAction SilentlyContinue
         }
     }
@@ -115,7 +129,11 @@ function Invoke-Pass {
     }
     Remove-Item Env:\FILETOPO_AUTO_BRAINS -ErrorAction SilentlyContinue
 
-    Write-Output "K12: passe $Pass terminee, sortie $($application.ExitCode), artefact=$produced"
+    # Write-Host, not Write-Output: anything written to the output stream inside
+    # a PowerShell function becomes part of its return value, and the first
+    # version of this script reported success because the progress lines made
+    # the returned $false look like a non-empty array.
+    Write-Host "K12: passe $Pass terminee, sortie $($application.ExitCode), artefact=$produced"
     return $produced
 }
 

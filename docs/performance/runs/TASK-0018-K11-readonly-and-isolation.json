@@ -1,0 +1,194 @@
+{
+  "task": "TASK-0018",
+  "criteria": [
+    "K11",
+    "K3",
+    "H1",
+    "H2",
+    "H3",
+    "H5",
+    "H6",
+    "H7",
+    "H8",
+    "H10",
+    "H11"
+  ],
+  "note": "Driven by brain since TASK-0018: the runtime exposes no fixture-keyed command. Covers the sources the three frozen brains read. TASK-0016's own campaign is unchanged and stays the record for `wide` and `mixed`.",
+  "capturedAtIso": "2026-09-01T21:36:36.765Z",
+  "host": {
+    "sandboxRoot": "<dépôt>/.filetopo-sandbox",
+    "appVersion": "0.1.0-alpha.1",
+    "sqliteVersion": "3.53.2",
+    "webviewVersion": "151.0.4129.107",
+    "tauriVersion": "2.11.5",
+    "platform": "windows",
+    "nodeCeiling": 5000,
+    "depthCeiling": 40,
+    "minLeafArea": 2400,
+    "autoVerify": true,
+    "autoMeasure": false,
+    "autoRelations": false,
+    "autoBrainsPass": 0
+  },
+  "findings": [
+    {
+      "brainId": "brain-alpha",
+      "indexPath": "brains/brain-alpha/map/index.sqlite",
+      "fixtureId": "quasi-empty",
+      "declaredCeiling": 25,
+      "nodeCount": 12,
+      "plannedNodes": 12,
+      "maxDepth": 3,
+      "depthCeiling": 40,
+      "nodeCeiling": 5000,
+      "schemaVersion": 2,
+      "layoutInvocations": 1,
+      "timingsMs": {
+        "scan": 0.6801,
+        "layout": 0.0322,
+        "index": 5.5939
+      },
+      "rebuiltTimingsMs": {
+        "scan": 0.5834,
+        "layout": 0.0157,
+        "index": 11.12
+      },
+      "h1_pathsAgree": true,
+      "h1_counts": {
+        "planned": 11,
+        "onDisk": 11,
+        "indexed": 11
+      },
+      "h1_missingFromIndex": [],
+      "h1_unexpectedInIndex": [],
+      "h2_layoutViolations": [],
+      "h3_hierarchyMismatches": [],
+      "h5_detailMismatches": [],
+      "h6_readOnlyConfirmed": true,
+      "h6_fingerprintBefore": "fnv1a64:bddfe1a16cac350f",
+      "h6_fingerprintAfterRebuild": "fnv1a64:bddfe1a16cac350f",
+      "h6_fingerprintUnchanged": true,
+      "h6_filetopoArtifactsInRoot": [],
+      "h7_digestBefore": "fnv1a64:09eda272ceec9b16",
+      "h7_digestAfterRebuild": "fnv1a64:09eda272ceec9b16",
+      "h7_equivalent": true,
+      "h7_nonReconstructible": [
+        "built_unix_ms"
+      ],
+      "h11_withinCeilings": true,
+      "integrityBefore": {
+        "brainId": "brain-alpha",
+        "fixtureId": "quasi-empty",
+        "fingerprint": "fnv1a64:bddfe1a16cac350f",
+        "filetopoArtifacts": [],
+        "observedEntries": 11
+      }
+    },
+    {
+      "brainId": "brain-beta",
+      "indexPath": "brains/brain-beta/map/index.sqlite",
+      "fixtureId": "deep",
+      "declaredCeiling": 500,
+      "nodeCount": 157,
+      "plannedNodes": 157,
+      "maxDepth": 40,
+      "depthCeiling": 40,
+      "nodeCeiling": 5000,
+      "schemaVersion": 2,
+      "layoutInvocations": 1,
+      "timingsMs": {
+        "scan": 13.1395,
+        "layout": 0.0916,
+        "index": 6.7729
+      },
+      "rebuiltTimingsMs": {
+        "scan": 10.3903,
+        "layout": 0.0885,
+        "index": 11.4588
+      },
+      "h1_pathsAgree": true,
+      "h1_counts": {
+        "planned": 156,
+        "onDisk": 156,
+        "indexed": 156
+      },
+      "h1_missingFromIndex": [],
+      "h1_unexpectedInIndex": [],
+      "h2_layoutViolations": [],
+      "h3_hierarchyMismatches": [],
+      "h5_detailMismatches": [],
+      "h6_readOnlyConfirmed": true,
+      "h6_fingerprintBefore": "fnv1a64:075a9c069126e8f1",
+      "h6_fingerprintAfterRebuild": "fnv1a64:075a9c069126e8f1",
+      "h6_fingerprintUnchanged": true,
+      "h6_filetopoArtifactsInRoot": [],
+      "h7_digestBefore": "fnv1a64:7effa27d086bf493",
+      "h7_digestAfterRebuild": "fnv1a64:7effa27d086bf493",
+      "h7_equivalent": true,
+      "h7_nonReconstructible": [
+        "built_unix_ms"
+      ],
+      "h11_withinCeilings": true,
+      "integrityBefore": {
+        "brainId": "brain-beta",
+        "fixtureId": "deep",
+        "fingerprint": "fnv1a64:075a9c069126e8f1",
+        "filetopoArtifacts": [],
+        "observedEntries": 156
+      }
+    },
+    {
+      "brainId": "brain-gamma",
+      "indexPath": "brains/brain-gamma/map/index.sqlite",
+      "fixtureId": "quasi-empty",
+      "declaredCeiling": 25,
+      "nodeCount": 12,
+      "plannedNodes": 12,
+      "maxDepth": 3,
+      "depthCeiling": 40,
+      "nodeCeiling": 5000,
+      "schemaVersion": 2,
+      "layoutInvocations": 1,
+      "timingsMs": {
+        "scan": 0.7229,
+        "layout": 0.0177,
+        "index": 3.9252999999999996
+      },
+      "rebuiltTimingsMs": {
+        "scan": 0.6145,
+        "layout": 0.0166,
+        "index": 10.696900000000001
+      },
+      "h1_pathsAgree": true,
+      "h1_counts": {
+        "planned": 11,
+        "onDisk": 11,
+        "indexed": 11
+      },
+      "h1_missingFromIndex": [],
+      "h1_unexpectedInIndex": [],
+      "h2_layoutViolations": [],
+      "h3_hierarchyMismatches": [],
+      "h5_detailMismatches": [],
+      "h6_readOnlyConfirmed": true,
+      "h6_fingerprintBefore": "fnv1a64:bddfe1a16cac350f",
+      "h6_fingerprintAfterRebuild": "fnv1a64:bddfe1a16cac350f",
+      "h6_fingerprintUnchanged": true,
+      "h6_filetopoArtifactsInRoot": [],
+      "h7_digestBefore": "fnv1a64:09eda272ceec9b16",
+      "h7_digestAfterRebuild": "fnv1a64:09eda272ceec9b16",
+      "h7_equivalent": true,
+      "h7_nonReconstructible": [
+        "built_unix_ms"
+      ],
+      "h11_withinCeilings": true,
+      "integrityBefore": {
+        "brainId": "brain-gamma",
+        "fixtureId": "quasi-empty",
+        "fingerprint": "fnv1a64:bddfe1a16cac350f",
+        "filetopoArtifacts": [],
+        "observedEntries": 11
+      }
+    }
+  ]
+}

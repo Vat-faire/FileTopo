@@ -1,0 +1,199 @@
+{
+  "task": "TASK-0018",
+  "criterion": "K12",
+  "pass": 1,
+  "capturedAtIso": "2026-09-01T21:35:31.120Z",
+  "host": {
+    "sandboxRoot": "<dépôt>/.filetopo-sandbox",
+    "appVersion": "0.1.0-alpha.1",
+    "sqliteVersion": "3.53.2",
+    "webviewVersion": "151.0.4129.107",
+    "tauriVersion": "2.11.5",
+    "platform": "windows",
+    "nodeCeiling": 5000,
+    "depthCeiling": 40,
+    "minLeafArea": 2400,
+    "autoVerify": false,
+    "autoMeasure": false,
+    "autoRelations": false,
+    "autoBrainsPass": 1
+  },
+  "evidence": {
+    "pass": 1,
+    "steps": "K12.1 a K12.9",
+    "step1_selectorReady": true,
+    "step1_start": {
+      "activeBrainId": "brain-alpha",
+      "catalogPath": "brains/catalog.sqlite",
+      "brainsInCatalogue": 3,
+      "schemaVersion": 1,
+      "triggerShows": "▲Cerveau Alpha▾",
+      "startedOnTheActiveBrain": true
+    },
+    "step2to4_keyFailures": [],
+    "step2to4_switches": [
+      {
+        "brainId": "brain-alpha",
+        "expectedNodes": 12,
+        "snapshotNodes": 12,
+        "reportNodes": 12,
+        "countMatchesFrozenExpectation": true,
+        "snapshotBelongsToThisBrain": true,
+        "indexPath": "brains/brain-alpha/map/index.sqlite",
+        "sourceRef": "quasi-empty",
+        "nameOnScreen": true,
+        "iconOnScreen": true,
+        "activationIsTrusted": true,
+        "keydownIsTrusted": true,
+        "programmaticClickCalls": 0,
+        "programmaticClickDispatches": 0
+      },
+      {
+        "brainId": "brain-beta",
+        "expectedNodes": 157,
+        "snapshotNodes": 157,
+        "reportNodes": 157,
+        "countMatchesFrozenExpectation": true,
+        "snapshotBelongsToThisBrain": true,
+        "indexPath": "brains/brain-beta/map/index.sqlite",
+        "sourceRef": "deep",
+        "nameOnScreen": true,
+        "iconOnScreen": true,
+        "activationIsTrusted": true,
+        "keydownIsTrusted": true,
+        "programmaticClickCalls": 0,
+        "programmaticClickDispatches": 0
+      },
+      {
+        "brainId": "brain-gamma",
+        "expectedNodes": 12,
+        "snapshotNodes": 12,
+        "reportNodes": 12,
+        "countMatchesFrozenExpectation": true,
+        "snapshotBelongsToThisBrain": true,
+        "indexPath": "brains/brain-gamma/map/index.sqlite",
+        "sourceRef": "quasi-empty",
+        "nameOnScreen": true,
+        "iconOnScreen": true,
+        "activationIsTrusted": true,
+        "keydownIsTrusted": true,
+        "programmaticClickCalls": 0,
+        "programmaticClickDispatches": 0
+      },
+      {
+        "brainId": "brain-alpha",
+        "expectedNodes": 12,
+        "snapshotNodes": 12,
+        "reportNodes": 12,
+        "countMatchesFrozenExpectation": true,
+        "snapshotBelongsToThisBrain": true,
+        "indexPath": "brains/brain-alpha/map/index.sqlite",
+        "sourceRef": "quasi-empty",
+        "nameOnScreen": true,
+        "iconOnScreen": true,
+        "activationIsTrusted": true,
+        "keydownIsTrusted": true,
+        "programmaticClickCalls": 0,
+        "programmaticClickDispatches": 0
+      }
+    ],
+    "step3_k3_indexPathsDistinct": true,
+    "step5to6_sessionState": {
+      "alphaLeft": {
+        "selectedId": 6,
+        "view": {
+          "scale": 2.25,
+          "tx": -140,
+          "ty": 60
+        }
+      },
+      "alphaBack": {
+        "selectedId": 6,
+        "view": {
+          "scale": 2.25,
+          "tx": -140,
+          "ty": 60
+        }
+      },
+      "alphaRestored": true,
+      "betaLeft": {
+        "selectedId": 41,
+        "view": {
+          "scale": 0.6,
+          "tx": 25,
+          "ty": -15
+        }
+      },
+      "betaBack": {
+        "selectedId": 41,
+        "view": {
+          "scale": 0.6,
+          "tx": 25,
+          "ty": -15
+        }
+      },
+      "betaRestored": true,
+      "theTwoAreDifferent": true
+    },
+    "step7_approvalInAlpha": {
+      "beforeApproved": 4,
+      "beforePending": 4,
+      "afterApproved": 5,
+      "afterPending": 3,
+      "relationsPath": "brains/brain-alpha/relations/relations.sqlite",
+      "movedByExactlyOne": true
+    },
+    "step8_gammaUntouched": {
+      "approved": 4,
+      "pending": 4,
+      "pendingKeys": [
+        "S-005",
+        "S-006",
+        "S-007",
+        "S-008"
+      ],
+      "relationsPath": "brains/brain-gamma/relations/relations.sqlite",
+      "sameSourceAsAlpha": true,
+      "ownStore": true,
+      "s005StillPending": true
+    },
+    "step8_k5_sharedNodeId": {
+      "nodeId": 4,
+      "gammaEndpointKey": "ek1|brain-gamma|racine-1.txt",
+      "alphaEndpointKey": "ek1|brain-alpha|racine-1.txt",
+      "keysDiffer": true,
+      "gammaReferenceBrain": "brain-gamma",
+      "alphaReferenceBrain": "brain-alpha"
+    },
+    "step9_metadata": {
+      "renamedBrain": {
+        "brainId": "brain-beta",
+        "displayName": "Cerveau Bêta renommé K7",
+        "color": "#2E5FA3",
+        "icon": "◧",
+        "sourceKind": "SYNTHETIC_FIXTURE",
+        "sourceRef": "deep",
+        "position": 2
+      },
+      "othersUnchanged": [
+        {
+          "brainId": "brain-alpha",
+          "displayName": "Cerveau Alpha",
+          "color": "#1F6F5C",
+          "icon": "▲"
+        },
+        {
+          "brainId": "brain-gamma",
+          "displayName": "Cerveau Gamma",
+          "color": "#9A5A18",
+          "icon": "◆"
+        }
+      ]
+    },
+    "step9_activeBrain": {
+      "activeBrainId": "brain-gamma",
+      "gammaIsActive": true,
+      "triggerShows": "◆Cerveau Gamma▾"
+    }
+  }
+}

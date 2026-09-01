@@ -63,6 +63,37 @@ export function recallBrainSession(
   return { selectedId: stored.selectedId, view: { ...stored.view } };
 }
 
+/** Where the view was last positioned, and with which viewport. */
+export interface ViewPositioning {
+  brainId: string;
+  width: number;
+  height: number;
+}
+
+/**
+ * Whether a freshly loaded map should be fitted, or left where it was put.
+ *
+ * A map opens fitted — `TASK-0016` — and the viewport is measured *after* the
+ * first render, so the fit has to be redone once the real size arrives. That
+ * second fit is what broke `K8` in the real host: coming back to a brain
+ * restored its view, the viewport then settled a frame later, and the restored
+ * view was refitted away. The selection came back and the pan and zoom did
+ * not, which is exactly half of what the criterion asks for.
+ *
+ * So the rule is stated once, here, and tested: fit a brain's map **once**,
+ * and again only if that first fit was computed before the viewport had been
+ * measured at all.
+ */
+export function shouldFitOnOpen(
+  positioned: ViewPositioning | null,
+  brainId: string,
+): boolean {
+  if (!positioned || positioned.brainId !== brainId) return true;
+  // The placeholder viewport is 1×1: a fit computed against it means nothing,
+  // and has to be redone.
+  return positioned.width <= 1 || positioned.height <= 1;
+}
+
 /**
  * Whether two session states describe the same place.
  *

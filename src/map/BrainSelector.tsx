@@ -49,6 +49,7 @@ export default function BrainSelector({
 }: BrainSelectorProps) {
   const [open, setOpen] = useState(false);
   const [focusIndex, setFocusIndex] = useState(0);
+  const containerRef = useRef<HTMLDivElement | null>(null);
   const triggerRef = useRef<HTMLButtonElement | null>(null);
   const itemRefs = useRef<(HTMLButtonElement | null)[]>([]);
   const menuId = useId();
@@ -65,6 +66,19 @@ export default function BrainSelector({
     if (!open) return;
     itemRefs.current[focusIndex]?.focus();
   }, [open, focusIndex]);
+
+  // A pointer press outside the control closes the menu. This is what the
+  // blur handler no longer does, and it is the honest way round: a click
+  // elsewhere is a person dismissing the menu, a window deactivation is not.
+  useEffect(() => {
+    if (!open) return;
+    const onPointerDown = (event: MouseEvent) => {
+      const target = event.target as Node | null;
+      if (target && !containerRef.current?.contains(target)) setOpen(false);
+    };
+    document.addEventListener("mousedown", onPointerDown, true);
+    return () => document.removeEventListener("mousedown", onPointerDown, true);
+  }, [open]);
 
   const openMenu = useCallback(
     (index: number) => {
@@ -129,7 +143,7 @@ export default function BrainSelector({
   };
 
   return (
-    <div className="brains" data-testid="brain-selector">
+    <div className="brains" data-testid="brain-selector" ref={containerRef}>
       <span className="brains__label" id={`${menuId}-label`}>
         {strings.label}
       </span>
@@ -182,10 +196,18 @@ export default function BrainSelector({
                   onKeyDown={(event) => onItemKeyDown(event, index)}
                   onClick={() => choose(brain.brainId)}
                   onBlur={(event) => {
-                    // Focus leaving the menu entirely closes it; focus moving
-                    // between its own items does not.
+                    // Closed when the focus moves to something else on the
+                    // page — never when it merely leaves the window.
+                    //
+                    // `relatedTarget` is `null` both when focus goes nowhere
+                    // and when the whole window is deactivated. Treating the
+                    // two alike closed the menu the instant the host brought
+                    // the window forward to deliver a real keystroke, so the
+                    // key arrived at a button that no longer existed. `K10`
+                    // caught it; the criterion was right and the control was
+                    // wrong.
                     const next = event.relatedTarget as Node | null;
-                    if (!next || !event.currentTarget.closest("ul")?.contains(next)) {
+                    if (next && !event.currentTarget.closest("ul")?.contains(next)) {
                       setOpen(false);
                     }
                   }}
