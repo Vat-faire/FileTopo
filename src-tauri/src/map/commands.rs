@@ -507,7 +507,15 @@ pub fn self_check(paths: &SandboxPaths, brain: &BrainRecord) -> Result<MapSelfCh
 /// `IMPLEMENTED` when this gate was written and `VERIFIED` by `ACTION-0029`,
 /// so its four proofs joined the list — including the regression artefact it
 /// produced itself, which is now somebody else's canonical evidence.
-pub const PROTECTED_RUN_ARTIFACTS: [&str; 8] = [
+///
+/// **`TASK-0019` is `VERIFIED` since `ACTION-0031`**, so its **six** proofs
+/// join in turn and the list goes from eight names to fourteen. Four of them
+/// are themselves regression replays `TASK-0019` produced; being a replay does
+/// not make evidence less canonical once the task that published it has been
+/// controlled. `TASK-0020` therefore writes **nothing** under a `TASK-0019`
+/// name: its own regressions are published under `TASK-0020-` names, and this
+/// gate is what makes that a refusal rather than a convention.
+pub const PROTECTED_RUN_ARTIFACTS: [&str; 14] = [
     "TASK-0016-H1-H7-verification.json",
     "TASK-0016-H9-webview2.json",
     "TASK-0017-J11-isolation.json",
@@ -516,6 +524,12 @@ pub const PROTECTED_RUN_ARTIFACTS: [&str; 8] = [
     "TASK-0018-K12-webview2-pass1.json",
     "TASK-0018-K12-webview2-pass2.json",
     "TASK-0018-J12-relations-regression-webview2.json",
+    "TASK-0019-J12-relations-regression-webview2.json",
+    "TASK-0019-K11-readonly-regression-webview2.json",
+    "TASK-0019-K12-foundation-regression-webview2-pass1.json",
+    "TASK-0019-K12-foundation-regression-webview2-pass2.json",
+    "TASK-0019-L12-composed-view-webview2-pass1.json",
+    "TASK-0019-L12-composed-view-webview2-pass2.json",
 ];
 
 /// Writes a measurement artefact into `docs/performance/runs/` of this
@@ -601,17 +615,41 @@ mod tests {
     /// The names the current runtime actually writes are **not** protected
     /// ones, and say which task they belong to.
     ///
-    /// `TASK-0019` writes under `TASK-0019`, full stop. The four artefacts
-    /// this runtime wrote under `TASK-0018` a slice ago are now the canonical
+    /// `TASK-0020` writes under `TASK-0020`, full stop. The six artefacts this
+    /// runtime wrote under `TASK-0019` a slice ago are now the canonical
     /// evidence of a `VERIFIED` task, and the loop below asserts both halves:
     /// the new names are free, and the old ones are refused.
     #[test]
-    fn the_migrated_scenarios_write_under_task_0019() {
+    fn the_migrated_scenarios_write_under_task_0020() {
         for name in [
-            "TASK-0019-H9-composed-runtime-regression-webview2.json",
-            "TASK-0019-H9-composed-runtime-regression-webview2-abandon.json",
+            "TASK-0020-J12-intrabrain-regression-webview2.json",
+            "TASK-0020-J12-intrabrain-regression-webview2-abandon.json",
+            "TASK-0020-L12-composed-regression-webview2-pass1.json",
+            "TASK-0020-L12-composed-regression-webview2-pass2.json",
+            "TASK-0020-M12-interbrain-relations-webview2-pass1.json",
+            "TASK-0020-M12-interbrain-relations-webview2-pass2.json",
+        ] {
+            assert!(
+                !PROTECTED_RUN_ARTIFACTS.contains(&name),
+                "{name} collides with protected evidence"
+            );
+            assert!(name.starts_with("TASK-0020-"), "{name} names no task");
+            assert!(name.len() <= 120, "{name} is longer than the guard allows");
+        }
+    }
+
+    /// Reserve `X5`, extended a second time: the six proofs `TASK-0019`
+    /// published became untouchable the moment `ACTION-0031` made it
+    /// `VERIFIED`.
+    ///
+    /// Stated separately because it is a different claim from "the new names
+    /// are free": four of these six are **regression replays**, and a replay's
+    /// evidence is exactly the kind a later slice would feel entitled to
+    /// overwrite. It may not.
+    #[test]
+    fn task_0019s_own_evidence_became_protected_when_it_was_verified() {
+        for name in [
             "TASK-0019-J12-relations-regression-webview2.json",
-            "TASK-0019-J12-relations-regression-webview2-abandon.json",
             "TASK-0019-K11-readonly-regression-webview2.json",
             "TASK-0019-K12-foundation-regression-webview2-pass1.json",
             "TASK-0019-K12-foundation-regression-webview2-pass2.json",
@@ -619,11 +657,16 @@ mod tests {
             "TASK-0019-L12-composed-view-webview2-pass2.json",
         ] {
             assert!(
-                !PROTECTED_RUN_ARTIFACTS.contains(&name),
-                "{name} collides with protected evidence"
+                PROTECTED_RUN_ARTIFACTS.contains(&name),
+                "{name} is a VERIFIED task's evidence and is not protected"
             );
-            assert!(name.starts_with("TASK-0019-"), "{name} names no task");
-            assert!(name.len() <= 120, "{name} is longer than the guard allows");
+            assert!(
+                matches!(
+                    write_run_artifact(name, "{}"),
+                    Err(MapError::ArtifactRejected(_))
+                ),
+                "{name} was accepted as a destination"
+            );
         }
     }
 

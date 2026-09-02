@@ -5,7 +5,12 @@
   multi-cerveaux** : plusieurs cerveaux affichés **simultanément** dans **un
   seul graphique**, un seul canevas `SVG`, **sans fusionner leurs stockages** et
   **sans créer aucune relation entre eux**
-- **Statut :** **`APPROVED`** le 2026-09-01
+- **Statut :** **`VERIFIED`** le 2026-09-02 — verdict rendu par
+  l'**orchestrateur technique**, instance **distincte** de l'exécuteur, sur
+  preuves : [`ACTION-0031`](../reviews/ACTION-0031-independent-recontrol.md),
+  réserve **`X6` `CLOSED`**, `ACTION-0030` **`CLOSED`**, `HEAD` contrôlé
+  `8d1e27151f53d082551e05b00816100cb790542b`. **L'exécuteur ne se l'est pas
+  attribué.** Antérieurement `APPROVED` le 2026-09-01
 - **Phase :** étape **A** de la feuille de route — parité fonctionnelle MVP,
   **quatrième** tranche
 - **Proposée le :** 2026-09-01
@@ -590,8 +595,15 @@ rien**; **rien n'a été effacé ni renommé dans `src-tauri/target/`.**
   affirmations `K7`, `K8` et `K10` qu'il portait sont **reprises une à une**
   dans `brains.test.tsx`, contre la barre de composition.
 
-**`TASK-0019` est livrée `IMPLEMENTED`. L'exécuteur ne s'attribue pas
-`VERIFIED`.**
+**`TASK-0019` a été livrée `IMPLEMENTED`; l'exécuteur ne s'est pas attribué
+`VERIFIED`.** Le 2026-09-02, l'**orchestrateur technique** — instance distincte
+— a rendu le verdict sur preuves : **`X6` `CLOSED`**, `ACTION-0030` `CLOSED`,
+**`TASK-0019` `VERIFIED`**, `HEAD` contrôlé `8d1e271`. Enregistré, non
+attribué : [`ACTION-0031`](../reviews/ACTION-0031-independent-recontrol.md).
+
+**Conséquence immédiate :** les **six** artefacts de `TASK-0019` deviennent des
+preuves canoniques **protégées** — voir `TASK-0020` §5. La liste protégée passe
+de **8** à **14** noms.
 
 ## Historique d'état
 
@@ -601,3 +613,4 @@ rien**; **rien n'a été effacé ni renommé dans `src-tauri/target/`.**
 | 2026-09-01 | `APPROVED` | GO technique de l'orchestrateur, périmètre écrit en §2 et §3 |
 | 2026-09-02 | `IMPLEMENTED` | Tranche livrée; `L12` tenu à seize étapes sur dix-sept |
 | 2026-09-02 | `IMPLEMENTED` | `ACTION-0030` `CHANGES_REQUIRED`, réserve `X6`; correction exécutée et `L12` rejoué en entier. **`VERIFIED` toujours non attribué** — re-contrôle indépendant attendu |
+| 2026-09-02 | `VERIFIED` | [`ACTION-0031`](../reviews/ACTION-0031-independent-recontrol.md) — re-contrôle indépendant sur la seule réserve `X6`, `CLOSED`. Verdict de l'orchestrateur, **enregistré** par l'exécuteur |

@@ -847,11 +847,13 @@ export default function MapApp() {
         name: K11_ARTIFACT,
         contents: JSON.stringify(
           {
-            task: "TASK-0019",
+            task: "TASK-0020",
             criteria: ["L11", "L2", "K11", "K3", "H1", "H2", "H3", "H5", "H6", "H7", "H8", "H10", "H11"],
             sourceCriterion: "TASK-0018/K11",
             nature: "regression / compatibility replay",
-            doesNotReplace: "docs/performance/runs/TASK-0018-K11-readonly-and-isolation.json",
+            doesNotReplace:
+              "docs/performance/runs/TASK-0018-K11-readonly-and-isolation.json, " +
+              "docs/performance/runs/TASK-0019-K11-readonly-regression-webview2.json",
             replacesCanonicalEvidence: false,
             note:
               "Read-only and isolation, replayed on the composed runtime. Driven by brain: " +
@@ -945,10 +947,12 @@ export default function MapApp() {
       }
 
       const artifact = {
-        task: "TASK-0019",
+        task: "TASK-0020",
         sourceCriterion: "TASK-0016/H9",
         nature: "regression / compatibility replay",
-        doesNotReplace: "docs/performance/runs/TASK-0016-H9-webview2.json",
+        doesNotReplace:
+          "docs/performance/runs/TASK-0016-H9-webview2.json, " +
+          "docs/performance/runs/TASK-0019-H9-composed-runtime-regression-webview2.json",
         replacesCanonicalEvidence: false,
         capturedAtIso: new Date().toISOString(),
         host,
@@ -978,10 +982,12 @@ export default function MapApp() {
           name: H9_REGRESSION_ABANDON_ARTIFACT,
           contents: JSON.stringify(
             {
-              task: "TASK-0019",
+              task: "TASK-0020",
               sourceCriterion: "TASK-0016/H9",
               nature: "regression / compatibility replay",
-              doesNotReplace: "docs/performance/runs/TASK-0016-H9-webview2.json",
+              doesNotReplace:
+          "docs/performance/runs/TASK-0016-H9-webview2.json, " +
+          "docs/performance/runs/TASK-0019-H9-composed-runtime-regression-webview2.json",
               replacesCanonicalEvidence: false,
               outcome: "abandoned",
               reason: String(error),

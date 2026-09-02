@@ -82,24 +82,11 @@ $watcher = Join-Path $PSScriptRoot 'j12-send-real-key.ps1'
 # ACTION-0029 turned into canonical evidence of a VERIFIED task. The names below
 # are the fresh regression ones; the guard is what makes a future edit that
 # points them back at a protected name fail loudly instead of quietly.
-$protected = @(
-    'TASK-0016-H1-H7-verification.json',
-    'TASK-0016-H9-webview2.json',
-    'TASK-0017-J11-isolation.json',
-    'TASK-0017-J12-webview2.json',
-    'TASK-0018-K11-readonly-and-isolation.json',
-    'TASK-0018-K12-webview2-pass1.json',
-    'TASK-0018-K12-webview2-pass2.json',
-    'TASK-0018-J12-relations-regression-webview2.json'
-)
-
-function Assert-NotProtected {
-    param([string]$Path)
-    $name = Split-Path -Leaf $Path
-    if ($protected -contains $name) {
-        throw "X5: $name est la preuve canonique d'une tache VERIFIED — ce script ne la touche pas"
-    }
-}
+# The list lives in ONE place — scripts/protected-run-artifacts.ps1 — because it
+# was previously copied into every script, and two spellings of one list
+# eventually disagree. ACTION-0031 made TASK-0019 VERIFIED, so its six proofs
+# joined: fourteen names, and this script touches none of them.
+. (Join-Path $PSScriptRoot 'protected-run-artifacts.ps1')
 
 # Waits for the pass to finish, either way. A pass that abandons writes its own
 # artefact and says why; waiting the full timeout for a file that will never
@@ -121,12 +108,12 @@ function Invoke-Pass {
     $log = Join-Path $LogDirectory "filetopo-k12-pass$Pass.log"
     if (Test-Path -LiteralPath $log) { Remove-Item -LiteralPath $log -Force }
 
-    $artifact = Join-Path $runs "TASK-0019-K12-foundation-regression-webview2-pass$Pass.json"
-    $abandoned = Join-Path $runs "TASK-0019-K12-foundation-regression-webview2-pass$Pass-abandon.json"
+    $artifact = Join-Path $runs "TASK-0020-K12-foundation-regression-webview2-pass$Pass.json"
+    $abandoned = Join-Path $runs "TASK-0020-K12-foundation-regression-webview2-pass$Pass-abandon.json"
     foreach ($stale in @($artifact, $abandoned)) {
         # Only this script's own previous output for THIS pass, and only so a
         # stale file cannot be mistaken for a fresh result.
-        Assert-NotProtected -Path $stale
+        Assert-NotProtectedRunArtifact -Path $stale
         if (Test-Path -LiteralPath $stale) { Remove-Item -LiteralPath $stale -Force }
     }
 

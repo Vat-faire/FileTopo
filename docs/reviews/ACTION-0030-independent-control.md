@@ -10,7 +10,10 @@
   enregistre un verdict rendu par l'orchestrateur; elle ne le rend pas.**
 - **`HEAD` contrôlé :** **`21acd64aca0c03b68b7e2eccc792f716fa7f2f9a`**, tip de
   `build/v0.2-a4-composed-view`
-- **Verdict :** **`CHANGES_REQUIRED`**
+- **Verdict :** **`CHANGES_REQUIRED`** — **`CLOSED` le 2026-09-02** par
+  [`ACTION-0031`](ACTION-0031-independent-recontrol.md), qui a clos la réserve
+  `X6` et rendu `TASK-0019` **`VERIFIED`** sur le `HEAD`
+  `8d1e27151f53d082551e05b00816100cb790542b`
 
 ## 1. Le verdict, tel qu'il a été rendu
 
@@ -119,3 +122,19 @@ par la preuve corrigée de cette même tâche.
 - le confinement du variant tient-il, et le libellé publié reste-t-il **non
   personnel** ?
 - les **huit** preuves protégées sont-elles inchangées ?
+
+## 6. Clôture
+
+Le re-contrôle a eu lieu le 2026-09-02, par l'**orchestrateur technique**,
+instance distincte de l'exécuteur, sur les preuves publiées. Les cinq questions
+du §5 ont toutes reçu une réponse conforme.
+
+| Élément | État final |
+|---|---|
+| Réserve `X6` | **`CLOSED`** |
+| `ACTION-0030` | **`CLOSED`** |
+| `TASK-0019` | **`VERIFIED`** |
+| `HEAD` contrôlé | `8d1e27151f53d082551e05b00816100cb790542b` |
+
+Enregistré — **non attribué** — par l'exécuteur :
+[`ACTION-0031`](ACTION-0031-independent-recontrol.md).

@@ -445,7 +445,7 @@ export async function runRelationScenario(deps: ScenarioDeps): Promise<void> {
       name: J12_REGRESSION_ARTIFACT,
       contents: JSON.stringify(
         {
-          task: "TASK-0019",
+          task: "TASK-0020",
           sourceCriterion: "TASK-0017/J12",
           nature: "regression replay after composed-view migration",
           doesNotReplace:
@@ -479,10 +479,12 @@ export async function runRelationScenario(deps: ScenarioDeps): Promise<void> {
         name: J12_REGRESSION_ABANDON_ARTIFACT,
         contents: JSON.stringify(
           {
-            task: "TASK-0019",
+            task: "TASK-0020",
             sourceCriterion: "TASK-0017/J12",
             nature: "regression replay after multibrain migration",
-            doesNotReplace: "docs/performance/runs/TASK-0017-J12-webview2.json",
+            doesNotReplace:
+              "docs/performance/runs/TASK-0017-J12-webview2.json, " +
+              "docs/performance/runs/TASK-0019-J12-relations-regression-webview2.json",
             replacesCanonicalEvidence: false,
             outcome: "abandoned",
             reason: String(error),

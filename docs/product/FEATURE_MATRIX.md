@@ -51,6 +51,24 @@ Les preuves et constats ci-dessous sont inchangés.
 > La colonne « Prototype actuel » de `F-040` décrit, comme toutes les autres,
 > l'**ancienne version publique** — audit technique, jamais référence produit.
 
+> **Amendement du 2026-09-02 — `DEC-0018`, direction produit.**
+>
+> **Une ligne est ajoutée : `F-041` — relations inter-cerveaux explicites**,
+> classée **`MVP`**. C'est une **extension produit décidée**, déclarée comme
+> telle, et **non** une reclassification silencieuse : aucune ligne existante
+> ne change de classification, aucune ne descend, aucune ne disparaît.
+>
+> **La matrice passe de 40 à 41 lignes.** Répartition : **`MVP` 37**,
+> **`ULTÉRIEUR` 0**, **`DIFFÉRÉ` 4**, **total 41**.
+>
+> **`F-041` n'est pas une exigence de parité.** `P-04`, `P-05`, `P-06` et
+> `P-20` restent entières et inchangées, et le contrat
+> [CARTETOPO_FUNCTIONAL_PARITY.md](CARTETOPO_FUNCTIONAL_PARITY.md) **n'est pas
+> retouché** : il conserve ses 22 exigences.
+>
+> **Une relation inter-cerveaux ne fusionne jamais deux cerveaux**, n'est jamais
+> créée par le seul fait d'un affichage, et n'invente jamais son inverse.
+
 | Identifiant | Fonction | Comportement cible | Prototype actuel | Preuve dans le dépôt | Écart | Priorité | Phase | État | Critères d'acceptation | Baseline TASK-0011 |
 |---|---|---|---|---|---|---|---|---|---|---|
 | F-001 | Choix de racine | Sélecteur Windows guidé | Présent | src-tauri/src/lib.rs:136 | Flux cerveau incomplet | P0 | 2 | IMPLEMENTED | Sélection synthétique testée, annulation sûre | `MVP` |
@@ -93,3 +111,4 @@ Les preuves et constats ci-dessous sont inchangés.
 | F-038 | RAG cité | Réponses avec citations et choix fournisseur | Absent | aucune dépendance IA | Facultatif | P3 | 11 | DEFERRED | Réponse locale/citée, consentement distant | `DIFFÉRÉ` |
 | F-039 | GraphRAG | Seulement si besoin démontré | Absent | aucune dépendance graphe IA | Facultatif | P3 | 12 | DEFERRED | Gain mesuré après RAG fiable | `DIFFÉRÉ` |
 | F-040 | Vue composée multi-cerveaux | Un ou plusieurs cerveaux indépendants dans le même graphique, sans fusion | Absent | aucun catalogue de cerveaux dans le prototype | Manquant | P1 | 7 | PROPOSED | Deux cerveaux affichés ensemble ne partagent aucun stockage ni aucun état, et chaque élément porte son cerveau d'origine | **`MVP`** (extension produit `DEC-0017`) |
+| F-041 | Relations inter-cerveaux explicites | Un nœud d'un cerveau relié explicitement à un nœud d'un autre cerveau, avec provenance, sans jamais fusionner les deux | Absent | aucune relation entre cerveaux dans le prototype | Manquant | P1 | 7 | PROPOSED | Une relation `A → B` porte deux extrémités, un type et une provenance `DETERMINISTIC` ou `APPROVED`; elle survit à une reconstruction d'index; elle n'implique jamais `B → A`; et la ressemblance de noms ou de fichiers n'en crée aucune | **`MVP`** (extension produit `DEC-0018`) |

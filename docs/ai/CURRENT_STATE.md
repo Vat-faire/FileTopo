@@ -1,9 +1,20 @@
 # État courant
 
 - **Dernière mise à jour :** 2026-09-02
-- **Branche active :** **`build/v0.2-a4-composed-view`**, créée depuis le tip
-  **contrôlé** `9e77a6d83fcde194af26da6d356483f592452612` de
-  `build/v0.2-a3-multibrain-foundation`
+- **Tâche en cours :** **`TASK-0020`** — relations inter-cerveaux explicites,
+  **`APPROVED`** sous [`DEC-0018`](../decisions/DEC-0018-explicit-interbrain-relations.md),
+  fonction **`F-041`**. **§4 de la fiche est GELÉE** avant toute ligne de code :
+  stockage commun `brains/interbrain/relations.sqlite`, endpoint `cek1`, modèle
+  relationnel, jeu synthétique `XBR-1`, critères `M1` à `M12`
+- **Matrice fonctionnelle :** **41** lignes après l'ajout de `F-041` par
+  `DEC-0018`. Répartition : **`MVP` 37, `ULTÉRIEUR` 0, `DIFFÉRÉ` 4**. Aucune
+  ligne existante n'a changé de classification, aucune n'est descendue
+- **Branche active :** **`build/v0.2-a5-interbrain-relations`**, créée depuis
+  le tip **contrôlé** `8d1e27151f53d082551e05b00816100cb790542b` de
+  `build/v0.2-a4-composed-view`
+- **`build/v0.2-a4-composed-view` :** `8d1e271`, **non touchée** depuis la
+  vérification — la branche contrôlée et le `SHA` contrôlé désignent le même
+  arbre, et rien n'y a été ajouté après le verdict
 - **`build/v0.2-a3-multibrain-foundation` :** `9e77a6d`, **non touchée** depuis
   la vérification — la branche contrôlée et le `SHA` contrôlé désignent le même
   arbre, et rien n'y a été ajouté après le verdict
@@ -16,14 +27,16 @@
 - **`rebuild/v0.2-project-brain` :** `db8d3de0…`, **non touchée**
 - **`main` :** inchangée, `91bbe90f0f99026c28cd345784d4f579a0016db2`, **non
   touchée**
-- **Dernière tâche vérifiée :** **`TASK-0018`, `VERIFIED` le 2026-09-01**, sur
+- **Dernière tâche vérifiée :** **`TASK-0019`, `VERIFIED` le 2026-09-02**, sur
   **re-contrôle indépendant**
-  [`ACTION-0029`](../reviews/ACTION-0029-independent-recontrol.md) —
-  **`X5` : `CLOSED`**, **`ACTION-0028` : `CLOSED`**, `HEAD` contrôlé
-  **`9e77a6d83fcde194af26da6d356483f592452612`**. Le verdict a été **rendu par
+  [`ACTION-0031`](../reviews/ACTION-0031-independent-recontrol.md) —
+  **`X6` : `CLOSED`**, **`ACTION-0030` : `CLOSED`**, `HEAD` contrôlé
+  **`8d1e27151f53d082551e05b00816100cb790542b`**. Le verdict a été **rendu par
   l'orchestrateur** et **enregistré** par l'exécuteur; **l'exécuteur ne s'est
-  rien attribué**
-- **Tâches vérifiées précédemment :** `TASK-0017`, `VERIFIED` le 2026-09-01
+  rien attribué**. C'est la **cinquième** tâche `VERIFIED` de l'étape A
+- **Tâches vérifiées précédemment :** `TASK-0018`, `VERIFIED` le 2026-09-01
+  ([`ACTION-0029`](../reviews/ACTION-0029-independent-recontrol.md),
+  **`X5` : `CLOSED`**); `TASK-0017`, `VERIFIED` le 2026-09-01
   ([`ACTION-0027`](../reviews/ACTION-0027-independent-control.md), **`X3`** et
   **`X4` : `CLOSED`**); `TASK-0016`, `VERIFIED` le 2026-08-31
   ([`ACTION-0026`](../reviews/ACTION-0026-independent-control.md), réserve
@@ -36,39 +49,50 @@
   protégés — et non par convention. Les scénarios migrés écrivent sous un nom
   `TASK-0018` de **régression**, et le `J12` de régression **a été rejoué**
   dans le vrai WebView2, sans toucher à la preuve de `TASK-0017`.
-- **La règle s'applique à `TASK-0018` elle-même depuis sa vérification :** ses
+- **La règle s'applique à `TASK-0019` elle-même depuis sa vérification :** ses
+  **six** preuves — `TASK-0019-J12-relations-regression-webview2.json`,
+  `TASK-0019-K11-readonly-regression-webview2.json`,
+  `TASK-0019-K12-foundation-regression-webview2-pass{1,2}.json` et
+  `TASK-0019-L12-composed-view-webview2-pass{1,2}.json` — rejoignent la liste
+  protégée, qui passe de **8** à **14** noms. **Quatre d'entre elles sont
+  elles-mêmes des rejeux de régression** : être un rejeu ne rend pas une preuve
+  moins canonique une fois la tâche qui l'a publiée contrôlée. La liste vit
+  désormais à **trois** endroits et **une seule fois à chacun** — la porte Rust
+  `write_run_artifact`, `src/map/runArtifacts.ts`, et
+  `scripts/protected-run-artifacts.ps1`, dot-sourcé par les scripts de rejeu au
+  lieu d'être recopié dans chacun.
+- **La règle s'appliquait déjà à `TASK-0018` :** ses
   quatre preuves — `TASK-0018-K11-readonly-and-isolation.json`,
   `TASK-0018-K12-webview2-pass1.json`, `TASK-0018-K12-webview2-pass2.json`,
   `TASK-0018-J12-relations-regression-webview2.json` — sont **protégées à la
   porte d'écriture**, et **le runtime de `TASK-0019` n'écrit plus aucun
   résultat sous un nom `TASK-0018`**.
-- **Tâche livrée, NON vérifiée :** **`TASK-0019`, `IMPLEMENTED`** le
-  2026-09-02 — **vue composée multi-cerveaux**,
-  [fiche](../tasks/TASK-0019-composed-multibrain-view.md), sous
-  [`DEC-0017`](../decisions/DEC-0017-multibrain-and-composed-views.md),
-  fonction **`F-040`**. **Gel `L1`–`L12` en `bcbc4aa`, avant toute ligne de
-  code de cette tranche.** `L1`–`L12` **TENUS**, `L12` aux **dix-sept étapes**
-  après la correction de la réserve `X6`.
-  **`VERIFIED` n'est pas attribué; l'exécuteur ne s'auto-vérifie pas.**
 - **Contrôle indépendant de `TASK-0019` :**
   [`ACTION-0030`](../reviews/ACTION-0030-independent-control.md),
-  **`CHANGES_REQUIRED`** le 2026-09-02, `HEAD` contrôlé `21acd64`. Le fond a été
-  **accepté** — gel avant code, `L1`–`L11`, `L12` étapes 1–6 et 8–17, `C2`/`C3`,
-  un seul `SVG`, territoires, collisions `DOM`, relations intra-cerveau,
-  mémoire, clavier réel, redémarrage réel. **Une seule réserve, `X6` :
-  `OPEN`** — `L12` étape 7 exigeait d'**approuver** `S-005` dans Alpha, et
-  l'**acte** n'avait pas eu lieu pendant `L12`. **La correction est exécutée et
-  `L12` a été rejoué en entier**; `X6` **reste `OPEN`** jusqu'au re-contrôle
-  indépendant, et `TASK-0019` **reste `IMPLEMENTED`**
-- **Réserves `X2`, `X3`, `X4`, `X5` :** **maintenues**, et `X5` vérifiée sur ce
-  rejeu — les **huit** preuves protégées sont **bit-for-bit inchangées**
+  `CHANGES_REQUIRED` le 2026-09-02 sur `21acd64` — **`CLOSED`** le 2026-09-02.
+  Le fond avait été **accepté** dès le premier contrôle; la seule réserve `X6`
+  disait que `L12` étape 7 exigeait l'**acte** — approuver `S-005` dans Alpha —
+  et qu'il n'avait pas eu lieu. La correction a ajouté un **espace de noms**
+  sans rien supprimer, `L12` a été rejoué **en entier**, et
+  [`ACTION-0031`](../reviews/ACTION-0031-independent-recontrol.md) a clos `X6`
+- **Réserves `X2`, `X3`, `X4`, `X5`, `X6` :** **maintenues et closes**;
+  `X5` étendue une seconde fois, à **quatorze** noms protégés
 - **Tâche IN_PROGRESS :** aucune
 - **Porte `P4` :** **FRANCHIE** —
   [`DEC-0016`](../decisions/DEC-0016-p4-gate-crossing-and-first-slice.md)
 
 ## Ce qui a changé, en une phrase
 
-**FileTopo affiche maintenant plusieurs cerveaux dans UN SEUL graphique, sans
+**`TASK-0019` est `VERIFIED`, et la tranche suivante est gelée avant d'être
+écrite.** La vue composée montre plusieurs cerveaux côte à côte sans jamais les
+mélanger; ce qu'elle ne sait pas encore faire, c'est **les relier**. `DEC-0018`
+ouvre ce cran — **une relation inter-cerveaux explicite, avec provenance, dans
+un magasin qui n'appartient à aucun des deux cerveaux** — et `TASK-0020` en fige
+le modèle, le jeu synthétique `XBR-1` et les critères `M1` à `M12` **avant la
+première ligne de code**.
+
+**Ce que `TASK-0019` a établi tient :**
+**FileTopo affiche plusieurs cerveaux dans UN SEUL graphique, sans
 les mélanger.** Un canevas `SVG`, un territoire par cerveau, chacun gardant son
 index, ses relations et son état. `C2` montre 12 + 12 nœuds venus de **deux**
 fichiers `SQLite` distincts; `C3` en montre 181 en trois territoires; **aucune**

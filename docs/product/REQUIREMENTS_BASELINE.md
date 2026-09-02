@@ -64,10 +64,10 @@ décision écrite, jamais par omission silencieuse.
 
 | Classification | Nombre | Fonctions |
 |---|---:|---|
-| `MVP` | **36** | F-001 à F-020, F-022 à F-036, **F-040** |
+| `MVP` | **37** | F-001 à F-020, F-022 à F-036, **F-040**, **F-041** |
 | `ULTÉRIEUR` | **0** | — |
 | `DIFFÉRÉ` | 4 | F-021, F-037, F-038, F-039 |
-| **Total** | **40** | `F-001` à `F-040`, sans trou ni doublon |
+| **Total** | **41** | `F-001` à `F-041`, sans trou ni doublon |
 
 **Répartition du 2026-08-31, avant l'ajout de `F-040`, conservée pour
 mémoire :**
@@ -137,6 +137,7 @@ des correspondances attendues et ne constituent pas un écart.
 | F-038 | RAG cité | `DIFFÉRÉ` | Facultatif par décision de vision; sa présence ne doit jamais devenir nécessaire au produit. | F-037 | Réponse fondée sur des sources locales citées; aucun transfert distant sans consentement explicite et révocable. | — (P3) |
 | F-039 | GraphRAG | `DIFFÉRÉ` | À n'étudier qu'après un RAG hybride cité et sur besoin mesuré. | F-038 | Gain mesuré et reproductible contre le RAG cité, sur données synthétiques. | — (P3) |
 | F-040 | Vue composée multi-cerveaux | `MVP` | La direction produit (`DEC-0017`) fait du multi-cerveaux la forme du produit; une vue doit pouvoir en montrer plusieurs sans jamais les fusionner. | F-002, F-034 | Deux cerveaux synthétiques affichés dans la même vue n'ont **aucun** fichier de stockage commun, **aucun** état commun, et **chaque** élément affiché porte un cerveau d'origine non ambigu; retirer un cerveau de la vue ne modifie **aucune** de ses données. | **Oui** : P1 → `MVP`, extension produit décidée par `DEC-0017`. |
+| F-041 | Relations inter-cerveaux explicites | `MVP` | La direction produit (`DEC-0018`) veut qu'un document d'un cerveau puisse en référencer un autre **sans** que les deux cerveaux soient fusionnés; une vue composée qui montre deux cerveaux côte à côte sans jamais pouvoir les relier reste muette. | F-002, F-017, F-040 | Une relation inter-cerveaux porte **deux** extrémités de **deux cerveaux différents**, un type, et une provenance `DETERMINISTIC` (règle nommée et versionnée) ou `APPROVED` (approbation explicite) — jamais une troisième valeur; elle **survit** à une reconstruction complète des deux index; elle n'implique **jamais** son inverse; une suggestion n'entre dans **aucun** compte avant approbation; et la seule ressemblance de noms, de chemins ou de fichiers n'en crée **aucune**. | **Oui** : P1 → `MVP`, extension produit décidée par `DEC-0018`. |
 
 ## 4. Contrôle de couverture
 
@@ -172,6 +173,22 @@ exécuté :**
   `F-040`, qui va de `P1` vers `MVP`. **Aucun n'abaisse une fonction**;
 - `F-040` **n'est pas une exigence de parité** et n'en remplace aucune :
   **`P-20` reste entière**, et le contrat CarteTopo n'est pas retouché.
+
+**Après l'ajout de `F-041` le 2026-09-02 — contrôlé par relecture, non
+exécuté :**
+
+- **41 lignes**, `F-001` à `F-041`, aucun manquant, aucun dupliqué. **Une
+  fonction a été ajoutée, et elle est déclarée** : `F-041`, par
+  [DEC-0018](../decisions/DEC-0018-explicit-interbrain-relations.md). **Aucune
+  ligne existante n'a changé de classification, aucune n'est descendue, aucune
+  n'a disparu**;
+- **17 écarts** avec la colonne « Priorité » : les 16 ci-dessus, **plus**
+  `F-041`, qui va de `P1` vers `MVP`. **Aucun n'abaisse une fonction**;
+- `F-041` **n'est pas une exigence de parité** et n'en remplace aucune :
+  **`P-04`, `P-05`, `P-06` et `P-20` restent entières**, et le contrat
+  CarteTopo n'est pas retouché — il conserve ses 22 exigences;
+- **`F-041` n'ouvre aucune détection automatique** entre cerveaux, aucune
+  heuristique, aucune révocation (`P-21` demeure), et **aucune fusion**.
 
 **Inférence.** Ces 11 écarts se concentrent dans « la navigation et les
 détails essentiels » que la vision place explicitement dans le MVP, plus

@@ -625,7 +625,7 @@ export async function runComposedScenario(
       name: l12Artifact(pass, "written"),
       contents: JSON.stringify(
         {
-          task: "TASK-0019",
+          task: "TASK-0020",
           criterion: "L12",
           nature: "criterion evidence",
           replacesCanonicalEvidence: false,
@@ -649,7 +649,7 @@ export async function runComposedScenario(
         name: l12Artifact(pass, "abandoned"),
         contents: JSON.stringify(
           {
-            task: "TASK-0019",
+            task: "TASK-0020",
             criterion: "L12",
             pass,
             outcome: "abandoned",
