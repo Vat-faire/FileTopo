@@ -2,7 +2,7 @@ TASK_ID: TASK-0019 — vue composée multi-cerveaux
 AGENT: CLAUDE
 RESULT: DONE
 BRANCH: build/v0.2-a4-composed-view
-FINAL_HEAD: (voir le commit de cette exécution)
+FINAL_HEAD: 6dd3585 (+ le commit de mise à jour du rapport)
 TASK_STATE: IMPLEMENTED — VERIFIED NON attribué
 SESSION: REPRISE après une session interrompue. L'arbre portait une
 implémentation à mi-refactor qui ne compilait pas — 4 fichiers neufs,
