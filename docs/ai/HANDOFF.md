@@ -1,24 +1,23 @@
 # HANDOFF — passage de relais
 
-- **Dernière mise à jour :** 2026-09-01
-- **Branche active :** **`build/v0.2-a3-multibrain-foundation`**, créée depuis
-  le tip contrôlé `50de16b` de `build/v0.2-a2-relations`
-- **Dernière tâche vérifiée :** **`TASK-0017`, `VERIFIED`** le 2026-09-01, sur
+- **Dernière mise à jour :** 2026-09-02
+- **Branche active :** **`build/v0.2-a4-composed-view`**, créée depuis le tip
+  contrôlé `9e77a6d` de `build/v0.2-a3-multibrain-foundation`
+- **Dernière tâche vérifiée :** **`TASK-0018`, `VERIFIED`** le 2026-09-01, sur
   re-contrôle indépendant
-  [`ACTION-0027`](../reviews/ACTION-0027-independent-control.md) — **`X3` et
-  `X4` : `CLOSED`**. `TASK-0016` est `VERIFIED` depuis le 2026-08-31
-  ([`ACTION-0026`](../reviews/ACTION-0026-independent-control.md), `X2`
-  `CLOSED`)
-- **Tâche livrée, NON vérifiée :** **`TASK-0018`, `IMPLEMENTED`** le
-  2026-09-01 — **fondation multi-cerveaux**. Gel `K1`–`K12` en `51bb687`,
-  code en `4cb1cf4`, preuves en `2424ef2`. **Les douze critères sont tenus.**
-- **Contrôle indépendant rendu :**
-  [`ACTION-0028`](../reviews/ACTION-0028-independent-control.md) —
-  **`CHANGES_REQUIRED`**, fond accepté, **une seule réserve : `X5`**, *les
-  outils du runtime courant pouvaient écraser les artefacts canoniques de
-  tâches déjà `VERIFIED`*. **Corrigée; `X5` reste `OPEN`.** Voir
-  [`TASK-0018` §8](../tasks/TASK-0018-multibrain-foundation.md).
-- **Attend son RE-CONTRÔLE indépendant, sur `X5` uniquement.**
+  [`ACTION-0029`](../reviews/ACTION-0029-independent-recontrol.md) — **`X5` et
+  `ACTION-0028` : `CLOSED`**. `TASK-0017` est `VERIFIED` depuis le 2026-09-01,
+  `TASK-0016` depuis le 2026-08-31
+- **Tâche livrée, NON vérifiée :** **`TASK-0019`, `IMPLEMENTED`** le
+  2026-09-02 — **vue composée multi-cerveaux**. Gel `L1`–`L12` en `bcbc4aa`,
+  **avant la première ligne de code**. **`L1`–`L11` tenus; `L12` tenu à seize
+  étapes sur dix-sept.**
+- **La seule cible manquée, publiée comme manquée :** `L12` étape 7, moitié
+  « approuver `S-005` dans Alpha », **NON REJOUÉE** — `S-005` était déjà
+  approuvée dans le bac à sable persistant, et le magasin refuse une seconde
+  approbation, ce qui est **`X3` qui fonctionne**. La moitié « Gamma inchangé »
+  est tenue.
+- **Attend son CONTRÔLE indépendant, sur preuves.**
 - **Tâche IN_PROGRESS :** aucune
 - **Porte `P4` :** **FRANCHIE** —
   [`DEC-0016`](../decisions/DEC-0016-p4-gate-crossing-and-first-slice.md)
@@ -324,8 +323,22 @@ reste `OPEN`**, et `TASK-0018` **attend son re-contrôle**.
 **FileTopo est multi-cerveaux** — `DEC-0017`. **Un `brain_id` n'est pas un
 `fixture_id`** : deux cerveaux peuvent partager une source et **doivent** rester
 indépendants. **Un `node_id` seul n'est jamais une identité globale.**
-**N'affiche pas deux cerveaux dans le même graphique** — c'est `TASK-0019` —
-et **ne crée aucune relation inter-cerveaux** — c'est `TASK-0020`.
+**Deux cerveaux s'affichent maintenant dans le même graphique** — un canevas
+`SVG`, un territoire chacun, `TASK-0019`. **Composer est un affichage :**
+ajouter ou retirer ne touche ni catalogue, ni index, ni relation, ni source.
+**Un `id` DOM est namespacé par `brain_id`** — `brain-alpha-map-node-4` — parce
+que deux cerveaux sur une même source portent le même `node_id`. **Ne crée
+aucune relation inter-cerveaux** — c'est `TASK-0020`. **Ne persiste aucune
+composition** — c'est `P-19`; au redémarrage, le cerveau actif seul.
+
+**Une preuve devenue canonique ne se supprime pas non plus depuis un script.**
+La porte d'écriture de l'application ne dit rien d'un outil qui la contourne :
+`scripts/*-run-real-host.ps1` portent une liste protégée et refusent d'y toucher.
+
+**Le bac à sable `<dépôt>/.filetopo-sandbox` est persistant**, et rien
+n'annule une approbation. Un scénario qui approuve `S-005` sans vérifier
+qu'elle est en attente échoue à sa deuxième exécution — **et l'effacer serait
+une suppression, réservée à Sébastien.**
 
 **Une tranche suivante exige sa propre fiche, ses critères gelés d'avance et
 son propre GO.** Ne t'attribue pas `VERIFIED`.

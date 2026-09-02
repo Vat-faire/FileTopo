@@ -1,6 +1,6 @@
 # État courant
 
-- **Dernière mise à jour :** 2026-09-01
+- **Dernière mise à jour :** 2026-09-02
 - **Branche active :** **`build/v0.2-a4-composed-view`**, créée depuis le tip
   **contrôlé** `9e77a6d83fcde194af26da6d356483f592452612` de
   `build/v0.2-a3-multibrain-foundation`
@@ -42,16 +42,31 @@
   `TASK-0018-J12-relations-regression-webview2.json` — sont **protégées à la
   porte d'écriture**, et **le runtime de `TASK-0019` n'écrit plus aucun
   résultat sous un nom `TASK-0018`**.
-- **Tâche APPROVED, en cours d'exécution :** **`TASK-0019`** — **vue composée
-  multi-cerveaux**, [fiche](../tasks/TASK-0019-composed-multibrain-view.md),
-  sous [`DEC-0017`](../decisions/DEC-0017-multibrain-and-composed-views.md),
-  fonction **`F-040`**. **Gel `L1`–`L12` commité avant toute ligne de code.**
+- **Tâche livrée, NON vérifiée :** **`TASK-0019`, `IMPLEMENTED`** le
+  2026-09-02 — **vue composée multi-cerveaux**,
+  [fiche](../tasks/TASK-0019-composed-multibrain-view.md), sous
+  [`DEC-0017`](../decisions/DEC-0017-multibrain-and-composed-views.md),
+  fonction **`F-040`**. **Gel `L1`–`L12` en `bcbc4aa`, avant toute ligne de
+  code de cette tranche.** `L1`–`L11` **TENUS**; `L12` tenu à **seize étapes
+  sur dix-sept**, la moitié « approuver `S-005` » de l'étape 7 étant **NON
+  REJOUÉE** sur un bac à sable persistant — publiée comme manquée.
+  **`VERIFIED` n'est pas attribué; l'exécuteur ne s'auto-vérifie pas.**
 - **Tâche IN_PROGRESS :** aucune
 - **Porte `P4` :** **FRANCHIE** —
   [`DEC-0016`](../decisions/DEC-0016-p4-gate-crossing-and-first-slice.md)
 
 ## Ce qui a changé, en une phrase
 
+**FileTopo affiche maintenant plusieurs cerveaux dans UN SEUL graphique, sans
+les mélanger.** Un canevas `SVG`, un territoire par cerveau, chacun gardant son
+index, ses relations et son état. `C2` montre 12 + 12 nœuds venus de **deux**
+fichiers `SQLite` distincts; `C3` en montre 181 en trois territoires; **aucune**
+arête ne traverse une frontière de cerveau, et deux cerveaux qui lisent la même
+source portent des `id` DOM **distincts** pour le même `node_id`. Composer est
+un acte d'**affichage** : ajouter ou retirer ne touche ni catalogue, ni index,
+ni relation, ni source.
+
+**Et ce que la tranche précédente avait établi tient :**
 **FileTopo n'a plus une seule carte : il a des cerveaux, et ils existent.** La
 direction produit avait tranché; la fondation est maintenant écrite. Deux
 cerveaux qui lisent **la même source** ont une identité, un index, des
@@ -62,6 +77,73 @@ l'impose, pas une convention d'appel.
 d'où vient une relation, avec un modèle de **provenance** bâti de telle sorte
 qu'une **relation établie sans provenance n'est pas représentable** — désormais
 **`VERIFIED`**.
+
+## TASK-0019 — la quatrième tranche verticale
+
+Le **gel** de `TASK-0019` §4 — modèle `ComposedView` et ses sept règles, les
+**trois compositions** `C1`/`C2`/`C3`, les formules de territoire, l'identité
+DOM namespacée, la mémoire par composition, et les **critères `L1` à `L12`** —
+a été commité en `bcbc4aa`, **avant la première ligne de code** de la tranche.
+**Aucun critère n'a été retouché après le premier résultat.**
+
+### Les douze critères gelés
+
+| Critère | Verdict |
+|---|---|
+| `L1` composition valide, cinq erreurs nommées | **TENU** |
+| `L2` données non fusionnées, index distincts | **TENU** |
+| `L3` collision `node_id`, `id` DOM distincts | **TENU** |
+| `L4` territoires nommés, sans couleur seule | **TENU** |
+| `L5` géométrie, translation seule | **TENU** |
+| `L6` ajout / retrait, dernier refusé | **TENU** |
+| `L7` focus, détails, cerveau actif | **TENU** |
+| `L8` relations isolées, 0 arête inter-cerveaux | **TENU** |
+| `L9` mémoire par composition, `C2 → C3 → C2` | **TENU** |
+| `L10` clavier, **vraie frappe** | **TENU**, 0 clic programmatique |
+| `L11` lecture seule, preuves protégées intactes | **TENU** |
+| `L12` hôte réel, dix-sept étapes | **TENU à 16/17**, WebView2 `152.0.4191.53` |
+
+### La cible manquée, publiée comme manquée
+
+**`L12` étape 7, moitié « approuver `S-005` dans Alpha » : NON REJOUÉE.** Le bac
+à sable est **persistant** et `S-005` y était déjà approuvée par une exécution
+antérieure du rejeu `K12`; le magasin refuse une seconde approbation, ce qui est
+**`X3` qui fonctionne**. Aucune commande de remise à zéro n'existe, et effacer le
+bac à sable serait une **suppression** hors du périmètre de la tâche.
+
+**La moitié qui porte `L8` est tenue** : Gamma strictement inchangé, magasins
+séparés, `S-005` toujours en attente chez lui. L'artefact porte
+`approvalReplayable: false` et sa raison, en toutes lettres.
+
+### Composer est un affichage, et le code l'impose
+
+**Un `id` DOM n'est jamais partagé.** Alpha et Gamma lisent la même fixture,
+donc `node_id = 4` existe des deux côtés; les éléments s'appellent
+`brain-alpha-map-node-4` et `brain-gamma-map-node-4`. `aria-activedescendant`
+pointe vers **un** `id` et `getElementById` renvoie **le premier** : un `id`
+partagé aurait envoyé le lecteur d'écran et le scénario dans le mauvais cerveau,
+en silence.
+
+**Aucune arête ne traverse une frontière**, et c'est lu en comparant les **deux**
+extrémités de chaque arête, pas en comptant.
+
+**Composer ne recalcule aucun calepinage** : les rectangles d'Alpha seul et
+d'Alpha dans `C2` sont **identiques**, et un pan ou un zoom ne les touche pas.
+
+**L'UX du sélecteur unique est remplacée** — `BrainSelector.tsx` est supprimé.
+Les affirmations `K7`, `K8` et `K10` qu'il portait sont **reprises une à une**
+contre la barre de composition.
+
+### Défauts trouvés en chemin, corrigés et gardés
+
+1. `scripts/k12-run-real-host.ps1` **supprimait** une preuve devenue canonique
+   d'une tâche `VERIFIED`. **La porte d'écriture de l'application ne dit rien
+   d'un script qui la contourne** : les deux scripts portent désormais une liste
+   protégée et un `Assert-NotProtected`.
+2. Le rejeu `J12` déclarait `task: "TASK-0018"` dans un fichier `TASK-0019`; un
+   test de garde exige maintenant l'accord du nom et de la charge utile.
+3. Trois scénarios lisaient trop tôt après `showOnly`, qui n'est pas `await`é.
+4. Un octet `NUL` était **commité** dans `src/map/brainScenario.ts`.
 
 ## La direction produit a changé — `DEC-0017`
 

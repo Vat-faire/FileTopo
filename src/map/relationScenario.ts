@@ -24,6 +24,7 @@
  * falls back to a synthetic click.
  */
 
+import { domNodeId } from "./composedView";
 import { afterPaint } from "./measure";
 import { pressRealKey, waitUntil } from "./realInput";
 import {
@@ -31,6 +32,7 @@ import {
   J12_REGRESSION_ARTIFACT,
 } from "./runArtifacts";
 import type {
+  BrainNodeRef,
   HostInfo,
   MapSnapshot,
   NodeRelations,
@@ -41,8 +43,15 @@ import type {
 export interface ScenarioDeps {
   invoke: <T>(command: string, args?: Record<string, unknown>) => Promise<T>;
   host: HostInfo | null;
-  openBrain: (brainId: string, rebuild: boolean) => Promise<void>;
-  setSelectedId: (nodeId: number) => void;
+  /**
+   * Reduces the composed view to this brain alone, `TASK-0019` §4.4.
+   *
+   * `J12` is a **single-brain** scenario and stays one: what it replays must
+   * be the composition `C1`, not whatever composition the previous scenario
+   * happened to leave on screen.
+   */
+  showOnly: (brainId: string) => void;
+  setSelected: (reference: BrainNodeRef) => void;
   setStatus: (message: string) => void;
   log: (level: "info" | "error", message: string) => void;
 }
@@ -79,12 +88,51 @@ function styleOf(
 }
 
 export async function runRelationScenario(deps: ScenarioDeps): Promise<void> {
-  const { invoke, host, openBrain, setSelectedId, setStatus, log } = deps;
+  const { invoke, host, showOnly, setSelected, setStatus, log } = deps;
   const evidence: Record<string, unknown> = { brainId: BRAIN };
 
   try {
     log("info", "J12: ouverture du cerveau et des relations");
-    await openBrain(BRAIN, false);
+    // The application boots on its own active brain, and that boot is itself a
+    // composition being applied. Asking for `brain-alpha` before the catalogue
+    // has arrived asks for a brain no order knows yet — and the boot that
+    // lands afterwards puts its own brain back on screen. The first run under
+    // the composition bar did exactly that and waited a full minute for a
+    // brain it had been overruled on. So: wait for the boot, then ask.
+    const barReady = await waitUntil(() => {
+      const chips = [...document.querySelectorAll<HTMLButtonElement>(".composition__focus")];
+      return chips.length > 0 && chips.every((chip) => !chip.disabled);
+    }, 60_000);
+    showOnly(BRAIN);
+    await settle();
+    // `showOnly` starts the composition; it does not finish it. The control it
+    // replaced was awaited, and reading the panel two frames after asking cost
+    // a run: the relations panel was still the previous brain's, empty, and the
+    // scenario abandoned on its own impatience. Wait for the bar to show this
+    // brain alone and to be operable again.
+    const opened = await waitUntil(
+      () => {
+        const displayed = [...document.querySelectorAll<HTMLElement>(".composition__focus")];
+        return (
+          displayed.length === 1 &&
+          displayed[0].dataset.brainId === BRAIN &&
+          !(displayed[0] as HTMLButtonElement).disabled
+        );
+      },
+      60_000,
+    );
+    evidence.opened = {
+      barReady: barReady.settled,
+      barReadyWaitedMs: Math.round(barReady.waitedMs),
+      settled: opened.settled,
+      waitedMs: Math.round(opened.waitedMs),
+    };
+    if (!opened.settled) {
+      throw new Error(
+        `J12: ${BRAIN} n'est pas affiche seul apres ${Math.round(opened.waitedMs)} ms ` +
+          `(barre prete=${barReady.settled})`,
+      );
+    }
     await settle();
 
     const snapshot = await invoke<MapSnapshot>("map_snapshot", { brainId: BRAIN });
@@ -110,7 +158,7 @@ export async function runRelationScenario(deps: ScenarioDeps): Promise<void> {
     // 1. A node with relations in both directions.
     const pivotId = nodeIdOf(PIVOT_PATH);
     if (pivotId === null) throw new Error(`noeud introuvable: ${PIVOT_PATH}`);
-    setSelectedId(pivotId);
+    setSelected({ brainId: BRAIN, nodeId: pivotId });
     await settle();
 
     const pivot = await invoke<NodeRelations>("map_relations_for_node", {
@@ -170,7 +218,7 @@ export async function runRelationScenario(deps: ScenarioDeps): Promise<void> {
     //
     //    Reserve `X4`. Nothing here activates the entry: the page focuses it
     //    and waits for a keystroke that comes through the Windows input path.
-    setSelectedId(pivotId);
+    setSelected({ brainId: BRAIN, nodeId: pivotId });
     await settle();
     await waitUntil(() => countOf(".relations__direction .relation__link") > 0);
     const entry = document.querySelector<HTMLButtonElement>(
@@ -226,12 +274,12 @@ export async function runRelationScenario(deps: ScenarioDeps): Promise<void> {
       expectedEndpointKey,
       expectedEndpointNodeId: expectedEndpointId,
       expectedActiveDescendant:
-        expectedEndpointId === null ? null : `map-node-${expectedEndpointId}`,
+        expectedEndpointId === null ? null : domNodeId(BRAIN, expectedEndpointId),
       storeAgreesTheEntryIsARelation,
       selectionFollowedTheRelation:
         expectedEndpointId !== null &&
         storeAgreesTheEntryIsARelation &&
-        activeAfterEntry === `map-node-${expectedEndpointId}`,
+        activeAfterEntry === domNodeId(BRAIN, expectedEndpointId),
       noProgrammaticActivationUsed:
         keyEvidence.programmaticClickCalls === 0 &&
         keyEvidence.programmaticClickDispatches === 0,
@@ -245,11 +293,11 @@ export async function runRelationScenario(deps: ScenarioDeps): Promise<void> {
     if (
       expectedEndpointId === null ||
       !storeAgreesTheEntryIsARelation ||
-      activeAfterEntry !== `map-node-${expectedEndpointId}`
+      activeAfterEntry !== domNodeId(BRAIN, expectedEndpointId)
     ) {
       throw new Error(
         `J12/J7: la frappe a change la selection en ${String(activeAfterEntry)}, ` +
-          `alors que l'entree activee menait a map-node-${String(expectedEndpointId)} ` +
+          `alors que l'entree activee menait a ${String(expectedEndpointId === null ? null : domNodeId(BRAIN, expectedEndpointId))} ` +
           `(cle ${String(expectedEndpointKey)}, confirmee par l'index=` +
           `${storeAgreesTheEntryIsARelation}).`,
       );
@@ -308,7 +356,7 @@ export async function runRelationScenario(deps: ScenarioDeps): Promise<void> {
     if (!pending) throw new Error("aucune suggestion en attente a approuver");
     const holderId = pending.source.nodeId;
     if (holderId === null) throw new Error("suggestion sans extremite resolue");
-    setSelectedId(holderId);
+    setSelected({ brainId: BRAIN, nodeId: holderId });
     await settle();
 
     const before = await invoke<NodeRelations>("map_relations_for_node", {
@@ -389,23 +437,27 @@ export async function runRelationScenario(deps: ScenarioDeps): Promise<void> {
     });
 
     // Reserve `X5`. The scenario now runs against `brain-alpha`, so what it
-    // produces is a REGRESSION REPLAY belonging to `TASK-0018`. It never
-    // lands on `TASK-0017-J12-webview2.json`: that file is the canonical
-    // evidence of a VERIFIED task and stays bit-for-bit as published.
+    // produces is a REGRESSION REPLAY belonging to `TASK-0019`, the slice that
+    // migrated it again. It never lands on `TASK-0017-J12-webview2.json`, nor
+    // on `TASK-0018-J12-relations-regression-webview2.json`: both are now the
+    // canonical evidence of VERIFIED tasks and stay bit-for-bit as published.
     const written = await invoke<string>("map_write_run_artifact", {
       name: J12_REGRESSION_ARTIFACT,
       contents: JSON.stringify(
         {
-          task: "TASK-0018",
+          task: "TASK-0019",
           sourceCriterion: "TASK-0017/J12",
-          nature: "regression replay after multibrain migration",
-          doesNotReplace: "docs/performance/runs/TASK-0017-J12-webview2.json",
+          nature: "regression replay after composed-view migration",
+          doesNotReplace:
+            "docs/performance/runs/TASK-0017-J12-webview2.json, " +
+            "docs/performance/runs/TASK-0018-J12-relations-regression-webview2.json",
           replacesCanonicalEvidence: false,
           note:
-            "J12 replayed on brain-alpha after the TASK-0018 migration: same frozen " +
-            "`quasi-empty` tree, same real-keystroke mechanism, brain-keyed commands. It " +
-            "proves the migration did not break J12; it does NOT re-issue J12's own proof, " +
-            "which remains TASK-0017-J12-webview2.json, unchanged.",
+            "J12 replayed on brain-alpha after the TASK-0019 composed-view migration: same " +
+            "frozen `quasi-empty` tree, same real-keystroke mechanism, brain-keyed commands, " +
+            "DOM ids now namespaced by brain_id. It proves the composed view did not break " +
+            "J12; it does NOT re-issue J12's own proof, which remains " +
+            "TASK-0017-J12-webview2.json, unchanged.",
           capturedAtIso: new Date().toISOString(),
           host,
           evidence,
@@ -427,7 +479,7 @@ export async function runRelationScenario(deps: ScenarioDeps): Promise<void> {
         name: J12_REGRESSION_ABANDON_ARTIFACT,
         contents: JSON.stringify(
           {
-            task: "TASK-0018",
+            task: "TASK-0019",
             sourceCriterion: "TASK-0017/J12",
             nature: "regression replay after multibrain migration",
             doesNotReplace: "docs/performance/runs/TASK-0017-J12-webview2.json",

@@ -1,0 +1,207 @@
+{
+  "task": "TASK-0019",
+  "criteria": [
+    "L11",
+    "L2",
+    "K11",
+    "K3",
+    "H1",
+    "H2",
+    "H3",
+    "H5",
+    "H6",
+    "H7",
+    "H8",
+    "H10",
+    "H11"
+  ],
+  "sourceCriterion": "TASK-0018/K11",
+  "nature": "regression / compatibility replay",
+  "doesNotReplace": "docs/performance/runs/TASK-0018-K11-readonly-and-isolation.json",
+  "replacesCanonicalEvidence": false,
+  "note": "Read-only and isolation, replayed on the composed runtime. Driven by brain: the runtime exposes no fixture-keyed command. TASK-0018's own K11 artefact is the canonical evidence of a VERIFIED task and is protected at the write gate.",
+  "capturedAtIso": "2026-09-02T15:49:08.266Z",
+  "host": {
+    "sandboxRoot": "<dépôt>/.filetopo-sandbox",
+    "appVersion": "0.1.0-alpha.1",
+    "sqliteVersion": "3.53.2",
+    "webviewVersion": "152.0.4191.53",
+    "tauriVersion": "2.11.5",
+    "platform": "windows",
+    "nodeCeiling": 5000,
+    "depthCeiling": 40,
+    "minLeafArea": 2400,
+    "autoVerify": true,
+    "autoMeasure": false,
+    "autoRelations": false,
+    "autoBrainsPass": 0,
+    "autoComposedPass": 0
+  },
+  "l2_indexPaths": [
+    "brains/brain-alpha/map/index.sqlite",
+    "brains/brain-beta/map/index.sqlite",
+    "brains/brain-gamma/map/index.sqlite"
+  ],
+  "l2_indexPathsDistinct": true,
+  "findings": [
+    {
+      "brainId": "brain-alpha",
+      "indexPath": "brains/brain-alpha/map/index.sqlite",
+      "fixtureId": "quasi-empty",
+      "declaredCeiling": 25,
+      "nodeCount": 12,
+      "plannedNodes": 12,
+      "maxDepth": 3,
+      "depthCeiling": 40,
+      "nodeCeiling": 5000,
+      "schemaVersion": 2,
+      "layoutInvocations": 1,
+      "timingsMs": {
+        "scan": 1.176,
+        "layout": 0.0485,
+        "index": 12.4657
+      },
+      "rebuiltTimingsMs": {
+        "scan": 0.6523,
+        "layout": 0.019700000000000002,
+        "index": 12.773
+      },
+      "h1_pathsAgree": true,
+      "h1_counts": {
+        "planned": 11,
+        "onDisk": 11,
+        "indexed": 11
+      },
+      "h1_missingFromIndex": [],
+      "h1_unexpectedInIndex": [],
+      "h2_layoutViolations": [],
+      "h3_hierarchyMismatches": [],
+      "h5_detailMismatches": [],
+      "h6_readOnlyConfirmed": true,
+      "h6_fingerprintBefore": "fnv1a64:bddfe1a16cac350f",
+      "h6_fingerprintAfterRebuild": "fnv1a64:bddfe1a16cac350f",
+      "h6_fingerprintUnchanged": true,
+      "h6_filetopoArtifactsInRoot": [],
+      "h7_digestBefore": "fnv1a64:09eda272ceec9b16",
+      "h7_digestAfterRebuild": "fnv1a64:09eda272ceec9b16",
+      "h7_equivalent": true,
+      "h7_nonReconstructible": [
+        "built_unix_ms"
+      ],
+      "h11_withinCeilings": true,
+      "integrityBefore": {
+        "brainId": "brain-alpha",
+        "fixtureId": "quasi-empty",
+        "fingerprint": "fnv1a64:bddfe1a16cac350f",
+        "filetopoArtifacts": [],
+        "observedEntries": 11
+      }
+    },
+    {
+      "brainId": "brain-beta",
+      "indexPath": "brains/brain-beta/map/index.sqlite",
+      "fixtureId": "deep",
+      "declaredCeiling": 500,
+      "nodeCount": 157,
+      "plannedNodes": 157,
+      "maxDepth": 40,
+      "depthCeiling": 40,
+      "nodeCeiling": 5000,
+      "schemaVersion": 2,
+      "layoutInvocations": 1,
+      "timingsMs": {
+        "scan": 16.7851,
+        "layout": 0.1523,
+        "index": 7.6863
+      },
+      "rebuiltTimingsMs": {
+        "scan": 15.7646,
+        "layout": 0.09459999999999999,
+        "index": 14.1559
+      },
+      "h1_pathsAgree": true,
+      "h1_counts": {
+        "planned": 156,
+        "onDisk": 156,
+        "indexed": 156
+      },
+      "h1_missingFromIndex": [],
+      "h1_unexpectedInIndex": [],
+      "h2_layoutViolations": [],
+      "h3_hierarchyMismatches": [],
+      "h5_detailMismatches": [],
+      "h6_readOnlyConfirmed": true,
+      "h6_fingerprintBefore": "fnv1a64:075a9c069126e8f1",
+      "h6_fingerprintAfterRebuild": "fnv1a64:075a9c069126e8f1",
+      "h6_fingerprintUnchanged": true,
+      "h6_filetopoArtifactsInRoot": [],
+      "h7_digestBefore": "fnv1a64:7effa27d086bf493",
+      "h7_digestAfterRebuild": "fnv1a64:7effa27d086bf493",
+      "h7_equivalent": true,
+      "h7_nonReconstructible": [
+        "built_unix_ms"
+      ],
+      "h11_withinCeilings": true,
+      "integrityBefore": {
+        "brainId": "brain-beta",
+        "fixtureId": "deep",
+        "fingerprint": "fnv1a64:075a9c069126e8f1",
+        "filetopoArtifacts": [],
+        "observedEntries": 156
+      }
+    },
+    {
+      "brainId": "brain-gamma",
+      "indexPath": "brains/brain-gamma/map/index.sqlite",
+      "fixtureId": "quasi-empty",
+      "declaredCeiling": 25,
+      "nodeCount": 12,
+      "plannedNodes": 12,
+      "maxDepth": 3,
+      "depthCeiling": 40,
+      "nodeCeiling": 5000,
+      "schemaVersion": 2,
+      "layoutInvocations": 1,
+      "timingsMs": {
+        "scan": 1.4578,
+        "layout": 0.1064,
+        "index": 5.3719
+      },
+      "rebuiltTimingsMs": {
+        "scan": 1.0832000000000002,
+        "layout": 0.0478,
+        "index": 11.7766
+      },
+      "h1_pathsAgree": true,
+      "h1_counts": {
+        "planned": 11,
+        "onDisk": 11,
+        "indexed": 11
+      },
+      "h1_missingFromIndex": [],
+      "h1_unexpectedInIndex": [],
+      "h2_layoutViolations": [],
+      "h3_hierarchyMismatches": [],
+      "h5_detailMismatches": [],
+      "h6_readOnlyConfirmed": true,
+      "h6_fingerprintBefore": "fnv1a64:bddfe1a16cac350f",
+      "h6_fingerprintAfterRebuild": "fnv1a64:bddfe1a16cac350f",
+      "h6_fingerprintUnchanged": true,
+      "h6_filetopoArtifactsInRoot": [],
+      "h7_digestBefore": "fnv1a64:09eda272ceec9b16",
+      "h7_digestAfterRebuild": "fnv1a64:09eda272ceec9b16",
+      "h7_equivalent": true,
+      "h7_nonReconstructible": [
+        "built_unix_ms"
+      ],
+      "h11_withinCeilings": true,
+      "integrityBefore": {
+        "brainId": "brain-gamma",
+        "fixtureId": "quasi-empty",
+        "fingerprint": "fnv1a64:bddfe1a16cac350f",
+        "filetopoArtifacts": [],
+        "observedEntries": 11
+      }
+    }
+  ]
+}

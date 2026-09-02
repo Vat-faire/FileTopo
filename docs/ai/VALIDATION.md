@@ -1,6 +1,6 @@
 # VALIDATION.md — État de vérification
 
-**Dernière mise à jour :** 2026-08-31
+**Dernière mise à jour :** 2026-09-02
 **Portée :** TASK-0001 (phase 0) — `VERIFIED` ; TASK-0002 (phase 1) —
 `VERIFIED` le 2026-08-25, sur preuves indépendantes de l'orchestrateur
 (section A.7) ; TASK-0010 (rebaseline et mémoire) — `VERIFIED` le 2026-08-31,
@@ -2604,3 +2604,84 @@ pour que `S-005` soit en attente. **Aucune preuve historique n'a été touchée.
 **Aucune réserve n'est levée par cette entrée.** `X5` reste **`OPEN`** jusqu'au
 re-contrôle indépendant. `V1` à `V4`, `W1` à `W4`, `R2` à `R9` restent en
 vigueur.
+
+---
+
+## Z. TASK-0019 — Vue composée multi-cerveaux (2026-09-02)
+
+**Statut : `IMPLEMENTED`** le 2026-09-02, **`VERIFIED` NON attribué** —
+l'exécuteur ne s'auto-vérifie pas. Branche
+`build/v0.2-a4-composed-view`; gel `§4` en `bcbc4aa`, **avant** la première
+ligne de code de cette tranche.
+
+### Z.1 Vérifié
+
+- **`pnpm check`** : PASS.
+- **Tests TypeScript** : **139/139** (107 → 139). Trois suites neuves ou
+  refaites — `composedView.test.ts` (31), `brains.test.tsx` refait contre la
+  barre de composition (16), `runArtifacts.test.ts` étendu (10).
+- **Tests Rust** : **107/107**.
+- **`pnpm build`** : PASS. **Build Tauri `debug --no-bundle`** : PASS.
+- **`L12` dans le vrai WebView2 `152.0.4191.53`**, **deux processus**, avec
+  fermeture et redémarrage **réels** :
+  `TASK-0019-L12-composed-view-webview2-pass{1,2}.json`.
+  Seize des dix-sept étapes tenues; l'étape 7 est partielle, voir Z.2.
+- **Vraies frappes Windows** aux étapes 3, 8, 13 et 14 : `isTrusted=true`,
+  **0** `click()` programmatique, **0** `dispatchEvent(click)`.
+- **`C2`** : 1 canevas, 2 territoires, 12 + 12, index `SQLite` **distincts**.
+  **`C3`** : 3 territoires, 12 + 157 + 12 = **181**, **0** arête
+  inter-cerveaux sur 32 dessinées.
+- **Collision `L3`** : `node_id` 4 valide dans Alpha **et** Gamma,
+  `brain-alpha-map-node-4` ≠ `brain-gamma-map-node-4`, sélection de l'un =
+  **0** sélectionné dans l'autre, **aucun** `id` DOM partagé.
+- **`L9`** : `C2 → C3 → C2` restitue **exactement** l'état de `C2`.
+- **`L11` lecture seule** : `TASK-0019-K11-readonly-regression-webview2.json`
+  — empreintes identiques avant/après sur **trois** cerveaux, **0** artefact
+  FileTopo dans les racines analysées, trois chemins d'index distincts.
+- **Régressions de la fondation** : `K12` deux passes
+  (`TASK-0019-K12-foundation-regression-webview2-pass{1,2}.json`) et `J12` une
+  passe (`TASK-0019-J12-relations-regression-webview2.json`), toutes deux à
+  vraie frappe.
+- **`X5`** : les **huit** preuves protégées sont **inchangées**, `git status`
+  ne montre que des ajouts non suivis sous `docs/performance/runs/`.
+
+### Z.2 Non tenu, et publié tel quel
+
+- **`L12` étape 7, moitié « approuver `S-005` dans Alpha » : NON REJOUÉE.** Le
+  bac à sable est persistant et `S-005` y était déjà approuvée par une
+  exécution antérieure du rejeu `K12`; le magasin refuse une seconde
+  approbation, ce qui est `X3` qui fonctionne. Aucune commande de remise à zéro
+  n'existe, et effacer le bac à sable serait une suppression hors périmètre.
+  **La moitié « Gamma inchangé » est tenue** : Gamma strictement identique
+  avant/après, magasins séparés. L'artefact porte `approvalReplayable: false`
+  et sa raison.
+
+### Z.3 Non testé, et déclaré tel
+
+- **Aucune campagne `H9`**, aucun seuil, aucune mesure de performance. `R8`
+  reste entière.
+- **Persistance de la composition** : non implémentée, `P-19` demeure.
+  `L12` §17 le confirme sur redémarrage réel.
+- **Relations inter-cerveaux** : hors périmètre, `TASK-0020`.
+- **Révocation de `P-04`** : non implémentée, `P-21` non satisfaite.
+- **`B0` s'est reproduit une sixième fois** — `rustc` a paniqué sur son cache
+  incrémental. Contourné par `CARGO_INCREMENTAL=0`, qui ne supprime rien;
+  **rien n'a été effacé ni renommé dans `src-tauri/target/`.**
+- **Une seule machine, un seul runtime WebView2.**
+
+### Z.4 Défauts trouvés en chemin
+
+Quatre, tous corrigés et gardés par un test ou une garde d'exécution :
+
+1. `scripts/k12-run-real-host.ps1` **supprimait** une preuve devenue canonique
+   d'une tâche `VERIFIED`. Les deux scripts portent désormais une liste
+   protégée et un `Assert-NotProtected`.
+2. Le rejeu `J12` déclarait `task: "TASK-0018"` dans un fichier `TASK-0019`.
+   Corrigé; un test de garde l'exige maintenant.
+3. Trois scénarios lisaient trop tôt après `showOnly`, non `await`é. Corrigé en
+   attendant que l'état **cesse de changer**, jamais qu'il atteigne une valeur
+   attendue.
+4. Un octet `NUL` était **commité** dans `src/map/brainScenario.ts`.
+
+**Aucune réserve n'est levée par cette entrée.** `V1`–`V4`, `W1`–`W4`,
+`R2`–`R9` restent en vigueur.

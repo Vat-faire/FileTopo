@@ -1,0 +1,43 @@
+{
+  "task": "TASK-0019",
+  "criterion": "L12",
+  "nature": "criterion evidence",
+  "replacesCanonicalEvidence": false,
+  "pass": 2,
+  "capturedAtIso": "2026-09-02T15:48:39.026Z",
+  "host": {
+    "sandboxRoot": "<dépôt>/.filetopo-sandbox",
+    "appVersion": "0.1.0-alpha.1",
+    "sqliteVersion": "3.53.2",
+    "webviewVersion": "152.0.4191.53",
+    "tauriVersion": "2.11.5",
+    "platform": "windows",
+    "nodeCeiling": 5000,
+    "depthCeiling": 40,
+    "minLeafArea": 2400,
+    "autoVerify": false,
+    "autoMeasure": false,
+    "autoRelations": false,
+    "autoBrainsPass": 0,
+    "autoComposedPass": 2
+  },
+  "evidence": {
+    "pass": 2,
+    "steps": "L12.17 — apres une fermeture et un redemarrage reels",
+    "compositionReady": true,
+    "activeBrainId": "brain-gamma",
+    "gammaStillActive": true,
+    "interfaceShowsTheActiveBrain": true,
+    "displayedBrainIds": [
+      "brain-gamma"
+    ],
+    "compositionIsGammaAlone": true,
+    "canvases": 1,
+    "territories": [
+      "brain-gamma"
+    ],
+    "composedViewPersistence": "non implementee dans TASK-0019 — P-19",
+    "seededOnThisStart": 0,
+    "seedCreatedNothing": true
+  }
+}

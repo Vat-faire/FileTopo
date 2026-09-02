@@ -141,6 +141,14 @@ export interface HostInfo {
   autoRelations: boolean;
   /** `0` none, `1` steps K12.1–K12.9, `2` steps K12.10–K12.12. */
   autoBrainsPass: number;
+  /**
+   * `L12` — `0` none, `1` the sixteen steps before the real restart, `2` the
+   * seventeenth, which only a relaunched process can observe.
+   *
+   * Kept apart from {@link autoBrainsPass} because `K12` and `L12` prove
+   * different things and must remain replayable one without the other.
+   */
+  autoComposedPass: number;
 }
 
 export interface FixtureIntegrity {

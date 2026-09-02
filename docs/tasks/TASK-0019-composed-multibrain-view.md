@@ -434,6 +434,101 @@ dans le vrai WebView2**, en deux processus pour le redémarrage.
 **`TASK-0019` termine `IMPLEMENTED`, jamais `VERIFIED`.** L'exécuteur ne
 s'auto-vérifie pas.
 
+# 7. Résultat
+
+**Écrit après l'exécution. §4 n'a pas été retouchée** — le gel `bcbc4aa`
+précède la première ligne de code de cette tranche, et **aucun critère
+`L1`–`L12` n'a été modifié après le premier résultat.**
+
+## 7.1 Les douze critères gelés
+
+| Critère | Verdict | Où c'est prouvé |
+|---|---|---|
+| `L1` composition non vide, sans doublon, cerveaux connus, focus affiché | **TENU** | `composedView.test.ts` — les **cinq** codes d'erreur nommés sont produits, aucun repli silencieux |
+| `L2` données non fusionnées | **TENU** | `L12` §4 : `brains/brain-alpha/…/index.sqlite` ≠ `brain-gamma`; `L11` : **trois** chemins d'index distincts |
+| `L3` collision `node_id` Alpha/Gamma | **TENU** | `L12` §5 : `node_id` 4 des deux côtés, `brain-alpha-map-node-4` ≠ `brain-gamma-map-node-4`, sélection de l'un = **0** sélectionné dans l'autre, **tous** les `id` DOM uniques |
+| `L4` territoires nommés et accessibles dans le même `SVG` | **TENU** | `L12` §4 et §8 : **1** canevas, libellés « territoire Cerveau Alpha, icône ▲, 12 nœuds, actif » |
+| `L5` géométrie, translation seule | **TENU** | `L12` §4 `alphaRectanglesUnchanged=true`, §6 `internalLayoutUnchangedByPanZoom=true`; formules §4.3 vérifiées une à une dans `composedView.test.ts` |
+| `L6` ajout / retrait | **TENU** | `L12` §3 → `C2`, §8 → `C3`, §12 Bêta retiré et **catalogue, index et 157 nœuds intacts**, §14 dernier retrait **refusé** |
+| `L7` focus / détails | **TENU** | `L12` §10 : nœud Bêta → `focusedBrainId` **et** cerveau actif = `brain-beta`, détails `annexe` |
+| `L8` relations isolées | **TENU** | `L12` §9 : **32** arêtes dessinées, **0** inter-cerveaux; §7 Gamma **strictement** inchangé, magasins séparés |
+| `L9` mémoire par composition | **TENU** | `L12` §12 : `C2 → C3 → C2` restitue **exactement** l'état de `C2`; `brains.test.tsx` conserve `K8` sous la clé d'un seul cerveau |
+| `L10` clavier | **TENU** | `L12` §3, §8, §13, §14 : `isTrusted=true`, **0** `click()` programmatique, **0** `dispatchEvent(click)` |
+| `L11` sécurité / historique | **TENU** | `TASK-0019-K11-readonly-regression-webview2.json` : empreintes identiques ×3, **0** artefact FileTopo dans les racines; les **huit** preuves protégées inchangées |
+| `L12` hôte réel, dix-sept étapes | **TENU sauf la moitié « approbation » de l'étape 7** | `TASK-0019-L12-composed-view-webview2-pass{1,2}.json`, WebView2 `152.0.4191.53`, deux processus |
+
+## 7.2 La seule cible manquée, publiée comme manquée
+
+**`L12` étape 7, moitié « approuver `S-005` dans Alpha » : NON REJOUÉE.**
+
+Le bac à sable `<dépôt>/.filetopo-sandbox` est **persistant**, et une exécution
+antérieure du rejeu `K12` avait déjà approuvé `S-005` dans `brain-alpha`. Le
+magasin refuse alors une seconde approbation —
+`relation_rejected_suggestion_already_decided` — ce qui est **`X3` qui
+fonctionne**, pas le produit qui échoue. Aucune commande de remise à zéro
+n'existe dans le runtime, et effacer le bac à sable serait une **suppression**
+que le périmètre de cette tâche n'autorise pas.
+
+Ce qui est donc prouvé à l'étape 7 : `alphaApprouvées=5`, `alphaEnAttente=3`,
+`S-005` **est** approuvée dans Alpha, et **Gamma est strictement inchangé** —
+`4` approuvées, `S-005` à `S-008` toujours en attente, magasin distinct. La
+moitié qui porte `L8` tient; la moitié qui porte l'**acte** n'a pas pu être
+rejouée, et l'artefact le dit en toutes lettres — `approvalReplayable: false`
+et sa raison.
+
+## 7.3 Trouvés en chemin, et publiés
+
+1. **Un défaut de mesure dans le scénario, pas dans le produit.** La première
+   exécution de `L12` a publié `restoredExactly=false` à l'étape 12 : la
+   sélection était revenue, la vue non. Elle **l'était**, un rendu plus tard —
+   un changement de composition atterrit en deux commits, et le scénario lisait
+   entre les deux. Corrigé en attendant que la valeur **cesse de changer**,
+   jamais qu'elle atteigne une valeur attendue. `waitedMs=33`,
+   `restoredExactly=true`.
+2. **`scripts/k12-run-real-host.ps1` supprimait une preuve protégée.** Il
+   effaçait `TASK-0018-K12-webview2-pass$Pass.json` avant chaque passe — devenu
+   preuve canonique d'une tâche `VERIFIED` par `ACTION-0029`. La porte
+   d'écriture de l'application ne dit rien d'un script qui l'évite. Les deux
+   scripts de passe portent désormais une liste protégée et un `Assert-NotProtected`.
+3. **Le rejeu `J12` déclarait `task: "TASK-0018"` dans un fichier `TASK-0019`.**
+   Le nom et la charge utile se contredisaient. Corrigé, et **un test de garde**
+   exige maintenant que toute source qui écrit un artefact déclare `TASK-0019`.
+4. **Trois scénarios lisaient trop tôt après `showOnly`.** Le sélecteur qu'ils
+   pilotaient était `await`é; la composition ne l'est pas. `J12` attendait un
+   cerveau sur lequel l'amorçage l'avait déjà contredit. Corrigé en attendant
+   l'amorçage **avant** de demander.
+5. **Un octet `NUL` était commité dans `src/map/brainScenario.ts`**, dans un
+   littéral `?? " "` de `TASK-0018`. Réparé en `?? ""`.
+
+## 7.4 Validations exécutées
+
+`pnpm check` **PASS**; **139/139** tests TypeScript (107 → 139); **107/107**
+tests Rust; `pnpm build` **PASS**; build Tauri `debug --no-bundle` **PASS**;
+`L12` **deux passes** dans WebView2 `152.0.4191.53` avec fermeture et
+redémarrage **réels**; `K12` de régression **deux passes**; `J12` de
+régression **une passe**, vraie frappe; `L11` lecture seule **trois cerveaux**.
+
+**`B0` s'est reproduit** — `rustc` a paniqué sur son cache incrémental au
+premier `cargo test`. Contourné par `CARGO_INCREMENTAL=0`, qui **ne supprime
+rien**; **rien n'a été effacé ni renommé dans `src-tauri/target/`.**
+
+## 7.5 Ce qui n'a pas été fait, et se déclare tel
+
+- **Aucune campagne `H9`**, aucun seuil, aucune mesure de performance. `R8`
+  reste entière.
+- **La persistance de la composition n'est pas implémentée** — `L12` §17 le
+  confirme : Gamma actif, composition **Gamma seul**. `P-19` demeure.
+- **Aucune relation inter-cerveaux** — `TASK-0020`.
+- **La révocation de `P-04` n'est pas implémentée**; `P-21` non satisfaite.
+- **`B0` n'est pas corrigé.**
+- **Une seule machine, un seul runtime WebView2.**
+- **`BrainSelector.tsx` a été supprimé** — §4.4 remplace son UX. Les
+  affirmations `K7`, `K8` et `K10` qu'il portait sont **reprises une à une**
+  dans `brains.test.tsx`, contre la barre de composition.
+
+**`TASK-0019` est livrée `IMPLEMENTED`. L'exécuteur ne s'attribue pas
+`VERIFIED`.**
+
 ## Historique d'état
 
 | Date | État | Motif |

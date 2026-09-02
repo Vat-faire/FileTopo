@@ -1,52 +1,77 @@
 import { useCallback, useEffect, useMemo, useRef } from "react";
+import { domNodeId, domTerritoryId } from "./composedView";
 import type { Hierarchy } from "./hierarchy";
 import { hierarchicalNeighbourhood, move } from "./hierarchy";
 import type { RelationSegment } from "./relations";
-import type { MapNode, Rect } from "./types";
+import type { Composition, Territory } from "./territories";
+import { headerBox, territoryOf } from "./territories";
+import type { BrainNodeRef, BrainRecord, MapNode } from "./types";
 import type { View, Viewport } from "./viewState";
-import { fitToBox, fitView, panBy, worldToScreen, zoomAbout } from "./viewState";
+import { fitToBox, fitView, panBy, zoomAbout } from "./viewState";
 
 /**
- * The map itself: hierarchical blocks in accessible SVG.
+ * The map itself: **one** accessible `SVG`, holding one territory per brain.
  *
  * SVG rather than Canvas or WebGL, per `DEC-0013` C and `DEC-0015` E — both of
  * which remain closed. The layout is read from the index and only ever
  * transformed here; nothing on this path recomputes a rectangle, which is what
- * `H10` asserts.
+ * `H10` asserts and what `L5` now asserts for a composition.
  *
- * **Blocks are drawn in layout coordinates inside one transformed group.** Pan
- * and zoom therefore change a single attribute rather than re-projecting every
- * node, so a frame costs one transform instead of thousands of DOM writes. The
- * labels are the exception: they live in a screen-space layer because text that
- * scaled with the map would be illegible at one end of the zoom range and
- * absurd at the other. That layer only ever holds the handful of labels that
- * are on screen and large enough to read.
+ * **One canvas, not three stacked maps** — `TASK-0019` §4.3. A composition of
+ * one brain and a composition of three go through *this* component, on the
+ * same code path: the single-brain case is a composition of one, so nothing
+ * about it can drift away from the composed case.
  *
- * Everything reachable with the mouse is reachable from the keyboard: the map
- * is one focusable widget whose arrow keys walk the hierarchy, and the toolbar
- * beside it exposes the same navigation as ordinary buttons.
+ * **Transforms nest, so nothing is re-projected.** Blocks are drawn in each
+ * brain's own layout coordinates, inside a group translated by that brain's
+ * territory offset, inside a group carrying the global pan and zoom. A frame
+ * therefore costs two attribute writes rather than thousands of DOM writes —
+ * and, more importantly, **the rectangles in the DOM are bit-for-bit the ones
+ * the index holds**, whatever the composition and whatever the zoom. `L5` is
+ * not a discipline here; it is the shape of the tree.
+ *
+ * The labels are the exception: they live in a screen-space layer, because
+ * text that scaled with the map would be illegible at one end of the zoom
+ * range and absurd at the other.
+ *
+ * **`L3` — DOM identity.** Alpha and Gamma read the same fixture, so
+ * `map-node-6` exists in both. Every node id is therefore namespaced by its
+ * brain — `brain-alpha-map-node-6` — and the selection that travels is a
+ * `BrainNodeRef`, never a bare row number.
  */
 
-interface MapViewProps {
+/** One brain, ready to be drawn: its tree, its edges, its accents. */
+export interface RenderedBrain {
+  brainId: string;
+  record: BrainRecord;
   hierarchy: Hierarchy;
   /**
-   * Cross-cutting relations, already projected onto the persisted rectangles.
-   * `TASK-0017` `J9`.
+   * Cross-cutting relations of **this brain**, already projected onto its own
+   * persisted rectangles — `TASK-0017` `J9`. Both endpoints are always inside
+   * this brain: `L8` forbids an edge from crossing a territory boundary, and
+   * the only way to make that structurally true is never to build one.
    */
   segments: RelationSegment[];
   /**
-   * Node ids linked to the selection by an **established** relation.
-   * Suggestions are deliberately absent — `J8`.
+   * Node ids of **this brain** linked to the selection by an **established**
+   * relation. Suggestions are deliberately absent — `J8`.
    */
   relationNeighbours: Set<number>;
-  world: Rect;
+  nodeCount: number;
+}
+
+interface MapViewProps {
+  brains: RenderedBrain[];
+  composition: Composition;
   view: View;
   viewport: Viewport;
-  selectedId: number | null;
+  selected: BrainNodeRef | null;
+  focusedBrainId: string;
   onViewChange: (view: View) => void;
-  onSelect: (nodeId: number) => void;
+  onSelect: (reference: BrainNodeRef) => void;
   onViewportChange: (viewport: Viewport) => void;
-  labelFor: (node: MapNode) => string;
+  labelFor: (node: MapNode, brain: BrainRecord) => string;
+  territoryLabelFor: (brain: BrainRecord, nodeCount: number, focused: boolean) => string;
   ariaLabel: string;
 }
 
@@ -70,21 +95,23 @@ function arrowHead(x: number, y: number, ux: number, uy: number): string {
 }
 
 export default function MapView({
-  hierarchy,
-  segments,
-  relationNeighbours,
-  world,
+  brains,
+  composition,
   view,
   viewport,
-  selectedId,
+  selected,
+  focusedBrainId,
   onViewChange,
   onSelect,
   onViewportChange,
   labelFor,
+  territoryLabelFor,
   ariaLabel,
 }: MapViewProps) {
   const hostRef = useRef<HTMLDivElement>(null);
   const dragRef = useRef<{ pointerId: number; x: number; y: number } | null>(null);
+
+  const world = composition.world;
 
   useEffect(() => {
     const host = hostRef.current;
@@ -100,39 +127,54 @@ export default function MapView({
     return () => observer.disconnect();
   }, [onViewportChange]);
 
-  const highlighted = useMemo(
-    () => (selectedId === null ? new Set<number>() : hierarchicalNeighbourhood(hierarchy, selectedId)),
-    [hierarchy, selectedId],
-  );
+  /**
+   * The territories, drawn.
+   *
+   * Rebuilt only when the trees, the accents or the selection change — never
+   * for a pan or a zoom, which is the whole point of the nested groups below.
+   */
+  const territories = useMemo(() => {
+    return brains.map((brain) => {
+      const territory = territoryOf(composition, brain.brainId);
+      if (!territory) return null;
+      const highlighted =
+        selected && selected.brainId === brain.brainId
+          ? hierarchicalNeighbourhood(brain.hierarchy, selected.nodeId)
+          : new Set<number>();
 
-  // Rebuilt only when the tree or the selection changes — never for a pan or a
-  // zoom, which is the whole point of the transformed group below.
-  const blocks = useMemo(
-    () =>
-      hierarchy.drawOrder.map((node) => {
-        const selected = node.id === selectedId;
+      const blocks = brain.hierarchy.drawOrder.map((node) => {
+        const isSelected =
+          selected !== null &&
+          selected.brainId === brain.brainId &&
+          selected.nodeId === node.id;
         const related = highlighted.has(node.id);
         // `J8`: parent and direct children are accentuated as kin, cross-cutting
         // neighbours as links. Two accentuations rather than one, because the
         // panel distinguishes them and the map must not contradict it.
-        const linked = relationNeighbours.has(node.id);
+        const linked = brain.relationNeighbours.has(node.id);
         // Attenuated, never erased: the rectangle keeps its outline and its
         // accessible name whatever the selection is — parity §3, point 4.
-        const state = selected ? "selected" : related ? "related" : linked ? "linked" : "plain";
+        const state = isSelected ? "selected" : related ? "related" : linked ? "linked" : "plain";
         const corner = Math.min(node.rect.w, node.rect.h) * 0.06;
         const marker = Math.min(node.rect.w, node.rect.h) * 0.28;
         return (
           <g
             key={node.id}
-            id={`map-node-${node.id}`}
+            // `L3` — namespaced. Two brains on the same fixture hold the same
+            // row numbers, and one `id` for two elements would send
+            // `aria-activedescendant` and `getElementById` to whichever came
+            // first.
+            id={domNodeId(brain.brainId, node.id)}
+            data-brain-id={brain.brainId}
+            data-node-id={node.id}
             role="treeitem"
             aria-level={node.depth + 1}
-            aria-selected={selected}
-            aria-label={labelFor(node)}
+            aria-selected={isSelected}
+            aria-label={labelFor(node, brain.record)}
             className={`map-node map-node--${node.kind} map-node--${state}`}
             onPointerDown={(event) => {
               event.stopPropagation();
-              onSelect(node.id);
+              onSelect({ brainId: brain.brainId, nodeId: node.id });
             }}
           >
             <rect
@@ -153,100 +195,138 @@ export default function MapView({
             ) : null}
           </g>
         );
-      }),
-    [hierarchy, highlighted, labelFor, onSelect, relationNeighbours, selectedId],
-  );
+      });
+
+      return { brain, territory, blocks };
+    });
+  }, [brains, composition, labelFor, onSelect, selected]);
 
   /**
    * Cross-cutting relations, in the screen-space layer.
    *
    * Projected from the rectangles the index already holds — **no layout is
-   * recomputed**, which is what keeps `H10` of `TASK-0016` true while `J9`
-   * adds edges. Screen space rather than the transformed group so an arrow
-   * head stays the same size at every zoom instead of becoming a speck or a
-   * blot.
+   * recomputed**, which is what keeps `H10` true while `J9` adds edges. Screen
+   * space rather than the transformed group so an arrow head stays the same
+   * size at every zoom instead of becoming a speck or a blot.
    *
-   * Direction and status never rely on colour: an established relation is a
-   * solid line ending in a filled arrow head, a suggestion is a dashed line
-   * with **no** arrow head and an open ring at each end, and the accessible
-   * name spells out which is which.
+   * **Every edge is drawn inside one territory.** The coordinates below are a
+   * brain's own, translated by *that brain's* offset: there is no arithmetic
+   * here that could place one end of a segment in another brain's territory,
+   * because the offset is chosen once, per brain, outside the loop.
    */
   const edges = useMemo(() => {
     const drawn: React.ReactElement[] = [];
-    for (const segment of segments) {
-      const x1 = segment.x1 * view.scale + view.tx;
-      const y1 = segment.y1 * view.scale + view.ty;
-      const x2 = segment.x2 * view.scale + view.tx;
-      const y2 = segment.y2 * view.scale + view.ty;
-      const offScreen =
-        (x1 < 0 && x2 < 0) ||
-        (y1 < 0 && y2 < 0) ||
-        (x1 > viewport.width && x2 > viewport.width) ||
-        (y1 > viewport.height && y2 > viewport.height);
-      if (offScreen) continue;
+    for (const entry of territories) {
+      if (!entry) continue;
+      const { brain, territory } = entry;
+      for (const segment of brain.segments) {
+        const x1 = (segment.x1 + territory.offsetX) * view.scale + view.tx;
+        const y1 = (segment.y1 + territory.offsetY) * view.scale + view.ty;
+        const x2 = (segment.x2 + territory.offsetX) * view.scale + view.tx;
+        const y2 = (segment.y2 + territory.offsetY) * view.scale + view.ty;
+        const offScreen =
+          (x1 < 0 && x2 < 0) ||
+          (y1 < 0 && y2 < 0) ||
+          (x1 > viewport.width && x2 > viewport.width) ||
+          (y1 > viewport.height && y2 > viewport.height);
+        if (offScreen) continue;
 
-      const length = Math.hypot(x2 - x1, y2 - y1);
-      if (!(length > 1)) continue;
-      const ux = (x2 - x1) / length;
-      const uy = (y2 - y1) / length;
-      const established = segment.kind === "established";
-      const state = segment.touchesSelection ? "touching" : "distant";
-      const className =
-        `map-edge map-edge--${segment.kind} map-edge--${state}` +
-        (segment.provenance ? ` map-edge--${segment.provenance.toLowerCase()}` : "");
+        const length = Math.hypot(x2 - x1, y2 - y1);
+        if (!(length > 1)) continue;
+        const ux = (x2 - x1) / length;
+        const uy = (y2 - y1) / length;
+        const established = segment.kind === "established";
+        const state = segment.touchesSelection ? "touching" : "distant";
+        const className =
+          `map-edge map-edge--${segment.kind} map-edge--${state}` +
+          (segment.provenance ? ` map-edge--${segment.provenance.toLowerCase()}` : "");
 
-      drawn.push(
-        <g key={segment.key} className={className} role="presentation">
-          <title>{segment.label}</title>
-          <line className="map-edge__line" x1={x1} y1={y1} x2={x2} y2={y2} />
-          {established ? (
-            // Filled arrow head, drawn as a triangle so its shape carries the
-            // direction without a marker definition and without colour.
-            <path
-              className="map-edge__arrow"
-              d={arrowHead(x2 - ux * 9, y2 - uy * 9, ux, uy)}
-            />
-          ) : (
-            <>
-              <circle className="map-edge__ring" cx={x1} cy={y1} r={3.5} />
-              <circle className="map-edge__ring" cx={x2} cy={y2} r={3.5} />
-            </>
-          )}
-        </g>,
-      );
+        drawn.push(
+          <g
+            key={`${brain.brainId}|${segment.key}`}
+            className={className}
+            // `L8` — an edge belongs to exactly one brain, and says which.
+            data-brain-id={brain.brainId}
+            data-from-brain-id={brain.brainId}
+            data-to-brain-id={brain.brainId}
+            role="presentation"
+          >
+            <title>{segment.label}</title>
+            <line className="map-edge__line" x1={x1} y1={y1} x2={x2} y2={y2} />
+            {established ? (
+              // Filled arrow head, drawn as a triangle so its shape carries the
+              // direction without a marker definition and without colour.
+              <path className="map-edge__arrow" d={arrowHead(x2 - ux * 9, y2 - uy * 9, ux, uy)} />
+            ) : (
+              <>
+                <circle className="map-edge__ring" cx={x1} cy={y1} r={3.5} />
+                <circle className="map-edge__ring" cx={x2} cy={y2} r={3.5} />
+              </>
+            )}
+          </g>,
+        );
+      }
     }
     return drawn;
-  }, [segments, view.scale, view.tx, view.ty, viewport.height, viewport.width]);
+  }, [territories, view.scale, view.tx, view.ty, viewport.height, viewport.width]);
 
-  // Screen-space layer: only what is on screen and big enough to read, plus the
-  // selection, whose label `P-02` requires to stay legible.
+  /**
+   * Screen-space labels: the territory identities, then the node names.
+   *
+   * A territory's name and icon are drawn **whatever the zoom**, because `L4`
+   * asks that the origin of what is on screen always be readable. Node labels
+   * keep the `TASK-0016` rule: only what is on screen and big enough to read,
+   * plus the selection, whose label `P-02` requires to stay legible.
+   */
   const labels = useMemo(() => {
     const drawn: React.ReactElement[] = [];
-    for (const node of hierarchy.drawOrder) {
-      const screen = worldToScreen(node.rect, view);
-      if (
-        screen.x + screen.w < 0 ||
-        screen.y + screen.h < 0 ||
-        screen.x > viewport.width ||
-        screen.y > viewport.height
-      ) {
-        continue;
+    for (const entry of territories) {
+      if (!entry) continue;
+      const { brain, territory } = entry;
+      const head = headerBox(territory);
+      const x = head.x * view.scale + view.tx;
+      const y = head.y * view.scale + view.ty;
+      const w = head.w * view.scale;
+      if (!(x + w < 0 || y + 40 < 0 || x > viewport.width || y > viewport.height)) {
+        drawn.push(
+          <text
+            key={`territory|${brain.brainId}`}
+            className={
+              "map-territory__title" +
+              (brain.brainId === focusedBrainId ? " map-territory__title--focused" : "")
+            }
+            x={x}
+            y={y + 22}
+          >
+            {`${brain.record.icon} ${brain.record.displayName} · ${brain.nodeCount} nœuds`}
+          </text>,
+        );
       }
-      const big = screen.w >= LABEL_MIN_WIDTH && screen.h >= LABEL_MIN_HEIGHT;
-      if (!big && node.id !== selectedId) continue;
-      drawn.push(
-        <text
-          key={node.id}
-          className={`map-node__label${node.id === selectedId ? " map-node__label--selected" : ""}`}
-          x={screen.x + 5}
-          y={screen.y + 13}
-        >
-          {node.name}
-        </text>,
-      );
+
+      for (const node of brain.hierarchy.drawOrder) {
+        const sx = (node.rect.x + territory.offsetX) * view.scale + view.tx;
+        const sy = (node.rect.y + territory.offsetY) * view.scale + view.ty;
+        const sw = node.rect.w * view.scale;
+        const sh = node.rect.h * view.scale;
+        if (sx + sw < 0 || sy + sh < 0 || sx > viewport.width || sy > viewport.height) continue;
+        const isSelected =
+          selected !== null && selected.brainId === brain.brainId && selected.nodeId === node.id;
+        const big = sw >= LABEL_MIN_WIDTH && sh >= LABEL_MIN_HEIGHT;
+        if (!big && !isSelected) continue;
+        drawn.push(
+          <text
+            key={`${brain.brainId}|${node.id}`}
+            className={`map-node__label${isSelected ? " map-node__label--selected" : ""}`}
+            x={sx + 5}
+            y={sy + 13}
+          >
+            {node.name}
+          </text>,
+        );
+      }
     }
     return drawn;
-  }, [hierarchy, selectedId, view, viewport.height, viewport.width]);
+  }, [focusedBrainId, selected, territories, view, viewport.height, viewport.width]);
 
   const handleWheel = useCallback(
     (event: React.WheelEvent<SVGSVGElement>) => {
@@ -282,40 +362,66 @@ export default function MapView({
     if (dragRef.current?.pointerId === event.pointerId) dragRef.current = null;
   }, []);
 
+  /** The tree the arrow keys walk: the one the selection is in. */
+  const selectedBrain = useMemo(
+    () => (selected ? brains.find((brain) => brain.brainId === selected.brainId) ?? null : null),
+    [brains, selected],
+  );
+
+  const selectedNode = useMemo(
+    () => (selected && selectedBrain ? selectedBrain.hierarchy.byId.get(selected.nodeId) ?? null : null),
+    [selected, selectedBrain],
+  );
+
+  /**
+   * Moves the selection to another territory, by keyboard.
+   *
+   * Without it the arrow keys would confine a keyboard user to whichever brain
+   * they started in: the chips above the map can move the focus, but the map
+   * itself is one widget, and a widget that can only reach a third of what it
+   * draws is not reachable. `n` and `p` walk the territories in composed order
+   * and land on each brain's root.
+   */
+  const stepTerritory = useCallback(
+    (delta: number) => {
+      if (brains.length === 0) return;
+      const current = selected
+        ? brains.findIndex((brain) => brain.brainId === selected.brainId)
+        : 0;
+      const next = brains[(current + delta + brains.length) % brains.length];
+      onSelect({ brainId: next.brainId, nodeId: next.hierarchy.rootId });
+    },
+    [brains, onSelect, selected],
+  );
+
   const handleKeyDown = useCallback(
     (event: React.KeyboardEvent<SVGSVGElement>) => {
       const centre = { x: viewport.width / 2, y: viewport.height / 2 };
       const panning = event.altKey;
       let handled = true;
 
+      const walk = (direction: "parent" | "child" | "previous" | "next") => {
+        if (!selected || !selectedBrain) return;
+        const target = move(selectedBrain.hierarchy, selected.nodeId, direction);
+        if (target !== null) onSelect({ brainId: selected.brainId, nodeId: target });
+      };
+
       switch (event.key) {
         case "ArrowUp":
           if (panning) onViewChange(panBy(view, 0, KEY_PAN_STEP, world, viewport));
-          else if (selectedId !== null) {
-            const target = move(hierarchy, selectedId, "parent");
-            if (target !== null) onSelect(target);
-          }
+          else walk("parent");
           break;
         case "ArrowDown":
           if (panning) onViewChange(panBy(view, 0, -KEY_PAN_STEP, world, viewport));
-          else if (selectedId !== null) {
-            const target = move(hierarchy, selectedId, "child");
-            if (target !== null) onSelect(target);
-          }
+          else walk("child");
           break;
         case "ArrowLeft":
           if (panning) onViewChange(panBy(view, KEY_PAN_STEP, 0, world, viewport));
-          else if (selectedId !== null) {
-            const target = move(hierarchy, selectedId, "previous");
-            if (target !== null) onSelect(target);
-          }
+          else walk("previous");
           break;
         case "ArrowRight":
           if (panning) onViewChange(panBy(view, -KEY_PAN_STEP, 0, world, viewport));
-          else if (selectedId !== null) {
-            const target = move(hierarchy, selectedId, "next");
-            if (target !== null) onSelect(target);
-          }
+          else walk("next");
           break;
         case "+":
         case "=":
@@ -327,9 +433,20 @@ export default function MapView({
           break;
         case "f":
         case "F": {
-          const selected = selectedId === null ? null : hierarchy.byId.get(selectedId);
+          const territory = selected ? territoryOf(composition, selected.brainId) : null;
           onViewChange(
-            selected ? fitToBox(selected.rect, world, viewport) : fitView(world, viewport),
+            selectedNode && territory
+              ? fitToBox(
+                  {
+                    x: selectedNode.rect.x + territory.offsetX,
+                    y: selectedNode.rect.y + territory.offsetY,
+                    w: selectedNode.rect.w,
+                    h: selectedNode.rect.h,
+                  },
+                  world,
+                  viewport,
+                )
+              : fitView(world, viewport),
           );
           break;
         }
@@ -338,7 +455,19 @@ export default function MapView({
           onViewChange(fitView(world, viewport));
           break;
         case "Home":
-          onSelect(hierarchy.rootId);
+          if (selectedBrain) {
+            onSelect({ brainId: selectedBrain.brainId, nodeId: selectedBrain.hierarchy.rootId });
+          } else if (brains[0]) {
+            onSelect({ brainId: brains[0].brainId, nodeId: brains[0].hierarchy.rootId });
+          }
+          break;
+        case "n":
+        case "N":
+          stepTerritory(1);
+          break;
+        case "p":
+        case "P":
+          stepTerritory(-1);
           break;
         default:
           handled = false;
@@ -349,17 +478,32 @@ export default function MapView({
         event.stopPropagation();
       }
     },
-    [hierarchy, onSelect, onViewChange, selectedId, view, viewport, world],
+    [
+      brains,
+      composition,
+      onSelect,
+      onViewChange,
+      selected,
+      selectedBrain,
+      selectedNode,
+      stepTerritory,
+      view,
+      viewport,
+      world,
+    ],
   );
 
   return (
     <div className="map-view" ref={hostRef}>
       <svg
         className="map-view__canvas"
+        data-testid="composed-canvas"
         role="tree"
         tabIndex={0}
         aria-label={ariaLabel}
-        aria-activedescendant={selectedId === null ? undefined : `map-node-${selectedId}`}
+        aria-activedescendant={
+          selected === null ? undefined : domNodeId(selected.brainId, selected.nodeId)
+        }
         width="100%"
         height="100%"
         onWheel={handleWheel}
@@ -369,7 +513,66 @@ export default function MapView({
         onPointerCancel={endDrag}
         onKeyDown={handleKeyDown}
       >
-        <g transform={`translate(${view.tx} ${view.ty}) scale(${view.scale})`}>{blocks}</g>
+        {/*
+          The one transformed group. Pan and zoom change this attribute and
+          nothing else — no rectangle below is re-projected, and no layout is
+          recomputed. `role="presentation"` so the accessibility tree sees the
+          territories directly under the tree rather than through a wrapper.
+        */}
+        <g
+          role="presentation"
+          data-testid="composed-world"
+          transform={`translate(${view.tx} ${view.ty}) scale(${view.scale})`}
+        >
+          {territories.map((entry) =>
+            entry ? (
+              <rect
+                key={`frame|${entry.brain.brainId}`}
+                className={
+                  "map-territory__frame" +
+                  (entry.brain.brainId === focusedBrainId
+                    ? " map-territory__frame--focused"
+                    : "")
+                }
+                data-brain-id={entry.brain.brainId}
+                x={entry.territory.frame.x}
+                y={entry.territory.frame.y}
+                width={entry.territory.frame.w}
+                height={entry.territory.frame.h}
+                rx={24}
+                vectorEffect="non-scaling-stroke"
+              />
+            ) : null,
+          )}
+
+          {territories.map((entry) =>
+            entry ? (
+              <g
+                key={`territory|${entry.brain.brainId}`}
+                id={domTerritoryId(entry.brain.brainId)}
+                className={
+                  "map-territory" +
+                  (entry.brain.brainId === focusedBrainId ? " map-territory--focused" : "")
+                }
+                role="group"
+                data-brain-id={entry.brain.brainId}
+                data-offset-x={entry.territory.offsetX}
+                data-offset-y={entry.territory.offsetY}
+                aria-label={territoryLabelFor(
+                  entry.brain.record,
+                  entry.brain.nodeCount,
+                  entry.brain.brainId === focusedBrainId,
+                )}
+                // The territory's whole translation, as one attribute. The
+                // rectangles inside keep the coordinates the index gave them.
+                transform={`translate(${entry.territory.offsetX} ${entry.territory.offsetY})`}
+              >
+                {entry.blocks}
+              </g>
+            ) : null,
+          )}
+        </g>
+
         <g className="map-view__edges" aria-hidden="true">
           {edges}
         </g>
@@ -380,3 +583,5 @@ export default function MapView({
     </div>
   );
 }
+
+export type { Territory };

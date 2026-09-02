@@ -689,6 +689,11 @@ fn map_host_info(app: tauri::AppHandle) -> map::commands::HostInfo {
             .and_then(|value| value.parse::<u8>().ok())
             .filter(|pass| *pass == 1 || *pass == 2)
             .unwrap_or(0),
+        auto_composed_pass: std::env::var("FILETOPO_AUTO_COMPOSED")
+            .ok()
+            .and_then(|value| value.parse::<u8>().ok())
+            .filter(|pass| *pass == 1 || *pass == 2)
+            .unwrap_or(0),
     }
 }
 

@@ -1,20 +1,35 @@
 import { invoke } from "@tauri-apps/api/core";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import BrainSelector from "./BrainSelector";
+import CompositionBar from "./CompositionBar";
 import DetailsPanel, { type PanelStrings } from "./DetailsPanel";
-import MapView from "./MapView";
+import MapView, { type RenderedBrain } from "./MapView";
 import RelationsPanel from "./RelationsPanel";
 import {
-  emptySessionMemory,
-  recallBrainSession,
-  rememberBrainSession,
-  shouldFitOnOpen,
-  type BrainSessionMemory,
-  type ViewPositioning,
-} from "./brainSession";
-import { buildHierarchy } from "./hierarchy";
+  ComposedViewError,
+  addBrain,
+  catalogueOrder,
+  composeView,
+  focusBrain,
+  removeBrain,
+  sameNodeRef,
+  selectionIsStillValid,
+  singleBrainView,
+  type ComposedView,
+} from "./composedView";
+import {
+  compositionKey,
+  emptyCompositionMemory,
+  recallComposition,
+  rememberComposition,
+  shouldFitComposition,
+  type CompositionPositioning,
+  type CompositionSessionMemory,
+} from "./compositionSession";
+import { composeTerritories, type Composition } from "./territories";
+import { buildHierarchy, type Hierarchy } from "./hierarchy";
 import { establishedNeighbours, relationSegments } from "./relations";
 import { runBrainScenario as runBrains } from "./brainScenario";
+import { runComposedScenario as runComposed } from "./composedScenario";
 import { runRelationScenario as runScenario } from "./relationScenario";
 import {
   H9_REGRESSION_ABANDON_ARTIFACT,
@@ -38,6 +53,7 @@ import {
 import "./map.css";
 import type {
   BrainCatalogView,
+  BrainNodeRef,
   BrainRecord,
   FixtureIntegrity,
   FixtureSummary,
@@ -48,38 +64,47 @@ import type {
   MapSnapshot,
   NodeDetail,
   NodeRelations,
-  Rect,
   RelationsOverview,
   RelationsSelfCheck,
 } from "./types";
 import { fitToBox, fitView, panBy, zoomAbout, type View, type Viewport } from "./viewState";
 
 /**
- * The vertical slice of `TASK-0016`, end to end.
+ * The vertical slice of `TASK-0019`, end to end.
  *
- * Source of data: **four synthetic fixtures, and nothing else**. There is no
- * folder picker anywhere in this screen, deliberately — real data is a stop
- * point reserved to Sébastien, and a picker that merely goes unused is still a
+ * Source of data: **synthetic fixtures, and nothing else**. There is no folder
+ * picker anywhere in this screen, deliberately — real data is a stop point
+ * reserved to Sébastien, and a picker that merely goes unused is still a
  * picker.
+ *
+ * **The screen is a composition, always.** One brain is a composition of one;
+ * three are a composition of three. There is no single-brain code path beside
+ * the composed one, because a second path is a second set of bugs and the one
+ * nobody exercises is the one that rots.
  */
 
 const strings = {
   fr: {
     appTitle: "FileTopo — carte de blocs",
-    subtitle: "Tranche verticale TASK-0018 · cerveaux synthétiques seulement",
-    brains: "Cerveau actif",
-    brainActive: "actif",
-    brainSource: "source",
-    brainSwitching: "Bascule…",
+    subtitle: "Tranche verticale TASK-0019 · vue composée, cerveaux synthétiques seulement",
+    composition: "Cerveaux affichés",
+    compositionFocused: "actif",
+    compositionFocus: "rendre actif",
+    compositionAdd: "Ajouter",
+    compositionAddEmpty: "Tous les cerveaux du catalogue sont déjà affichés",
+    compositionRemove: "Retirer de la vue",
+    compositionRemoveRefused: "Impossible de retirer le dernier cerveau affiché",
+    compositionSource: "source",
+    compositionBusy: "Chargement…",
     brainsDiagnostic: "Diagnostic développeur · sources synthétiques",
     fixtures: "Fixtures synthétiques",
     open: "Ouvrir",
     rebuild: "Reconstruire l'index",
     building: "Construction…",
-    map: "Carte hiérarchique",
+    map: "Graphique composé",
     zoomIn: "Zoom avant",
     zoomOut: "Zoom arrière",
-    fit: "Ajuster à l'écran",
+    fit: "Ajuster",
     fitSelection: "Cadrer la sélection",
     reset: "Réinitialiser la vue",
     selectRoot: "Sélectionner la racine",
@@ -88,9 +113,12 @@ const strings = {
     selfCheck: "Contrôler H1–H5",
     relationsCheck: "Contrôler J1–J5, J10",
     relations: "Relations",
+    territory: "territoire",
+    nodesWord: "nœuds",
     keyboardTitle: "Clavier",
     keyboard:
-      "Flèches : parent, enfant, frères · Alt+flèches : panoramique · + / − : zoom · F : ajuster · R : réinitialiser · Origine : racine",
+      "Flèches : parent, enfant, frères · N / P : territoire suivant, précédent · " +
+      "Alt+flèches : panoramique · + / − : zoom · F : ajuster · R : réinitialiser · Origine : racine",
     nodes: "nœuds",
     depth: "profondeur",
     ceiling: "plafond",
@@ -132,6 +160,22 @@ const strings = {
 const t = strings.fr;
 
 /**
+ * One brain, fully loaded and kept **separate** — `TASK-0019` §4.1 rule 3.
+ *
+ * Nothing merges these. Two brains in one composition are two of these objects
+ * side by side; there is no combined snapshot, no combined index, and no place
+ * where one brain's rows could be read through another brain's identity.
+ */
+export interface LoadedBrain {
+  record: BrainRecord;
+  report: MapBuildReport;
+  snapshot: MapSnapshot;
+  integrity: FixtureIntegrity | null;
+  relations: RelationsOverview | null;
+  hierarchy: Hierarchy;
+}
+
+/**
  * Sends a line to the host's terminal.
  *
  * Fire-and-forget on purpose: logging must never be able to fail a run.
@@ -147,36 +191,33 @@ function fixtureLabel(fixture: FixtureSummary): string {
 export default function MapApp() {
   const [fixtures, setFixtures] = useState<FixtureSummary[]>([]);
   const [host, setHost] = useState<HostInfo | null>(null);
-  // `TASK-0018`. The catalogue is the source of a brain's identity; the active
+  // `TASK-0018`. The catalogue is the source of a brain's identity; a displayed
   // brain is a **record**, not an identifier, so name, colour and icon on
   // screen are the ones the catalogue holds — `K7`.
   const [catalog, setCatalog] = useState<BrainCatalogView | null>(null);
-  const [activeBrain, setActiveBrain] = useState<BrainRecord | null>(null);
-  const [snapshot, setSnapshot] = useState<MapSnapshot | null>(null);
-  const [report, setReport] = useState<MapBuildReport | null>(null);
-  const [integrity, setIntegrity] = useState<FixtureIntegrity | null>(null);
-  const [selfCheck, setSelfCheck] = useState<MapSelfCheck | null>(null);
-  const [selectedId, setSelectedId] = useState<number | null>(null);
+  // `TASK-0019`. Which brains are on screen, and which one is focused.
+  const [composed, setComposed] = useState<ComposedView | null>(null);
+  const [loaded, setLoaded] = useState<ReadonlyMap<string, LoadedBrain>>(new Map());
+  // The one semantic selection of the whole composed graph — `L7`. A pair,
+  // never a bare row number: the same id exists in another brain.
+  const [selected, setSelected] = useState<BrainNodeRef | null>(null);
   const [detail, setDetail] = useState<NodeDetail | null>(null);
   const [detailLoading, setDetailLoading] = useState(false);
+  const [selfCheck, setSelfCheck] = useState<MapSelfCheck | null>(null);
   const [viewport, setViewport] = useState<Viewport>({ width: 1, height: 1 });
   const [view, setView] = useState<View>({ scale: 1, tx: 0, ty: 0 });
   const [busy, setBusy] = useState(false);
   const [status, setStatus] = useState<string | null>(null);
   const [measurement, setMeasurement] = useState<FixtureMeasurement[] | null>(null);
   const [measuring, setMeasuring] = useState(false);
-  // `TASK-0017`. `relations` is the whole graph of the open brain; `nodeRelations`
-  // is what the panel shows for the selection. Both come back from the store —
-  // nothing here increments a count of its own.
-  const [relations, setRelations] = useState<RelationsOverview | null>(null);
   const [nodeRelations, setNodeRelations] = useState<NodeRelations | null>(null);
   const [relationsLoading, setRelationsLoading] = useState(false);
   const [approving, setApproving] = useState<string | null>(null);
   const [relationsCheck, setRelationsCheck] = useState<RelationsSelfCheck | null>(null);
-  // `K8` — where each brain was left, for the length of this session only.
-  // Not persisted: view persistence across a restart is `P-19`, not claimed
-  // here. Only the **active brain** survives a restart, in the catalogue.
-  const [sessions, setSessions] = useState<BrainSessionMemory>(emptySessionMemory);
+  // `L9` — where each **composition** was left, for the length of this session
+  // only. Not persisted: composition persistence is out of scope, and only the
+  // **active brain** survives a restart, in the catalogue.
+  const [sessions, setSessions] = useState<CompositionSessionMemory>(emptyCompositionMemory);
 
   // The measurement loop drives the same state the interface does, so what it
   // times is what a person would experience — not a parallel code path.
@@ -184,37 +225,76 @@ export default function MapApp() {
   viewRef.current = view;
   const viewportRef = useRef(viewport);
   viewportRef.current = viewport;
-  // Read when leaving a brain, so what is stored is what was on screen at the
-  // moment of the switch rather than whatever a later render produced.
-  const selectedIdRef = useRef(selectedId);
-  selectedIdRef.current = selectedId;
-  const activeBrainRef = useRef<BrainRecord | null>(activeBrain);
-  activeBrainRef.current = activeBrain;
-  /** A view to restore once the next snapshot has landed — `K8`. */
+  // Read when leaving a composition, so what is stored is what was on screen at
+  // the moment of the change rather than whatever a later render produced.
+  const selectedRef = useRef(selected);
+  selectedRef.current = selected;
+  const composedRef = useRef(composed);
+  composedRef.current = composed;
+  const loadedRef = useRef(loaded);
+  loadedRef.current = loaded;
+  const catalogRef = useRef(catalog);
+  catalogRef.current = catalog;
+  const sessionsRef = useRef(sessions);
+  sessionsRef.current = sessions;
+  /** A view to restore once the next composition has landed — `L9`. */
   const restoreViewRef = useRef<View | null>(null);
-  /** Which brain the current view was positioned for, and at which size. */
-  const positionedRef = useRef<ViewPositioning | null>(null);
-  // Declared before `runMeasurement` exists so the auto-start effect above can
-  // reach it without depending on declaration order.
+  /** Which composition the current view was positioned for, and at which size. */
+  const positionedRef = useRef<CompositionPositioning | null>(null);
+  // Declared before the runners exist so the auto-start effect can reach them
+  // without depending on declaration order.
   const runMeasurementRef = useRef<(() => Promise<void>) | null>(null);
   const runVerificationRef = useRef<(() => Promise<void>) | null>(null);
   const runRelationScenarioRef = useRef<(() => Promise<void>) | null>(null);
   const runBrainScenarioRef = useRef<(() => Promise<void>) | null>(null);
+  const runComposedScenarioRef = useRef<(() => Promise<void>) | null>(null);
 
-  const world: Rect = useMemo(
-    () => ({
-      x: 0,
-      y: 0,
-      w: snapshot?.layoutWidth ?? 1,
-      h: snapshot?.layoutHeight ?? 1,
-    }),
-    [snapshot],
-  );
+  const order = useMemo(() => catalogueOrder(catalog?.brains ?? []), [catalog]);
 
-  const hierarchy = useMemo(
-    () => (snapshot ? buildHierarchy(snapshot.nodes, snapshot.rootId) : null),
-    [snapshot],
-  );
+  /** The territories of the current composition — `§4.3`. */
+  const composition: Composition = useMemo(() => {
+    if (!composed) return { territories: [], world: { x: 0, y: 0, w: 1, h: 1 } };
+    return composeTerritories(
+      composed.displayedBrainIds.flatMap((brainId) => {
+        const brain = loaded.get(brainId);
+        return brain
+          ? [
+              {
+                brainId,
+                layoutWidth: brain.snapshot.layoutWidth,
+                layoutHeight: brain.snapshot.layoutHeight,
+              },
+            ]
+          : [];
+      }),
+    );
+  }, [composed, loaded]);
+
+  const world = composition.world;
+
+  /** Everything the single canvas needs, one entry per displayed brain. */
+  const renderedBrains: RenderedBrain[] = useMemo(() => {
+    if (!composed) return [];
+    return composed.displayedBrainIds.flatMap((brainId) => {
+      const brain = loaded.get(brainId);
+      if (!brain) return [];
+      const localSelection =
+        selected && selected.brainId === brainId ? selected.nodeId : null;
+      return [
+        {
+          brainId,
+          record: brain.record,
+          hierarchy: brain.hierarchy,
+          // Projected from this brain's own persisted rectangles. Rebuilt when
+          // its tree, its relations or the selection change — never for a pan
+          // or a zoom, and never by recomputing a layout.
+          segments: relationSegments(brain.relations, brain.hierarchy.byId, localSelection),
+          relationNeighbours: establishedNeighbours(brain.relations, localSelection),
+          nodeCount: brain.snapshot.nodeCount,
+        },
+      ];
+    });
+  }, [composed, loaded, selected]);
 
   // Anything the page throws becomes a line in the host log, so an unattended
   // run leaves a trace instead of a silent stall.
@@ -257,14 +337,14 @@ export default function MapApp() {
       });
   }, []);
 
-  // Unattended runs: the host asked for a measurement or a verification, so
-  // start it as soon as the fixtures are known. Same code paths as the buttons.
+  // Unattended runs: the host asked for a scenario, so start it as soon as the
+  // fixtures are known. Same code paths as the buttons.
   const autoStarted = useRef(false);
   useEffect(() => {
     if (autoStarted.current || fixtures.length === 0 || !host) return;
     if (host.autoVerify) {
       autoStarted.current = true;
-      hostLog("info", "démarrage automatique de la vérification H1–H7");
+      hostLog("info", "démarrage automatique de la vérification L11");
       void runVerificationRef.current?.();
       return;
     }
@@ -272,6 +352,12 @@ export default function MapApp() {
       autoStarted.current = true;
       hostLog("info", "démarrage automatique du scénario J12");
       void runRelationScenarioRef.current?.();
+      return;
+    }
+    if (host.autoComposedPass === 1 || host.autoComposedPass === 2) {
+      autoStarted.current = true;
+      hostLog("info", `démarrage automatique du scénario L12, passe ${host.autoComposedPass}`);
+      void runComposedScenarioRef.current?.();
       return;
     }
     if (host.autoBrainsPass === 1 || host.autoBrainsPass === 2) {
@@ -288,128 +374,283 @@ export default function MapApp() {
   }, [fixtures.length, host]);
 
   /**
-   * Switches to a brain, and **loads it** — `K4`.
+   * Loads a brain — and **does not make it active**.
    *
-   * Everything below the identity is replaced: the index, the snapshot, the
-   * integrity reading, the relations store. Nothing of the previous brain is
-   * left on screen presented as current, which is the sentence `K4` turns on.
-   *
-   * The brain is made active **in the catalogue** as well, because `K9` asks
-   * for the choice to survive a real restart, and a value held only in React
-   * would not.
+   * `§4.1` rule 6: reading a brain's data is not choosing it. `map_open`,
+   * `map_snapshot`, `map_integrity` and `map_relations_open` all take a
+   * `brain_id` and none of them touches the catalogue's active brain, so
+   * bringing Gamma into the view alongside Alpha leaves Alpha active.
    */
-  const openBrain = useCallback(async (brainId: string, rebuild: boolean) => {
-    setBusy(true);
-    setStatus(null);
-
-    // `K8` — remember where the brain being left was, before anything changes.
-    const leaving = activeBrainRef.current;
-    if (leaving && leaving.brainId !== brainId) {
-      const state = { selectedId: selectedIdRef.current, view: { ...viewRef.current } };
-      setSessions((memory) => rememberBrainSession(memory, leaving.brainId, state));
-    }
-
-    try {
-      const record = await invoke<BrainRecord>("map_brain_activate", { brainId });
-      const nextReport = await invoke<MapBuildReport>("map_open", { brainId, rebuild });
-      const nextSnapshot = await invoke<MapSnapshot>("map_snapshot", { brainId });
-      const nextIntegrity = await invoke<FixtureIntegrity>("map_integrity", { brainId });
+  const loadBrain = useCallback(
+    async (brainId: string, rebuild: boolean): Promise<LoadedBrain> => {
+      const record = catalogRef.current?.brains.find((brain) => brain.brainId === brainId);
+      if (!record) throw new Error(`cerveau absent du catalogue : ${brainId}`);
+      const report = await invoke<MapBuildReport>("map_open", { brainId, rebuild });
+      const snapshot = await invoke<MapSnapshot>("map_snapshot", { brainId });
+      const integrity = await invoke<FixtureIntegrity>("map_integrity", { brainId });
 
       // The snapshot has to be the one that was asked for. A mismatch here
-      // would be exactly the leak `K3` and `K4` forbid, so it is refused
+      // would be exactly the leak `K3` and `L2` forbid, so it is refused
       // rather than displayed.
-      if (nextSnapshot.brainId !== brainId || nextReport.brainId !== brainId) {
-        throw new Error(
-          `incohérence de cerveau: demandé ${brainId}, reçu ${nextSnapshot.brainId}`,
-        );
+      if (snapshot.brainId !== brainId || report.brainId !== brainId) {
+        throw new Error(`incohérence de cerveau: demandé ${brainId}, reçu ${snapshot.brainId}`);
       }
 
-      const restored = recallBrainSession(sessionsRef.current, brainId);
-      restoreViewRef.current = restored?.view ?? null;
-
-      setActiveBrain(record);
-      setReport(nextReport);
-      setSnapshot(nextSnapshot);
-      setIntegrity(nextIntegrity);
-      setSelfCheck(null);
-      setSelectedId(restored?.selectedId ?? nextSnapshot.rootId);
-      setMeasurement(null);
-      setRelationsCheck(null);
-      setCatalog((current) =>
-        current
-          ? {
-              ...current,
-              activeBrainId: brainId,
-              brains: current.brains.map((brain) =>
-                brain.brainId === brainId ? record : brain,
-              ),
-            }
-          : current,
-      );
       // Relations are opened separately, and a brain whose source is outside
       // the frozen relations scope is a *stated* outcome, not an error banner.
-      setRelationsLoading(true);
+      let relations: RelationsOverview | null = null;
       try {
-        setRelations(await invoke<RelationsOverview>("map_relations_open", { brainId }));
+        relations = await invoke<RelationsOverview>("map_relations_open", { brainId });
       } catch (error) {
-        setRelations(null);
         hostLog("info", `relations indisponibles pour ${brainId}: ${String(error)}`);
-      } finally {
-        setRelationsLoading(false);
       }
-    } catch (error) {
-      setStatus(`Échec : ${String(error)}`);
-    } finally {
-      setBusy(false);
-    }
+
+      return {
+        record,
+        report,
+        snapshot,
+        integrity,
+        relations,
+        hierarchy: buildHierarchy(snapshot.nodes, snapshot.rootId),
+      };
+    },
+    [],
+  );
+
+  /** Makes a brain active **in the catalogue**, so the choice survives a restart. */
+  const activate = useCallback(async (brainId: string) => {
+    const record = await invoke<BrainRecord>("map_brain_activate", { brainId });
+    setCatalog((current) =>
+      current
+        ? {
+            ...current,
+            activeBrainId: brainId,
+            brains: current.brains.map((brain) => (brain.brainId === brainId ? record : brain)),
+          }
+        : current,
+    );
+    return record;
   }, []);
 
-  // Read inside `openBrain`, which is deliberately dependency-free so that a
-  // switch never races a stale closure over the session memory.
-  const sessionsRef = useRef(sessions);
-  sessionsRef.current = sessions;
+  /**
+   * Applies a composition: loads what is missing, drops what left, restores.
+   *
+   * Deliberately dependency-free over the mutable state — everything it reads
+   * comes from a ref — so a change of composition never races a stale closure
+   * over the session memory, the way `K8` taught in the previous slice.
+   */
+  const applyComposition = useCallback(
+    async (next: ComposedView, options: { rebuild?: boolean } = {}) => {
+      setBusy(true);
+      setStatus(null);
+      try {
+        // `L9` — remember where the composition being left was, before
+        // anything changes.
+        const current = composedRef.current;
+        const nextKey = compositionKey(next.displayedBrainIds);
+        if (current) {
+          const currentKey = compositionKey(current.displayedBrainIds);
+          if (currentKey !== nextKey) {
+            setSessions((memory) =>
+              rememberComposition(memory, currentKey, {
+                view: { ...viewRef.current },
+                selected: selectedRef.current,
+              }),
+            );
+          }
+        }
 
-  // `K9` — the application starts on the brain the catalogue calls active.
-  const bootedBrain = useRef(false);
+        const nextLoaded = new Map(loadedRef.current);
+        for (const brainId of next.displayedBrainIds) {
+          if (options.rebuild || !nextLoaded.has(brainId)) {
+            nextLoaded.set(brainId, await loadBrain(brainId, options.rebuild ?? false));
+          }
+        }
+        // A brain removed from the view keeps nothing on screen. Its index,
+        // its relations and its catalogue entry are untouched — `L6`.
+        for (const brainId of [...nextLoaded.keys()]) {
+          if (!next.displayedBrainIds.includes(brainId)) nextLoaded.delete(brainId);
+        }
+
+        // The focused brain **is** the active brain — `§4.1` rule 5.
+        await activate(next.focusedBrainId);
+
+        const restored = recallComposition(sessionsRef.current, nextKey);
+        const focusedRoot = nextLoaded.get(next.focusedBrainId)?.snapshot.rootId ?? null;
+        const restoredSelection =
+          restored && selectionIsStillValid(next, restored.selected) && restored.selected
+            ? nextLoaded
+                .get(restored.selected.brainId)
+                ?.hierarchy.byId.has(restored.selected.nodeId)
+              ? restored.selected
+              : null
+            : null;
+
+        restoreViewRef.current = restored ? { ...restored.view } : null;
+        setLoaded(nextLoaded);
+        setComposed(next);
+        setSelected(
+          restoredSelection ??
+            (focusedRoot === null
+              ? null
+              : { brainId: next.focusedBrainId, nodeId: focusedRoot }),
+        );
+        setSelfCheck(null);
+        setRelationsCheck(null);
+        setMeasurement(null);
+      } catch (error) {
+        setStatus(`Échec : ${String(error)}`);
+        hostLog("error", `composition refusée: ${String(error)}`);
+      } finally {
+        setBusy(false);
+      }
+    },
+    [activate, loadBrain],
+  );
+
+  /**
+   * Turns a refusal from the model into a message, rather than a stack trace.
+   *
+   * `L1` and `L6` demand explicit errors; an explicit error nobody can read is
+   * only half of that.
+   */
+  const refuse = useCallback((error: unknown) => {
+    if (error instanceof ComposedViewError) {
+      setStatus(`Composition refusée — ${error.message}`);
+      hostLog("info", `composition refusée: ${error.code}`);
+      return;
+    }
+    setStatus(`Composition refusée — ${String(error)}`);
+  }, []);
+
+  const onAddBrain = useCallback(
+    (brainId: string) => {
+      const current = composedRef.current;
+      if (!current) return;
+      try {
+        void applyComposition(addBrain(current, order, brainId));
+      } catch (error) {
+        refuse(error);
+      }
+    },
+    [applyComposition, order, refuse],
+  );
+
+  const onRemoveBrain = useCallback(
+    (brainId: string) => {
+      const current = composedRef.current;
+      if (!current) return;
+      try {
+        void applyComposition(removeBrain(current, order, brainId));
+      } catch (error) {
+        refuse(error);
+      }
+    },
+    [applyComposition, order, refuse],
+  );
+
+  const onFocusBrain = useCallback(
+    (brainId: string) => {
+      const current = composedRef.current;
+      if (!current || current.focusedBrainId === brainId) return;
+      try {
+        const next = focusBrain(current, order, brainId);
+        setComposed(next);
+        const root = loadedRef.current.get(brainId)?.snapshot.rootId ?? null;
+        if (root !== null) setSelected({ brainId, nodeId: root });
+        // The focused brain is the active brain, and that is persisted.
+        void activate(brainId).catch((error) =>
+          setStatus(`Cerveau actif non enregistré : ${String(error)}`),
+        );
+      } catch (error) {
+        refuse(error);
+      }
+    },
+    [activate, order, refuse],
+  );
+
+  /**
+   * The one selection of the composed graph — `L7`.
+   *
+   * Selecting a node of another territory moves the focus with it, and the
+   * focused brain is the active brain. A selection that changed the details
+   * panel without changing the focus would leave the interface saying two
+   * different things about which brain the user is in.
+   */
+  const selectNode = useCallback(
+    (reference: BrainNodeRef) => {
+      setSelected((current) => (sameNodeRef(current, reference) ? current : reference));
+      const current = composedRef.current;
+      if (!current || current.focusedBrainId === reference.brainId) return;
+      if (!current.displayedBrainIds.includes(reference.brainId)) return;
+      setComposed(focusBrain(current, order, reference.brainId));
+      void activate(reference.brainId).catch((error) =>
+        setStatus(`Cerveau actif non enregistré : ${String(error)}`),
+      );
+    },
+    [activate, order],
+  );
+
+  /** Selection helper for the panels, which only ever describe one brain. */
+  const selectInSelectedBrain = useCallback(
+    (nodeId: number) => {
+      const brainId = selectedRef.current?.brainId ?? composedRef.current?.focusedBrainId;
+      if (brainId) selectNode({ brainId, nodeId });
+    },
+    [selectNode],
+  );
+
+  // `K9` — the application starts on the brain the catalogue calls active, and
+  // on **that brain alone**: the composition is session-only, so a restart
+  // never restores a multi-brain view. Stated in `§3`, and true here.
+  const booted = useRef(false);
   useEffect(() => {
-    if (bootedBrain.current || !catalog) return;
-    bootedBrain.current = true;
-    hostLog("info", `cerveau actif au démarrage: ${catalog.activeBrainId}`);
-    void openBrain(catalog.activeBrainId, false);
-  }, [catalog, openBrain]);
+    if (booted.current || !catalog || order.length === 0) return;
+    booted.current = true;
+    hostLog("info", `cerveau actif au démarrage: ${catalog.activeBrainId}, affiché seul`);
+    try {
+      void applyComposition(singleBrainView(order, catalog.activeBrainId));
+    } catch (error) {
+      refuse(error);
+    }
+  }, [applyComposition, catalog, order, refuse]);
 
-  // A fresh map opens fitted, and that view is the one `reset` reproduces —
-  // unless this brain was already visited in this session, in which case `K8`
-  // asks for the view it was left at.
+  // A fresh composition opens fitted, and that view is the one `reset`
+  // reproduces — unless this composition was already visited in this session,
+  // in which case `L9` asks for the view it was left at.
   //
   // The guard is not decoration. Without it the fit runs again when the
   // viewport settles a frame later, and that second fit erased the view a
-  // brain had just been given back: `K12` published `alphaRestored=false` on
-  // a product whose selection had restored perfectly.
+  // composition had just been given back.
+  const compositionId = composed ? compositionKey(composed.displayedBrainIds) : null;
   useEffect(() => {
-    if (!snapshot) return;
+    if (!compositionId || composition.territories.length === 0) return;
     const restored = restoreViewRef.current;
     if (restored) {
       restoreViewRef.current = null;
       positionedRef.current = {
-        brainId: snapshot.brainId,
+        key: compositionId,
         width: viewport.width,
         height: viewport.height,
       };
       setView(restored);
       return;
     }
-    if (!shouldFitOnOpen(positionedRef.current, snapshot.brainId)) return;
+    if (!shouldFitComposition(positionedRef.current, compositionId)) return;
     positionedRef.current = {
-      brainId: snapshot.brainId,
+      key: compositionId,
       width: viewport.width,
       height: viewport.height,
     };
-    setView(fitView({ x: 0, y: 0, w: snapshot.layoutWidth, h: snapshot.layoutHeight }, viewport));
-  }, [snapshot, viewport.width, viewport.height]);
+    setView(fitView(world, viewport));
+    // `world` is derived from the composition, so it changes exactly when the
+    // composition does; listing it would refit on every identity change of a
+    // memo without adding a case this does not already cover.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [compositionId, composition.territories.length, viewport.width, viewport.height]);
 
   useEffect(() => {
-    if (!activeBrain || selectedId === null) {
+    if (!selected) {
       setDetail(null);
       return;
     }
@@ -417,91 +658,103 @@ export default function MapApp() {
     setDetailLoading(true);
     // The **pair** goes to the backend, never a loose row number: the same id
     // exists in another brain and would resolve there — `TASK-0018` §4.1
-    // rule 5.
-    invoke<NodeDetail>("map_node_detail", {
-      reference: { brainId: activeBrain.brainId, nodeId: selectedId },
-    })
+    // rule 5, `TASK-0019` `L3`.
+    invoke<NodeDetail>("map_node_detail", { reference: selected })
       .then((next) => live && setDetail(next))
       .catch((error) => live && setStatus(`Détail indisponible : ${String(error)}`))
       .finally(() => live && setDetailLoading(false));
     return () => {
       live = false;
     };
-  }, [activeBrain, selectedId]);
+  }, [selected]);
 
   // The panel reads the relations of the selection from the store, on every
-  // change of selection and after every approval. `relations` is in the
-  // dependency list on purpose: an approval replaces it, and that is what makes
-  // the panel show counts that came back rather than counts it guessed.
+  // change of selection and after every approval. The loaded brain is in the
+  // dependency list on purpose: an approval replaces its overview, and that is
+  // what makes the panel show counts that came back rather than counts it
+  // guessed.
+  const selectedBrain = selected ? loaded.get(selected.brainId) ?? null : null;
+  const selectedOverview = selectedBrain?.relations ?? null;
   useEffect(() => {
-    if (!activeBrain || selectedId === null || !relations) {
+    if (!selected || !selectedOverview) {
       setNodeRelations(null);
       return;
     }
     let live = true;
-    invoke<NodeRelations>("map_relations_for_node", {
-      reference: { brainId: activeBrain.brainId, nodeId: selectedId },
-    })
+    setRelationsLoading(true);
+    invoke<NodeRelations>("map_relations_for_node", { reference: selected })
       .then((next) => live && setNodeRelations(next))
-      .catch(() => live && setNodeRelations(null));
+      .catch(() => live && setNodeRelations(null))
+      .finally(() => live && setRelationsLoading(false));
     return () => {
       live = false;
     };
-  }, [activeBrain, relations, selectedId]);
+  }, [selected, selectedOverview]);
 
   /**
    * The one explicit act that turns a suggestion into a relation.
    *
    * The whole overview is replaced by what the command returns, so the counts
-   * on screen are the store's, never an optimistic increment.
+   * on screen are the store's, never an optimistic increment — **and only the
+   * approving brain's entry is replaced**, which is `L8` in one line: approving
+   * `S-005` in Alpha cannot reach Gamma's overview because it never writes to
+   * it.
    */
   const approveSuggestion = useCallback(
     async (suggestionKey: string) => {
-      if (!activeBrain) return;
+      const reference = selectedRef.current;
+      if (!reference) return;
+      const brainId = reference.brainId;
       setApproving(suggestionKey);
       try {
         const next = await invoke<RelationsOverview>("map_relations_approve", {
-          brainId: activeBrain.brainId,
+          brainId,
           suggestionKey,
         });
-        setRelations(next);
-        setStatus(`Suggestion ${suggestionKey} approuvée : elle est désormais une relation APPROVED.`);
+        setLoaded((current) => {
+          const brain = current.get(brainId);
+          if (!brain) return current;
+          const updated = new Map(current);
+          updated.set(brainId, { ...brain, relations: next });
+          return updated;
+        });
+        setStatus(
+          `Suggestion ${suggestionKey} approuvée dans ${brainId} : elle est désormais une relation APPROVED.`,
+        );
       } catch (error) {
         setStatus(`Approbation refusée : ${String(error)}`);
       } finally {
         setApproving(null);
       }
     },
-    [activeBrain],
+    [],
   );
 
   const runRelationsCheck = useCallback(async () => {
-    if (!activeBrain) return;
+    const brainId = selectedRef.current?.brainId ?? composed?.focusedBrainId;
+    if (!brainId) return;
     try {
       setRelationsCheck(
-        await invoke<RelationsSelfCheck>("map_relations_self_check", {
-          brainId: activeBrain.brainId,
-        }),
+        await invoke<RelationsSelfCheck>("map_relations_self_check", { brainId }),
       );
     } catch (error) {
       setStatus(`Contrôle des relations impossible : ${String(error)}`);
     }
-  }, [activeBrain]);
+  }, [composed]);
 
   const runSelfCheck = useCallback(async () => {
-    if (!activeBrain) return;
+    const brainId = composed?.focusedBrainId;
+    if (!brainId) return;
     try {
-      setSelfCheck(
-        await invoke<MapSelfCheck>("map_self_check", { brainId: activeBrain.brainId }),
-      );
+      setSelfCheck(await invoke<MapSelfCheck>("map_self_check", { brainId }));
     } catch (error) {
       setStatus(`Contrôle impossible : ${String(error)}`);
     }
-  }, [activeBrain]);
+  }, [composed]);
 
   /**
    * Replays `H1` to `H7`, `H10` and `H11` against the running host, and writes
-   * what it found.
+   * what it found — `L11`.
    *
    * The unit tests already check the same properties in temporary directories.
    * This runs them where it actually matters — through the real commands, on
@@ -513,11 +766,6 @@ export default function MapApp() {
     if (brains.length === 0) return;
     const findings: unknown[] = [];
     try {
-      // Driven **by brain** since `TASK-0018`: the runtime has no fixture-keyed
-      // command left. The campaign therefore covers the sources the three
-      // frozen brains read — `quasi-empty` twice and `deep` — and no longer
-      // `wide` or `mixed`. The published `TASK-0016` campaign is unaffected and
-      // remains the record for those two.
       for (const brain of brains) {
         const fixture = fixtures.find((entry) => entry.id === brain.sourceRef) ?? null;
         hostLog("info", `vérification ${brain.brainId}: ouverture`);
@@ -591,24 +839,28 @@ export default function MapApp() {
         );
       }
 
-      // Written under `TASK-0018`, because that is what it now is: the loop
-      // walks brains, so it covers `quasi-empty` twice and `deep`, and not
-      // `wide` or `mixed`. The published `TASK-0016-H1-H7-verification.json`
-      // is **not** overwritten — it remains the record of a verified task, and
-      // a per-brain rerun has no business replacing it.
+      // `L2`, read off the real reports: three brains, three distinct index
+      // files, and two of them on the same source. Published beside the
+      // read-only findings because it is the same reading of the same disk.
+      const indexPaths = findings.map((entry) => (entry as { indexPath: string }).indexPath);
       const written = await invoke<string>("map_write_run_artifact", {
         name: K11_ARTIFACT,
         contents: JSON.stringify(
           {
-            task: "TASK-0018",
-            criteria: ["K11", "K3", "H1", "H2", "H3", "H5", "H6", "H7", "H8", "H10", "H11"],
+            task: "TASK-0019",
+            criteria: ["L11", "L2", "K11", "K3", "H1", "H2", "H3", "H5", "H6", "H7", "H8", "H10", "H11"],
+            sourceCriterion: "TASK-0018/K11",
+            nature: "regression / compatibility replay",
+            doesNotReplace: "docs/performance/runs/TASK-0018-K11-readonly-and-isolation.json",
+            replacesCanonicalEvidence: false,
             note:
-              "Driven by brain since TASK-0018: the runtime exposes no " +
-              "fixture-keyed command. Covers the sources the three frozen " +
-              "brains read. TASK-0016's own campaign is unchanged and stays " +
-              "the record for `wide` and `mixed`.",
+              "Read-only and isolation, replayed on the composed runtime. Driven by brain: " +
+              "the runtime exposes no fixture-keyed command. TASK-0018's own K11 artefact is " +
+              "the canonical evidence of a VERIFIED task and is protected at the write gate.",
             capturedAtIso: new Date().toISOString(),
             host,
+            l2_indexPaths: indexPaths,
+            l2_indexPathsDistinct: new Set(indexPaths).size === indexPaths.length,
             findings,
           },
           null,
@@ -626,11 +878,11 @@ export default function MapApp() {
   runVerificationRef.current = runVerification;
 
   /**
-   * The `H9` loop of `TASK-0016`, migrated to walk **brains**.
+   * The `H9` loop, migrated again — now it walks the **composed** runtime.
    *
    * Kept so the runtime stays measurable, and renamed so it cannot overwrite
-   * anything — reserve `X5`. It is a compatibility replay under `TASK-0018`,
-   * not a new canonical `H9` campaign, and it sets no threshold.
+   * anything — reserve `X5`, extended. `TASK-0019` **does not run it**: it
+   * takes no measurement decision and sets no threshold, and `R8` stays whole.
    */
   const runMeasurement = useCallback(async () => {
     const brains = catalog?.brains ?? [];
@@ -640,35 +892,20 @@ export default function MapApp() {
     const results: FixtureMeasurement[] = [];
 
     try {
-      // Like the verification above, this now walks **brains**. `TASK-0018`
-      // takes no measurement and sets no threshold; the loop is migrated so it
-      // keeps running, not so it produces a new campaign.
       for (const brain of brains) {
-        hostLog("info", `cerveau ${brain.brainId}: ouverture`);
-        const built = await invoke<MapBuildReport>("map_open", {
-          brainId: brain.brainId,
-          rebuild: false,
-        });
-        const loaded = await invoke<MapSnapshot>("map_snapshot", { brainId: brain.brainId });
-        setReport(built);
-        setSnapshot(loaded);
-        setActiveBrain(brain);
-        setSelectedId(loaded.rootId);
+        hostLog("info", `cerveau ${brain.brainId}: composition d'un seul cerveau`);
+        await applyComposition(singleBrainView(order, brain.brainId));
         await afterPaint();
         const measuredViewport = await awaitLaidOutViewport(() => viewportRef.current);
+        const loadedBrain = loadedRef.current.get(brain.brainId);
+        if (!loadedBrain) throw new Error(`cerveau non chargé : ${brain.brainId}`);
 
-        const box: Rect = { x: 0, y: 0, w: loaded.layoutWidth, h: loaded.layoutHeight };
+        const box = { x: 0, y: 0, w: world.w, h: world.h };
         const targets = selectionTargets(
-          loaded.nodes.map((node) => node.id),
+          loadedBrain.snapshot.nodes.map((node) => node.id),
           SELECTIONS_PER_RUN,
         );
         const runs: RunSample[] = [];
-
-        hostLog(
-          "info",
-          `cerveau ${brain.brainId}: ${loaded.nodeCount} nœuds chargés, ` +
-            `fenêtre ${viewportRef.current.width}x${viewportRef.current.height}`,
-        );
 
         for (let run = 1; run <= RUNS_PER_FIXTURE; run += 1) {
           hostLog("info", `cerveau ${brain.brainId}: exécution ${run}/${RUNS_PER_FIXTURE}`);
@@ -694,7 +931,7 @@ export default function MapApp() {
           const selectionLatenciesMs: number[] = [];
           for (const target of targets) {
             const started = performance.now();
-            setSelectedId(target);
+            setSelected({ brainId: brain.brainId, nodeId: target });
             await afterPaint();
             selectionLatenciesMs.push(performance.now() - started);
           }
@@ -702,27 +939,13 @@ export default function MapApp() {
           runs.push({ run, frameTimesMs, selectionLatenciesMs });
         }
 
-        const summary = aggregate(brain.brainId, loaded.nodeCount, measuredViewport, runs);
-        results.push(summary);
-        // Deliberately not published to the interface until the campaign ends:
-        // showing the results table mid-run would reflow the page and measure
-        // each fixture at a different map size.
-        
-        hostLog(
-          "info",
-          `cerveau ${brain.brainId}: terminé — image médiane ${summary.frameTime.median.toFixed(2)} ms, ` +
-            `pire ${summary.worstFrameMs.toFixed(2)} ms, sélection médiane ` +
-            `${summary.selectionLatency.median.toFixed(2)} ms`,
+        results.push(
+          aggregate(brain.brainId, loadedBrain.snapshot.nodeCount, measuredViewport, runs),
         );
       }
 
-      // Reserve `X5`. This loop walks **brains**, so what it produces is a
-      // compatibility replay of the migrated runtime and belongs to
-      // `TASK-0018`. It is written under a `TASK-0018` name and NEVER over
-      // `TASK-0016-H9-webview2.json`, which stays the frozen H9 campaign of a
-      // VERIFIED task. `TASK-0018` sets no threshold: `R8` stays whole.
       const artifact = {
-        task: "TASK-0018",
+        task: "TASK-0019",
         sourceCriterion: "TASK-0016/H9",
         nature: "regression / compatibility replay",
         doesNotReplace: "docs/performance/runs/TASK-0016-H9-webview2.json",
@@ -734,13 +957,9 @@ export default function MapApp() {
         selectionsPerRun: SELECTIONS_PER_RUN,
         warmupFrames: WARMUP_FRAMES,
         note:
-          "Replay of the TASK-0016 H9 loop on the multi-brain runtime. It does NOT replace " +
-          "TASK-0016's frozen H9 campaign: it walks the catalogue's brains, so it covers " +
-          "`quasi-empty` twice and `deep`, not the four original fixtures. TASK-0018 takes no " +
-          "measurement decision and sets no threshold; R8 is untouched. Frame time = interval " +
-          "between consecutive animation-frame callbacks during a scripted pan and zoom, React " +
-          "commit included. Selection latency = request to the start of the frame after the one " +
-          "painting the selection. No fps target is set anywhere.",
+          "Replay of the H9 loop on the composed runtime, one brain displayed at a time. It " +
+          "does NOT replace TASK-0016's frozen H9 campaign. TASK-0019 takes no measurement " +
+          "decision and sets no threshold; R8 is untouched. No fps target is set anywhere.",
         measurements: results,
       };
       const written = await invoke<string>("map_write_run_artifact", {
@@ -751,9 +970,7 @@ export default function MapApp() {
       setStatus(`Mesures écrites dans ${written}`);
       hostLog("info", `campagne terminée, artefact écrit: ${written}`);
     } catch (error) {
-      // A failed campaign is still a result, and it is written down: an
-      // artefact that says why nothing was measured is worth more than a
-      // missing file somebody has to guess about.
+      // A failed campaign is still a result, and it is written down.
       setStatus(`Mesure interrompue : ${String(error)}`);
       hostLog("error", `campagne interrompue: ${String(error)}`);
       try {
@@ -761,7 +978,7 @@ export default function MapApp() {
           name: H9_REGRESSION_ABANDON_ARTIFACT,
           contents: JSON.stringify(
             {
-              task: "TASK-0018",
+              task: "TASK-0019",
               sourceCriterion: "TASK-0016/H9",
               nature: "regression / compatibility replay",
               doesNotReplace: "docs/performance/runs/TASK-0016-H9-webview2.json",
@@ -781,21 +998,26 @@ export default function MapApp() {
     } finally {
       setMeasuring(false);
     }
-  }, [catalog, host, measuring]);
+  }, [applyComposition, catalog, host, measuring, order, world.h, world.w]);
 
   runMeasurementRef.current = runMeasurement;
+
+  const showOnly = useCallback(
+    (brainId: string) => applyComposition(singleBrainView(order, brainId)),
+    [applyComposition, order],
+  );
 
   const runRelationScenario = useCallback(
     () =>
       runScenario({
         invoke: (command, args) => invoke(command, args),
         host,
-        openBrain,
-        setSelectedId,
+        showOnly,
+        setSelected: (reference) => setSelected(reference),
         setStatus,
         log: hostLog,
       }),
-    [host, openBrain],
+    [host, showOnly],
   );
 
   runRelationScenarioRef.current = runRelationScenario;
@@ -806,40 +1028,67 @@ export default function MapApp() {
       {
         invoke: (command, args) => invoke(command, args),
         host,
-        openBrain,
-        setSelectedId,
+        showOnly,
+        setSelected: (reference) => setSelected(reference),
         setView,
         // Read at the moment it is asked for, so what the scenario publishes is
         // the state on screen rather than a value captured a render earlier.
-        readSession: () => ({ selectedId: selectedIdRef.current, view: viewRef.current }),
+        readSession: () => ({ view: viewRef.current, selected: selectedRef.current }),
         setStatus,
         log: hostLog,
       },
       pass,
     );
-  }, [host, openBrain]);
+  }, [host, showOnly]);
 
   runBrainScenarioRef.current = runBrainScenario;
 
-  const selectedNode = selectedId === null ? null : hierarchy?.byId.get(selectedId) ?? null;
+  const runComposedScenario = useCallback(() => {
+    const pass = host?.autoComposedPass === 2 ? 2 : 1;
+    return runComposed(
+      {
+        invoke: (command, args) => invoke(command, args),
+        host,
+        showOnly,
+        remove: onRemoveBrain,
+        select: selectNode,
+        setView,
+        readSession: () => ({ view: viewRef.current, selected: selectedRef.current }),
+        readComposition: () => composedRef.current,
+        setStatus,
+        log: hostLog,
+      },
+      pass,
+    );
+  }, [host, onRemoveBrain, selectNode, showOnly]);
 
-  // Projected from the persisted rectangles. Rebuilt when the tree, the
-  // relations or the selection change — never for a pan or a zoom, and never by
-  // recomputing a layout.
-  const relationNeighbours = useMemo(
-    () => establishedNeighbours(relations, selectedId),
-    [relations, selectedId],
-  );
-  const segments = useMemo(
-    () => (hierarchy ? relationSegments(relations, hierarchy.byId, selectedId) : []),
-    [hierarchy, relations, selectedId],
-  );
+  runComposedScenarioRef.current = runComposedScenario;
+
+  const selectedNode: MapNode | null =
+    selected && selectedBrain ? selectedBrain.hierarchy.byId.get(selected.nodeId) ?? null : null;
+  const selectedTerritory = selected
+    ? composition.territories.find((entry) => entry.brainId === selected.brainId) ?? null
+    : null;
+
+  const focusedBrain = composed ? loaded.get(composed.focusedBrainId) ?? null : null;
+  const report = focusedBrain?.report ?? null;
+  const integrity = focusedBrain?.integrity ?? null;
 
   const labelFor = useCallback(
-    (node: MapNode) =>
-      `${node.name}, ${t.panel.kinds[node.kind]}, ${t.depth} ${node.depth}, ` +
+    (node: MapNode, brain: BrainRecord) =>
+      // The brain's name is part of every node's accessible name: in a composed
+      // graph, "dossier-b" alone does not say which brain it belongs to, and
+      // `L4` asks that origin never rest on colour.
+      `${brain.displayName} · ${node.name}, ${t.panel.kinds[node.kind]}, ${t.depth} ${node.depth}, ` +
       `${node.childCount} ${t.panel.children.toLowerCase()}` +
       (node.accessDiagnostic ? `, ${t.panel.diagnostic} ${node.accessDiagnostic}` : ""),
+    [],
+  );
+
+  const territoryLabelFor = useCallback(
+    (brain: BrainRecord, nodeCount: number, isFocused: boolean) =>
+      `${t.territory} ${brain.displayName}, icône ${brain.icon}, ${nodeCount} ${t.nodesWord}` +
+      (isFocused ? `, ${t.compositionFocused}` : ""),
     [],
   );
 
@@ -872,35 +1121,44 @@ export default function MapApp() {
         ) : null}
       </header>
 
-      <nav className="app__brains" aria-label={t.brains}>
-        <BrainSelector
-          brains={catalog?.brains ?? []}
-          activeBrainId={activeBrain?.brainId ?? catalog?.activeBrainId ?? null}
-          disabled={busy || measuring}
-          busy={busy}
-          onSelect={(brainId) => void openBrain(brainId, false)}
-          strings={{
-            label: t.brains,
-            active: t.brainActive,
-            source: t.brainSource,
-            switching: t.brainSwitching,
-          }}
-          showSource
-        />
+      <nav className="app__brains" aria-label={t.composition}>
+        {composed ? (
+          <CompositionBar
+            brains={catalog?.brains ?? []}
+            view={composed}
+            disabled={busy || measuring}
+            busy={busy}
+            onFocus={onFocusBrain}
+            onAdd={onAddBrain}
+            onRemove={onRemoveBrain}
+            strings={{
+              label: t.composition,
+              focused: t.compositionFocused,
+              focus: t.compositionFocus,
+              add: t.compositionAdd,
+              addEmpty: t.compositionAddEmpty,
+              remove: t.compositionRemove,
+              removeRefused: t.compositionRemoveRefused,
+              source: t.compositionSource,
+              busy: t.compositionBusy,
+            }}
+            showSource
+          />
+        ) : null}
         <div className="app__actions">
           <button
             type="button"
-            disabled={!activeBrain || busy || measuring}
-            onClick={() => activeBrain && openBrain(activeBrain.brainId, true)}
+            disabled={!composed || busy || measuring}
+            onClick={() => composed && void applyComposition(composed, { rebuild: true })}
           >
             {busy ? t.building : t.rebuild}
           </button>
-          <button type="button" disabled={!activeBrain || measuring} onClick={runSelfCheck}>
+          <button type="button" disabled={!composed || measuring} onClick={runSelfCheck}>
             {t.selfCheck}
           </button>
           <button
             type="button"
-            disabled={!activeBrain || !relations || measuring}
+            disabled={!selectedOverview || measuring}
             onClick={runRelationsCheck}
           >
             {t.relationsCheck}
@@ -920,8 +1178,8 @@ export default function MapApp() {
       {/*
         The synthetic sources, kept on screen as a **developer diagnostic** —
         `TASK-0018` §4.6. They are no longer the user-facing concept, and they
-        are not clickable: a brain is chosen above, and the source it reads is
-        the backend's business.
+        are not clickable: brains are composed above, and the source each one
+        reads is the backend's business.
       */}
       {fixtures.length > 0 ? (
         <section className="app__sources" aria-label={t.brainsDiagnostic}>
@@ -938,6 +1196,10 @@ export default function MapApp() {
         <section className="app__report" aria-label="Rapport de construction">
           <span data-testid="report-brain">
             {report.brainId} · {report.indexPath}
+          </span>
+          <span data-testid="composed-total">
+            {renderedBrains.length} territoire(s) ·{" "}
+            {renderedBrains.reduce((total, brain) => total + brain.nodeCount, 0)} {t.nodes}
           </span>
           <span>
             {report.nodeCount} {t.nodes} / {t.ceiling} {report.nodeCeiling}
@@ -1038,13 +1300,33 @@ export default function MapApp() {
             >
               {t.zoomOut}
             </button>
-            <button type="button" onClick={() => setView(fitView(world, viewport))}>
+            {/* `Ajuster` frames the whole composition, never one territory. */}
+            <button
+              type="button"
+              data-testid="fit-composition"
+              onClick={() => setView(fitView(world, viewport))}
+            >
               {t.fit}
             </button>
             <button
               type="button"
-              disabled={!selectedNode}
-              onClick={() => selectedNode && setView(fitToBox(selectedNode.rect, world, viewport))}
+              disabled={!selectedNode || !selectedTerritory}
+              onClick={() =>
+                selectedNode &&
+                selectedTerritory &&
+                setView(
+                  fitToBox(
+                    {
+                      x: selectedNode.rect.x + selectedTerritory.offsetX,
+                      y: selectedNode.rect.y + selectedTerritory.offsetY,
+                      w: selectedNode.rect.w,
+                      h: selectedNode.rect.h,
+                    },
+                    world,
+                    viewport,
+                  ),
+                )
+              }
             >
               {t.fitSelection}
             </button>
@@ -1053,30 +1335,40 @@ export default function MapApp() {
             </button>
             <button
               type="button"
-              disabled={!snapshot}
-              onClick={() => snapshot && setSelectedId(snapshot.rootId)}
+              disabled={!focusedBrain}
+              onClick={() =>
+                focusedBrain &&
+                selectNode({
+                  brainId: focusedBrain.record.brainId,
+                  nodeId: focusedBrain.snapshot.rootId,
+                })
+              }
             >
               {t.selectRoot}
             </button>
           </div>
 
-          {hierarchy && snapshot ? (
+          {renderedBrains.length > 0 && composed ? (
             <MapView
-              hierarchy={hierarchy}
-              segments={segments}
-              relationNeighbours={relationNeighbours}
-              world={world}
+              brains={renderedBrains}
+              composition={composition}
               view={view}
               viewport={viewport}
-              selectedId={selectedId}
+              selected={selected}
+              focusedBrainId={composed.focusedBrainId}
               onViewChange={setView}
-              onSelect={setSelectedId}
+              onSelect={selectNode}
               onViewportChange={setViewport}
               labelFor={labelFor}
-              ariaLabel={`${t.map} — ${snapshot.label}`}
+              territoryLabelFor={territoryLabelFor}
+              ariaLabel={`${t.map} — ${renderedBrains
+                .map((brain) => brain.record.displayName)
+                .join(", ")}`}
             />
           ) : (
-            <p className="app__empty">{t.fixtures} — {t.open}</p>
+            <p className="app__empty">
+              {t.fixtures} — {t.open}
+            </p>
           )}
 
           <p className="toolbar__hint">
@@ -1088,7 +1380,7 @@ export default function MapApp() {
           <DetailsPanel
             detail={detail}
             loading={detailLoading}
-            onSelect={setSelectedId}
+            onSelect={selectInSelectedBrain}
             locale="fr"
             strings={t.panel}
           />
@@ -1096,19 +1388,19 @@ export default function MapApp() {
           <RelationsPanel
             relations={nodeRelations}
             loading={relationsLoading}
-            inScope={relations !== null}
-            onSelect={setSelectedId}
+            inScope={selectedOverview !== null}
+            onSelect={selectInSelectedBrain}
             onApprove={approveSuggestion}
             approving={approving}
           />
 
           {measurement ? (
-            <section className="measure" aria-label="Mesures H9 — régression multi-cerveaux">
-              <h2>H9 · WebView2 · régression multi-cerveaux</h2>
+            <section className="measure" aria-label="Mesures H9 — régression du runtime composé">
+              <h2>H9 · WebView2 · régression du runtime composé</h2>
               <table>
                 <thead>
                   <tr>
-                    <th scope="col">Fixture</th>
+                    <th scope="col">Cerveau</th>
                     <th scope="col">Image méd.</th>
                     <th scope="col">Image min–max</th>
                     <th scope="col">Sélection méd.</th>
@@ -1134,3 +1426,5 @@ export default function MapApp() {
     </div>
   );
 }
+
+export { composeView };

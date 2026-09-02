@@ -1,0 +1,261 @@
+{
+  "task": "TASK-0019",
+  "sourceCriterion": "TASK-0018/K12",
+  "nature": "regression replay",
+  "doesNotReplace": "TASK-0018-K12-webview2-pass1.json, TASK-0018-K12-webview2-pass2.json",
+  "replacesCanonicalEvidence": false,
+  "criterion": "K12",
+  "pass": 1,
+  "capturedAtIso": "2026-09-02T15:52:13.789Z",
+  "host": {
+    "sandboxRoot": "<dépôt>/.filetopo-sandbox",
+    "appVersion": "0.1.0-alpha.1",
+    "sqliteVersion": "3.53.2",
+    "webviewVersion": "152.0.4191.53",
+    "tauriVersion": "2.11.5",
+    "platform": "windows",
+    "nodeCeiling": 5000,
+    "depthCeiling": 40,
+    "minLeafArea": 2400,
+    "autoVerify": false,
+    "autoMeasure": false,
+    "autoRelations": false,
+    "autoBrainsPass": 1,
+    "autoComposedPass": 0
+  },
+  "evidence": {
+    "pass": 1,
+    "steps": "K12.1 a K12.9",
+    "step1_compositionReady": true,
+    "step1_start": {
+      "activeBrainId": "brain-alpha",
+      "catalogPath": "brains/catalog.sqlite",
+      "brainsInCatalogue": 3,
+      "schemaVersion": 1,
+      "compositionShows": "Cerveaux affichés▲Cerveau Alphaactifsource quasi-empty×+ Ajouter",
+      "displayedBrainIds": [
+        "brain-alpha"
+      ],
+      "startedOnThatBrainAlone": true,
+      "startedOnTheActiveBrain": true
+    },
+    "step2to4_keyFailures": [],
+    "step2to4_switches": [
+      {
+        "brainId": "brain-alpha",
+        "expectedNodes": 12,
+        "snapshotNodes": 12,
+        "reportNodes": 12,
+        "countMatchesFrozenExpectation": true,
+        "snapshotBelongsToThisBrain": true,
+        "indexPath": "brains/brain-alpha/map/index.sqlite",
+        "sourceRef": "quasi-empty",
+        "nameOnScreen": true,
+        "iconOnScreen": true,
+        "displayedAfterSwitch": [
+          "brain-alpha"
+        ],
+        "displayedAloneAfterSwitch": true,
+        "alreadyDisplayed": true,
+        "alreadyDisplayedAlone": true,
+        "switchedByRealKey": false,
+        "activationIsTrusted": null,
+        "keydownIsTrusted": null,
+        "removalsWereTrusted": true,
+        "programmaticClickCalls": 0,
+        "programmaticClickDispatches": 0
+      },
+      {
+        "brainId": "brain-beta",
+        "expectedNodes": 157,
+        "snapshotNodes": 157,
+        "reportNodes": 157,
+        "countMatchesFrozenExpectation": true,
+        "snapshotBelongsToThisBrain": true,
+        "indexPath": "brains/brain-beta/map/index.sqlite",
+        "sourceRef": "deep",
+        "nameOnScreen": true,
+        "iconOnScreen": true,
+        "displayedAfterSwitch": [
+          "brain-beta"
+        ],
+        "displayedAloneAfterSwitch": true,
+        "alreadyDisplayed": false,
+        "alreadyDisplayedAlone": false,
+        "switchedByRealKey": true,
+        "activationIsTrusted": true,
+        "keydownIsTrusted": true,
+        "removalsWereTrusted": true,
+        "programmaticClickCalls": 0,
+        "programmaticClickDispatches": 0
+      },
+      {
+        "brainId": "brain-gamma",
+        "expectedNodes": 12,
+        "snapshotNodes": 12,
+        "reportNodes": 12,
+        "countMatchesFrozenExpectation": true,
+        "snapshotBelongsToThisBrain": true,
+        "indexPath": "brains/brain-gamma/map/index.sqlite",
+        "sourceRef": "quasi-empty",
+        "nameOnScreen": true,
+        "iconOnScreen": true,
+        "displayedAfterSwitch": [
+          "brain-gamma"
+        ],
+        "displayedAloneAfterSwitch": true,
+        "alreadyDisplayed": false,
+        "alreadyDisplayedAlone": false,
+        "switchedByRealKey": true,
+        "activationIsTrusted": true,
+        "keydownIsTrusted": true,
+        "removalsWereTrusted": true,
+        "programmaticClickCalls": 0,
+        "programmaticClickDispatches": 0
+      },
+      {
+        "brainId": "brain-alpha",
+        "expectedNodes": 12,
+        "snapshotNodes": 12,
+        "reportNodes": 12,
+        "countMatchesFrozenExpectation": true,
+        "snapshotBelongsToThisBrain": true,
+        "indexPath": "brains/brain-alpha/map/index.sqlite",
+        "sourceRef": "quasi-empty",
+        "nameOnScreen": true,
+        "iconOnScreen": true,
+        "displayedAfterSwitch": [
+          "brain-alpha"
+        ],
+        "displayedAloneAfterSwitch": true,
+        "alreadyDisplayed": false,
+        "alreadyDisplayedAlone": false,
+        "switchedByRealKey": true,
+        "activationIsTrusted": true,
+        "keydownIsTrusted": true,
+        "removalsWereTrusted": true,
+        "programmaticClickCalls": 0,
+        "programmaticClickDispatches": 0
+      }
+    ],
+    "step3_k3_indexPathsDistinct": true,
+    "step5to6_sessionState": {
+      "alphaLeft": {
+        "selected": {
+          "brainId": "brain-alpha",
+          "nodeId": 6
+        },
+        "view": {
+          "scale": 2.25,
+          "tx": -140,
+          "ty": 60
+        }
+      },
+      "alphaBack": {
+        "view": {
+          "scale": 2.25,
+          "tx": -140,
+          "ty": 60
+        },
+        "selected": {
+          "brainId": "brain-alpha",
+          "nodeId": 6
+        }
+      },
+      "alphaRestored": true,
+      "betaLeft": {
+        "selected": {
+          "brainId": "brain-beta",
+          "nodeId": 41
+        },
+        "view": {
+          "scale": 0.6,
+          "tx": 25,
+          "ty": -15
+        }
+      },
+      "betaBack": {
+        "view": {
+          "scale": 0.6,
+          "tx": 25,
+          "ty": -15
+        },
+        "selected": {
+          "brainId": "brain-beta",
+          "nodeId": 41
+        }
+      },
+      "betaRestored": true,
+      "theTwoAreDifferent": true,
+      "keyedByComposition": true
+    },
+    "step7_approvalInAlpha": {
+      "s005WasPending": false,
+      "approvalReplayable": false,
+      "approvalNotReplayableReason": "S-005 etait deja approuvee dans brain-alpha au demarrage de cette passe — bac a sable persistant, aucune commande de remise a zero",
+      "approvalError": null,
+      "s005IsApprovedInAlpha": true,
+      "beforeApproved": 5,
+      "beforePending": 3,
+      "afterApproved": 5,
+      "afterPending": 3,
+      "relationsPath": "brains/brain-alpha/relations/relations.sqlite",
+      "movedByExactlyOne": false
+    },
+    "step8_gammaUntouched": {
+      "approved": 4,
+      "pending": 4,
+      "pendingKeys": [
+        "S-005",
+        "S-006",
+        "S-007",
+        "S-008"
+      ],
+      "relationsPath": "brains/brain-gamma/relations/relations.sqlite",
+      "sameSourceAsAlpha": true,
+      "ownStore": true,
+      "s005StillPending": true
+    },
+    "step8_k5_sharedNodeId": {
+      "nodeId": 4,
+      "gammaEndpointKey": "ek1|brain-gamma|racine-1.txt",
+      "alphaEndpointKey": "ek1|brain-alpha|racine-1.txt",
+      "keysDiffer": true,
+      "gammaReferenceBrain": "brain-gamma",
+      "alphaReferenceBrain": "brain-alpha"
+    },
+    "step9_metadata": {
+      "renamedBrain": {
+        "brainId": "brain-beta",
+        "displayName": "Cerveau Bêta renommé K7",
+        "color": "#2E5FA3",
+        "icon": "◧",
+        "sourceKind": "SYNTHETIC_FIXTURE",
+        "sourceRef": "deep",
+        "position": 2
+      },
+      "othersUnchanged": [
+        {
+          "brainId": "brain-alpha",
+          "displayName": "Cerveau Alpha",
+          "color": "#1F6F5C",
+          "icon": "▲"
+        },
+        {
+          "brainId": "brain-gamma",
+          "displayName": "Cerveau Gamma",
+          "color": "#9A5A18",
+          "icon": "◆"
+        }
+      ]
+    },
+    "step9_activeBrain": {
+      "activeBrainId": "brain-gamma",
+      "gammaIsActive": true,
+      "compositionShows": "Cerveaux affichés◆Cerveau Gammaactifsource quasi-empty×+ Ajouter",
+      "displayedBrainIds": [
+        "brain-gamma"
+      ]
+    }
+  }
+}

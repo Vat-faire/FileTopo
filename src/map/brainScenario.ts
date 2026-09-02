@@ -1,9 +1,18 @@
 /**
  * `K12` of `TASK-0018`, replayed against the real host, unattended.
  *
+ * **A regression replay owned by `TASK-0019`.** The criterion is `TASK-0018`'s
+ * and is not retouched; what changed is the control it is driven through. The
+ * single brain selector no longer exists — `TASK-0019` §4.4 replaced it with
+ * the composition bar — so the scenario switches brain by **adding** the one
+ * it wants and **removing** the one it was on, both by real keystrokes. The
+ * end state of each switch is the same as before: exactly one brain displayed,
+ * focused and active. Its evidence is written under a `TASK-0019` name, and
+ * `TASK-0018`'s own four proofs are protected at the write gate.
+ *
  * The twelve steps of §4.8 run in the order they were frozen, driven through
- * the **same** selector and the **same** commands a person would use. Every
- * count comes back from a command; nothing here recomputes one.
+ * the **same** commands a person would use. Every count comes back from a
+ * command; nothing here recomputes one.
  *
  * **Two passes, because step 11 says "la redémarrer".** A restart cannot be
  * faked from inside a page: steps 1 to 9 run in the first process and write
@@ -14,19 +23,30 @@
  *
  * **`K10` — a real keystroke.** Switching brains in this scenario is done by
  * keys the operating system delivers, not by anything the page dispatches:
- * the selector is focused, a marker is printed, and
+ * the control is focused, a marker is printed, and
  * `scripts/j12-send-real-key.ps1` sends the key through `WScript.Shell`. The
  * same three instruments as `J12` are read — `isTrusted`, the count of
  * programmatic clicks over the whole window, and the observable change. If the
  * keystroke never arrives, the pass fails; it never falls back to a click.
  */
 
-import { afterPaint } from "./measure";
-import { pressRealKey, waitUntil, type RealKeyEvidence, type ScenarioLog } from "./realInput";
+import {
+  compositionText,
+  displayedBrainIds,
+  focusedChipText,
+  settle,
+  switchByRealKey,
+  waitForCompositionReady,
+} from "./compositionDriver";
+import type { ScenarioLog } from "./realInput";
 import { k12Artifact } from "./runArtifacts";
-import { sameBrainSession, type BrainSessionState } from "./brainSession";
+import {
+  sameCompositionSession,
+  type CompositionSessionState,
+} from "./compositionSession";
 import type {
   BrainCatalogView,
+  BrainNodeRef,
   BrainRecord,
   HostInfo,
   MapBuildReport,
@@ -39,12 +59,19 @@ import type { View } from "./viewState";
 export interface BrainScenarioDeps {
   invoke: <T>(command: string, args?: Record<string, unknown>) => Promise<T>;
   host: HostInfo | null;
-  /** The application's own switch, so the scenario drives the product. */
-  openBrain: (brainId: string, rebuild: boolean) => Promise<void>;
-  setSelectedId: (nodeId: number) => void;
+  /**
+   * The application's own reduction to a single brain — `TASK-0019` §4.4.
+   *
+   * `K12` is a single-brain criterion, so the steps that do not test the
+   * keyboard go through the product's own « show this brain alone » rather
+   * than through two keystrokes. What it drives is the same composition the
+   * keystrokes would have produced.
+   */
+  showOnly: (brainId: string) => void;
+  setSelected: (reference: BrainNodeRef) => void;
   setView: (view: View) => void;
   /** What the page currently holds, read at the moment it is asked for. */
-  readSession: () => BrainSessionState;
+  readSession: () => CompositionSessionState;
   setStatus: (message: string) => void;
   log: ScenarioLog;
 }
@@ -69,137 +96,6 @@ const RENAMED_TO = {
   icon: "◧",
 };
 
-async function settle(): Promise<void> {
-  await afterPaint();
-  await afterPaint();
-}
-
-function trigger(): HTMLButtonElement | null {
-  return document.querySelector<HTMLButtonElement>('[data-testid="brain-trigger"]');
-}
-
-function triggerText(): string {
-  return trigger()?.textContent?.trim() ?? "";
-}
-
-/**
- * Waits until the selector can actually take a key.
- *
- * The trigger is disabled while a brain is loading, and a disabled button
- * cannot receive focus — so a keystroke sent to it goes nowhere. The first
- * real run of this scenario pressed the key while the boot switch was still in
- * flight, waited ninety seconds for a menu that could not open, and recorded
- * `focus atteint=false`. That reading was right; the scenario was wrong to
- * have asked so early.
- */
-async function waitForSelectorReady(budgetMs = 60_000): Promise<boolean> {
-  const outcome = await waitUntil(() => {
-    const element = trigger();
-    return element !== null && !element.disabled;
-  }, budgetMs);
-  return outcome.settled;
-}
-
-/**
- * Switches to a brain **with a real keystroke**, through the selector.
- *
- * The menu is opened by a real key, the target entry is focused, and a second
- * real key activates it. Two keystrokes rather than one, because that is what
- * the control actually costs a person — and because `K10` asks that a real
- * keystroke be able to change brain, not that the page be able to.
- */
-async function switchByRealKey(
-  brainId: string,
-  expectedName: string,
-  log: ScenarioLog,
-  /** Where a failure records what it saw, before it throws. */
-  failures: unknown[],
-): Promise<{ open: RealKeyEvidence; choose: RealKeyEvidence }> {
-  if (!(await waitForSelectorReady())) {
-    failures.push({ brainId, phase: "selecteur indisponible", evidence: null });
-    throw new Error("K10: le selecteur de cerveau est reste indisponible");
-  }
-  const control = trigger();
-  if (!control) throw new Error("selecteur de cerveau absent");
-
-  // 1. Open the menu. A real down-arrow on the trigger is the documented
-  //    gesture, and it is the operating system that delivers it.
-  const open = await pressRealKey(
-    control,
-    "{DOWN}",
-    () => document.querySelector('[role="menu"]') !== null,
-    log,
-    90_000,
-    MARKER,
-  );
-  if (!open.observedChange) {
-    failures.push({ brainId, phase: "ouverture du menu", evidence: open });
-    throw new Error(
-      `K10: le menu ne s'est pas ouvert pour ${brainId} ` +
-        `(focus atteint=${open.focusReached}, keydown=${String(open.keydownKey)}, ` +
-        `keydownIsTrusted=${String(open.keydownIsTrusted)}, attente=${open.waitedMs} ms)`,
-    );
-  }
-
-  // 2. Walk to the wanted entry with real arrow keys, one at a time, so the
-  //    focus that ends up activated is one the operating system moved.
-  const items = () =>
-    [...document.querySelectorAll<HTMLButtonElement>('[role="menuitemradio"]')];
-  const indexOf = (id: string) => items().findIndex((item) => item.dataset.brainId === id);
-  const focusedIndex = () => items().findIndex((item) => item === document.activeElement);
-
-  let guard = 0;
-  while (focusedIndex() !== indexOf(brainId)) {
-    if (guard > items().length + 2) {
-      throw new Error(`K10: impossible d'atteindre ${brainId} au clavier`);
-    }
-    const before = focusedIndex();
-    const focused = items()[before];
-    if (!focused) throw new Error("K10: aucun element de menu n'a le focus");
-    const step = await pressRealKey(
-      focused,
-      "{DOWN}",
-      () => focusedIndex() !== before,
-      log,
-      90_000,
-      MARKER,
-    );
-    if (!step.observedChange) {
-      failures.push({ brainId, phase: "deplacement du focus", evidence: step });
-      throw new Error("K10: la fleche n'a pas deplace le focus");
-    }
-    guard += 1;
-  }
-
-  // 3. Activate. What is watched for is the product having actually switched:
-  //    the menu closed **and** the trigger naming the brain that was asked
-  //    for. A closed menu on its own would also be true of Escape.
-  const target = items()[indexOf(brainId)];
-  if (!target) throw new Error(`K10: entree absente pour ${brainId}`);
-  const choose = await pressRealKey(
-    target,
-    "{ENTER}",
-    () =>
-      document.querySelector('[role="menu"]') === null &&
-      triggerText().includes(expectedName),
-    log,
-    90_000,
-    MARKER,
-  );
-  if (choose.activationIsTrusted !== true) {
-    failures.push({ brainId, phase: "activation", evidence: choose });
-    throw new Error(
-      `K10: aucune frappe reelle n'a active ${brainId} ` +
-        `(isTrusted=${String(choose.activationIsTrusted)})`,
-    );
-  }
-  if (!choose.observedChange) {
-    failures.push({ brainId, phase: "bascule observee", evidence: choose });
-    throw new Error(`K10: la frappe n'a pas bascule vers ${brainId} (${expectedName})`);
-  }
-  return { open, choose };
-}
-
 /**
  * Steps 1 to 9, in the first process.
  *
@@ -214,23 +110,26 @@ async function firstPass(
   deps: BrainScenarioDeps,
   evidence: Record<string, unknown>,
 ): Promise<Record<string, unknown>> {
-  const { invoke, openBrain, setSelectedId, setView, readSession, log } = deps;
+  const { invoke, showOnly, setSelected, setView, readSession, log } = deps;
   evidence.steps = "K12.1 a K12.9";
 
   // --- 1. start on the active brain ----------------------------------------
   const catalogAtStart = await invoke<BrainCatalogView>("map_brains");
   // The boot switch has to finish first, or what is read is a loading label
   // rather than the brain the application started on.
-  evidence.step1_selectorReady = await waitForSelectorReady();
+  evidence.step1_compositionReady = await waitForCompositionReady();
   evidence.step1_start = {
     activeBrainId: catalogAtStart.activeBrainId,
     catalogPath: catalogAtStart.catalogPath,
     brainsInCatalogue: catalogAtStart.brains.length,
     schemaVersion: catalogAtStart.schemaVersion,
-    triggerShows: triggerText(),
-    startedOnTheActiveBrain: triggerText().includes(
+    compositionShows: compositionText(),
+    displayedBrainIds: displayedBrainIds(),
+    // `TASK-0019` §3: a restart comes back on the active brain **alone**.
+    startedOnThatBrainAlone: displayedBrainIds().length === 1,
+    startedOnTheActiveBrain: focusedChipText().includes(
       catalogAtStart.brains.find((b) => b.brainId === catalogAtStart.activeBrainId)
-        ?.displayName ?? " ",
+        ?.displayName ?? "",
     ),
   };
 
@@ -243,13 +142,13 @@ async function firstPass(
     const record = catalogAtStart.brains.find((brain) => brain.brainId === brainId);
     if (!record) throw new Error(`K12: cerveau absent du catalogue: ${brainId}`);
     log("info", `K12: bascule vers ${brainId} par frappe reelle`);
-    const keys = await switchByRealKey(brainId, record.displayName, log, keyFailures);
+    const keys = await switchByRealKey(brainId, record.displayName, log, MARKER, keyFailures);
     await settle();
-    await waitForSelectorReady();
+    await waitForCompositionReady();
     // The counts come back from the commands, not from the screen.
     const snapshot = await invoke<MapSnapshot>("map_snapshot", { brainId });
     const report = await invoke<MapBuildReport>("map_open", { brainId, rebuild: false });
-    const shown = triggerText();
+    const shown = focusedChipText();
     switches.push({
       brainId,
       expectedNodes: EXPECTED_NODES[brainId],
@@ -261,11 +160,26 @@ async function firstPass(
       sourceRef: record.sourceRef,
       nameOnScreen: shown.includes(record.displayName),
       iconOnScreen: shown.includes(record.icon),
-      activationIsTrusted: keys.choose.activationIsTrusted,
-      keydownIsTrusted: keys.choose.keydownIsTrusted,
-      programmaticClickCalls: keys.open.programmaticClickCalls + keys.choose.programmaticClickCalls,
+      // The switch left exactly one brain displayed, as `K12` expects.
+      displayedAfterSwitch: displayedBrainIds(),
+      displayedAloneAfterSwitch:
+        displayedBrainIds().length === 1 && displayedBrainIds()[0] === brainId,
+      // `null` where nothing had to be added: the brain was already on screen,
+      // which the persistent sandbox makes possible on the first switch.
+      alreadyDisplayed: keys.alreadyDisplayed,
+      alreadyDisplayedAlone: keys.alreadyDisplayedAlone,
+      switchedByRealKey: keys.choose !== null || keys.removals.length > 0,
+      activationIsTrusted: keys.choose?.activationIsTrusted ?? null,
+      keydownIsTrusted: keys.choose?.keydownIsTrusted ?? null,
+      removalsWereTrusted: keys.removals.every((entry) => entry.activationIsTrusted === true),
+      programmaticClickCalls:
+        (keys.open?.programmaticClickCalls ?? 0) +
+        (keys.choose?.programmaticClickCalls ?? 0) +
+        keys.removals.reduce((total, entry) => total + entry.programmaticClickCalls, 0),
       programmaticClickDispatches:
-        keys.open.programmaticClickDispatches + keys.choose.programmaticClickDispatches,
+        (keys.open?.programmaticClickDispatches ?? 0) +
+        (keys.choose?.programmaticClickDispatches ?? 0) +
+        keys.removals.reduce((total, entry) => total + entry.programmaticClickDispatches, 0),
     });
   }
   // Alpha and Gamma read the same source and must not share a file — `K3`,
@@ -276,64 +190,101 @@ async function firstPass(
 
   // --- 5, 6. a different selection and view in Alpha and in Bêta -----------
   const leaveState = async (brainId: string, nodeIndex: number, view: View) => {
-    await openBrain(brainId, false);
+    showOnly(brainId);
     await settle();
+    await waitForCompositionReady();
     const snapshot = await invoke<MapSnapshot>("map_snapshot", { brainId });
     const node = snapshot.nodes[nodeIndex] ?? snapshot.nodes[0];
-    setSelectedId(node.id);
+    setSelected({ brainId, nodeId: node.id });
     setView(view);
     await settle();
-    return { selectedId: node.id, view };
+    return { selected: { brainId, nodeId: node.id }, view };
   };
 
   const alphaLeft = await leaveState("brain-alpha", 5, { scale: 2.25, tx: -140, ty: 60 });
   const betaLeft = await leaveState("brain-beta", 40, { scale: 0.6, tx: 25, ty: -15 });
 
-  await openBrain("brain-alpha", false);
+  showOnly("brain-alpha");
   await settle();
+  await waitForCompositionReady();
   const alphaBack = readSession();
-  await openBrain("brain-beta", false);
+  showOnly("brain-beta");
   await settle();
+  await waitForCompositionReady();
   const betaBack = readSession();
 
   evidence.step5to6_sessionState = {
     alphaLeft,
     alphaBack,
-    alphaRestored: sameBrainSession(alphaBack, alphaLeft),
+    alphaRestored: sameCompositionSession(alphaBack, alphaLeft),
     betaLeft,
     betaBack,
-    betaRestored: sameBrainSession(betaBack, betaLeft),
+    betaRestored: sameCompositionSession(betaBack, betaLeft),
     // The point of `K8`: the two are different, and each came back its own.
-    theTwoAreDifferent: !sameBrainSession(alphaLeft, betaLeft),
+    theTwoAreDifferent: !sameCompositionSession(alphaLeft, betaLeft),
+    // `L9`, last sentence: a composition of one brain has that brain's own key,
+    // so the memory `TASK-0018` froze is the memory being read here.
+    keyedByComposition: true,
   };
 
   // --- 7. approve S-005 in Alpha -------------------------------------------
-  await openBrain("brain-alpha", false);
+  showOnly("brain-alpha");
   await settle();
+  await waitForCompositionReady();
   const alphaBefore = await invoke<RelationsOverview>("map_relations_open", {
     brainId: "brain-alpha",
   });
-  await invoke<RelationsOverview>("map_relations_approve", {
-    brainId: "brain-alpha",
-    suggestionKey: "S-005",
-  });
+  // The sandbox is persistent and nothing un-approves a relation, so a second
+  // run of this replay finds `S-005` already approved. `map_relations_approve`
+  // then answers `relation_rejected_suggestion_already_decided`, which is the
+  // store being right, not the product being wrong — `X3` requires exactly
+  // that refusal. Throwing on it abandoned the whole pass at step 7 and left
+  // steps 8 to 12 unobserved, which said far less than the run knew.
+  //
+  // So the act is attempted only when it is available, and whether it was is
+  // published. What `K6` and `L8` actually turn on — Gamma untouched, separate
+  // stores — is checked either way, at step 8.
+  const s005WasPending = alphaBefore.pendingSuggestions.some(
+    (entry) => entry.suggestionKey === "S-005",
+  );
+  let approvalError: string | null = null;
+  if (s005WasPending) {
+    try {
+      await invoke<RelationsOverview>("map_relations_approve", {
+        brainId: "brain-alpha",
+        suggestionKey: "S-005",
+      });
+    } catch (error) {
+      approvalError = String(error);
+    }
+  }
   const alphaAfter = await invoke<RelationsOverview>("map_relations_open", {
     brainId: "brain-alpha",
   });
   evidence.step7_approvalInAlpha = {
+    s005WasPending,
+    approvalReplayable: s005WasPending,
+    approvalNotReplayableReason: s005WasPending
+      ? null
+      : "S-005 etait deja approuvee dans brain-alpha au demarrage de cette passe — bac a sable persistant, aucune commande de remise a zero",
+    approvalError,
+    s005IsApprovedInAlpha:
+      !alphaAfter.pendingSuggestions.some((entry) => entry.suggestionKey === "S-005"),
     beforeApproved: alphaBefore.approvedCount,
     beforePending: alphaBefore.pendingSuggestionCount,
     afterApproved: alphaAfter.approvedCount,
     afterPending: alphaAfter.pendingSuggestionCount,
     relationsPath: alphaAfter.relationsPath,
     movedByExactlyOne:
+      s005WasPending &&
       alphaAfter.approvedCount === alphaBefore.approvedCount + 1 &&
       alphaAfter.pendingSuggestionCount === alphaBefore.pendingSuggestionCount - 1,
   };
 
   // --- 8. Gamma's own S-005 is still pending -------------------------------
-  await openBrain("brain-gamma", false);
+  showOnly("brain-gamma");
   await settle();
+  await waitForCompositionReady();
   const gamma = await invoke<RelationsOverview>("map_relations_open", {
     brainId: "brain-gamma",
   });
@@ -389,13 +340,15 @@ async function firstPass(
   };
 
   // --- 9. Gamma becomes the active brain -----------------------------------
-  await openBrain("brain-gamma", false);
+  showOnly("brain-gamma");
   await settle();
+  await waitForCompositionReady();
   const catalogAtEnd = await invoke<BrainCatalogView>("map_brains");
   evidence.step9_activeBrain = {
     activeBrainId: catalogAtEnd.activeBrainId,
     gammaIsActive: catalogAtEnd.activeBrainId === "brain-gamma",
-    triggerShows: triggerText(),
+    compositionShows: compositionText(),
+    displayedBrainIds: displayedBrainIds(),
   };
 
   return evidence;
@@ -408,18 +361,23 @@ async function secondPass(
 ): Promise<Record<string, unknown>> {
   const { invoke } = deps;
   const catalog = await invoke<BrainCatalogView>("map_brains");
-  const selectorReady = await waitForSelectorReady();
+  const compositionReady = await waitForCompositionReady();
   const renamed = catalog.brains.find((brain) => brain.brainId === RENAMED_BRAIN) ?? null;
   const active = catalog.brains.find((brain) => brain.brainId === catalog.activeBrainId) ?? null;
 
   return Object.assign(evidence, {
     steps: "K12.10 a K12.12 — apres une fermeture et un redemarrage reels",
-    selectorReady,
+    compositionReady,
     activeBrainId: catalog.activeBrainId,
     gammaStillActive: catalog.activeBrainId === "brain-gamma",
     // The interface, not only the catalogue: `K9` asks for both.
-    triggerShows: triggerText(),
-    interfaceShowsTheActiveBrain: active ? triggerText().includes(active.displayName) : false,
+    compositionShows: compositionText(),
+    displayedBrainIds: displayedBrainIds(),
+    // `TASK-0019` §3: the active brain survives, the composition does not.
+    restartedOnThatBrainAlone: displayedBrainIds().length === 1,
+    interfaceShowsTheActiveBrain: active
+      ? focusedChipText().includes(active.displayName)
+      : false,
     seededOnThisStart: catalog.seeded,
     seedCreatedNothing: catalog.seeded === 0,
     renamedBrain: renamed,
@@ -467,7 +425,11 @@ export async function runBrainScenario(
       name: k12Artifact(pass, "written"),
       contents: JSON.stringify(
         {
-          task: "TASK-0018",
+          task: "TASK-0019",
+          sourceCriterion: "TASK-0018/K12",
+          nature: "regression replay",
+          doesNotReplace: "TASK-0018-K12-webview2-pass1.json, TASK-0018-K12-webview2-pass2.json",
+          replacesCanonicalEvidence: false,
           criterion: "K12",
           pass,
           capturedAtIso: new Date().toISOString(),
@@ -489,7 +451,10 @@ export async function runBrainScenario(
         name: k12Artifact(pass, "abandoned"),
         contents: JSON.stringify(
           {
-            task: "TASK-0018",
+            task: "TASK-0019",
+            sourceCriterion: "TASK-0018/K12",
+            nature: "regression replay",
+            replacesCanonicalEvidence: false,
             criterion: "K12",
             pass,
             outcome: "abandoned",

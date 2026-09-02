@@ -6,7 +6,8 @@ import MapView from "./MapView";
 import type { RelationSegment } from "./relations";
 import { buildHierarchy, hierarchicalNeighbourhood, move } from "./hierarchy";
 import { aggregate, selectionTargets, summarize } from "./measure";
-import type { MapNode, NodeDetail, Rect } from "./types";
+import { composeTerritories } from "./territories";
+import type { BrainNodeRef, BrainRecord, MapNode, NodeDetail, Rect } from "./types";
 import { fitView, type View } from "./viewState";
 
 // This project does not enable Vitest globals, so Testing Library's automatic
@@ -54,6 +55,25 @@ const nodes: MapNode[] = [
 const world: Rect = { x: 0, y: 0, w: 400, h: 400 };
 const hierarchy = buildHierarchy(nodes, 1);
 
+/**
+ * One synthetic brain, so the composed `MapView` can be rendered at all.
+ *
+ * `TASK-0019` turned the map into a **composition of territories**: there is no
+ * longer a « the hierarchy » prop to pass. These tests are about one brain's
+ * behaviour, so they compose exactly one — which is `C1`, the mode the previous
+ * slice shipped, and the case `L9`'s last sentence says must not change.
+ */
+const BRAIN = "brain-test";
+const record: BrainRecord = {
+  brainId: BRAIN,
+  displayName: "Cerveau de test",
+  color: "#2E5FA3",
+  icon: "▲",
+  sourceKind: "SYNTHETIC_FIXTURE",
+  sourceRef: "synthetique",
+  position: 1,
+};
+
 const panelStrings = {
   title: "Détails",
   empty: "vide",
@@ -78,29 +98,41 @@ function Harness({
   segments = [],
   relationNeighbours = new Set<number>(),
 }: {
-  onSelect?: (id: number) => void;
+  onSelect?: (reference: BrainNodeRef) => void;
   segments?: RelationSegment[];
   relationNeighbours?: Set<number>;
 }) {
   const viewport = { width: 800, height: 600 };
-  const [view, setView] = useState<View>(() => fitView(world, viewport));
-  const [selectedId, setSelectedId] = useState<number | null>(1);
+  const composition = composeTerritories([
+    { brainId: BRAIN, layoutWidth: world.w, layoutHeight: world.h },
+  ]);
+  const [view, setView] = useState<View>(() => fitView(composition.world, viewport));
+  const [selected, setSelected] = useState<BrainNodeRef | null>({ brainId: BRAIN, nodeId: 1 });
   return (
     <MapView
-      hierarchy={hierarchy}
-      segments={segments}
-      relationNeighbours={relationNeighbours}
-      world={world}
+      brains={[
+        {
+          brainId: BRAIN,
+          record,
+          hierarchy,
+          segments,
+          relationNeighbours,
+          nodeCount: nodes.length,
+        },
+      ]}
+      composition={composition}
       view={view}
       viewport={viewport}
-      selectedId={selectedId}
+      selected={selected}
+      focusedBrainId={BRAIN}
       onViewChange={setView}
-      onSelect={(id) => {
-        setSelectedId(id);
-        onSelect?.(id);
+      onSelect={(reference) => {
+        setSelected(reference);
+        onSelect?.(reference);
       }}
       onViewportChange={() => {}}
       labelFor={(target) => `${target.name} (${target.kind})`}
+      territoryLabelFor={(brain, nodeCount) => `${brain.displayName}, ${nodeCount} noeuds`}
       ariaLabel="carte"
     />
   );
@@ -119,7 +151,7 @@ describe("map selection — P-06, H4", () => {
     const onSelect = vi.fn();
     render(<Harness onSelect={onSelect} />);
     fireEvent.pointerDown(screen.getByLabelText("alpha (directory)"));
-    expect(onSelect).toHaveBeenCalledWith(2);
+    expect(onSelect).toHaveBeenCalledWith({ brainId: BRAIN, nodeId: 2 });
     expect(screen.getByLabelText("alpha (directory)")).toHaveAttribute("aria-selected", "true");
   });
 
@@ -157,7 +189,7 @@ describe("map selection — P-06, H4", () => {
     // and text that scaled with it would be unreadable. P-02 still requires the
     // selected block's label to be legible, so it is drawn regardless of size.
     const { container } = render(<Harness />);
-    const beta = container.querySelector("#map-node-3");
+    const beta = container.querySelector(`#${BRAIN}-map-node-3`);
     expect(beta).not.toBeNull();
     fireEvent.pointerDown(beta as Element);
     const layer = container.querySelector(".map-view__labels") as HTMLElement;
@@ -169,9 +201,9 @@ describe("map selection — P-06, H4", () => {
     // rectangle, so the rects stay in layout coordinates and only the group
     // transform moves.
     const { container } = render(<Harness />);
-    const group = container.querySelector("svg > g") as SVGGElement;
+    const group = container.querySelector('[data-testid="composed-world"]') as SVGGElement;
     const before = group.getAttribute("transform");
-    const rect = container.querySelector("#map-node-2 rect") as SVGRectElement;
+    const rect = container.querySelector(`#${BRAIN}-map-node-2 rect`) as SVGRectElement;
     const rectXBefore = rect.getAttribute("x");
 
     fireEvent.keyDown(screen.getByRole("tree"), { key: "+" });

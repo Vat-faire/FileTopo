@@ -5,7 +5,9 @@ import MapView from "./MapView";
 import RelationsPanel from "./RelationsPanel";
 import { buildHierarchy } from "./hierarchy";
 import { establishedNeighbours, relationKey, relationSegments } from "./relations";
+import { composeTerritories } from "./territories";
 import type {
+  BrainRecord,
   MapNode,
   NodeRelationEntry,
   NodeRelations,
@@ -47,6 +49,24 @@ const nodes: MapNode[] = [
   node(5, "racine-2.txt", 1, { x: 150, y: 150, w: 100, h: 100 }),
 ];
 const world: Rect = { x: 0, y: 0, w: 400, h: 400 };
+
+/**
+ * The one brain these tests compose — `C1`.
+ *
+ * `J8` and `J9` are about relations **inside** a brain, and `L8` says an edge
+ * never leaves one, so a single territory is the whole subject. The `L8` case
+ * itself — that no edge crosses a boundary — is proved in `composedView.test`.
+ */
+const BRAIN = "brain-test";
+const record: BrainRecord = {
+  brainId: BRAIN,
+  displayName: "Cerveau de test",
+  color: "#2E5FA3",
+  icon: "▲",
+  sourceKind: "SYNTHETIC_FIXTURE",
+  sourceRef: "synthetique",
+  position: 1,
+};
 const hierarchy = buildHierarchy(nodes, 1);
 
 function endpoint(id: number): RelationEndpoint {
@@ -347,22 +367,34 @@ describe("J7 — activer une relation sélectionne son autre extrémité", () =>
 
 function MapHarness({ selectedId }: { selectedId: number }) {
   const viewport = { width: 800, height: 600 };
-  const [view, setView] = useState<View>(() => fitView(world, viewport));
+  const composition = composeTerritories([
+    { brainId: BRAIN, layoutWidth: world.w, layoutHeight: world.h },
+  ]);
+  const [view, setView] = useState<View>(() => fitView(composition.world, viewport));
   const neighbours = establishedNeighbours(overview, selectedId);
   const segments = relationSegments(overview, hierarchy.byId, selectedId);
   return (
     <MapView
-      hierarchy={hierarchy}
-      segments={segments}
-      relationNeighbours={neighbours}
-      world={world}
+      brains={[
+        {
+          brainId: BRAIN,
+          record,
+          hierarchy,
+          segments,
+          relationNeighbours: neighbours,
+          nodeCount: hierarchy.byId.size,
+        },
+      ]}
+      composition={composition}
       view={view}
       viewport={viewport}
-      selectedId={selectedId}
+      selected={{ brainId: BRAIN, nodeId: selectedId }}
+      focusedBrainId={BRAIN}
       onViewChange={setView}
       onSelect={() => {}}
       onViewportChange={() => {}}
       labelFor={(target) => `${target.name}`}
+      territoryLabelFor={(brain, nodeCount) => `${brain.displayName}, ${nodeCount} noeuds`}
       ariaLabel="carte"
     />
   );
@@ -374,12 +406,12 @@ describe("J8 — accentuation de la sélection", () => {
 
     expect(container.querySelectorAll(".map-node--selected")).toHaveLength(1);
     // `racine` is the parent of the selection.
-    expect(container.querySelector("#map-node-1")?.getAttribute("class")).toContain(
+    expect(container.querySelector(`#${BRAIN}-map-node-1`)?.getAttribute("class")).toContain(
       "map-node--related",
     );
     // `note-2.txt`, `note-3.txt` and `racine-2.txt` are cross-cutting neighbours.
     for (const id of [3, 4, 5]) {
-      expect(container.querySelector(`#map-node-${id}`)?.getAttribute("class")).toContain(
+      expect(container.querySelector(`#${BRAIN}-map-node-${id}`)?.getAttribute("class")).toContain(
         "map-node--linked",
       );
     }

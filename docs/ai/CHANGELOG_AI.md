@@ -2535,3 +2535,106 @@ protégés **inchangées**, `git diff` vide.
 
 **Re-contrôle indépendant de `TASK-0018`, sur `X5` uniquement**, par une
 instance distincte de l'exécuteur, **sur preuves**.
+
+---
+
+## 2026-09-02 — TASK-0019 — Vue composée multi-cerveaux, exécution
+
+**Agent :** exécuteur Claude Code
+**Statut à l'issue :** **`IMPLEMENTED`** — `VERIFIED` **non attribué**
+**Branche :** `build/v0.2-a4-composed-view`
+**Session :** reprise après une session interrompue; l'arbre portait une
+implémentation à mi-refactor qui ne compilait pas. **Rien n'a été effacé ni
+recommencé** : le point d'arrêt a été situé, puis le travail repris.
+
+### Ce que FileTopo sait faire maintenant
+
+**Plusieurs cerveaux dans UN SEUL graphique, sans être mélangés.** Un canevas
+`SVG`, un territoire par cerveau, chacun gardant son index, ses relations et son
+état. `C2` affiche 12 + 12 nœuds venus de **deux** fichiers `SQLite` distincts;
+`C3` en affiche 181 en trois territoires. Composer ne fusionne rien : ajouter et
+retirer sont des actes d'**affichage**, et l'artefact publie les chemins réels
+qui le montrent.
+
+**Le gel précède le code.** `bcbc4aa` fige le modèle, `C1`/`C2`/`C3`, les
+formules de territoire et les critères `L1`–`L12` **avant** la première ligne de
+cette tranche. **Aucun critère n'a été retouché après le premier résultat.**
+
+### Les douze critères
+
+`L1` à `L11` : **TENUS**. `L12` : **tenu à seize étapes sur dix-sept**, la
+dix-septième incluse — le redémarrage réel confirme Gamma actif et la
+composition **non** persistée, qui est la limite déclarée en §3.
+
+**La seule cible manquée est publiée comme manquée** : la moitié « approuver
+`S-005` dans Alpha » de l'étape 7 n'a pas pu être **rejouée**, `S-005` étant
+déjà approuvée dans le bac à sable persistant par une exécution antérieure du
+rejeu `K12`. Le magasin refuse une seconde approbation — c'est `X3` qui
+fonctionne. La moitié qui porte `L8`, « Gamma strictement inchangé », est
+tenue, et l'artefact dit en toutes lettres pourquoi l'autre ne l'est pas.
+
+### L'isolation, à l'écran cette fois
+
+**Un `id` DOM n'est jamais partagé.** Alpha et Gamma lisent la même fixture,
+donc `node_id = 4` existe des deux côtés; les éléments s'appellent
+`brain-alpha-map-node-4` et `brain-gamma-map-node-4`. Ce n'est pas cosmétique :
+`aria-activedescendant` pointe vers **un** `id`, et `getElementById` renvoie **le
+premier** — le lecteur d'écran et le scénario auraient tous deux suivi le mauvais
+cerveau, en silence.
+
+**Aucune arête ne traverse une frontière.** 32 arêtes dessinées, **0**
+inter-cerveaux, lues en comparant les **deux** extrémités de chaque arête plutôt
+qu'en comptant.
+
+**Composer ne recalcule aucun calepinage.** Les rectangles d'Alpha seul et
+d'Alpha dans `C2` sont **identiques**, et un pan ou un zoom ne les touche pas.
+
+### L'UX du sélecteur unique est remplacée
+
+`BrainSelector.tsx` est **supprimé** : §4.4 le remplace par la barre de
+composition. Les affirmations `K7`, `K8` et `K10` qu'il portait sont **reprises
+une à une** dans `brains.test.tsx`, contre le nouveau contrôle — les supprimer
+avec le composant aurait retiré trois critères de la suite sans le dire.
+
+### Quatre défauts trouvés en chemin
+
+1. **`scripts/k12-run-real-host.ps1` supprimait une preuve protégée.** Il
+   effaçait `TASK-0018-K12-webview2-pass$Pass.json` avant chaque passe — devenu
+   preuve canonique d'une tâche `VERIFIED` par `ACTION-0029`. **La porte
+   d'écriture de l'application ne dit rien d'un script qui la contourne.** Les
+   deux scripts portent désormais une liste protégée et un `Assert-NotProtected`.
+2. **Le rejeu `J12` déclarait `task: "TASK-0018"` dans un fichier `TASK-0019`.**
+   Le nom et la charge utile se contredisaient. Corrigé, et un **test de garde**
+   exige maintenant que toute source qui écrit un artefact déclare `TASK-0019`.
+3. **Un défaut de mesure, dans le scénario et non dans le produit.** La première
+   exécution de `L12` a publié `restoredExactly=false` : la vue **était**
+   restaurée, un rendu plus tard. Corrigé en attendant que la valeur *cesse de
+   changer*, jamais qu'elle atteigne une valeur attendue — attendre une valeur
+   précise serait supposer la réponse.
+4. **Un octet `NUL` était commité** dans `src/map/brainScenario.ts`, dans un
+   littéral. Réparé.
+
+### Validations
+
+`pnpm check` **PASS**; **139/139** TypeScript (107 → 139); **107/107** Rust;
+`pnpm build` **PASS**; build Tauri `debug --no-bundle` **PASS**; `L12` **deux
+passes** dans WebView2 `152.0.4191.53` avec fermeture et redémarrage réels;
+`K12` de régression deux passes; `J12` de régression une passe; `L11` lecture
+seule sur trois cerveaux. **Les huit preuves protégées sont inchangées.**
+
+### Non fait, et déclaré tel
+
+- **Aucune campagne `H9`**, aucun seuil. `R8` entière.
+- **Persistance de la composition non implémentée** — `P-19` demeure.
+- **Aucune relation inter-cerveaux** — `TASK-0020`.
+- **`P-04` non révoquée**, `P-21` non satisfaite.
+- **`B0` s'est reproduit une sixième fois** sur `cargo test`; contourné par
+  `CARGO_INCREMENTAL=0`, **rien supprimé ni renommé** dans `src-tauri/target/`.
+- **Aucune nouvelle dépendance, aucune donnée réelle, aucun sélecteur de
+  dossier.**
+- **Aucune fusion, PR, release, étiquette, `force push`**, aucune réécriture.
+
+### État
+
+**`TASK-0019` : `IMPLEMENTED`.** L'action suivante est son **contrôle
+indépendant**, par une instance **distincte de l'exécuteur**, **sur preuves**.

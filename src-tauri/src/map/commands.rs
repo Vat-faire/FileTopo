@@ -98,6 +98,15 @@ pub struct HostInfo {
     /// is the one that was relaunched, and `K12` step 11 asks for a real
     /// restart rather than a simulated one.
     pub auto_brains_pass: u8,
+    /// Which pass of the `L12` composed-view scenario this process is running
+    /// — `0` for none, `1` for the sixteen steps before the restart, `2` for
+    /// the seventeenth, which can only be observed by a process that was
+    /// actually relaunched.
+    ///
+    /// Separate from `auto_brains_pass` on purpose: `K12` and `L12` prove
+    /// different things, and a single flag would make it impossible to replay
+    /// the foundation regression without also replaying the composed view.
+    pub auto_composed_pass: u8,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -493,11 +502,20 @@ pub fn self_check(paths: &SandboxPaths, brain: &BrainRecord) -> Result<MapSelfCh
 ///
 /// Renaming or removing one of these files is a governance act, not a
 /// runtime one; nothing in the application does it.
-pub const PROTECTED_RUN_ARTIFACTS: [&str; 4] = [
+///
+/// **The list grows when a task becomes `VERIFIED`.** `TASK-0018` was
+/// `IMPLEMENTED` when this gate was written and `VERIFIED` by `ACTION-0029`,
+/// so its four proofs joined the list — including the regression artefact it
+/// produced itself, which is now somebody else's canonical evidence.
+pub const PROTECTED_RUN_ARTIFACTS: [&str; 8] = [
     "TASK-0016-H1-H7-verification.json",
     "TASK-0016-H9-webview2.json",
     "TASK-0017-J11-isolation.json",
     "TASK-0017-J12-webview2.json",
+    "TASK-0018-K11-readonly-and-isolation.json",
+    "TASK-0018-K12-webview2-pass1.json",
+    "TASK-0018-K12-webview2-pass2.json",
+    "TASK-0018-J12-relations-regression-webview2.json",
 ];
 
 /// Writes a measurement artefact into `docs/performance/runs/` of this
@@ -582,23 +600,58 @@ mod tests {
 
     /// The names the current runtime actually writes are **not** protected
     /// ones, and say which task they belong to.
+    ///
+    /// `TASK-0019` writes under `TASK-0019`, full stop. The four artefacts
+    /// this runtime wrote under `TASK-0018` a slice ago are now the canonical
+    /// evidence of a `VERIFIED` task, and the loop below asserts both halves:
+    /// the new names are free, and the old ones are refused.
     #[test]
-    fn the_migrated_scenarios_write_under_task_0018() {
+    fn the_migrated_scenarios_write_under_task_0019() {
         for name in [
-            "TASK-0018-H9-multibrain-regression-webview2.json",
-            "TASK-0018-H9-multibrain-regression-webview2-abandon.json",
-            "TASK-0018-J12-relations-regression-webview2.json",
-            "TASK-0018-J12-relations-regression-webview2-abandon.json",
-            "TASK-0018-K11-readonly-and-isolation.json",
-            "TASK-0018-K12-webview2-pass1.json",
-            "TASK-0018-K12-webview2-pass2.json",
+            "TASK-0019-H9-composed-runtime-regression-webview2.json",
+            "TASK-0019-H9-composed-runtime-regression-webview2-abandon.json",
+            "TASK-0019-J12-relations-regression-webview2.json",
+            "TASK-0019-J12-relations-regression-webview2-abandon.json",
+            "TASK-0019-K11-readonly-regression-webview2.json",
+            "TASK-0019-K12-foundation-regression-webview2-pass1.json",
+            "TASK-0019-K12-foundation-regression-webview2-pass2.json",
+            "TASK-0019-L12-composed-view-webview2-pass1.json",
+            "TASK-0019-L12-composed-view-webview2-pass2.json",
         ] {
             assert!(
                 !PROTECTED_RUN_ARTIFACTS.contains(&name),
                 "{name} collides with protected evidence"
             );
-            assert!(name.starts_with("TASK-0018-"), "{name} names no task");
+            assert!(name.starts_with("TASK-0019-"), "{name} names no task");
             assert!(name.len() <= 120, "{name} is longer than the guard allows");
+        }
+    }
+
+    /// The four proofs `TASK-0018` published are protected now that it is
+    /// `VERIFIED` — including the one it wrote itself as a regression.
+    ///
+    /// Stated separately from the loop above because it is a different claim:
+    /// not « the new names are free » but « the previous slice's evidence has
+    /// become untouchable », which is what `ACTION-0029` changed.
+    #[test]
+    fn task_0018s_own_evidence_became_protected_when_it_was_verified() {
+        for name in [
+            "TASK-0018-K11-readonly-and-isolation.json",
+            "TASK-0018-K12-webview2-pass1.json",
+            "TASK-0018-K12-webview2-pass2.json",
+            "TASK-0018-J12-relations-regression-webview2.json",
+        ] {
+            assert!(
+                PROTECTED_RUN_ARTIFACTS.contains(&name),
+                "{name} is a VERIFIED task's evidence and is not protected"
+            );
+            assert!(
+                matches!(
+                    write_run_artifact(name, "{}"),
+                    Err(MapError::ArtifactRejected(_))
+                ),
+                "{name} was accepted as a destination"
+            );
         }
     }
 
