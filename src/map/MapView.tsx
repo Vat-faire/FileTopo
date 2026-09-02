@@ -350,8 +350,14 @@ export default function MapView({
       const uy = (y2 - y1) / length;
       const established = segment.kind === "established";
       const state = segment.touchesSelection ? "touching" : "distant";
+      // **No `map-edge` class.** `L8` of `TASK-0019` is measured by counting
+      // `.map-edge` and reading its two brain ids, and it must keep meaning what
+      // it meant: an INTRA-brain edge never leaves its territory. An inter-brain
+      // edge is a different layer introduced by `DEC-0018`, and it is supposed
+      // to cross — so it carries its own class and the old measurement stays
+      // exact rather than being redefined after the fact.
       const className =
-        `map-edge map-cross-edge map-cross-edge--${segment.kind} map-cross-edge--${state}` +
+        `map-cross-edge map-cross-edge--${segment.kind} map-cross-edge--${state}` +
         (segment.provenance ? ` map-cross-edge--${segment.provenance.toLowerCase()}` : "");
       // Halfway along, a second arrow head. Direction therefore reads even when
       // both ends are off screen and the tip is not visible — and it reads by

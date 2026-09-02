@@ -1,11 +1,14 @@
 # État courant
 
 - **Dernière mise à jour :** 2026-09-02
-- **Tâche en cours :** **`TASK-0020`** — relations inter-cerveaux explicites,
-  **`APPROVED`** sous [`DEC-0018`](../decisions/DEC-0018-explicit-interbrain-relations.md),
-  fonction **`F-041`**. **§4 de la fiche est GELÉE** avant toute ligne de code :
-  stockage commun `brains/interbrain/relations.sqlite`, endpoint `cek1`, modèle
-  relationnel, jeu synthétique `XBR-1`, critères `M1` à `M12`
+- **Tâche livrée, NON vérifiée :** **`TASK-0020`, `IMPLEMENTED`** le
+  2026-09-02 — **relations inter-cerveaux explicites**,
+  [fiche](../tasks/TASK-0020-interbrain-relations.md), sous
+  [`DEC-0018`](../decisions/DEC-0018-explicit-interbrain-relations.md),
+  fonction **`F-041`**. **Gel `M1`–`M12` en `7746fd4`, avant toute ligne de
+  code de cette tranche.** `M1`–`M12` **TENUS**, `M12` aux **vingt-huit
+  étapes** dans le vrai `WebView2`, deux passes, redémarrage réel.
+  **`VERIFIED` n'est pas attribué; l'exécuteur ne s'auto-vérifie pas.**
 - **Matrice fonctionnelle :** **41** lignes après l'ajout de `F-041` par
   `DEC-0018`. Répartition : **`MVP` 37, `ULTÉRIEUR` 0, `DIFFÉRÉ` 4**. Aucune
   ligne existante n'a changé de classification, aucune n'est descendue
@@ -78,20 +81,30 @@
 - **Réserves `X2`, `X3`, `X4`, `X5`, `X6` :** **maintenues et closes**;
   `X5` étendue une seconde fois, à **quatorze** noms protégés
 - **Tâche IN_PROGRESS :** aucune
+- **Réserve ouverte :** aucune. `X2`, `X3`, `X4`, `X5`, `X6` sont **closes**, et
+  `TASK-0020` les a toutes revérifiées sur ses propres preuves
 - **Porte `P4` :** **FRANCHIE** —
   [`DEC-0016`](../decisions/DEC-0016-p4-gate-crossing-and-first-slice.md)
 
 ## Ce qui a changé, en une phrase
 
-**`TASK-0019` est `VERIFIED`, et la tranche suivante est gelée avant d'être
-écrite.** La vue composée montre plusieurs cerveaux côte à côte sans jamais les
-mélanger; ce qu'elle ne sait pas encore faire, c'est **les relier**. `DEC-0018`
-ouvre ce cran — **une relation inter-cerveaux explicite, avec provenance, dans
-un magasin qui n'appartient à aucun des deux cerveaux** — et `TASK-0020` en fige
-le modèle, le jeu synthétique `XBR-1` et les critères `M1` à `M12` **avant la
-première ligne de code**.
+**Deux cerveaux peuvent maintenant être reliés sans être fusionnés.** Une
+relation `Alpha → Gamma` vit dans un magasin qui n'appartient à **aucun des
+deux** — `brains/interbrain/relations.sqlite` —, porte une provenance qui ne
+s'invente pas, survit à une reconstruction complète des trois index sans qu'une
+extrémité casse, et se dessine comme une arête qui **traverse réellement** les
+territoires. Elle existe même quand l'autre cerveau n'est pas à l'écran : le
+panneau le dit en toutes lettres — « hors de la vue » — et suivre la relation
+**amène** ce cerveau dans la vue sans rien créer, modifier ni approuver.
 
-**Ce que `TASK-0019` a établi tient :**
+**Ce qui n'a pas bougé compte autant.** Aucune détection automatique, aucune
+heuristique : les six relations viennent de règles **nommées et versionnées**
+appliquées à un jeu **figé**. Aucune inverse n'est jamais inventée. Une
+suggestion n'entre dans aucun compte avant d'être approuvée. Et les relations
+**intra**-cerveau de `TASK-0017` sont restées exactement où elles étaient, dans
+leur magasin, comptées par leur propre panneau.
+
+**Ce que `TASK-0019` a établi tient, et est désormais `VERIFIED` :**
 **FileTopo affiche plusieurs cerveaux dans UN SEUL graphique, sans
 les mélanger.** Un canevas `SVG`, un territoire par cerveau, chacun gardant son
 index, ses relations et son état. `C2` montre 12 + 12 nœuds venus de **deux**

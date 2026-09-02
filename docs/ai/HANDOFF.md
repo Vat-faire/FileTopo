@@ -364,3 +364,44 @@ spike.** **Ne corrige pas `B0` et ne supprime rien** dans `src-tauri/target/`.
 **Ne cite jamais 4,20 ms comme une performance** — c'est une butée de
 synchronisation verticale. **Ne lève pas `R8`.** Ne fusionne rien, ne crée ni
 PR, ni release, ni étiquette.
+
+---
+
+## Depuis `TASK-0020` — les relations inter-cerveaux
+
+**Une relation entre deux cerveaux n'appartient à aucun des deux.** Elle vit
+dans `brains/interbrain/relations.sqlite`, **à côté** des cerveaux et dans aucun
+d'eux, **hors** de tout `map/` qu'un rebuild remplace, **distinct** du
+catalogue. **Ne la range jamais dans le magasin privé d'un cerveau** : une
+reconstruction de ce cerveau détruirait un lien dont l'autre est la moitié.
+
+**`source_brain_id` doit différer de `target_brain_id`**, et c'est un `CHECK`,
+pas une convention. **Il n'y a pas de colonne `provenance`** : la table où vit
+une ligne *est* sa provenance, comme dans `TASK-0017`. **`approve()` est la
+seule voie** vers une relation `APPROVED`, et les déclencheurs l'imposent sur
+les **six** champs. **N'invente jamais l'inverse d'une relation.**
+
+**`cek1` n'est pas `I-E`.** C'est le repli déterministe : un déplacement ou un
+renommage réel casserait une extrémité, et rien ne prétend le contraire.
+
+**Le magasin ignore la composition.** Une relation vers un cerveau non affiché
+— ou dont l'index n'a jamais été construit — revient quand même, et
+l'interface le **dit** : « hors de la vue ». **Suivre une relation est une
+navigation** : elle ajoute le cerveau à la vue et **ne crée, ne modifie ni
+n'approuve rien**.
+
+**Deux panneaux, deux espaces de noms `CSS` disjoints; deux couches d'arêtes,
+deux classes disjointes.** Ce n'est pas cosmétique : les scénarios `J12` et
+`L12` comptent `.relations__direction .relation__link` et `.map-edge` sur tout
+le document, et une classe partagée leur fait compter les mauvais éléments —
+la même faute qu'un `id` `DOM` pour deux cerveaux. **N'ajoute jamais une classe
+`relation__*`, `relations__*`, `suggestion*` ou `map-edge` à un élément
+inter-cerveaux.**
+
+**Ne capture pas un contrôle `DOM` avant un `await` pour le presser après** :
+un re-rendu peut l'avoir remplacé, et la frappe part dans le vide. Re-interroge
+au moment de presser.
+
+**N'implémente aucune détection automatique entre cerveaux**, aucune
+heuristique, aucun glisser-déposer, aucun éditeur manuel de relations. **Ne
+fusionne jamais deux cerveaux.**

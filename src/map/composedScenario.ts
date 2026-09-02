@@ -441,15 +441,32 @@ async function firstPass(
       document.querySelector('[data-testid="composed-total"]')?.textContent?.trim() ?? "",
   };
 
-  // --- 9. zero inter-brain edges -------------------------------------------
+  // --- 9. no INTRA-brain edge leaves its territory -------------------------
+  //
+  // `L8`'s subject, unchanged: a relation of `TASK-0017` has both ends inside
+  // one brain, and the edge drawn for it never crosses a boundary. `.map-edge`
+  // selects exactly those — `TASK-0020`'s inter-brain edges carry
+  // `map-cross-edge` and no `map-edge`, so this count means today what it meant
+  // when `L8` was frozen. The second layer is reported beside it rather than
+  // folded into it: it exists, it is supposed to cross, and it is not what this
+  // criterion is about.
   const edges = edgeEndpointBrains();
   const crossing = edges.filter((edge) => edge.from !== edge.to || edge.from === "");
+  const crossLayer = [...document.querySelectorAll<HTMLElement>('[data-cross="true"]')];
   evidence.step9_noCrossBrainEdges = {
     edgesDrawn: edges.length,
     crossingEdges: crossing.length,
     crossingSamples: crossing.slice(0, 5),
     everyEdgeStaysInOneBrain: crossing.length === 0,
     brainsCarryingEdges: [...new Set(edges.map((edge) => edge.from))],
+    // Declared, not hidden: TASK-0020 added a second kind of edge.
+    interBrainLayerPresent: crossLayer.length,
+    interBrainLayerCarriesNoMapEdgeClass: crossLayer.every(
+      (element) => !element.classList.contains("map-edge"),
+    ),
+    interBrainRelationsAreAnotherLayer:
+      "TASK-0020 / DEC-0018 — les aretes inter-cerveaux portent map-cross-edge, " +
+      "jamais map-edge; L8 continue de mesurer les relations INTRA-cerveau",
   };
 
   // --- 10. select a Bêta node ----------------------------------------------

@@ -349,6 +349,22 @@ describe("M6 — the drawn edge names two different brains", () => {
     expect(suggested.querySelectorAll(".map-cross-edge__ring")).toHaveLength(2);
   });
 
+  it("carries no `map-edge` class, so L8's measurement still means L8", () => {
+    // `TASK-0019` `L8` counts `.map-edge` and reads its two brain ids to show
+    // an intra-brain edge never leaves its territory. An inter-brain edge is
+    // supposed to cross, so it must not be in that population — otherwise the
+    // earlier criterion would appear to have broken when nothing broke.
+    const { container } = render(<MapHarness />);
+    const cross = [...container.querySelectorAll<HTMLElement>('[data-cross="true"]')];
+    expect(cross.length).toBeGreaterThan(0);
+    for (const element of cross) {
+      expect(element.classList.contains("map-edge")).toBe(false);
+      expect(element.classList.contains("map-cross-edge")).toBe(true);
+    }
+    // And `.map-edge` selects none of them.
+    expect(container.querySelectorAll(".map-edge")).toHaveLength(0);
+  });
+
   it("draws nothing across a boundary when the other brain is absent", () => {
     const { container } = render(<MapHarness displayGamma={false} />);
     expect(container.querySelectorAll('[data-cross="true"]')).toHaveLength(0);
@@ -470,6 +486,38 @@ describe("M7 — the panel separates internal from inter-brain, and both directi
     expect(text).toContain("XB-S01");
     expect(text).toContain("Aucune règle déterministe");
     expect(text).not.toContain("cross-homonymes");
+  });
+});
+
+describe("M7 — the two panels share no class name in the markup", () => {
+  it("carries no `relation__*` or `relations__*` class at all", () => {
+    // Not a style preference. The intra-brain scenario counts
+    // `.relations__direction .relation__link` across the whole document, so a
+    // shared class would make it count inter-brain entries too — the same
+    // defect as one DOM id for two brains, wearing a different hat. The first
+    // real `M12` run found it; this fails the day it comes back.
+    renderPanel([ALPHA, GAMMA]);
+    const panel = screen.getByLabelText("Relations inter-cerveaux");
+    for (const shared of [
+      ".relations__direction",
+      ".relation__link",
+      ".relation__provenance",
+      ".relation__rule",
+      ".relation__name",
+      ".relation__direction",
+      ".relations__list",
+      ".relations__totals",
+      ".suggestion",
+      ".suggestion__approve",
+      ".suggestion__tag",
+    ]) {
+      expect(panel.querySelectorAll(shared), `${shared} leaked into the cross panel`)
+        .toHaveLength(0);
+    }
+    // And it still exposes everything a scenario needs, under its own names.
+    expect(panel.querySelectorAll(".cross-relations__direction").length).toBe(2);
+    expect(panel.querySelectorAll(".cross-relation__link").length).toBe(2);
+    expect(panel.querySelectorAll(".cross-suggestion__approve").length).toBe(1);
   });
 });
 

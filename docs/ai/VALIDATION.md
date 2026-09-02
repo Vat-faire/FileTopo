@@ -2772,3 +2772,64 @@ revue, sur le fichier qu'un contrôle indépendant doit lire. Écrit `<NUL>`.
 sa propre réserve**, et `TASK-0019` **reste `IMPLEMENTED`**. `X2`, `X3`, `X4`,
 `X5` sont **maintenues**, ainsi que `V1`–`V4`, `W1`–`W4` et `R2`–`R9`.
 
+
+---
+
+## AB. `TASK-0020` — relations inter-cerveaux explicites (2026-09-02)
+
+**Branche `build/v0.2-a5-interbrain-relations`.** Gel `7746fd4` **avant** le
+code `d1adcf2`. **Aucun critère `M1`–`M12` retouché après le premier résultat.**
+
+### AB.1 Les douze critères gelés
+
+| Critère | Verdict | Ce qui a été observé |
+|---|---|---|
+| `M1` modèle / stockage | **TENU** | 9 tentatives invalides, 9 refus **nommés**; `CHECK(source_brain_id <> target_brain_id)` refusé **en contournant Rust**; aucune colonne `provenance` |
+| `M2` déterminisme | **TENU** | 6 relations exactement; digest `fnv1a64:3020af7489aab581` identique sur deux rejeux; 0 inverse sur 10 paires interdites |
+| `M3` approbation / `X3` | **TENU** | `XB-S01` → **une** relation `APPROVED`; insertion directe, mauvais champs et seconde approbation refusés, jusque dans les déclencheurs `SQLite` |
+| `M4` direction / comptes | **TENU** | 19 extrémités contre l'attendu **gelé**, deux requêtes séparées; 4 témoins à `0`/`0` |
+| `M5` persistance / rebuild | **TENU** | rebuild Alpha → Gamma → Bêta : magasin intact, digest inchangé, `APPROVED` et suggestions persistantes, 0 extrémité non résolue |
+| `M6` rendu inter-territoires | **TENU** | 10 arêtes sur 6 paires ordonnées en `C3`, **0** dans un seul cerveau; trait doublé + tête + chevron + `<title>` en mots |
+| `M7` panneau | **TENU** | deux sections, deux totaux, **deux espaces de noms `CSS` disjoints**; 4 entrées internes / 1 inter-cerveaux |
+| `M8` navigation affichée | **TENU** | frappe réelle → endpoint exact dans Gamma, Gamma focused **et** actif, 1 seul nœud sélectionné |
+| `M9` navigation hors vue | **TENU** | « hors de la vue » en mots; frappe réelle → Gamma ajouté en ordre catalogue, endpoint exact, digest **inchangé** |
+| `M10` suggestion | **TENU** | 0 avant, **+1 exactement** après, `APPROVED`, `ruleName: null`, arête établie apparue |
+| `M11` sécurité / historique | **TENU** | 12 et 157 entrées dans les racines, 0 artefact FileTopo; **14** preuves protégées inchangées; `main` intacte |
+| `M12` hôte réel | **TENU** | deux passes, `WebView2 152.0.4191.53`, variant neuf, redémarrage réel; **aucun indicateur faux dans tout l'arbre de preuve** |
+
+### AB.2 Validations exécutées
+
+| Validation | Résultat |
+|---|---|
+| Tests Rust | **144 / 144** (114 → 144) |
+| Tests TypeScript | **170 / 170** (141 → 170) |
+| `pnpm check` | **PASS** |
+| `pnpm build` | **PASS** |
+| Tauri `debug --no-bundle` | **PASS**, sans avertissement |
+| `M12` deux passes, vrai `WebView2` | **PASS** |
+| Régression `J12` intra-cerveau | **PASS** — panneau stabilisé en 22 ms, 4 entrées, 2 sections |
+| Régression `L12` vue composée | **PASS** — `L8` exact : 32 arêtes intra, **0** traversante |
+| `X2` `X3` `X4` `X5` `X6` | **maintenues** — surface `map_` seulement, `approve()` unique voie, frappes `isTrusted`, 14 preuves intactes, confinement du variant |
+
+### AB.3 Deux défauts que la mesure a trouvés
+
+**Le rejeu a servi, et cela se dit.** Deux mesures **antérieures** se sont
+mises à compter des éléments qui ne les regardaient pas, parce que le nouveau
+panneau et les nouvelles arêtes partageaient des classes `CSS` avec les
+anciennes : `J12` a publié un panneau « non stabilisé » et `L12` un
+`everyEdgeStaysInOneBrain: false` **alors que rien n'était cassé**. Même faute
+qu'un `id` `DOM` pour deux cerveaux, sous un autre habit. **Corrigée à la
+source** : espaces de noms disjoints dans le balisage, style partagé par la
+feuille de style, deux tests qui le tiennent. Après correction, `J12` et `L12`
+retrouvent **exactement** leurs valeurs d'origine.
+
+Second défaut : un contrôle `DOM` capturé **avant** un `await` peut être
+remplacé par un re-rendu, et une frappe envoyée à un nœud détaché part dans le
+vide. Le contrôle est désormais **re-interrogé à l'instant où il est pressé**.
+
+### AB.4 Ce que cette entrée ne lève pas
+
+**`TASK-0020` reste `IMPLEMENTED`.** L'exécuteur ne s'auto-vérifie pas.
+**Aucune campagne `H9`**, aucun seuil : `R8` entière. **`I-E` complète** hors
+périmètre — `cek1` est le repli déclaré, et un déplacement réel casserait une
+extrémité. **`P-19`** et **`P-21`** demeurent. **`B0`** n'est pas corrigé.

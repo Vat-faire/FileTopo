@@ -2703,3 +2703,66 @@ inchangé. **Les huit preuves protégées sont bit-for-bit inchangées.**
 indépendant de `X6` uniquement**, par une instance **distincte de l'exécuteur**,
 **sur preuves**.
 
+
+---
+
+## 2026-09-02 — `TASK-0020` : deux cerveaux peuvent être reliés sans être fusionnés
+
+**Branche `build/v0.2-a5-interbrain-relations`, depuis le tip contrôlé
+`8d1e271`.** Gel `7746fd4` **avant** le code `d1adcf2`.
+
+### Enregistré, non attribué
+
+**`TASK-0019` est `VERIFIED`** — verdict de l'**orchestrateur technique**,
+instance distincte de l'exécuteur, sur preuves :
+[`ACTION-0031`](../reviews/ACTION-0031-independent-recontrol.md), réserve `X6`
+**`CLOSED`**, `ACTION-0030` **`CLOSED`**, `HEAD` contrôlé `8d1e271`.
+
+### Décision produit
+
+**`DEC-0018` — une relation inter-cerveaux est explicite et ne fusionne rien.**
+`F-041` ajoutée, `MVP`. Matrice **41** lignes : `MVP` **37**, `ULTÉRIEUR` 0,
+`DIFFÉRÉ` 4. Aucune ligne existante n'a changé de classification, aucune n'est
+descendue, aucune n'a disparu. `P-04`, `P-05`, `P-06`, `P-20` entières, contrat
+CarteTopo non retouché.
+
+### Ce qui a été construit
+
+- **`brains/interbrain/relations.sqlite`** — un magasin **commun**, à côté des
+  cerveaux et dans aucun d'eux, hors de tout `map/` qu'un rebuild remplace,
+  distinct du catalogue. Une relation `A → B` appartient au **lien**.
+- **`cek1|<brain_id>|<relative_path>`** — un endpoint versionné, sans aucune
+  dépendance à un `map_nodes.id`, résolu **dans le cerveau que la clé nomme**.
+  Déclaré comme le **repli déterministe** : ce n'est pas `I-E`.
+- **Un modèle où l'invalide est irreprésentable** — pas de colonne
+  `provenance` (la table *est* la provenance), `CHECK` sur les deux `brain_id`,
+  et les défenses `X3` transposées **au niveau `SQLite`** sur les six champs.
+- **`XBR-1`** — 6 relations `DETERMINISTIC` de règles nommées et versionnées,
+  4 suggestions `pending`, 0 approuvée. Les **seize** chemins confrontés au
+  planificateur de fixtures **avant** le gel; tous existent.
+- **Quatre commandes `map_*`** et une lecture des références gelées. Aucune
+  commande héritée, aucun sélecteur de dossier.
+- **Des arêtes qui traversent vraiment**, distinctes **sans couleur**; un
+  **panneau séparé** qui nomme les deux cerveaux en mots; une **navigation**
+  vers un cerveau hors de la vue qui **ne crée rien**.
+
+### Ce que la mesure a trouvé, et qui a été corrigé à la source
+
+Le nouveau panneau et les nouvelles arêtes partageaient des classes `CSS` avec
+les anciennes, et **deux mesures antérieures se sont mises à compter des
+éléments qui ne les regardaient pas** — `J12` et `L12` ont publié des écarts
+alors que rien n'était cassé. Espaces de noms disjoints, style partagé par la
+feuille de style, deux tests de garde. Après correction, les deux régressions
+retrouvent **exactement** leurs valeurs d'origine.
+
+### Limites déclarées
+
+**Aucune détection automatique**, aucune heuristique, aucune inverse inventée.
+**Aucune campagne `H9`**, aucun seuil : `R8` entière. **`I-E` complète** hors
+périmètre. **`P-19`** et **`P-21`** demeurent. **`B0`** non corrigé, rien
+supprimé dans `src-tauri/target/`. Une seule machine, un seul `WebView2`.
+
+### État
+
+**`TASK-0020` : `IMPLEMENTED`.** L'action suivante est le **contrôle
+indépendant**, par une instance **distincte de l'exécuteur**, **sur preuves**.

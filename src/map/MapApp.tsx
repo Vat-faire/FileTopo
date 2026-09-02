@@ -941,10 +941,16 @@ export default function MapApp() {
                 loadedRef.current.get(brainId)?.hierarchy.byId.get(target.nodeId)
                   ?.relativePath ?? ""
               }`;
-        setStatus(
-          `Navigation inter-cerveaux : ${brainId} rejoint la vue. Aucune relation n'est créée, modifiée ni approuvée.`,
+        // Said AFTER the composition lands, not before: `applyComposition`
+        // clears the status line on entry, so a message set here would be wiped
+        // by the very act it describes — which is what the first real M12 run
+        // published, as an empty string.
+        void applyComposition(next, { selectEndpoint: { brainId, endpointKey } }).then(() =>
+          setStatus(
+            `Navigation inter-cerveaux : ${brainId} rejoint la vue. ` +
+              `Aucune relation n'est créée, modifiée ni approuvée.`,
+          ),
         );
-        void applyComposition(next, { selectEndpoint: { brainId, endpointKey } });
       } catch (error) {
         refuse(error);
       }

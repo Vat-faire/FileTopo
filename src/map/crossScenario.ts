@@ -72,14 +72,17 @@ function crossEdges(): { from: string; to: string; kind: string; provenance: str
   }));
 }
 
-/** Every **intra-brain** edge, so the two kinds can be counted separately. */
+/**
+ * Every **intra-brain** edge. `.map-edge` selects those and only those: an
+ * inter-brain edge carries `map-cross-edge` and no `map-edge`, so the two kinds
+ * cannot contaminate each other's counts — the same separation the two panels
+ * have, for the same reason.
+ */
 function intraEdges(): { from: string; to: string }[] {
-  return [...document.querySelectorAll<HTMLElement>(".map-edge:not([data-cross])")].map(
-    (element) => ({
-      from: element.dataset.fromBrainId ?? "",
-      to: element.dataset.toBrainId ?? "",
-    }),
-  );
+  return [...document.querySelectorAll<HTMLElement>(".map-edge")].map((element) => ({
+    from: element.dataset.fromBrainId ?? "",
+    to: element.dataset.toBrainId ?? "",
+  }));
 }
 
 /** The controls the inter-brain panel exposes, with everything `M7` asks for. */
@@ -106,7 +109,8 @@ function crossEntries(): {
       provenance: element.dataset.provenance ?? "",
       relationType: element.dataset.relationType ?? "",
       label: element.getAttribute("aria-label") ?? "",
-      ruleText: element.parentElement?.querySelector(".relation__rule")?.textContent?.trim() ?? "",
+      ruleText:
+        element.parentElement?.querySelector(".cross-relation__rule")?.textContent?.trim() ?? "",
     }),
   );
 }
@@ -117,6 +121,22 @@ function textOf(selector: string): string {
 
 function crossTotals(): string {
   return textOf('[data-testid="cross-relation-totals"]');
+}
+
+/**
+ * How many entries each panel exposes, counted with the selectors that panel
+ * actually uses.
+ *
+ * The two namespaces do not overlap — `CrossRelationsPanel` carries no
+ * `relation__*` class — so these two numbers cannot contaminate each other.
+ * Published side by side because `M7` is about telling the two apart, and two
+ * counts that could not be confused is the evidence for it.
+ */
+function panelEntryCounts(): { internal: number; cross: number } {
+  return {
+    internal: document.querySelectorAll(".relations__direction .relation__link").length,
+    cross: document.querySelectorAll(".cross-relations__direction .cross-relation__link").length,
+  };
 }
 
 function intraTotals(): string {
@@ -158,6 +178,30 @@ async function waitForCrossPanel(endpointKeyOrEmpty: string): Promise<boolean> {
     return crossEntries().some((entry) => entry.endpointKey === endpointKeyOrEmpty);
   }, 8_000);
   return outcome.settled;
+}
+
+/**
+ * The panel control for one endpoint, fetched **at the moment it is pressed**.
+ *
+ * A control captured earlier and pressed after an `await` may have been
+ * replaced by a re-render, and focusing a detached node sends the key nowhere.
+ * The first real `M12` run lost step 16 exactly that way: the element was read
+ * at step 14, an `invoke` in between let the panel re-render, and the keystroke
+ * went to the window. Re-querying costs nothing and removes the whole class of
+ * failure.
+ */
+async function liveCrossEntry(endpointKey: string): Promise<HTMLButtonElement> {
+  const outcome = await waitUntil(() => {
+    const found = crossEntries().find((candidate) => candidate.endpointKey === endpointKey);
+    return found !== undefined && found.element.isConnected;
+  }, 8_000);
+  const entry = crossEntries().find((candidate) => candidate.endpointKey === endpointKey);
+  if (!entry || !entry.element.isConnected) {
+    throw new Error(
+      `aucun controle vivant pour ${endpointKey} (stabilise=${outcome.settled})`,
+    );
+  }
+  return entry.element;
 }
 
 /** A node id, by relative path, in one brain's snapshot. */
@@ -314,6 +358,12 @@ async function firstPass(
     totalsDiffer: intraTotals() !== crossTotals(),
     outgoingEntries: entries.filter((entry) => entry.direction === "outgoing").length,
     incomingEntries: entries.filter((entry) => entry.direction === "incoming").length,
+    // The two panels share no class name, so a selector written for one cannot
+    // match the other. These two counts are read with two disjoint selectors.
+    entryCounts: panelEntryCounts(),
+    crossEntriesCarryNoIntraClass:
+      document.querySelectorAll(".relations__direction .cross-relation__link").length === 0 &&
+      document.querySelectorAll(".cross-relations__direction .relation__link").length === 0,
     entryTowardsGamma: towardsGamma
       ? {
           endpointKey: towardsGamma.endpointKey,
@@ -341,8 +391,9 @@ async function firstPass(
   // --- 7. follow XB-D01 BY A REAL KEYSTROKE --------------------------------
   log("info", "M12.7: activation de XB-D01 par frappe reelle");
   if (!towardsGamma) throw new Error("aucune entree du panneau ne mene a Gamma");
+  const followControl = await liveCrossEntry(xbd01.targetKey);
   const followKey = await pressRealKey(
-    towardsGamma.element,
+    followControl,
     "{ENTER}",
     () => activeDescendant() === domNodeId("brain-gamma", targetNodeId),
     log,
@@ -456,9 +507,15 @@ async function firstPass(
   const approvedEdge = afterApproval.established.find(
     (edge) => edge.suggestionKey === "XB-S01",
   );
-  await waitUntil(
-    () => crossEdges().filter((edge) => edge.kind === "established").length >
-      establishedEdgesBefore,
+  // The panel goes through its loading state after an approval, and reading
+  // between the two renders publishes an empty totals line — which is what the
+  // first real run of this scenario did. Wait for the panel to have settled AND
+  // for the edge to be drawn, then read.
+  const settledAfterApproval = await waitUntil(
+    () =>
+      crossTotals().length > 0 &&
+      crossEdges().filter((edge) => edge.kind === "established").length >
+        establishedEdgesBefore,
     8_000,
   );
   evidence.step12_approvedExactly = {
@@ -499,7 +556,10 @@ async function firstPass(
     establishedEdgeAppeared:
       crossEdges().filter((edge) => edge.kind === "established").length >
       establishedEdgesBefore,
+    panelSettledAfterApproval: settledAfterApproval.settled,
     crossTotalsAfter: crossTotals(),
+    // `M10` — the count the PANEL shows moved with the store's, not on its own.
+    outgoingIsOneAfter: crossTotals().startsWith("1 sortante"),
   };
 
   // --- 13. remove Gamma from the view --------------------------------------
@@ -550,8 +610,10 @@ async function firstPass(
   log("info", "M12.16: activation d'une relation hors vue par frappe reelle");
   if (!offScreenEntry) throw new Error("l'entree hors vue est absente du panneau");
   const beforeNavigation = await invoke<CrossRelationsOverview>("map_cross_relations_open");
+  // Re-queried AFTER the await above, not reused from step 14.
+  const navigateControl = await liveCrossEntry(xbd01.targetKey);
   const navigateKey = await pressRealKey(
-    offScreenEntry.element,
+    navigateControl,
     "{ENTER}",
     () => displayedBrainIds().includes("brain-gamma"),
     log,

@@ -1,114 +1,123 @@
-TASK_ID: TASK-0019 — correction de la réserve X6
+TASK_ID: TASK-0020 — relations inter-cerveaux explicites
 AGENT: CLAUDE
 RESULT: DONE
-BRANCH: build/v0.2-a4-composed-view
-BASE_HEAD: 21acd64aca0c03b68b7e2eccc792f716fa7f2f9a
-FINAL_HEAD: 8bd0bbab199219ebeb4957fe37a2250c4297fce7
-TASK_STATE: IMPLEMENTED — VERIFIED NON attribué, X6 reste OPEN
+BRANCH: build/v0.2-a5-interbrain-relations
+BASE_HEAD: 8d1e27151f53d082551e05b00816100cb790542b
+GEL_COMMIT: 7746fd4e9c2fad42b23bb9d88a75550d375d3279
+TASK_STATE: IMPLEMENTED — VERIFIED NON attribué
 SESSION: début de session normal. Git vérifié d'abord : racine, branche
-`build/v0.2-a4-composed-view`, `HEAD` `21acd64`, arbre propre, aligné sur
-`origin`. Aucun écart.
+`build/v0.2-a4-composed-view`, `HEAD` `8d1e271`, arbre propre, aligné sur
+`origin`, aucune tâche `IN_PROGRESS`. Aucun écart.
 
 SUMMARY:
-- ACTION-0030 = CHANGES_REQUIRED est ENREGISTRÉE, pas rendue par l'exécuteur —
-  `docs/reviews/ACTION-0030-independent-control.md`. Le fond accepté au §2 n'a
-  pas été rouvert; aucun critère `L1`–`L12` n'a été touché.
+- LE VERDICT EST ENREGISTRÉ, PAS RENDU PAR L'EXÉCUTEUR. `ACTION-0031` : `X6`
+  `CLOSED`, `ACTION-0030` `CLOSED`, `TASK-0019` `VERIFIED`, `HEAD` contrôlé
+  `8d1e271`.
 
-- X6 DISAIT VRAI. « Gamma inchangé » était prouvé, mais l'ACTE que l'étape 7
-  nomme — approuver `S-005` dans Alpha — n'avait pas eu lieu pendant `L12`.
-  Une cible manquée reste une cible manquée, même publiée honnêtement.
+- X5 S'ÉTEND À QUATORZE NOMS. Les six preuves de `TASK-0019` deviennent
+  canoniques — dont quatre qui sont elles-mêmes des rejeux de régression :
+  être un rejeu ne rend pas une preuve moins canonique une fois la tâche
+  contrôlée. La protection tient à TROIS endroits parce qu'il y a trois façons
+  de détruire une preuve : la porte Rust refuse AVANT tout accès disque;
+  `runArtifacts.ts` épelle chaque nom une seule fois; et les scripts
+  PowerShell, qui ne l'écrivent pas mais la SUPPRIMENT avant un rejeu,
+  dot-sourcent désormais UN seul fichier au lieu d'en recopier la liste. Aucun
+  runtime `TASK-0020` n'écrit sous un nom `TASK-0019` : les noms d'artefact ET
+  le champ `task:` de la charge utile ont changé ensemble.
 
-- RIEN N'A ÉTÉ SUPPRIMÉ. Le bac à sable `<dépôt>/.filetopo-sandbox` est
-  INTACT : l'empreinte de son contenu, variants exclus, est IDENTIQUE avant et
-  après le rejeu — `17186576c4df5b5d…`. Ni magasin de relations remis à zéro,
-  ni catalogue effacé, ni `SQLite` touchée à la main, ni contournement de `X3`,
-  ni commande de remise à zéro exposée au runtime.
+- LE GEL PRÉCÈDE LE CODE. `7746fd4` (gel `M1`–`M12`) puis `d1adcf2` (code).
+  Aucun critère retouché après le premier résultat. Les SEIZE chemins de
+  `XBR-1` ont été confrontés au planificateur de fixtures AVANT le gel : tous
+  existent, aucune substitution n'a été nécessaire ni faite, et un test le
+  tient désormais contre le planificateur lui-même.
 
-- CE QUI A ÉTÉ AJOUTÉ EST UN NAMESPACE, PAS UNE DESTINATION.
-  `FILETOPO_SANDBOX_VARIANT`, variable de DÉVELOPPEMENT lue par
-  `map/sandbox.rs`, résout `<dépôt>/.filetopo-sandbox/variants/<variant>` —
-  toujours SOUS le même répertoire. Variable absente : comportement EXACTEMENT
-  inchangé. La valeur est un NOM, jamais un chemin : basename ASCII
-  `[A-Za-z0-9_-]`, 1 à 64 caractères. Séparateur, `..`, chemin absolu, chaîne
-  vide, valeur trop longue : ERREUR EXPLICITE remontée par `map_sandbox`,
-  JAMAIS un repli silencieux vers un chemin fourni par l'appelant. Aucun
-  sélecteur de dossier, aucune racine choisie par l'utilisateur.
+- LE LIEN N'APPARTIENT À AUCUN DES DEUX CERVEAUX.
+  `brains/interbrain/relations.sqlite` : à côté des cerveaux et dans aucun
+  d'eux, hors de tout `map/` qu'un rebuild remplace, distinct du catalogue.
+  Mettre une relation `A → B` dans le magasin d'Alpha aurait fait d'une
+  reconstruction d'Alpha la destruction d'un lien dont Gamma est la moitié.
 
-- SIX TESTS DE CONFINEMENT, dont le seul qui compte si la charset change un
-  jour : « aucun variant accepté ne sort du bac à sable ». Refusés et prouvés
-  tels : `..`, `../x`, `..\x`, `a/b`, `a\b`, `/abs`, `\\share`, `C:\abs`, `C:`,
-  `a.b`, `x/../../y`, `a b`, `é`, `%TEMP%`, chaîne vide, 65 caractères.
+- L'INVALIDE EST IRREPRÉSENTABLE, PAS SEULEMENT INTERDIT. Aucune colonne
+  `provenance` — la table où vit une ligne EST sa provenance.
+  `CHECK(source_brain_id <> target_brain_id)`, attaqué dans un test EN
+  CONTOURNANT Rust. `X3` transposée sur les SIX champs par déclencheurs : le
+  test essaie chaque champ séparément PUIS vérifie que la ligne qui correspond
+  est acceptée — sans quoi il passerait pour la mauvaise raison.
 
-- `scripts/l12-run-real-host.ps1` tire un variant NEUF par invocation, le garde
-  IDENTIQUE pour les deux passes, retire la variable en sortant — et NE
-  SUPPRIME PAS le répertoire du variant.
+- M1 À M12 TENUS. `M12` aux vingt-huit étapes, deux passes, WebView2
+  `152.0.4191.53`, variant NEUF, fermeture et redémarrage réels. AUCUN
+  INDICATEUR FAUX dans tout l'arbre de preuve, aux deux passes. Vraies frappes
+  aux étapes 3, 7, 11, 16 et 18 : `isTrusted=true`, 0 clic programmatique, 0
+  `dispatchEvent(click)`. Digest déterministe `fnv1a64:3020af7489aab581`
+  IDENTIQUE avant et après la reconstruction des trois index; 0 extrémité non
+  résolue; `APPROVED` et suggestions persistantes.
 
-- L12 REJOUÉ EN ENTIER, vrai WebView2 `152.0.4191.53`, deux processus réels,
-  fermeture et redémarrage réels. Étape 7, pendant que `C2` [Alpha, Gamma] est
-  affichée :
+- LA MESURE A TROUVÉ DEUX DÉFAUTS, CORRIGÉS À LA SOURCE.
+  1. Le nouveau panneau et les nouvelles arêtes partageaient des classes CSS
+     avec les anciennes. `J12` compte `.relations__direction .relation__link`
+     et `L12` compte `.map-edge` sur TOUT le document : les deux se sont mis à
+     compter des éléments qui ne les regardaient pas et ont publié des écarts
+     ALORS QUE RIEN N'ÉTAIT CASSÉ. Même faute qu'un `id` DOM pour deux
+     cerveaux, sous un autre habit. Espaces de noms disjoints dans le balisage,
+     style partagé par la feuille de style, deux tests de garde. Après
+     correction, `J12` et `L12` retrouvent EXACTEMENT leurs valeurs d'origine.
+  2. Un contrôle DOM capturé avant un `await` peut être remplacé par un
+     re-rendu, et une frappe envoyée à un nœud détaché part dans le vide.
+     Re-interrogé à l'instant où il est pressé.
 
-      Alpha  approuvées 4 → 5   en attente 4 → 3   S-005 en attente → approuvée
-      Gamma  approuvées 4 → 4   en attente 4 → 4   S-005 en attente → en attente
-
-  `s005WasPending: true`, `approvalReplayable: true`, `approvalError: null`,
-  `alphaMovedByExactlyOne: true` (exactement +1 / −1),
-  `gammaStrictlyUnchanged: true`, `gammaS005StillPending: true`,
-  `separateStores: true`. Vraies frappes aux étapes 3, 8, 13 et 14 :
-  `isTrusted=true`, 0 clic programmatique. `pass2` porte le MÊME variant et
-  confirme Gamma actif, composition Gamma SEUL.
-
-- X5 PRÉSERVÉE : les HUIT preuves protégées `TASK-0016`/`0017`/`0018` sont
-  bit-for-bit INCHANGÉES, vérifiées une à une. Seuls les deux artefacts `L12`
-  de `TASK-0019` — tâche NON `VERIFIED` — ont été remplacés par la preuve
-  corrigée de cette même tâche.
-
-- UN DÉFAUT TROUVÉ EN CHEMIN : un octet `NUL` était COMMITÉ dans la fiche
-  `TASK-0019` elle-même, dans la phrase qui décrit le `NUL` de
-  `brainScenario.ts`. Il rendait la fiche BINAIRE pour `git diff` et `grep` —
-  illisible en revue, sur le fichier même qu'un contrôle indépendant doit lire.
-  Écrit `<NUL>`.
-
-- UNE CHOSE RESTAURÉE PLUTÔT QUE LIVRÉE : `cargo fmt` avait reformaté HUIT
-  fichiers `src-tauri/src/map/*.rs` que la tâche ne touche pas. Restaurés à
-  leur contenu commité; le diff reste confiné à `sandbox.rs` et à une ligne de
-  `lib.rs`.
+- LES QUATORZE PREUVES PROTÉGÉES SONT INCHANGÉES, vérifié par `git`. Racines
+  analysées intactes : 12 et 157 entrées, aucun `.sqlite`, `.json` ni fichier
+  `filetopo`. `main` intacte, `91bbe90f`.
 
 FILES:
-- src-tauri/src/map/sandbox.rs — variant, validation, confinement, six tests
-- src-tauri/src/lib.rs — `map_sandbox` propage l'erreur de résolution (1 ligne)
-- scripts/l12-run-real-host.ps1 — variant neuf par invocation, retiré en sortie
-- docs/performance/runs/TASK-0019-L12-composed-view-webview2-pass{1,2}.json
-- docs/reviews/ACTION-0030-independent-control.md (nouveau)
-- docs/tasks/TASK-0019-composed-multibrain-view.md — §7.1, §7.2, §7.3, §7.4,
-  historique; §4 GELÉE, non touchée
+- src-tauri/src/map/cross_relations.rs, cross_commands.rs (nouveaux)
+- src-tauri/src/map/sandbox.rs, mod.rs, commands.rs, src-tauri/src/lib.rs
+- src/map/crossRelations.ts, CrossRelationsPanel.tsx, crossScenario.ts,
+  crossRelations.test.tsx (nouveaux)
+- src/map/MapView.tsx, MapApp.tsx, RelationsPanel.tsx, types.ts, map.css,
+  runArtifacts.ts, runArtifacts.test.ts, composedScenario.ts,
+  relationScenario.ts, brainScenario.ts, mapView.test.tsx, relations.test.tsx
+- scripts/protected-run-artifacts.ps1, m12-run-real-host.ps1,
+  j12-run-real-host.ps1 (nouveaux); l12- et k12-run-real-host.ps1
+- docs/decisions/DEC-0018, docs/reviews/ACTION-0031, docs/tasks/TASK-0020,
+  docs/reviews/ACTION-0030 (clôture), docs/tasks/TASK-0019 (VERIFIED enregistré)
+- docs/product/FEATURE_MATRIX.md, REQUIREMENTS_BASELINE.md
 - docs/ai/CURRENT_STATE.md, NEXT_ACTION.md, HANDOFF.md, VALIDATION.md,
   CHANGELOG_AI.md
+- docs/performance/runs/TASK-0020-M12-interbrain-relations-webview2-pass{1,2}.json,
+  TASK-0020-J12-intrabrain-regression-webview2.json,
+  TASK-0020-L12-composed-regression-webview2-pass{1,2}.json
 
 VALIDATIONS:
-- 113/113 tests Rust (107 → 113)
-- 139/139 tests TypeScript
+- 144/144 tests Rust (114 → 144)
+- 170/170 tests TypeScript (141 → 170)
 - `pnpm check` PASS, `pnpm build` PASS
-- build Tauri `debug --no-bundle` PASS
-- L12 DEUX PASSES dans le vrai WebView2, même variant, deux processus
-- 8/8 preuves protégées inchangées; empreinte du bac à sable identique
+- build Tauri `debug --no-bundle` PASS, sans avertissement
+- M12 DEUX PASSES dans le vrai WebView2, même variant, deux processus réels
+- régression J12 intra PASS — panneau stabilisé en 22 ms, 4 entrées, 2 sections
+- régression L12 composée PASS — `L8` exact : 32 arêtes intra, 0 traversante
+- X2 X3 X4 X5 X6 maintenues; 14/14 preuves protégées inchangées
 
 NON TESTÉ / LIMITES:
-- K11, K12 et J12 de régression NON REJOUÉS — leur code fonctionnel n'a pas
-  changé. Déclaré tel, pas supposé.
+- K11/L11 NON REJOUÉ — son code fonctionnel n'a pas changé. Déclaré tel, pas
+  supposé. L'absence d'artefact FileTopo dans les racines analysées a été
+  vérifiée DIRECTEMENT sur le bac à sable de la preuve.
 - Aucune campagne H9, aucun seuil. R8 entière.
-- Persistance de composition toujours non implémentée — P-19.
-- Aucune relation inter-cerveaux — TASK-0020.
-- B0 s'est reproduit une SEPTIÈME fois : `rustc` a paniqué sur son cache
-  incrémental (`Failed to recover key for impl_trait_header`). Contourné par
-  `CARGO_INCREMENTAL=0`, qui NE SUPPRIME RIEN; rien n'a été effacé ni renommé
-  dans `src-tauri/target/`.
+- I-E complète hors périmètre : `cek1` est le repli déclaré, et un déplacement
+  RÉEL casserait une extrémité. Rien ne prétend le contraire.
+- Aucune détection automatique entre cerveaux, aucune heuristique : les six
+  relations viennent de règles nommées et versionnées sur un jeu figé.
+- Persistance de composition toujours non implémentée — P-19, confirmée à
+  l'étape 27. Révocation P-04 non implémentée — P-21.
+- B0 n'est pas corrigé; rien n'a été supprimé ni renommé dans
+  src-tauri/target/. `CARGO_INCREMENTAL=0` utilisé, qui NE SUPPRIME RIEN.
 - Une seule machine, un seul runtime WebView2.
 
-GIT: commit sur `build/v0.2-a4-composed-view`, push vers
-`origin/build/v0.2-a4-composed-view` (branche de travail déjà publiée). AUCUNE
-fusion vers `main`, aucune PR, aucune release, aucune étiquette, aucun `force
-push`, aucune réécriture d'historique, aucune suppression.
+GIT: commits sur `build/v0.2-a5-interbrain-relations`, push vers
+`origin/build/v0.2-a5-interbrain-relations` (branche de travail publiée par
+cette session). AUCUNE fusion vers `main`, aucune PR, aucune release, aucune
+étiquette, aucun `force push`, aucune réécriture d'historique, aucune
+suppression.
 
-NEXT: re-contrôle indépendant de `TASK-0019` sur la réserve `X6` UNIQUEMENT,
-par une instance distincte de l'exécuteur, sur preuves. `X6` reste `OPEN`;
-`TASK-0019` reste `IMPLEMENTED`.
+NEXT: contrôle indépendant de `TASK-0020`, par une instance distincte de
+l'exécuteur, sur preuves. `TASK-0020` reste `IMPLEMENTED`.

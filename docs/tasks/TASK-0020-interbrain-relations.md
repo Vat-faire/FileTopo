@@ -672,3 +672,113 @@ s'auto-vérifie pas.
 |---|---|---|
 | 2026-09-02 | `PROPOSED` | Fiche créée sous `DEC-0018`, fonction `F-041` |
 | 2026-09-02 | `APPROVED` | GO technique de l'orchestrateur, périmètre écrit en §2 et §3 |
+
+---
+
+# 7. Résultat
+
+## 7.1 Ce qui a été livré
+
+**FileTopo sait relier deux cerveaux sans les fusionner.** Le magasin commun
+`brains/interbrain/relations.sqlite` porte six relations `DETERMINISTIC`,
+quatre suggestions et, après approbation, une relation `APPROVED` — et il
+survit à une reconstruction complète des trois index sans qu'une seule
+extrémité casse.
+
+**Le gel a été commité en `7746fd4`, avant la première ligne de code** de la
+tranche. **Aucun critère `M1`–`M12` n'a été retouché après le premier
+résultat.**
+
+## 7.2 Les douze critères
+
+| Critère | Verdict | Preuve |
+|---|---|---|
+| `M1` — modèle / stockage | **TENU** | 9 tentatives invalides, 9 refus nommés; `CHECK(source_brain_id <> target_brain_id)` attaqué **en contournant Rust**; pas de colonne `provenance` |
+| `M2` — déterminisme | **TENU** | 6 relations exactement, règle et version obligatoires, digest `fnv1a64:3020af7489aab581` **identique** sur deux rejeux; 0 inverse |
+| `M3` — approbation / `X3` | **TENU** | `XB-S01` `pending` → **une** relation `APPROVED`; insertion directe, mauvaises extrémités et seconde approbation **refusées**, y compris au niveau `SQLite` |
+| `M4` — direction / comptes | **TENU** | 19 extrémités contre l'attendu **gelé**, deux requêtes séparées; les 4 témoins à `0`/`0` |
+| `M5` — persistance / rebuild | **TENU** | rebuild Alpha → Gamma → Bêta : magasin intact, digest inchangé, `APPROVED` et suggestions persistantes, **0 extrémité non résolue** |
+| `M6` — rendu inter-territoires | **TENU** | 10 arêtes en `C3` sur 6 paires ordonnées, **0** dessinée dans un seul cerveau; trait doublé, tête + chevron, `<title>` en toutes lettres |
+| `M7` — panneau | **TENU** | deux sections, deux totaux, **deux espaces de noms `CSS` disjoints** : 4 entrées internes, 1 inter-cerveaux |
+| `M8` — navigation affichée | **TENU** | vraie frappe → `brain-gamma-map-node-9` sélectionné, Gamma focused **et** actif, **1** seul nœud sélectionné |
+| `M9` — navigation hors vue | **TENU** | « hors de la vue » en mots; vraie frappe → Gamma ajouté, ordre catalogue, endpoint exact, **rien créé** (digest inchangé) |
+| `M10` — suggestion | **TENU** | non comptée avant, **+1 exactement** après, `APPROVED`, **aucune règle inventée**, arête établie apparue |
+| `M11` — sécurité / historique | **TENU** | 12 et 157 entrées dans les racines, **0 artefact FileTopo**; les **14** preuves protégées **inchangées**; `main` intacte |
+| `M12` — hôte réel | **TENU** | deux passes, `WebView2 152.0.4191.53`, variant neuf, redémarrage réel; **aucun indicateur faux dans tout l'arbre de preuve** |
+
+## 7.3 Ce que le vrai hôte a mesuré
+
+Variant neuf `task0020-m12-20260902134545-ac5cd8`, deux processus, fermeture et
+redémarrage réels.
+
+**Vraies frappes aux étapes 3, 7, 11, 16 et 18 :** `keydownIsTrusted: true`,
+`activationIsTrusted: true`, **0** `click()` programmatique, **0**
+`dispatchEvent(click)`.
+
+| Étape | Ce qui a été observé |
+|---|---|
+| 2 | 6 déterministes, 0 approuvée, 4 en attente, dans `brains/interbrain/relations.sqlite` |
+| 4 | 4 arêtes inter-cerveaux en `C2`, dont 2 `Alpha → Gamma`; 32 arêtes intra, **0** sortie de territoire |
+| 6 | interne `3 sortante(s) · 1 entrante(s)` **≠** inter-cerveaux `1 sortante(s) · 0 entrante(s)` |
+| 12 | approuvées `0 → 1`, en attente `4 → 3`, provenance `APPROVED`, `ruleName: null` |
+| 19 | 10 arêtes sur **6 paires ordonnées**, `0` dessinée dans un seul cerveau |
+| 22 | après rebuild : digest **identique**, `APPROVED` survit, `0` extrémité non résolue |
+| 24–28 | après redémarrage : magasin persistant, `XB-S01` toujours `APPROVED`, 6 déterministes identiques, **composition Gamma seul** |
+
+## 7.4 Deux défauts trouvés par la mesure, et corrigés
+
+**Le rejeu a servi à quelque chose, et cela se dit.**
+
+1. **Les classes `CSS` partagées contaminaient deux mesures antérieures.** Le
+   panneau inter-cerveaux portait `relation__link`, et ses arêtes `map-edge`.
+   Le scénario `J12` compte `.relations__direction .relation__link` sur tout le
+   document, et `L12` compte `.map-edge` : les deux se sont mis à compter des
+   éléments qui ne les regardaient pas — `J12` a publié un panneau « non
+   stabilisé » et `L12` un `everyEdgeStaysInOneBrain: false` **alors que rien
+   n'était cassé**. C'est la même faute qu'un `id` `DOM` pour deux cerveaux,
+   sous un autre habit. **Corrigé à la source** : le panneau et les arêtes
+   inter-cerveaux ont leur **propre espace de noms**, ne partagent **aucun**
+   nom de classe dans le balisage, et partagent leur style par la feuille de
+   style. Deux tests le tiennent.
+2. **Un contrôle `DOM` capturé avant un `await` peut être remplacé par un
+   re-rendu.** L'étape 16 a échoué une fois exactement ainsi : le bouton lu à
+   l'étape 14 était détaché, la frappe est partie dans le vide. Corrigé :
+   le contrôle est **re-interrogé à l'instant où il est pressé**.
+
+Deux autres écarts, plus petits, venaient aussi de la mesure : le message de
+navigation était effacé par le rechargement qu'il décrit — il est désormais
+posé **après** —, et l'étape 12 lisait le panneau entre deux rendus.
+
+## 7.5 Régressions rejouées
+
+| Rejeu | Résultat |
+|---|---|
+| `TASK-0020-J12-intrabrain-regression-webview2.json` | **PASS** — panneau stabilisé en 22 ms, 4 entrées, 2 sections, frappe réelle `isTrusted`, approbation `3 → 4`, `countsAgree`, 0 inverse |
+| `TASK-0020-L12-composed-regression-webview2-pass{1,2}.json` | **PASS** — `L8` retrouvé exact : 32 arêtes intra, **0** traversante; la couche inter-cerveaux est déclarée **à côté**, pas fondue dedans |
+
+**`TASK-0019` n'a pas été réécrite.** Les 14 preuves protégées sont
+**inchangées**.
+
+## 7.6 Ce qui n'a pas été fait, et se déclare tel
+
+- **Aucune campagne `H9`**, aucun seuil, aucune mesure de performance. `R8`
+  reste entière.
+- **Aucune détection automatique** entre cerveaux; les six relations viennent
+  de règles **nommées et versionnées** appliquées à un jeu **figé**.
+- **`I-E` complète non implémentée.** `cek1` est le repli déterministe :
+  `VolumeSerialNumber`/`FileId`, déplacements et renommages réels restent hors
+  périmètre. **Un déplacement réel casserait une extrémité**, et rien ici ne
+  prétend le contraire.
+- **Aucune révocation** — `P-21` demeure. **Aucune persistance de vue
+  composée** — `P-19` entière, confirmée à l'étape 27.
+- **`K11`/`L11` n'a pas été rejoué** : son code fonctionnel n'a pas changé.
+  Déclaré tel, pas supposé. L'absence d'artefact FileTopo dans les racines a
+  été vérifiée **directement sur le bac à sable de la preuve** — 12 et 157
+  entrées, aucun `.sqlite`, `.json` ni fichier `filetopo`.
+- **`B0` n'est pas corrigé**; rien n'a été supprimé dans `src-tauri/target/`.
+  `CARGO_INCREMENTAL=0` a été utilisé, qui **ne supprime rien**.
+- **Une seule machine, un seul runtime `WebView2`.**
+
+**`TASK-0020` est livrée `IMPLEMENTED`. L'exécuteur ne s'attribue pas
+`VERIFIED`.**
+| 2026-09-02 | `IMPLEMENTED` | Tranche livrée; `M1`–`M12` tenus, `M12` en deux passes dans le vrai `WebView2`. **`VERIFIED` non attribué** — contrôle indépendant attendu |

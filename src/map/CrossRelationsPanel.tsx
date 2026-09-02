@@ -33,6 +33,15 @@ import { crossEntryKey, groupCrossByType, otherEndIsDisplayed } from "./crossRel
  *
  * Every entry is a `<button>`: reachable by keyboard because it is a button,
  * not because a key handler was bolted on. `M8` and `M9` press them for real.
+ *
+ * **Its own class namespace, and that is not cosmetic.** Nothing here carries a
+ * `relation__*` or `relations__*` class. The first real `M12` run found out why:
+ * the intra-brain scenario counts `.relations__direction .relation__link`
+ * across the whole document, and a shared class made it count inter-brain
+ * entries too — the same defect as one DOM id for two brains, wearing a
+ * different hat. A selector written for one panel must not be able to match the
+ * other, so the two share styling through the stylesheet and share **no class
+ * name** in the markup.
  */
 
 interface CrossRelationsPanelProps {
@@ -49,7 +58,7 @@ interface CrossRelationsPanelProps {
 function ProvenanceBadge({ provenance }: { provenance: RelationProvenance }) {
   const glyph = provenance === "DETERMINISTIC" ? "◆" : "●";
   return (
-    <span className={`relation__provenance relation__provenance--${provenance.toLowerCase()}`}>
+    <span className={`cross-relation__provenance cross-relation__provenance--${provenance.toLowerCase()}`}>
       <span aria-hidden="true">{glyph}</span> {PROVENANCE_LABELS[provenance]}
     </span>
   );
@@ -99,7 +108,7 @@ function CrossEntryRow({
     <li className="cross-relation">
       <button
         type="button"
-        className="relation__link cross-relation__link"
+        className="cross-relation__link"
         // Everything a scenario needs to check `M7`, `M8` and `M9` read off the
         // control that is actually activated — never reconstructed from an
         // ordering the panel happens to use.
@@ -132,13 +141,13 @@ function CrossEntryRow({
           )
         }
       >
-        <span className="relation__direction" aria-hidden="true">
+        <span className="cross-relation__glyph" aria-hidden="true">
           {outgoing ? "→" : "←"}
         </span>
         <span className="cross-relation__endpoints" aria-hidden="true">
           {sourceName} <span className="cross-relation__arrow">⇒</span> {targetName}
         </span>
-        <span className="relation__name">{entry.other.name}</span>
+        <span className="cross-relation__name">{entry.other.name}</span>
         <ProvenanceBadge provenance={entry.provenance} />
       </button>
       <p className="cross-relation__meta">
@@ -150,11 +159,11 @@ function CrossEntryRow({
         <span className="cross-relation__type">{relationTypeLabel(entry.relationType)}</span>
       </p>
       {entry.provenance === "DETERMINISTIC" ? (
-        <p className="relation__rule">
+        <p className="cross-relation__rule">
           Règle : <code>{entry.ruleName}</code> version <code>{entry.ruleVersion}</code>
         </p>
       ) : (
-        <p className="relation__rule relation__rule--approved">
+        <p className="cross-relation__rule cross-relation__rule--approved">
           Approuvée par une action explicite
           {entry.suggestionKey ? (
             <>
@@ -193,21 +202,21 @@ function CrossDirectionSection({
   onNavigate: CrossRelationsPanelProps["onNavigate"];
 }) {
   return (
-    <section className="relations__direction" aria-label={`${title} (${count})`}>
-      <h3 className="relations__subtitle">
-        {title} <span className="relations__count">{count}</span>
+    <section className="cross-relations__direction" aria-label={`${title} (${count})`}>
+      <h3 className="cross-relations__subtitle">
+        {title} <span className="cross-relations__count">{count}</span>
       </h3>
-      <p className="relations__hint">{hint}</p>
+      <p className="cross-relations__hint">{hint}</p>
       {entries.length === 0 ? (
-        <p className="details__empty">Aucune.</p>
+        <p className="cross-relations__empty">Aucune.</p>
       ) : (
         groupCrossByType(entries).map(([relationType, group]) => (
-          <div key={relationType} className="relations__type-group">
-            <h4 className="relations__type">
+          <div key={relationType} className="cross-relations__type-group">
+            <h4 className="cross-relations__type">
               {relationTypeLabel(relationType)}{" "}
-              <span className="relations__count">{group.length}</span>
+              <span className="cross-relations__count">{group.length}</span>
             </h4>
-            <ul className="relations__list">
+            <ul className="cross-relations__list">
               {group.map((entry) => (
                 <CrossEntryRow
                   key={crossEntryKey(entry)}
@@ -236,25 +245,25 @@ function CrossSuggestionRow({
 }) {
   const busy = approving === suggestion.suggestionKey;
   return (
-    <li className="suggestion cross-suggestion" data-cross-suggestion={suggestion.suggestionKey}>
-      <div className="suggestion__head">
-        <span className="suggestion__tag">suggestion</span>
-        <span className="suggestion__state">non établie</span>
+    <li className="cross-suggestion" data-cross-suggestion={suggestion.suggestionKey}>
+      <div className="cross-suggestion__head">
+        <span className="cross-suggestion__label">suggestion</span>
+        <span className="cross-suggestion__state">non établie</span>
         <span className="cross-suggestion__tag">inter-cerveaux</span>
       </div>
-      <p className="suggestion__body">
-        <span className="suggestion__endpoints">
+      <p className="cross-suggestion__body">
+        <span className="cross-suggestion__endpoints">
           {suggestion.source.brainDisplayName} · {suggestion.source.name}{" "}
           <span aria-hidden="true">⇢</span> {suggestion.target.brainDisplayName} ·{" "}
           {suggestion.target.name}
         </span>
-        <span className="suggestion__type">{relationTypeLabel(suggestion.relationType)}</span>
+        <span className="cross-suggestion__type">{relationTypeLabel(suggestion.relationType)}</span>
       </p>
-      <p className="suggestion__basis">Origine synthétique : {suggestion.basis}</p>
-      <div className="suggestion__actions">
+      <p className="cross-suggestion__basis">Origine synthétique : {suggestion.basis}</p>
+      <div className="cross-suggestion__actions">
         <button
           type="button"
-          className="suggestion__approve"
+          className="cross-suggestion__approve"
           data-cross-approve={suggestion.suggestionKey}
           disabled={busy}
           aria-label={
@@ -280,17 +289,17 @@ export default function CrossRelationsPanel({
 }: CrossRelationsPanelProps) {
   if (loading) {
     return (
-      <section className="relations cross-relations" aria-label="Relations inter-cerveaux">
-        <h2 className="relations__title">Relations inter-cerveaux</h2>
-        <p className="details__empty">Lecture des relations inter-cerveaux…</p>
+      <section className="cross-relations" aria-label="Relations inter-cerveaux">
+        <h2 className="cross-relations__title">Relations inter-cerveaux</h2>
+        <p className="cross-relations__empty">Lecture des relations inter-cerveaux…</p>
       </section>
     );
   }
   if (!relations) {
     return (
-      <section className="relations cross-relations" aria-label="Relations inter-cerveaux">
-        <h2 className="relations__title">Relations inter-cerveaux</h2>
-        <p className="details__empty">
+      <section className="cross-relations" aria-label="Relations inter-cerveaux">
+        <h2 className="cross-relations__title">Relations inter-cerveaux</h2>
+        <p className="cross-relations__empty">
           Sélectionnez un bloc pour voir ses relations vers d'autres cerveaux.
         </p>
       </section>
@@ -300,13 +309,13 @@ export default function CrossRelationsPanel({
   const selfBrainName = "ce cerveau";
 
   return (
-    <section className="relations cross-relations" aria-label="Relations inter-cerveaux">
-      <h2 className="relations__title">Relations inter-cerveaux</h2>
-      <p className="relations__hint">
+    <section className="cross-relations" aria-label="Relations inter-cerveaux">
+      <h2 className="cross-relations__title">Relations inter-cerveaux</h2>
+      <p className="cross-relations__hint">
         Une relation inter-cerveaux relie ce nœud à un nœud d'un <strong>autre</strong> cerveau.
         Elle ne fusionne rien, et elle existe même si l'autre cerveau n'est pas affiché.
       </p>
-      <p className="relations__totals" data-testid="cross-relation-totals">
+      <p className="cross-relations__totals" data-testid="cross-relation-totals">
         {relations.outgoingCount} sortante(s) · {relations.incomingCount} entrante(s) ·{" "}
         {relations.suggestions.length} suggestion(s) <strong>non comptée(s)</strong>
       </p>
@@ -331,21 +340,21 @@ export default function CrossRelationsPanel({
       />
 
       <section
-        className="relations__suggestions cross-relations__suggestions"
+        className="cross-relations__suggestions"
         aria-label="Suggestions inter-cerveaux non établies"
       >
-        <h3 className="relations__subtitle">
+        <h3 className="cross-relations__subtitle">
           Suggestions inter-cerveaux — non établies{" "}
-          <span className="relations__count">{relations.suggestions.length}</span>
+          <span className="cross-relations__count">{relations.suggestions.length}</span>
         </h3>
-        <p className="relations__hint">
+        <p className="cross-relations__hint">
           Une suggestion <strong>n'est pas une relation</strong> : elle n'entre dans aucun compte
           ci-dessus et n'est dessinée comme aucune arête établie tant qu'elle n'est pas approuvée.
         </p>
         {relations.suggestions.length === 0 ? (
-          <p className="details__empty">Aucune.</p>
+          <p className="cross-relations__empty">Aucune.</p>
         ) : (
-          <ul className="relations__list">
+          <ul className="cross-relations__list">
             {relations.suggestions.map((suggestion) => (
               <CrossSuggestionRow
                 key={suggestion.suggestionKey}

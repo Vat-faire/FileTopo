@@ -1032,3 +1032,225 @@ button:disabled {
   border-radius: 999px;
   padding: 1px 6px;
 }
+
+/*
+ * The inter-brain panel shares the LOOK of the intra-brain one and none of its
+ * class names — see `CrossRelationsPanel.tsx`. Styling is shared here, in the
+ * stylesheet, where sharing costs nothing; sharing it in the markup made an
+ * existing measurement count the wrong elements.
+ */
+.cross-relations {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.cross-relations__title {
+  font-size: 15px;
+  margin: 0;
+}
+
+.cross-relations__totals {
+  margin: 0;
+  font-size: 12px;
+  opacity: 0.9;
+}
+
+.cross-relations__subtitle {
+  margin: 0;
+  font-size: 13px;
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+
+.cross-relations__type {
+  margin: 6px 0 2px;
+  font-size: 12px;
+  font-weight: 600;
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+
+.cross-relations__count {
+  font-variant-numeric: tabular-nums;
+  font-size: 11px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 0 6px;
+}
+
+.cross-relations__hint {
+  margin: 0;
+  font-size: 11px;
+  line-height: 1.45;
+  opacity: 0.85;
+}
+
+.cross-relations__empty {
+  margin: 0;
+  font-size: 12px;
+  opacity: 0.7;
+}
+
+.cross-relations__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.cross-relations__direction {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.cross-relations__suggestions {
+  border-top: 1px dashed var(--line);
+  padding-top: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.cross-relation__link {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  text-align: left;
+  background: transparent;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 5px 8px;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+}
+
+.cross-relation__link:hover:not(:disabled) {
+  border-color: var(--accent);
+}
+
+.cross-relation__link:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.cross-relation__glyph {
+  font-weight: 700;
+}
+
+.cross-relation__name {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Provenance: a word, a shape, and a border pattern — never a hue alone. */
+.cross-relation__provenance {
+  font-size: 11px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 0 6px;
+  white-space: nowrap;
+}
+
+.cross-relation__provenance--deterministic {
+  border-style: solid;
+}
+
+.cross-relation__provenance--approved {
+  border-style: dashed;
+}
+
+.cross-relation__rule {
+  margin: 0;
+  font-size: 11px;
+  opacity: 0.8;
+}
+
+.cross-relation__rule code {
+  font-size: 11px;
+}
+
+.cross-suggestion {
+  border: 1px dashed var(--line);
+  border-radius: 8px;
+  padding: 6px 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.cross-suggestion__head {
+  display: flex;
+  gap: 6px;
+  align-items: baseline;
+  flex-wrap: wrap;
+}
+
+.cross-suggestion__label,
+.cross-suggestion__state {
+  font-size: 10px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  border: 1px dashed var(--line);
+  border-radius: 999px;
+  padding: 1px 6px;
+}
+
+.cross-suggestion__body {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 12px;
+}
+
+.cross-suggestion__type {
+  font-size: 11px;
+  opacity: 0.8;
+}
+
+.cross-suggestion__basis {
+  margin: 0;
+  font-size: 11px;
+  opacity: 0.75;
+}
+
+.cross-suggestion__actions {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.cross-suggestion__approve {
+  font: inherit;
+  font-size: 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: transparent;
+  color: inherit;
+  padding: 4px 8px;
+  cursor: pointer;
+}
+
+.cross-suggestion__approve:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.cross-suggestion__approve:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
