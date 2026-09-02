@@ -1,113 +1,113 @@
-TASK_ID: TASK-0019 — vue composée multi-cerveaux
+TASK_ID: TASK-0019 — correction de la réserve X6
 AGENT: CLAUDE
 RESULT: DONE
 BRANCH: build/v0.2-a4-composed-view
-FINAL_HEAD: 6dd3585 (+ le commit de mise à jour du rapport)
-TASK_STATE: IMPLEMENTED — VERIFIED NON attribué
-SESSION: REPRISE après une session interrompue. L'arbre portait une
-implémentation à mi-refactor qui ne compilait pas — 4 fichiers neufs,
-`brainSession.ts` supprimé mais encore importé, `composedScenario.ts` absent.
-Git et les fichiers réels ont primé : HEAD = upstream = bcbc4aa (le gel §4,
-poussé), rien de local non poussé. Le point d'arrêt a été situé, puis le
-travail repris. **Rien n'a été effacé, rien n'a été recommencé.**
+BASE_HEAD: 21acd64aca0c03b68b7e2eccc792f716fa7f2f9a
+TASK_STATE: IMPLEMENTED — VERIFIED NON attribué, X6 reste OPEN
+SESSION: début de session normal. Git vérifié d'abord : racine, branche
+`build/v0.2-a4-composed-view`, `HEAD` `21acd64`, arbre propre, aligné sur
+`origin`. Aucun écart.
 
 SUMMARY:
-- PLUSIEURS CERVEAUX DANS UN SEUL GRAPHIQUE, sans être mélangés. Un canevas
-  `SVG`, un territoire par cerveau, chacun gardant son index, ses relations et
-  son état. `C2` : 12 + 12 nœuds, DEUX fichiers `SQLite` distincts. `C3` : 181
-  nœuds en trois territoires. ZÉRO arête inter-cerveaux sur 32 dessinées.
+- ACTION-0030 = CHANGES_REQUIRED est ENREGISTRÉE, pas rendue par l'exécuteur —
+  `docs/reviews/ACTION-0030-independent-control.md`. Le fond accepté au §2 n'a
+  pas été rouvert; aucun critère `L1`–`L12` n'a été touché.
 
-- LE GEL PRÉCÈDE LE CODE : `bcbc4aa` fige le modèle, `C1`/`C2`/`C3`, les
-  formules de territoire et `L1`–`L12` avant la première ligne de la tranche.
-  AUCUN critère n'a été retouché après le premier résultat.
+- X6 DISAIT VRAI. « Gamma inchangé » était prouvé, mais l'ACTE que l'étape 7
+  nomme — approuver `S-005` dans Alpha — n'avait pas eu lieu pendant `L12`.
+  Une cible manquée reste une cible manquée, même publiée honnêtement.
 
-- CRITÈRES : `L1` à `L11` TENUS. `L12` tenu à SEIZE étapes sur DIX-SEPT, dans
-  le vrai WebView2 `152.0.4191.53`, DEUX processus, fermeture et redémarrage
-  RÉELS. Vraies frappes Windows aux étapes 3, 8, 13 et 14 : `isTrusted=true`,
-  0 clic programmatique, 0 `dispatchEvent(click)`.
+- RIEN N'A ÉTÉ SUPPRIMÉ. Le bac à sable `<dépôt>/.filetopo-sandbox` est
+  INTACT : l'empreinte de son contenu, variants exclus, est IDENTIQUE avant et
+  après le rejeu — `17186576c4df5b5d…`. Ni magasin de relations remis à zéro,
+  ni catalogue effacé, ni `SQLite` touchée à la main, ni contournement de `X3`,
+  ni commande de remise à zéro exposée au runtime.
 
-- LA SEULE CIBLE MANQUÉE, PUBLIÉE COMME MANQUÉE : `L12` étape 7, moitié
-  « approuver `S-005` dans Alpha », NON REJOUÉE. Le bac à sable est persistant
-  et `S-005` y était déjà approuvée par une exécution antérieure du rejeu
-  `K12`; le magasin refuse une seconde approbation — c'est `X3` qui fonctionne.
-  Aucune commande de remise à zéro n'existe, et effacer le bac à sable serait
-  une SUPPRESSION hors périmètre. La moitié qui porte `L8` — « Gamma
-  strictement inchangé » — est TENUE. L'artefact porte
-  `approvalReplayable: false` et sa raison.
+- CE QUI A ÉTÉ AJOUTÉ EST UN NAMESPACE, PAS UNE DESTINATION.
+  `FILETOPO_SANDBOX_VARIANT`, variable de DÉVELOPPEMENT lue par
+  `map/sandbox.rs`, résout `<dépôt>/.filetopo-sandbox/variants/<variant>` —
+  toujours SOUS le même répertoire. Variable absente : comportement EXACTEMENT
+  inchangé. La valeur est un NOM, jamais un chemin : basename ASCII
+  `[A-Za-z0-9_-]`, 1 à 64 caractères. Séparateur, `..`, chemin absolu, chaîne
+  vide, valeur trop longue : ERREUR EXPLICITE remontée par `map_sandbox`,
+  JAMAIS un repli silencieux vers un chemin fourni par l'appelant. Aucun
+  sélecteur de dossier, aucune racine choisie par l'utilisateur.
 
-- L'ISOLATION EST À L'ÉCRAN, PAS SEULEMENT EN BASE. Alpha et Gamma lisent la
-  même fixture, donc `node_id = 4` existe des deux côtés : les éléments
-  s'appellent `brain-alpha-map-node-4` et `brain-gamma-map-node-4`.
-  `aria-activedescendant` pointe vers UN `id` et `getElementById` renvoie LE
-  PREMIER — un `id` partagé aurait envoyé le lecteur d'écran ET le scénario
-  dans le mauvais cerveau, en silence.
+- SIX TESTS DE CONFINEMENT, dont le seul qui compte si la charset change un
+  jour : « aucun variant accepté ne sort du bac à sable ». Refusés et prouvés
+  tels : `..`, `../x`, `..\x`, `a/b`, `a\b`, `/abs`, `\\share`, `C:\abs`, `C:`,
+  `a.b`, `x/../../y`, `a b`, `é`, `%TEMP%`, chaîne vide, 65 caractères.
 
-- QUATRE DÉFAUTS TROUVÉS EN CHEMIN, corrigés et gardés :
-  1. `scripts/k12-run-real-host.ps1` SUPPRIMAIT `TASK-0018-K12-webview2-pass1
-     .json`, devenu preuve canonique d'une tâche VERIFIED par `ACTION-0029`.
-     La porte d'écriture de l'application ne dit rien d'un script qui la
-     contourne. Les deux scripts portent désormais une liste protégée et un
-     `Assert-NotProtected`.
-  2. Le rejeu `J12` déclarait `task: "TASK-0018"` dans un fichier `TASK-0019`.
-     Corrigé; un TEST DE GARDE exige maintenant l'accord du nom et de la charge
-     utile.
-  3. Un défaut de MESURE, dans le scénario et non dans le produit : la première
-     exécution de `L12` a publié `restoredExactly=false`; la vue ÉTAIT
-     restaurée, un rendu plus tard. Corrigé en attendant que la valeur CESSE DE
-     CHANGER, jamais qu'elle atteigne une valeur attendue.
-  4. Un octet NUL était COMMITÉ dans `src/map/brainScenario.ts`.
+- `scripts/l12-run-real-host.ps1` tire un variant NEUF par invocation, le garde
+  IDENTIQUE pour les deux passes, retire la variable en sortant — et NE
+  SUPPRIME PAS le répertoire du variant.
 
-- `BrainSelector.tsx` SUPPRIMÉ — §4.4 remplace son UX par la barre de
-  composition. Les affirmations `K7`, `K8` et `K10` qu'il portait sont REPRISES
-  UNE À UNE dans `brains.test.tsx`; les supprimer avec le composant aurait
-  retiré trois critères de la suite sans le dire.
+- L12 REJOUÉ EN ENTIER, vrai WebView2 `152.0.4191.53`, deux processus réels,
+  fermeture et redémarrage réels. Étape 7, pendant que `C2` [Alpha, Gamma] est
+  affichée :
+
+      Alpha  approuvées 4 → 5   en attente 4 → 3   S-005 en attente → approuvée
+      Gamma  approuvées 4 → 4   en attente 4 → 4   S-005 en attente → en attente
+
+  `s005WasPending: true`, `approvalReplayable: true`, `approvalError: null`,
+  `alphaMovedByExactlyOne: true` (exactement +1 / −1),
+  `gammaStrictlyUnchanged: true`, `gammaS005StillPending: true`,
+  `separateStores: true`. Vraies frappes aux étapes 3, 8, 13 et 14 :
+  `isTrusted=true`, 0 clic programmatique. `pass2` porte le MÊME variant et
+  confirme Gamma actif, composition Gamma SEUL.
+
+- X5 PRÉSERVÉE : les HUIT preuves protégées `TASK-0016`/`0017`/`0018` sont
+  bit-for-bit INCHANGÉES, vérifiées une à une. Seuls les deux artefacts `L12`
+  de `TASK-0019` — tâche NON `VERIFIED` — ont été remplacés par la preuve
+  corrigée de cette même tâche.
+
+- UN DÉFAUT TROUVÉ EN CHEMIN : un octet `NUL` était COMMITÉ dans la fiche
+  `TASK-0019` elle-même, dans la phrase qui décrit le `NUL` de
+  `brainScenario.ts`. Il rendait la fiche BINAIRE pour `git diff` et `grep` —
+  illisible en revue, sur le fichier même qu'un contrôle indépendant doit lire.
+  Écrit `<NUL>`.
+
+- UNE CHOSE RESTAURÉE PLUTÔT QUE LIVRÉE : `cargo fmt` avait reformaté HUIT
+  fichiers `src-tauri/src/map/*.rs` que la tâche ne touche pas. Restaurés à
+  leur contenu commité; le diff reste confiné à `sandbox.rs` et à une ligne de
+  `lib.rs`.
 
 FILES:
-- neufs : `src/map/composedView.ts`, `territories.ts`, `compositionSession.ts`,
-  `CompositionBar.tsx`, `compositionDriver.ts`, `composedScenario.ts`,
-  `composedView.test.ts`, `scripts/l12-run-real-host.ps1`
-- modifiés : `MapApp.tsx`, `MapView.tsx`, `runArtifacts.ts`, `types.ts`,
-  `brainScenario.ts`, `relationScenario.ts`, `brains.test.tsx`,
-  `mapView.test.tsx`, `relations.test.tsx`, `runArtifacts.test.ts`,
-  `src-tauri/src/lib.rs`, `src-tauri/src/map/commands.rs`,
-  `scripts/k12-run-real-host.ps1`
-- supprimés : `src/map/BrainSelector.tsx`, `src/map/brainSession.ts`
-- preuves : 6 artefacts `TASK-0019-*` sous `docs/performance/runs/`
-- docs : fiche `TASK-0019` §7, `CURRENT_STATE`, `NEXT_ACTION`, `HANDOFF`,
-  `VALIDATION`, `CHANGELOG_AI`
+- src-tauri/src/map/sandbox.rs — variant, validation, confinement, six tests
+- src-tauri/src/lib.rs — `map_sandbox` propage l'erreur de résolution (1 ligne)
+- scripts/l12-run-real-host.ps1 — variant neuf par invocation, retiré en sortie
+- docs/performance/runs/TASK-0019-L12-composed-view-webview2-pass{1,2}.json
+- docs/reviews/ACTION-0030-independent-control.md (nouveau)
+- docs/tasks/TASK-0019-composed-multibrain-view.md — §7.1, §7.2, §7.3, §7.4,
+  historique; §4 GELÉE, non touchée
+- docs/ai/CURRENT_STATE.md, NEXT_ACTION.md, HANDOFF.md, VALIDATION.md,
+  CHANGELOG_AI.md
 
 VALIDATIONS:
-- `pnpm check` PASS
-- 139/139 tests TypeScript (107 → 139)
-- 107/107 tests Rust
-- `pnpm build` PASS; build Tauri `debug --no-bundle` PASS
-- `L12` deux passes dans le vrai WebView2, redémarrage réel
-- `K12` de régression deux passes; `J12` de régression une passe, vraie frappe
-- `L11` lecture seule : empreintes identiques ×3, 0 artefact FileTopo dans les
-  racines analysées
-- LES HUIT PREUVES PROTÉGÉES SONT INCHANGÉES — `git status` ne montre que des
-  ajouts non suivis sous `docs/performance/runs/`
+- 113/113 tests Rust (107 → 113)
+- 139/139 tests TypeScript
+- `pnpm check` PASS, `pnpm build` PASS
+- build Tauri `debug --no-bundle` PASS
+- L12 DEUX PASSES dans le vrai WebView2, même variant, deux processus
+- 8/8 preuves protégées inchangées; empreinte du bac à sable identique
 
-NOT_TESTED / LIMITES:
-- Aucune campagne `H9`, aucun seuil, aucune mesure de performance. `R8` entière.
-- Persistance de la composition NON implémentée — `P-19`. `L12` §17 le confirme
-  sur redémarrage réel : Gamma actif, composition Gamma SEUL.
-- Aucune relation inter-cerveaux — `TASK-0020`.
-- `P-04` non révoquée; `P-21` non satisfaite.
-- `B0` s'est reproduit une SIXIÈME fois — `rustc` a paniqué sur son cache
-  incrémental. Contourné par `CARGO_INCREMENTAL=0`, qui NE SUPPRIME RIEN; rien
-  n'a été effacé ni renommé dans `src-tauri/target/`.
+NON TESTÉ / LIMITES:
+- K11, K12 et J12 de régression NON REJOUÉS — leur code fonctionnel n'a pas
+  changé. Déclaré tel, pas supposé.
+- Aucune campagne H9, aucun seuil. R8 entière.
+- Persistance de composition toujours non implémentée — P-19.
+- Aucune relation inter-cerveaux — TASK-0020.
+- B0 s'est reproduit une SEPTIÈME fois : `rustc` a paniqué sur son cache
+  incrémental (`Failed to recover key for impl_trait_header`). Contourné par
+  `CARGO_INCREMENTAL=0`, qui NE SUPPRIME RIEN; rien n'a été effacé ni renommé
+  dans `src-tauri/target/`.
 - Une seule machine, un seul runtime WebView2.
 
-REMOTE / DESTRUCTIF:
-- Aucune fusion, aucune PR, aucune release, aucune étiquette, aucun `force
-  push`, aucune réécriture d'historique.
-- Aucune suppression hors dépôt. Le bac à sable `.filetopo-sandbox` N'A PAS été
-  effacé — c'eût été un point d'arrêt réservé à Sébastien.
-- Seule écriture distante : `push` de commits vers la branche de travail déjà
-  publiée `build/v0.2-a4-composed-view`.
+GIT: commit sur `build/v0.2-a4-composed-view`, push vers
+`origin/build/v0.2-a4-composed-view` (branche de travail déjà publiée). AUCUNE
+fusion vers `main`, aucune PR, aucune release, aucune étiquette, aucun `force
+push`, aucune réécriture d'historique, aucune suppression.
 
-NEXT_ACTION: contrôle indépendant de `TASK-0019`, par une instance DISTINCTE de
-l'exécuteur, SUR PREUVES. Le point à trancher en priorité : la moitié
-« approuver `S-005` » de `L12` §7, non rejouable sans effacer le bac à sable —
-ce qui serait une suppression, donc un point d'arrêt réservé à Sébastien.
+NEXT: re-contrôle indépendant de `TASK-0019` sur la réserve `X6` UNIQUEMENT,
+par une instance distincte de l'exécuteur, sur preuves. `X6` reste `OPEN`;
+`TASK-0019` reste `IMPLEMENTED`.

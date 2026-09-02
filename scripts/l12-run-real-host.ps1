@@ -24,6 +24,12 @@
     and not three. The page prints `L12-KEY-READY`, which the watcher's default
     `-KEY-READY` already matches.
 
+    Each invocation asks the application for a FRESH sandbox namespace —
+    FILETOPO_SANDBOX_VARIANT, confined to <depot>/.filetopo-sandbox/variants/ —
+    so step 7 can really approve S-005 instead of finding it already approved.
+    The existing sandbox is NOT touched and the variant is NOT removed: nothing
+    is deleted anywhere, which is what reserve X6 asks for.
+
     Nothing here touches the analysed trees, the repository beyond the run
     artefacts the application itself writes, or any user data. The only process
     it stops is the one it started.
@@ -66,6 +72,31 @@ if (-not (Test-Path -LiteralPath $Executable)) {
 
 $runs = Join-Path $repository 'docs/performance/runs'
 $watcher = Join-Path $PSScriptRoot 'j12-send-real-key.ps1'
+
+# Reserve X6 — a FRESH sandbox namespace, and NOTHING deleted.
+#
+# L12 step 7 asks for an ACT: approve S-005 in Alpha, and confirm Gamma did not
+# move. The development sandbox is persistent, so an earlier run had already
+# approved it and the act could not happen again — the relations store refuses a
+# second approval, which is X3 working, not a defect.
+#
+# Erasing the sandbox to get back to a pending S-005 would be a DESTRUCTION, and
+# a stop point reserved to Sébastien. So nothing is erased: this run asks the
+# application for a NEW namespace under the same directory, and the existing
+# sandbox stays exactly as it is.
+#
+#   <depot>/.filetopo-sandbox/variants/<variant>
+#
+# A fresh namespace means a fresh catalogue, a fresh Alpha index and a fresh
+# Alpha relations store — so S-005 is pending, and the approval is a real act.
+# The variant is a NAME, never a path: the application validates it and refuses
+# anything else. Both passes share the SAME variant, which is what lets pass 2
+# find the brain pass 1 left active.
+#
+# The directory is deliberately NOT removed afterwards: the evidence needs no
+# deletion, and a later invocation simply creates another variant.
+$variant = 'task0019-l12-{0}-{1}' -f (Get-Date -Format 'yyyyMMddHHmmss'),
+                                     ([guid]::NewGuid().ToString('N').Substring(0, 6))
 
 # Reserve X5, held outside the application too.
 #
@@ -164,16 +195,26 @@ function Invoke-Pass {
     return $produced
 }
 
-$first = Invoke-Pass -Pass 1 -WithKeyWatcher
-if (-not $first) {
-    throw 'L12: la passe 1 n a pas produit son artefact — rien n est prouve, et cela se publie tel quel'
-}
+Write-Host "L12: bac a sable neuf, <depot>/.filetopo-sandbox/variants/$variant"
+$env:FILETOPO_SANDBOX_VARIANT = $variant
+try {
+    $first = Invoke-Pass -Pass 1 -WithKeyWatcher
+    if (-not $first) {
+        throw 'L12: la passe 1 n a pas produit son artefact — rien n est prouve, et cela se publie tel quel'
+    }
 
-# The restart is real: the first process has exited before this line.
-Start-Sleep -Seconds 2
-$second = Invoke-Pass -Pass 2
-if (-not $second) {
-    throw 'L12: la passe 2 n a pas produit son artefact apres le redemarrage'
+    # The restart is real: the first process has exited before this line. The
+    # variant does NOT change across it — same sandbox, new process.
+    Start-Sleep -Seconds 2
+    $second = Invoke-Pass -Pass 2
+    if (-not $second) {
+        throw 'L12: la passe 2 n a pas produit son artefact apres le redemarrage'
+    }
+}
+finally {
+    # The variable leaves with the script, whatever happened. A later FileTopo
+    # started by hand must find the ordinary sandbox, not this run's namespace.
+    Remove-Item Env:\FILETOPO_SANDBOX_VARIANT -ErrorAction SilentlyContinue
 }
 
 Write-Output 'L12: les deux passes ont ecrit leur artefact sous docs/performance/runs/'

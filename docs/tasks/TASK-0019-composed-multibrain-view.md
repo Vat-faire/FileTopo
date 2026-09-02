@@ -455,26 +455,69 @@ précède la première ligne de code de cette tranche, et **aucun critère
 | `L9` mémoire par composition | **TENU** | `L12` §12 : `C2 → C3 → C2` restitue **exactement** l'état de `C2`; `brains.test.tsx` conserve `K8` sous la clé d'un seul cerveau |
 | `L10` clavier | **TENU** | `L12` §3, §8, §13, §14 : `isTrusted=true`, **0** `click()` programmatique, **0** `dispatchEvent(click)` |
 | `L11` sécurité / historique | **TENU** | `TASK-0019-K11-readonly-regression-webview2.json` : empreintes identiques ×3, **0** artefact FileTopo dans les racines; les **huit** preuves protégées inchangées |
-| `L12` hôte réel, dix-sept étapes | **TENU sauf la moitié « approbation » de l'étape 7** | `TASK-0019-L12-composed-view-webview2-pass{1,2}.json`, WebView2 `152.0.4191.53`, deux processus |
+| `L12` hôte réel, dix-sept étapes | **TENU, les dix-sept** — étape 7 comprise, **rejouée** après la réserve `X6` | `TASK-0019-L12-composed-view-webview2-pass{1,2}.json`, WebView2 `152.0.4191.53`, deux processus |
 
-## 7.2 La seule cible manquée, publiée comme manquée
+## 7.2 La cible d'abord manquée, puis tenue — réserve `X6`
 
-**`L12` étape 7, moitié « approuver `S-005` dans Alpha » : NON REJOUÉE.**
+**Premier résultat, publié comme manqué :** `L12` étape 7, moitié « approuver
+`S-005` dans Alpha », **NON REJOUÉE**. Le bac à sable
+`<dépôt>/.filetopo-sandbox` est **persistant**, et une exécution antérieure du
+rejeu `K12` avait déjà approuvé `S-005` dans `brain-alpha`. Le magasin refuse
+alors une seconde approbation — `relation_rejected_suggestion_already_decided` —
+ce qui est **`X3` qui fonctionne**, pas le produit qui échoue. L'artefact portait
+`s005WasPending: false`, `approvalReplayable: false`,
+`alphaMovedByExactlyOne: false`.
 
-Le bac à sable `<dépôt>/.filetopo-sandbox` est **persistant**, et une exécution
-antérieure du rejeu `K12` avait déjà approuvé `S-005` dans `brain-alpha`. Le
-magasin refuse alors une seconde approbation —
-`relation_rejected_suggestion_already_decided` — ce qui est **`X3` qui
-fonctionne**, pas le produit qui échoue. Aucune commande de remise à zéro
-n'existe dans le runtime, et effacer le bac à sable serait une **suppression**
-que le périmètre de cette tâche n'autorise pas.
+**Le contrôle indépendant a refusé cet état de fait** — `ACTION-0030`,
+`CHANGES_REQUIRED`, réserve **`X6`** : « Gamma inchangé » était prouvé, mais
+l'**ACTE** que le critère nomme n'avait pas eu lieu pendant `L12`.
 
-Ce qui est donc prouvé à l'étape 7 : `alphaApprouvées=5`, `alphaEnAttente=3`,
-`S-005` **est** approuvée dans Alpha, et **Gamma est strictement inchangé** —
-`4` approuvées, `S-005` à `S-008` toujours en attente, magasin distinct. La
-moitié qui porte `L8` tient; la moitié qui porte l'**acte** n'a pas pu être
-rejouée, et l'artefact le dit en toutes lettres — `approvalReplayable: false`
-et sa raison.
+**Ce qui a été corrigé, sans rien supprimer.** Effacer le bac à sable pour
+retrouver un `S-005` en attente serait une **suppression**, donc un point
+d'arrêt réservé à Sébastien. Le bac existant est donc resté **intact** — son
+empreinte est identique avant et après ce rejeu. Ce qui a été ajouté est un
+**namespace neuf**, demandé par le scénario de preuve et **confiné sous le même
+répertoire** :
+
+    <dépôt>/.filetopo-sandbox/variants/<variant>
+
+Le mécanisme tient en une variable d'environnement de **développement**,
+`FILETOPO_SANDBOX_VARIANT`, lue par `map/sandbox.rs` :
+
+- **variable absente : comportement exactement inchangé**,
+  `<dépôt>/.filetopo-sandbox`;
+- la variable porte un **nom**, jamais un chemin — un seul basename ASCII
+  `[A-Za-z0-9_-]`, 1 à 64 caractères;
+- un séparateur, un `..`, un chemin absolu, une valeur vide ou trop longue est
+  une **erreur explicite** — **jamais** un repli silencieux vers un chemin
+  fourni par l'appelant;
+- **aucune racine choisie par l'utilisateur, aucun sélecteur de dossier**;
+- le libellé publié reste non personnel :
+  `<dépôt>/.filetopo-sandbox/variants/task0019-l12-…`.
+
+`scripts/l12-run-real-host.ps1` tire désormais un variant **neuf** à chaque
+invocation, le garde **identique** pour les deux passes, et retire la variable
+en sortant. **Il ne supprime pas le répertoire du variant** : la preuve
+n'exige aucune suppression, et une invocation ultérieure crée simplement un
+autre variant.
+
+**Le rejeu complet, dans le vrai `WebView2` `152.0.4191.53` :**
+
+| | Alpha avant | Alpha après | Gamma avant | Gamma après |
+|---|---|---|---|---|
+| approuvées | **4** | **5** | 4 | 4 |
+| en attente | **4** | **3** | 4 | 4 |
+| `S-005` | **en attente** | **approuvée** | en attente | **en attente** |
+
+L'artefact `pass1` déclare `s005WasPending: true`, `approvalReplayable: true`,
+`approvalError: null`, `alphaMovedByExactlyOne: true` — variation **exactement**
+`+1` / `-1` — `gammaStrictlyUnchanged: true`, `gammaS005StillPending: true`,
+`separateStores: true`. L'approbation a eu lieu **pendant que `C2`
+[`brain-alpha`, `brain-gamma`] était affichée**, entre l'étape 6 et l'étape 8.
+
+**Les deux moitiés de l'étape 7 tiennent donc maintenant :** l'acte, et
+l'isolation. `X6` reste **`OPEN`** jusqu'au re-contrôle indépendant —
+l'exécuteur ne ferme pas sa propre réserve.
 
 ## 7.3 Trouvés en chemin, et publiés
 
@@ -498,7 +541,11 @@ et sa raison.
    cerveau sur lequel l'amorçage l'avait déjà contredit. Corrigé en attendant
    l'amorçage **avant** de demander.
 5. **Un octet `NUL` était commité dans `src/map/brainScenario.ts`**, dans un
-   littéral `?? " "` de `TASK-0018`. Réparé en `?? ""`.
+   littéral `?? "<NUL>"` de `TASK-0018`. Réparé en `?? ""`.
+6. **Le même octet `NUL` était dans CETTE fiche**, dans la phrase ci-dessus qui
+   le décrit : il y rendait le fichier **binaire** pour `git diff` et pour
+   `grep`, donc illisible en revue — exactement le fichier qu'un contrôle
+   indépendant doit lire. Écrit `<NUL>` désormais.
 
 ## 7.4 Validations exécutées
 
@@ -507,6 +554,23 @@ tests Rust; `pnpm build` **PASS**; build Tauri `debug --no-bundle` **PASS**;
 `L12` **deux passes** dans WebView2 `152.0.4191.53` avec fermeture et
 redémarrage **réels**; `K12` de régression **deux passes**; `J12` de
 régression **une passe**, vraie frappe; `L11` lecture seule **trois cerveaux**.
+
+**Après la correction de `X6` :** **113/113** tests Rust (107 → 113, **six**
+nouveaux sur le confinement du variant : variable absente = chemin historique;
+variant valide **sous** `variants/`; refus de `..`, `../x`, `..\x`, `a/b`,
+`a\b`, `/abs`, `\\share`, `C:\abs`, `C:`, `a.b`, `x/../../y`, `a b`, `é`,
+`%TEMP%` et de la chaîne **vide**; borne à **64** caractères exactement;
+**aucun variant accepté ne sort du bac à sable**; libellé publié sans chemin
+absolu); **139/139** tests TypeScript; `pnpm check`, `pnpm build` et le build
+Tauri `debug --no-bundle` **PASS**; **`L12` rejoué en entier**, deux passes,
+même variant, deux processus réels. **Aucune dépendance ajoutée.** `K11`, `K12`
+et `J12` n'ont **pas** été rejoués : leur code fonctionnel n'a pas changé.
+
+**Le bac à sable existant n'a pas été touché :** l'empreinte de
+`.filetopo-sandbox/`, variants exclus, est **identique** avant et après le rejeu
+(`17186576c4df5b5d…`). Les **huit** preuves protégées `TASK-0016`/`0017`/`0018`
+restent **bit-for-bit** inchangées; seuls les deux artefacts `L12` de
+`TASK-0019`, **non encore `VERIFIED`**, ont été remplacés.
 
 **`B0` s'est reproduit** — `rustc` a paniqué sur son cache incrémental au
 premier `cargo test`. Contourné par `CARGO_INCREMENTAL=0`, qui **ne supprime
@@ -535,3 +599,5 @@ rien**; **rien n'a été effacé ni renommé dans `src-tauri/target/`.**
 |---|---|---|
 | 2026-09-01 | `PROPOSED` | Fiche créée sous `DEC-0017`, fonction `F-040` |
 | 2026-09-01 | `APPROVED` | GO technique de l'orchestrateur, périmètre écrit en §2 et §3 |
+| 2026-09-02 | `IMPLEMENTED` | Tranche livrée; `L12` tenu à seize étapes sur dix-sept |
+| 2026-09-02 | `IMPLEMENTED` | `ACTION-0030` `CHANGES_REQUIRED`, réserve `X6`; correction exécutée et `L12` rejoué en entier. **`VERIFIED` toujours non attribué** — re-contrôle indépendant attendu |

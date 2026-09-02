@@ -314,11 +314,14 @@ une instance distincte de l'exécuteur, **sur preuves**. Détail dans
 
 Lance `/debut-session`. Elle lit ce qu'il faut, dans l'ordre, et rien de plus.
 
-`TASK-0012` à `TASK-0017` sont **closes et `VERIFIED`**; **`TASK-0018` est
-`IMPLEMENTED`** — gel `K1`–`K12` commité avant tout code, douze critères
-tenus, preuves publiées. Son contrôle indépendant, `ACTION-0028`, a rendu
-**`CHANGES_REQUIRED`** sur une seule réserve, **`X5`** : elle est **corrigée et
-reste `OPEN`**, et `TASK-0018` **attend son re-contrôle**.
+`TASK-0012` à `TASK-0018` sont **closes et `VERIFIED`** — `TASK-0018` par
+`ACTION-0029`, qui a clos `X5`. **`TASK-0019` est `IMPLEMENTED`** : gel
+`L1`–`L12` commité avant tout code, douze critères tenus, preuves publiées. Son
+contrôle indépendant, `ACTION-0030`, a rendu **`CHANGES_REQUIRED`** sur une
+seule réserve, **`X6`** — `L12` étape 7 exigeait d'**approuver** `S-005` dans
+Alpha, et l'**acte** n'avait pas eu lieu. Elle est **corrigée, `L12` rejoué en
+entier, et `X6` reste `OPEN`** : `TASK-0019` **attend son re-contrôle**, sur
+`X6` **uniquement**.
 
 **FileTopo est multi-cerveaux** — `DEC-0017`. **Un `brain_id` n'est pas un
 `fixture_id`** : deux cerveaux peuvent partager une source et **doivent** rester
@@ -338,7 +341,14 @@ La porte d'écriture de l'application ne dit rien d'un outil qui la contourne :
 **Le bac à sable `<dépôt>/.filetopo-sandbox` est persistant**, et rien
 n'annule une approbation. Un scénario qui approuve `S-005` sans vérifier
 qu'elle est en attente échoue à sa deuxième exécution — **et l'effacer serait
-une suppression, réservée à Sébastien.**
+une suppression, réservée à Sébastien.** Quand un scénario de preuve a besoin
+d'un état **neuf**, il ne supprime rien : il demande un **namespace** avec la
+variable de développement `FILETOPO_SANDBOX_VARIANT`, et travaille sous
+`<dépôt>/.filetopo-sandbox/variants/<variant>`. **Variable absente :
+comportement exactement inchangé.** La valeur est un **nom**, jamais un chemin
+— basename ASCII `[A-Za-z0-9_-]`, 1 à 64 caractères; tout le reste est une
+**erreur explicite**. **N'ajoute ni sélecteur de dossier, ni racine choisie par
+l'utilisateur, ni commande de remise à zéro au runtime.**
 
 **Une tranche suivante exige sa propre fiche, ses critères gelés d'avance et
 son propre GO.** Ne t'attribue pas `VERIFIED`.

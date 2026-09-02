@@ -2685,3 +2685,90 @@ Quatre, tous corrigés et gardés par un test ou une garde d'exécution :
 
 **Aucune réserve n'est levée par cette entrée.** `V1`–`V4`, `W1`–`W4`,
 `R2`–`R9` restent en vigueur.
+
+## AA. `TASK-0019` — correction de la réserve `X6`, `L12` rejoué en entier
+
+**Date :** 2026-09-02. **Branche :** `build/v0.2-a4-composed-view`.
+**Contrôle à l'origine :**
+[`ACTION-0030`](../reviews/ACTION-0030-independent-control.md),
+`CHANGES_REQUIRED`, `HEAD` contrôlé `21acd64`.
+
+### AA.1 Ce que `X6` reprochait
+
+`L12` étape 7 exigeait **l'ACTE** : « approuver `S-005` dans Alpha et confirmer
+Gamma inchangé ». La preuve publiée portait `s005WasPending: false`,
+`approvalReplayable: false`, `alphaMovedByExactlyOne: false`. **Gamma inchangé
+était prouvé; l'approbation demandée n'avait pas eu lieu pendant `L12`.**
+
+### AA.2 Le mécanisme ajouté — un namespace, pas une suppression
+
+`src-tauri/src/map/sandbox.rs` accepte une variable de **développement**,
+`FILETOPO_SANDBOX_VARIANT`, et résout
+`<dépôt>/.filetopo-sandbox/variants/<variant>`.
+
+| Propriété | Tenue par |
+|---|---|
+| Variable absente : chemin **exactement** historique | `without_a_variant_the_development_path_is_exactly_the_historical_one` |
+| Variant valide : sous `.filetopo-sandbox/variants/` | `a_valid_variant_lands_under_the_sandbox_and_nowhere_else` |
+| `..`, `../x`, `..\x`, `a/b`, `a\b`, `/abs`, `\\share`, `C:\abs`, `C:`, `a.b`, `x/../../y`, `a b`, `é`, `%TEMP%`, chaîne vide : **refusés** | `every_shape_of_a_path_is_refused` |
+| Borne à **64** caractères, exactement | `the_length_bound_is_enforced_at_exactly_sixty_four` |
+| **Aucun** variant accepté ne sort du bac à sable | `no_accepted_variant_ever_escapes_the_sandbox` |
+| Libellé publié sans chemin absolu ni nom personnel | `a_variant_label_stays_free_of_any_absolute_path` |
+
+**Aucun repli silencieux :** une valeur refusée est une **erreur** remontée par
+`map_sandbox`, jamais un chemin de remplacement. **Aucun sélecteur de dossier,
+aucune racine choisie par l'utilisateur.**
+
+`scripts/l12-run-real-host.ps1` tire un variant **neuf** par invocation, le
+garde **identique** pour les deux passes, retire la variable en sortant, et
+**ne supprime ni le bac existant ni le répertoire du variant**.
+
+### AA.3 `L12` rejoué, `WebView2` `152.0.4191.53`, deux processus réels
+
+| | Alpha avant | Alpha après | Gamma avant | Gamma après |
+|---|---|---|---|---|
+| approuvées | **4** | **5** | 4 | 4 |
+| en attente | **4** | **3** | 4 | 4 |
+| `S-005` | **en attente** | **approuvée** | en attente | **en attente** |
+
+`s005WasPending: true`, `approvalReplayable: true`, `approvalError: null`,
+`alphaMovedByExactlyOne: true`, `gammaStrictlyUnchanged: true`,
+`gammaS005StillPending: true`, `separateStores: true`. Approbation faite
+**pendant que `C2` [Alpha, Gamma] était affichée**. `pass2` porte le **même**
+`sandboxRoot` que `pass1` et confirme Gamma actif, composition **Gamma seul**.
+
+### AA.4 Rien n'a été supprimé
+
+- Le bac à sable existant est **intact** : empreinte de `.filetopo-sandbox/`,
+  variants exclus, **identique** avant et après le rejeu.
+- Les **huit** preuves protégées `TASK-0016`/`0017`/`0018` sont **bit-for-bit
+  inchangées**.
+- Seuls les deux artefacts `L12` de `TASK-0019` — tâche **non `VERIFIED`** —
+  ont été remplacés par la preuve corrigée de cette même tâche.
+- **Rien n'a été effacé ni renommé dans `src-tauri/target/`.**
+
+### AA.5 Validations exécutées
+
+**113/113** tests Rust (107 → 113); **139/139** tests TypeScript; `pnpm check`
+**PASS**; `pnpm build` **PASS**; build Tauri `debug --no-bundle` **PASS**;
+**`L12` deux passes** dans le vrai `WebView2`. `K11`, `K12` et `J12` **non
+rejoués** — leur code fonctionnel n'a pas changé. **Aucune nouvelle
+dépendance.**
+
+**`B0` s'est reproduit une septième fois** — `rustc` a paniqué sur son cache
+incrémental (`Failed to recover key for impl_trait_header`). Contourné par
+`CARGO_INCREMENTAL=0`, qui ne supprime rien.
+
+### AA.6 Défaut trouvé en chemin
+
+**Un octet `NUL` était commité dans `docs/tasks/TASK-0019-composed-multibrain-view.md`**,
+dans la phrase même qui décrit le `NUL` de `src/map/brainScenario.ts`. Il
+rendait la fiche **binaire** pour `git diff` et `grep` — donc illisible en
+revue, sur le fichier qu'un contrôle indépendant doit lire. Écrit `<NUL>`.
+
+### AA.7 Ce que cette entrée ne lève pas
+
+**`X6` reste `OPEN`.** La correction est exécutée; **l'exécuteur ne ferme pas
+sa propre réserve**, et `TASK-0019` **reste `IMPLEMENTED`**. `X2`, `X3`, `X4`,
+`X5` sont **maintenues**, ainsi que `V1`–`V4`, `W1`–`W4` et `R2`–`R9`.
+

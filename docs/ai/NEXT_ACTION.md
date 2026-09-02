@@ -1,42 +1,58 @@
 # Prochaine action
 
-## Contrôler `TASK-0019` de façon indépendante, sur preuves
+## Re-contrôler `TASK-0019` sur la seule réserve `X6`
 
-- **Statut de la tâche :** **`IMPLEMENTED`** le 2026-09-02 — `VERIFIED`
-  **non attribué**; l'exécuteur ne s'auto-vérifie pas
+- **Statut de la tâche :** **`IMPLEMENTED`** — `VERIFIED` **non attribué**;
+  l'exécuteur ne s'auto-vérifie pas
+- **Réserve ouverte :** **`X6`**, `OPEN` —
+  [`ACTION-0030`](../reviews/ACTION-0030-independent-control.md),
+  `CHANGES_REQUIRED` le 2026-09-02
 - **Fiche :**
   [`TASK-0019`](../tasks/TASK-0019-composed-multibrain-view.md), **§4 gelée**,
-  **§7 résultat**
+  **§7.2 résultat corrigé**
 - **Branche :** `build/v0.2-a4-composed-view`
-- **Action unique :** **rendre un verdict sur `TASK-0019`**, par une instance
-  **distincte de l'exécuteur**, **sur les preuves publiées** — et rien d'autre
+- **Action unique :** **rendre un verdict sur `X6` uniquement**, par une
+  instance **distincte de l'exécuteur**, **sur les preuves publiées** — et rien
+  d'autre
 
-### Ce qu'il y a à contrôler
+### Ce qui n'est PAS rouvert
 
-**Le gel précède le code :** `bcbc4aa` fige `L1`–`L12` avant la première ligne
-de cette tranche. Vérifier qu'**aucun critère n'a été retouché après le premier
-résultat**.
+`ACTION-0030` §2 a **accepté** le fond : gel `bcbc4aa` avant code `6dd3585`,
+`L1`–`L11`, `L12` étapes 1–6 et 8–17, `C2`/`C3`, un seul `SVG`, les territoires,
+les collisions `DOM` Alpha/Gamma, les relations intra-cerveau seulement, la
+mémoire par composition, le clavier réel, le redémarrage réel. **Ne pas le
+rejuger.**
 
-**Les preuves, sous `docs/performance/runs/` :**
+### Ce que `X6` demande de contrôler
 
-| Fichier | Ce qu'il porte |
+`L12` étape 7 exigeait **l'ACTE** : « approuver `S-005` dans Alpha et confirmer
+Gamma inchangé ». Il a été rejoué. À vérifier dans
+`docs/performance/runs/TASK-0019-L12-composed-view-webview2-pass1.json` :
+
+| Ce qu'il faut voir | Valeur déclarée |
 |---|---|
-| `TASK-0019-L12-composed-view-webview2-pass1.json` | `L12` étapes 1 à 14, vraies frappes |
-| `TASK-0019-L12-composed-view-webview2-pass2.json` | `L12` étape 17, après redémarrage réel |
-| `TASK-0019-K11-readonly-regression-webview2.json` | `L11` lecture seule et `L2`, trois cerveaux |
-| `TASK-0019-K12-foundation-regression-webview2-pass{1,2}.json` | la fondation `TASK-0018` non cassée |
-| `TASK-0019-J12-relations-regression-webview2.json` | `J12` non cassé, vraie frappe |
+| `s005WasPending` | `true` |
+| `approvalReplayable` | `true` |
+| `approvalError` | `null` |
+| Alpha approuvées | `4` → `5` |
+| Alpha en attente | `4` → `3` |
+| `alphaMovedByExactlyOne` | `true` |
+| `gammaStrictlyUnchanged` | `true` |
+| `gammaS005StillPending` | `true` |
+| `separateStores` | `true` |
 
-**Les huit preuves protégées doivent être bit-for-bit inchangées.**
+Et, autour :
 
-### La cible manquée, à examiner en priorité
-
-**`L12` étape 7, moitié « approuver `S-005` dans Alpha » : NON REJOUÉE.** Le bac
-à sable est persistant et `S-005` y était déjà approuvée. La moitié « Gamma
-strictement inchangé » est tenue. **C'est le point sur lequel un contrôle doit
-se prononcer** : la cible est-elle manquée de façon acceptable pour cette
-tranche, ou faut-il une remise à zéro du bac à sable — qui serait une
-**suppression**, donc un point d'arrêt réservé à Sébastien.
+- l'approbation a-t-elle eu lieu **pendant que `C2` [Alpha, Gamma] était
+  affichée** — entre l'étape 6 et l'étape 8 ?
+- `pass2` porte-t-il le **même** `sandboxRoot` que `pass1`, après une fermeture
+  et un redémarrage **réels** ?
+- le **confinement** du variant tient-il — `src-tauri/src/map/sandbox.rs`,
+  variable absente = chemin historique, refus explicite de tout ce qui n'est pas
+  un basename `[A-Za-z0-9_-]` de 1 à 64 caractères, aucun repli silencieux ?
+- le libellé publié reste-t-il **non personnel**, sans chemin absolu ?
+- **`X5` :** les **huit** preuves protégées `TASK-0016`/`0017`/`0018` sont-elles
+  **bit-for-bit inchangées** ?
 
 ### Ce qui reste interdit
 
@@ -44,5 +60,7 @@ tranche, ou faut-il une remise à zéro du bac à sable — qui serait une
 - **Aucune persistance de vue composée** — `P-19`.
 - **Aucune campagne `H9`**, aucun seuil. `R8` entière.
 - **`B0` n'est pas corrigé**; rien n'est nettoyé dans `src-tauri/target/`.
+- **Aucune suppression** du bac à sable, de ses variants, du catalogue ou d'un
+  magasin de relations.
 - **Aucune fusion vers `main`, PR, release, étiquette, `force push`**, aucune
   réécriture d'historique.

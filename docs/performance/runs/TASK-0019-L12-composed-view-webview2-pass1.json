@@ -4,9 +4,9 @@
   "nature": "criterion evidence",
   "replacesCanonicalEvidence": false,
   "pass": 1,
-  "capturedAtIso": "2026-09-02T15:48:35.777Z",
+  "capturedAtIso": "2026-09-02T16:23:11.733Z",
   "host": {
-    "sandboxRoot": "<dépôt>/.filetopo-sandbox",
+    "sandboxRoot": "<dépôt>/.filetopo-sandbox/variants/task0019-l12-20260902122241-087e8e",
     "appVersion": "0.1.0-alpha.1",
     "sqliteVersion": "3.53.2",
     "webviewVersion": "152.0.4191.53",
@@ -139,16 +139,16 @@
       "internalLayoutUnchangedByPanZoom": true
     },
     "step7_approvalIsolated": {
-      "s005WasPending": false,
-      "approvalReplayable": false,
-      "approvalNotReplayableReason": "S-005 etait deja approuvee dans brain-alpha au demarrage de cette passe — bac a sable persistant, aucune commande de remise a zero",
+      "s005WasPending": true,
+      "approvalReplayable": true,
+      "approvalNotReplayableReason": null,
       "s005IsApprovedInAlpha": true,
       "approvalError": null,
-      "alphaApprovedBefore": 5,
+      "alphaApprovedBefore": 4,
       "alphaApprovedAfter": 5,
-      "alphaPendingBefore": 3,
+      "alphaPendingBefore": 4,
       "alphaPendingAfter": 3,
-      "alphaMovedByExactlyOne": false,
+      "alphaMovedByExactlyOne": true,
       "gammaApprovedBefore": 4,
       "gammaApprovedAfter": 4,
       "gammaPendingBefore": [
@@ -264,7 +264,7 @@
         "brain-gamma"
       ],
       "settled": true,
-      "waitedMs": 33,
+      "waitedMs": 25,
       "isC2": true,
       "left": {
         "view": {

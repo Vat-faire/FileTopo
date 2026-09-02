@@ -47,10 +47,21 @@
   [fiche](../tasks/TASK-0019-composed-multibrain-view.md), sous
   [`DEC-0017`](../decisions/DEC-0017-multibrain-and-composed-views.md),
   fonction **`F-040`**. **Gel `L1`–`L12` en `bcbc4aa`, avant toute ligne de
-  code de cette tranche.** `L1`–`L11` **TENUS**; `L12` tenu à **seize étapes
-  sur dix-sept**, la moitié « approuver `S-005` » de l'étape 7 étant **NON
-  REJOUÉE** sur un bac à sable persistant — publiée comme manquée.
+  code de cette tranche.** `L1`–`L12` **TENUS**, `L12` aux **dix-sept étapes**
+  après la correction de la réserve `X6`.
   **`VERIFIED` n'est pas attribué; l'exécuteur ne s'auto-vérifie pas.**
+- **Contrôle indépendant de `TASK-0019` :**
+  [`ACTION-0030`](../reviews/ACTION-0030-independent-control.md),
+  **`CHANGES_REQUIRED`** le 2026-09-02, `HEAD` contrôlé `21acd64`. Le fond a été
+  **accepté** — gel avant code, `L1`–`L11`, `L12` étapes 1–6 et 8–17, `C2`/`C3`,
+  un seul `SVG`, territoires, collisions `DOM`, relations intra-cerveau,
+  mémoire, clavier réel, redémarrage réel. **Une seule réserve, `X6` :
+  `OPEN`** — `L12` étape 7 exigeait d'**approuver** `S-005` dans Alpha, et
+  l'**acte** n'avait pas eu lieu pendant `L12`. **La correction est exécutée et
+  `L12` a été rejoué en entier**; `X6` **reste `OPEN`** jusqu'au re-contrôle
+  indépendant, et `TASK-0019` **reste `IMPLEMENTED`**
+- **Réserves `X2`, `X3`, `X4`, `X5` :** **maintenues**, et `X5` vérifiée sur ce
+  rejeu — les **huit** preuves protégées sont **bit-for-bit inchangées**
 - **Tâche IN_PROGRESS :** aucune
 - **Porte `P4` :** **FRANCHIE** —
   [`DEC-0016`](../decisions/DEC-0016-p4-gate-crossing-and-first-slice.md)
@@ -101,19 +112,40 @@ a été commité en `bcbc4aa`, **avant la première ligne de code** de la tranch
 | `L9` mémoire par composition, `C2 → C3 → C2` | **TENU** |
 | `L10` clavier, **vraie frappe** | **TENU**, 0 clic programmatique |
 | `L11` lecture seule, preuves protégées intactes | **TENU** |
-| `L12` hôte réel, dix-sept étapes | **TENU à 16/17**, WebView2 `152.0.4191.53` |
+| `L12` hôte réel, dix-sept étapes | **TENU, 17/17** après `X6`, WebView2 `152.0.4191.53` |
 
-### La cible manquée, publiée comme manquée
+### La cible d'abord manquée, puis tenue — réserve `X6`
 
-**`L12` étape 7, moitié « approuver `S-005` dans Alpha » : NON REJOUÉE.** Le bac
-à sable est **persistant** et `S-005` y était déjà approuvée par une exécution
-antérieure du rejeu `K12`; le magasin refuse une seconde approbation, ce qui est
-**`X3` qui fonctionne**. Aucune commande de remise à zéro n'existe, et effacer le
-bac à sable serait une **suppression** hors du périmètre de la tâche.
+**Au premier résultat :** `L12` étape 7, moitié « approuver `S-005` dans
+Alpha », **NON REJOUÉE**. Le bac à sable est **persistant** et `S-005` y était
+déjà approuvée par une exécution antérieure du rejeu `K12`; le magasin refuse
+une seconde approbation, ce qui est **`X3` qui fonctionne**. L'échec a été
+publié tel quel, `approvalReplayable: false` et sa raison.
 
-**La moitié qui porte `L8` est tenue** : Gamma strictement inchangé, magasins
-séparés, `S-005` toujours en attente chez lui. L'artefact porte
-`approvalReplayable: false` et sa raison, en toutes lettres.
+**Le contrôle indépendant a refusé cette moitié** — `ACTION-0030`,
+`CHANGES_REQUIRED`, réserve `X6` : « Gamma inchangé » était prouvé, mais
+l'**ACTE** que le critère nomme n'avait pas eu lieu.
+
+**Corrigé sans rien supprimer.** Effacer le bac à sable serait une
+**suppression**, donc un point d'arrêt réservé à Sébastien. Le bac existant est
+resté **intact** — empreinte identique avant et après. Ce qui a été ajouté est
+un **namespace neuf, confiné sous le même répertoire** :
+`<dépôt>/.filetopo-sandbox/variants/<variant>`, demandé par la variable de
+développement `FILETOPO_SANDBOX_VARIANT`. **Variable absente : comportement
+exactement inchangé.** La valeur est un **nom**, jamais un chemin — basename
+ASCII `[A-Za-z0-9_-]`, 1 à 64 caractères, et tout le reste est une **erreur
+explicite**, jamais un repli silencieux. **Aucun sélecteur de dossier, aucune
+racine choisie par l'utilisateur.**
+
+**Le rejeu, dans le vrai WebView2 `152.0.4191.53` :** Alpha passe de **4
+approuvées / 4 en attente** à **5 / 3**, `S-005` approuvée, variation
+**exactement `+1` / `-1`**, pendant que `C2` [Alpha, Gamma] est affichée. Gamma
+reste à **4 / 4**, `S-005` toujours en attente, magasin distinct.
+`s005WasPending: true`, `approvalReplayable: true`,
+`alphaMovedByExactlyOne: true`, `gammaStrictlyUnchanged: true`,
+`separateStores: true`.
+
+**`X6` reste `OPEN`** : l'exécuteur ne ferme pas sa propre réserve.
 
 ### Composer est un affichage, et le code l'impose
 

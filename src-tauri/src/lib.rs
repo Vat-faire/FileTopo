@@ -500,7 +500,7 @@ fn map_sandbox(app: &tauri::AppHandle) -> Result<map::sandbox::SandboxPaths, Str
         .path()
         .app_data_dir()
         .map_err(|_| "app_data_unavailable".to_string())?;
-    Ok(map::sandbox::resolve(&app_data))
+    map::sandbox::resolve(&app_data)
 }
 
 /// Opens the brain catalogue and seeds the frozen brains that are missing.

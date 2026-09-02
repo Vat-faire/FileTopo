@@ -2638,3 +2638,68 @@ seule sur trois cerveaux. **Les huit preuves protégées sont inchangées.**
 
 **`TASK-0019` : `IMPLEMENTED`.** L'action suivante est son **contrôle
 indépendant**, par une instance **distincte de l'exécuteur**, **sur preuves**.
+
+## 2026-09-02 — `TASK-0019` : réserve `X6` corrigée, `L12` rejoué en entier
+
+**`ACTION-0030` a rendu `CHANGES_REQUIRED`** sur `TASK-0019`. Le fond est
+accepté — gel avant code, `L1`–`L11`, `L12` étapes 1–6 et 8–17, `C2`/`C3`, un
+seul `SVG`, territoires, collisions `DOM`, relations intra-cerveau, mémoire,
+clavier réel, redémarrage réel. **Une seule réserve, `X6` :** `L12` étape 7
+exigeait d'**approuver** `S-005` dans Alpha, et l'**acte** n'avait pas eu lieu.
+
+### Ce qui a été fait
+
+**Rien n'a été supprimé.** Effacer le bac à sable pour retrouver un `S-005` en
+attente serait une suppression, réservée à Sébastien. Le bac existant est resté
+**intact** — empreinte identique avant et après.
+
+**Un namespace neuf, confiné.** `FILETOPO_SANDBOX_VARIANT`, variable de
+**développement** lue par `map/sandbox.rs`, résout
+`<dépôt>/.filetopo-sandbox/variants/<variant>`. Variable absente :
+**comportement exactement inchangé**. La valeur est un **nom**, jamais un
+chemin — basename ASCII `[A-Za-z0-9_-]`, 1 à 64 caractères; tout le reste est
+une **erreur explicite**, jamais un repli silencieux vers un chemin fourni par
+l'appelant. **Aucun sélecteur de dossier, aucune racine utilisateur.** Six
+tests couvrent le confinement, dont « aucun variant accepté ne sort du bac à
+sable ».
+
+**`scripts/l12-run-real-host.ps1`** tire un variant neuf par invocation, le
+garde identique pour les deux passes, retire la variable en sortant, et **ne
+supprime pas le répertoire du variant**.
+
+**`L12` a été rejoué en entier.** Alpha : `4` approuvées / `4` en attente →
+`5` / `3`, `S-005` approuvée, variation **exactement `+1` / `-1`**, pendant que
+`C2` [Alpha, Gamma] était affichée. Gamma : `4` / `4`, `S-005` toujours en
+attente, magasin distinct. `pass2`, après une fermeture et un redémarrage
+réels, porte le **même** variant et confirme Gamma seul.
+
+### Défaut trouvé en chemin
+
+**Un octet `NUL` était commité dans la fiche `TASK-0019` elle-même**, dans la
+phrase qui décrit le `NUL` de `brainScenario.ts`. Il rendait le fichier binaire
+pour `git diff` et `grep`. Écrit `<NUL>`.
+
+### Validations
+
+**113/113** Rust (107 → 113); **139/139** TypeScript; `pnpm check`, `pnpm build`
+et Tauri `debug --no-bundle` **PASS**; **`L12` deux passes** dans `WebView2`
+`152.0.4191.53`. `K11`, `K12`, `J12` **non rejoués** — code fonctionnel
+inchangé. **Les huit preuves protégées sont bit-for-bit inchangées.**
+
+### Non fait, et déclaré tel
+
+- **`X6` reste `OPEN`** — l'exécuteur ne ferme pas sa propre réserve.
+- **Aucune campagne `H9`**, aucun seuil. `R8` entière.
+- **Aucune relation inter-cerveaux**, **aucune persistance de composition**.
+- **`B0` s'est reproduit une septième fois**; contourné par
+  `CARGO_INCREMENTAL=0`, **rien supprimé ni renommé** dans `src-tauri/target/`.
+- **Aucune nouvelle dépendance, aucune donnée réelle, aucun sélecteur de
+  dossier.**
+- **Aucune fusion, PR, release, étiquette, `force push`**, aucune réécriture.
+
+### État
+
+**`TASK-0019` : `IMPLEMENTED`.** L'action suivante est le **re-contrôle
+indépendant de `X6` uniquement**, par une instance **distincte de l'exécuteur**,
+**sur preuves**.
+
