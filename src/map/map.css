@@ -865,3 +865,170 @@ button:disabled {
   cursor: progress;
   opacity: 0.7;
 }
+
+/*
+ * TASK-0020 — relations inter-cerveaux.
+ *
+ * `M6` asks for four things to be readable WITHOUT COLOUR: that an edge is
+ * inter-brain, which way it points, that it is not a hierarchical edge, and
+ * that it is not an intra-brain relation. Each is carried by a shape.
+ *
+ *   inter-brain   a DOUBLED stroke — a wide pale casing under a narrow dark
+ *                 line. No intra-brain edge is doubled, at any zoom.
+ *   direction     an arrow head at the target END plus a second one at
+ *                 MID-PATH, so the direction still reads when both endpoints
+ *                 are off screen.
+ *   suggestion    dashed, headless, with an open ring at each end — the same
+ *                 vocabulary `TASK-0017` uses, so a reader learns it once.
+ *   provenance    a stroke pattern, never a hue.
+ *
+ * The layer sits UNDER the intra-brain edges in the DOM, so a crossing edge
+ * never hides a relation inside a territory.
+ */
+
+.map-view__cross-edges {
+  pointer-events: none;
+}
+
+.map-cross-edge__casing {
+  fill: none;
+  stroke: var(--panel);
+  stroke-width: 6;
+  stroke-opacity: 0.85;
+  stroke-linecap: round;
+}
+
+.map-cross-edge__line {
+  fill: none;
+  stroke: var(--ink);
+  stroke-width: 2;
+  stroke-opacity: 0.55;
+}
+
+.map-cross-edge__arrow,
+.map-cross-edge__chevron {
+  fill: var(--ink);
+  fill-opacity: 0.7;
+}
+
+.map-cross-edge__ring {
+  fill: none;
+  stroke: var(--ink);
+  stroke-width: 1.6;
+  stroke-opacity: 0.6;
+}
+
+/* An inter-brain suggestion: dashed and headless, like an intra-brain one. */
+.map-cross-edge--suggestion .map-cross-edge__line {
+  stroke-dasharray: 6 6;
+  stroke-width: 1.6;
+  stroke-opacity: 0.45;
+}
+.map-cross-edge--suggestion .map-cross-edge__casing {
+  stroke-width: 5;
+  stroke-opacity: 0.6;
+}
+
+/* Provenance, as a stroke pattern rather than a hue. */
+.map-cross-edge--approved .map-cross-edge__line {
+  stroke-dasharray: 14 3 3 3;
+}
+
+/* Anything touching the selection is drawn heavier and darker — `M`. */
+.map-cross-edge--touching .map-cross-edge__line {
+  stroke-width: 3.2;
+  stroke-opacity: 1;
+  stroke: var(--accent);
+}
+.map-cross-edge--touching .map-cross-edge__arrow,
+.map-cross-edge--touching .map-cross-edge__chevron {
+  fill: var(--accent);
+  fill-opacity: 1;
+}
+.map-cross-edge--touching .map-cross-edge__ring {
+  stroke: var(--accent);
+  stroke-opacity: 1;
+}
+
+/*
+ * `M` — a node linked to the selection ACROSS brains.
+ *
+ * Distinct from `--linked`, which marks an intra-brain neighbour: a double
+ * outline rather than a dashed one. Attenuated neighbours stay fully visible
+ * and keep their accessible name, as parity §3 point 4 requires.
+ */
+.map-node--cross-linked rect {
+  fill-opacity: 0.8;
+  stroke-width: 3;
+  stroke-dasharray: none;
+  paint-order: stroke;
+}
+
+/* --- the inter-brain panel ------------------------------------------------ */
+
+.cross-relations {
+  border-left: 3px solid var(--accent);
+}
+
+.cross-relation {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding-bottom: 6px;
+}
+
+.cross-relation__link {
+  width: 100%;
+}
+
+.cross-relation__endpoints {
+  font-size: 11px;
+  opacity: 0.85;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.cross-relation__arrow {
+  font-weight: 700;
+}
+
+.cross-relation__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: baseline;
+  margin: 0;
+  font-size: 11px;
+}
+
+.cross-relation__brain {
+  font-weight: 600;
+}
+
+/* « hors de la vue » is a WORD, first. The styling only makes it noticed. */
+.cross-relation__offscreen {
+  font-style: italic;
+  font-weight: 400;
+  opacity: 0.85;
+}
+
+.cross-relation__type {
+  opacity: 0.75;
+}
+
+.cross-relation__hint {
+  margin: 2px 0 0;
+  font-size: 11px;
+  line-height: 1.4;
+  opacity: 0.85;
+}
+
+.cross-suggestion__tag {
+  font-size: 10px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 1px 6px;
+}

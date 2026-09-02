@@ -107,6 +107,12 @@ pub struct HostInfo {
     /// different things, and a single flag would make it impossible to replay
     /// the foundation regression without also replaying the composed view.
     pub auto_composed_pass: u8,
+    /// `M12` — `0` none, `1` the twenty-three steps before the real restart,
+    /// `2` the five a relaunched process can observe.
+    ///
+    /// Kept apart from the other two because `K12`, `L12` and `M12` prove
+    /// different things and must stay replayable one without the others.
+    pub auto_cross_pass: u8,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]

@@ -23,6 +23,7 @@ import { describe, expect, it } from "vitest";
 // `X5` is not a reason to add a dependency.
 import brainScenarioSource from "./brainScenario.ts?raw";
 import composedScenarioSource from "./composedScenario.ts?raw";
+import crossScenarioSource from "./crossScenario.ts?raw";
 import mapAppSource from "./MapApp.tsx?raw";
 import relationScenarioSource from "./relationScenario.ts?raw";
 import {
@@ -44,6 +45,7 @@ const WRITING_SOURCES: ReadonlyArray<readonly [string, string]> = [
   ["src/map/relationScenario.ts", relationScenarioSource],
   ["src/map/brainScenario.ts", brainScenarioSource],
   ["src/map/composedScenario.ts", composedScenarioSource],
+  ["src/map/crossScenario.ts", crossScenarioSource],
 ];
 
 describe("X5 — the runtime never writes over an earlier task's canonical evidence", () => {

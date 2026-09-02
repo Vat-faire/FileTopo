@@ -2,8 +2,15 @@ import type { NodeRelations, RelationProvenance, SuggestionEdge } from "./types"
 import { PROVENANCE_LABELS, entryKey, groupByType, relationTypeLabel } from "./relations";
 
 /**
- * The relations panel — `P-07`, `P-05`, and the provenance obligation of
- * `P-04`.
+ * The **intra-brain** relations panel — `P-07`, `P-05`, and the provenance
+ * obligation of `P-04`.
+ *
+ * **Renamed by `TASK-0020`, and only renamed.** Its subject is unchanged: the
+ * cross-cutting relations `TASK-0017` gave a brain, both of whose ends are
+ * inside that one brain. It is now called « internes au cerveau » because a
+ * second panel sits beside it holding relations that leave the brain, and `M7`
+ * asks that a reader be able to tell the two apart without inferring anything.
+ * Not a word of its behaviour, its counts or its refusals has moved.
  *
  * Three things are true of every entry, and each one is a frozen criterion:
  *
@@ -182,8 +189,8 @@ export default function RelationsPanel({
 }: RelationsPanelProps) {
   if (!inScope) {
     return (
-      <section className="relations" aria-label="Relations transversales">
-        <h2 className="relations__title">Relations transversales</h2>
+      <section className="relations" aria-label="Relations internes au cerveau">
+        <h2 className="relations__title">Relations internes au cerveau</h2>
         <p className="details__empty">
           Cette fixture ne porte aucune relation : <code>TASK-0017</code> §4.6 gèle{" "}
           <code>quasi-empty</code> comme unique cerveau de relations de cette tranche.
@@ -193,27 +200,31 @@ export default function RelationsPanel({
   }
   if (loading) {
     return (
-      <section className="relations" aria-label="Relations transversales">
-        <h2 className="relations__title">Relations transversales</h2>
+      <section className="relations" aria-label="Relations internes au cerveau">
+        <h2 className="relations__title">Relations internes au cerveau</h2>
         <p className="details__empty">Lecture des relations…</p>
       </section>
     );
   }
   if (!relations) {
     return (
-      <section className="relations" aria-label="Relations transversales">
-        <h2 className="relations__title">Relations transversales</h2>
+      <section className="relations" aria-label="Relations internes au cerveau">
+        <h2 className="relations__title">Relations internes au cerveau</h2>
         <p className="details__empty">Sélectionnez un bloc pour voir ses relations.</p>
       </section>
     );
   }
 
   return (
-    <section className="relations" aria-label="Relations transversales">
-      <h2 className="relations__title">Relations transversales</h2>
+    <section className="relations" aria-label="Relations internes au cerveau">
+      <h2 className="relations__title">Relations internes au cerveau</h2>
       <p className="relations__totals" data-testid="relation-totals">
         {relations.outgoingCount} sortante(s) · {relations.incomingCount} entrante(s) ·{" "}
         {relations.suggestions.length} suggestion(s) <strong>non comptée(s)</strong>
+      </p>
+      <p className="relations__hint">
+        Les deux extrémités de ces relations sont <strong>dans ce cerveau</strong>. Celles qui
+        mènent à un autre cerveau sont dans le panneau <em>Relations inter-cerveaux</em>.
       </p>
 
       <DirectionSection

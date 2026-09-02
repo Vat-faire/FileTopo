@@ -111,6 +111,25 @@ impl SandboxPaths {
             .join("relations.sqlite")
     }
 
+    /// The **common** store of inter-brain relations — `TASK-0020` §4.1.
+    ///
+    /// A relation `A → B` belongs to the **link**, not to either end. Putting
+    /// it in Alpha's private store would make a rebuild of Alpha a destruction
+    /// of a link Gamma is half of, and would give Alpha authority over data it
+    /// does not own alone. So it lives beside the brains rather than inside
+    /// one of them — still under `brains/`, still in the FileTopo space, never
+    /// inside an analysed tree, and **never** under a `map/` that a rebuild
+    /// replaces.
+    ///
+    /// [`INTERBRAIN_NAMESPACE`] is not a `brain_id`, and a test holds that.
+    pub fn interbrain_root(&self) -> PathBuf {
+        self.brains.join(INTERBRAIN_NAMESPACE)
+    }
+
+    pub fn interbrain_relations_database(&self) -> PathBuf {
+        self.interbrain_root().join("relations.sqlite")
+    }
+
     /// Where the sandbox lives, named rather than spelled out, so a reader can
     /// see that nothing is written to a user folder without the absolute path
     /// being published along with it.
@@ -171,6 +190,16 @@ pub fn resolve(app_data: &Path) -> Result<SandboxPaths, String> {
         "<données d'application>/sandbox",
     ))
 }
+
+/// The directory under `brains/` that holds what belongs to **no single
+/// brain** — `TASK-0020` §4.1.
+///
+/// It sits in the same directory as the per-brain namespaces, so a reader sees
+/// at a glance that it is neither the catalogue nor anybody's private store. It
+/// is deliberately **not** a valid `brain_id`: every frozen brain is
+/// `brain-<name>`, and `interbrain_namespace_can_never_collide_with_a_brain`
+/// fails the moment that stops being true.
+pub const INTERBRAIN_NAMESPACE: &str = "interbrain";
 
 /// The environment variable a **development** proof run uses to ask for a fresh
 /// sandbox namespace. It never exists in a release build's resolution path.
@@ -505,6 +534,51 @@ mod tests {
         assert_eq!(published, "brains/brain-alpha/relations/relations.sqlite");
         assert!(!published.contains("Users"));
         assert!(!published.contains(':'));
+    }
+
+    /// `TASK-0020` §4.1 — the common store is beside the brains, never inside
+    /// one, never under a rebuildable `map/`, and never the catalogue.
+    #[test]
+    fn the_interbrain_store_belongs_to_no_single_brain() {
+        let paths = SandboxPaths::under(PathBuf::from("/sandbox"));
+        let common = paths.interbrain_relations_database();
+
+        assert_eq!(
+            paths.relative_name(&common),
+            "brains/interbrain/relations.sqlite"
+        );
+        // Not inside any brain's own space, and not the catalogue.
+        for brain_id in ["brain-alpha", "brain-beta", "brain-gamma"] {
+            assert!(
+                !common.starts_with(paths.brain_root(brain_id)),
+                "the common store must not live inside {brain_id}"
+            );
+            assert_ne!(common, paths.brain_relations_database(brain_id));
+            assert_ne!(common, paths.brain_map_database(brain_id));
+        }
+        assert_ne!(common, paths.catalog_database());
+        // A rebuild replaces `map/`; the common store must not be under one.
+        assert!(!common.components().any(|part| part.as_os_str() == "map"));
+        // And never inside an analysed tree — `I-2`.
+        assert!(!common.starts_with(&paths.fixtures));
+    }
+
+    /// The namespace is not a `brain_id`, and cannot become one by accident.
+    ///
+    /// `brain_root("interbrain")` and `interbrain_root()` would be the same
+    /// directory, so a brain by that name would read the common store as its
+    /// own. The catalogue holds three frozen brains and none of them is called
+    /// that; this fails the day one is.
+    #[test]
+    fn interbrain_namespace_can_never_collide_with_a_brain() {
+        for frozen in crate::map::brains::FROZEN_BRAINS {
+            assert_ne!(
+                frozen.brain_id, INTERBRAIN_NAMESPACE,
+                "`{}` would read the common inter-brain store as its own",
+                frozen.brain_id
+            );
+            assert!(frozen.brain_id.starts_with("brain-"));
+        }
     }
 
     #[test]

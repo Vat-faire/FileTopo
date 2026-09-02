@@ -3,6 +3,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import CompositionBar from "./CompositionBar";
 import DetailsPanel, { type PanelStrings } from "./DetailsPanel";
 import MapView, { type RenderedBrain } from "./MapView";
+import CrossRelationsPanel from "./CrossRelationsPanel";
 import RelationsPanel from "./RelationsPanel";
 import {
   ComposedViewError,
@@ -28,8 +29,14 @@ import {
 import { composeTerritories, type Composition } from "./territories";
 import { buildHierarchy, type Hierarchy } from "./hierarchy";
 import { establishedNeighbours, relationSegments } from "./relations";
+import {
+  crossNeighbours as crossNeighboursOf,
+  crossSegments as crossSegmentsOf,
+  splitCrossEndpointKey,
+} from "./crossRelations";
 import { runBrainScenario as runBrains } from "./brainScenario";
 import { runComposedScenario as runComposed } from "./composedScenario";
+import { runCrossScenario as runCross } from "./crossScenario";
 import { runRelationScenario as runScenario } from "./relationScenario";
 import {
   H9_REGRESSION_ABANDON_ARTIFACT,
@@ -62,6 +69,9 @@ import type {
   MapNode,
   MapSelfCheck,
   MapSnapshot,
+  CrossRelationsOverview,
+  CrossRelationsSelfCheck,
+  NodeCrossRelations,
   NodeDetail,
   NodeRelations,
   RelationsOverview,
@@ -112,6 +122,7 @@ const strings = {
     measuring: "Mesure en cours…",
     selfCheck: "Contrôler H1–H5",
     relationsCheck: "Contrôler J1–J5, J10",
+    crossCheck: "Contrôler M1–M5",
     relations: "Relations",
     territory: "territoire",
     nodesWord: "nœuds",
@@ -214,6 +225,14 @@ export default function MapApp() {
   const [relationsLoading, setRelationsLoading] = useState(false);
   const [approving, setApproving] = useState<string | null>(null);
   const [relationsCheck, setRelationsCheck] = useState<RelationsSelfCheck | null>(null);
+  // `TASK-0020`. The COMMON store, read once for the whole catalogue — never
+  // per brain, and never per composition: a relation exists whether or not
+  // either of its brains is on screen.
+  const [crossOverview, setCrossOverview] = useState<CrossRelationsOverview | null>(null);
+  const [nodeCross, setNodeCross] = useState<NodeCrossRelations | null>(null);
+  const [crossLoading, setCrossLoading] = useState(false);
+  const [approvingCross, setApprovingCross] = useState<string | null>(null);
+  const [crossCheck, setCrossCheck] = useState<CrossRelationsSelfCheck | null>(null);
   // `L9` — where each **composition** was left, for the length of this session
   // only. Not persisted: composition persistence is out of scope, and only the
   // **active brain** survives a restart, in the catalogue.
@@ -248,6 +267,7 @@ export default function MapApp() {
   const runRelationScenarioRef = useRef<(() => Promise<void>) | null>(null);
   const runBrainScenarioRef = useRef<(() => Promise<void>) | null>(null);
   const runComposedScenarioRef = useRef<(() => Promise<void>) | null>(null);
+  const runCrossScenarioRef = useRef<(() => Promise<void>) | null>(null);
 
   const order = useMemo(() => catalogueOrder(catalog?.brains ?? []), [catalog]);
 
@@ -272,6 +292,36 @@ export default function MapApp() {
 
   const world = composition.world;
 
+  /**
+   * Every displayed brain's rectangles, keyed by brain then by node id.
+   *
+   * Built once here rather than looked up through `loaded` inside the
+   * projection: an inter-brain segment reads **two** brains, and a lookup that
+   * fell back to "the current brain" would place one end of an edge in the
+   * wrong territory — which is precisely what `M6` counts.
+   */
+  const nodesByBrain = useMemo(() => {
+    const index = new Map<string, ReadonlyMap<number, MapNode>>();
+    if (!composed) return index;
+    for (const brainId of composed.displayedBrainIds) {
+      const brain = loaded.get(brainId);
+      if (brain) index.set(brainId, brain.hierarchy.byId);
+    }
+    return index;
+  }, [composed, loaded]);
+
+  /** Inter-brain segments — `M6`. Only pairs whose two ends are displayed. */
+  const crossSegments = useMemo(
+    () => crossSegmentsOf(crossOverview, nodesByBrain, selected),
+    [crossOverview, nodesByBrain, selected],
+  );
+
+  /** Inter-brain neighbours of the selection, per brain — `M`. */
+  const crossNeighbours = useMemo(
+    () => crossNeighboursOf(crossOverview, selected),
+    [crossOverview, selected],
+  );
+
   /** Everything the single canvas needs, one entry per displayed brain. */
   const renderedBrains: RenderedBrain[] = useMemo(() => {
     if (!composed) return [];
@@ -290,11 +340,12 @@ export default function MapApp() {
           // or a zoom, and never by recomputing a layout.
           segments: relationSegments(brain.relations, brain.hierarchy.byId, localSelection),
           relationNeighbours: establishedNeighbours(brain.relations, localSelection),
+          crossNeighbours: crossNeighbours.get(brainId) ?? new Set<number>(),
           nodeCount: brain.snapshot.nodeCount,
         },
       ];
     });
-  }, [composed, loaded, selected]);
+  }, [composed, crossNeighbours, loaded, selected]);
 
   // Anything the page throws becomes a line in the host log, so an unattended
   // run leaves a trace instead of a silent stall.
@@ -352,6 +403,12 @@ export default function MapApp() {
       autoStarted.current = true;
       hostLog("info", "démarrage automatique du scénario J12");
       void runRelationScenarioRef.current?.();
+      return;
+    }
+    if (host.autoCrossPass === 1 || host.autoCrossPass === 2) {
+      autoStarted.current = true;
+      hostLog("info", `démarrage automatique du scénario M12, passe ${host.autoCrossPass}`);
+      void runCrossScenarioRef.current?.();
       return;
     }
     if (host.autoComposedPass === 1 || host.autoComposedPass === 2) {
@@ -440,7 +497,21 @@ export default function MapApp() {
    * over the session memory, the way `K8` taught in the previous slice.
    */
   const applyComposition = useCallback(
-    async (next: ComposedView, options: { rebuild?: boolean } = {}) => {
+    async (
+      next: ComposedView,
+      options: {
+        rebuild?: boolean;
+        /**
+         * An endpoint to land on once the composition is loaded — `M9`.
+         *
+         * Given as a `cek1` **key**, not a `nodeId`: the brain being brought
+         * into the view may not have an index yet, and a row number for an
+         * index that does not exist is meaningless. The path is resolved
+         * against the snapshot that has just been loaded.
+         */
+        selectEndpoint?: { brainId: string; endpointKey: string };
+      } = {},
+    ) => {
       setBusy(true);
       setStatus(null);
       try {
@@ -475,6 +546,28 @@ export default function MapApp() {
         // The focused brain **is** the active brain — `§4.1` rule 5.
         await activate(next.focusedBrainId);
 
+        // `M9` — an explicit destination wins over the remembered one. This is
+        // a navigation the user just asked for; restoring where the composition
+        // was last left would land them somewhere else entirely.
+        let forced: BrainNodeRef | null = null;
+        if (options.selectEndpoint) {
+          const parsed = splitCrossEndpointKey(options.selectEndpoint.endpointKey);
+          const brain = nextLoaded.get(options.selectEndpoint.brainId);
+          const node =
+            parsed && brain
+              ? brain.snapshot.nodes.find(
+                  (candidate) => candidate.relativePath === parsed.relativePath,
+                )
+              : undefined;
+          if (node) forced = { brainId: options.selectEndpoint.brainId, nodeId: node.id };
+          else {
+            hostLog(
+              "error",
+              `endpoint inter-cerveaux non résolu: ${options.selectEndpoint.endpointKey}`,
+            );
+          }
+        }
+
         const restored = recallComposition(sessionsRef.current, nextKey);
         const focusedRoot = nextLoaded.get(next.focusedBrainId)?.snapshot.rootId ?? null;
         const restoredSelection =
@@ -490,7 +583,8 @@ export default function MapApp() {
         setLoaded(nextLoaded);
         setComposed(next);
         setSelected(
-          restoredSelection ??
+          forced ??
+            restoredSelection ??
             (focusedRoot === null
               ? null
               : { brainId: next.focusedBrainId, nodeId: focusedRoot }),
@@ -649,6 +743,29 @@ export default function MapApp() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [compositionId, composition.territories.length, viewport.width, viewport.height]);
 
+  /**
+   * The common inter-brain store, re-read whenever the loaded brains change.
+   *
+   * **Not because the composition changes what the store holds** — it does not,
+   * and that is the point of §4.1. It changes what can be **resolved**: an
+   * endpoint in a brain whose index has just been built stops being a bare key
+   * and becomes a node the map can draw. What comes back is the same set of
+   * relations either way; only `nodeId` and `brainIndexed` move.
+   */
+  useEffect(() => {
+    let live = true;
+    invoke<CrossRelationsOverview>("map_cross_relations_open")
+      .then((next) => live && setCrossOverview(next))
+      .catch((error) => {
+        if (!live) return;
+        hostLog("error", `relations inter-cerveaux indisponibles: ${String(error)}`);
+        setCrossOverview(null);
+      });
+    return () => {
+      live = false;
+    };
+  }, [loaded]);
+
   useEffect(() => {
     if (!selected) {
       setDetail(null);
@@ -691,6 +808,26 @@ export default function MapApp() {
     };
   }, [selected, selectedOverview]);
 
+  // The inter-brain section of the panel, read from the COMMON store for the
+  // selected node. Kept apart from the intra-brain effect above: the two ask
+  // two different commands of two different stores, and folding them together
+  // is exactly how one would end up reporting the other's counts.
+  useEffect(() => {
+    if (!selected) {
+      setNodeCross(null);
+      return;
+    }
+    let live = true;
+    setCrossLoading(true);
+    invoke<NodeCrossRelations>("map_cross_relations_for_node", { reference: selected })
+      .then((next) => live && setNodeCross(next))
+      .catch(() => live && setNodeCross(null))
+      .finally(() => live && setCrossLoading(false));
+    return () => {
+      live = false;
+    };
+  }, [selected, crossOverview]);
+
   /**
    * The one explicit act that turns a suggestion into a relation.
    *
@@ -729,6 +866,99 @@ export default function MapApp() {
     },
     [],
   );
+
+  /**
+   * The one explicit act that turns an **inter-brain** suggestion into a
+   * relation — `M10`.
+   *
+   * The whole overview is replaced by what the command returns, so the counts
+   * on screen are the store's, never an optimistic increment. No `brainId` is
+   * passed: a suggestion joins two brains, and the store is common.
+   */
+  const approveCrossSuggestion = useCallback(async (suggestionKey: string) => {
+    setApprovingCross(suggestionKey);
+    try {
+      const next = await invoke<CrossRelationsOverview>("map_cross_relations_approve", {
+        suggestionKey,
+      });
+      setCrossOverview(next);
+      setStatus(
+        `Suggestion inter-cerveaux ${suggestionKey} approuvée : elle est désormais une relation APPROVED.`,
+      );
+    } catch (error) {
+      setStatus(`Approbation inter-cerveaux refusée : ${String(error)}`);
+    } finally {
+      setApprovingCross(null);
+    }
+  }, []);
+
+  /**
+   * Following an inter-brain relation — **a navigation, and nothing else**.
+   *
+   * `M8`: the target brain is displayed, so this selects the other
+   * `BrainNodeRef` and the focus follows the selection, as it does for any
+   * selection.
+   *
+   * `M9`: the target brain is **not** displayed, so it is added to the view in
+   * **catalogue order**, loaded without merging anything, focused, and the
+   * exact endpoint is selected. Nothing is created, modified or approved: the
+   * common store is not written to on this path at all.
+   */
+  const navigateCross = useCallback(
+    (target: BrainNodeRef | { brainId: string; endpointKey: string }) => {
+      const current = composedRef.current;
+      if (!current) return;
+      const { brainId } = target;
+
+      if (current.displayedBrainIds.includes(brainId)) {
+        if ("nodeId" in target) {
+          selectNode(target);
+          return;
+        }
+        // Displayed but handed as a key — resolve it in the brain already on
+        // hand rather than reloading the composition for nothing.
+        const parsed = splitCrossEndpointKey(target.endpointKey);
+        const node = parsed
+          ? loadedRef.current
+              .get(brainId)
+              ?.snapshot.nodes.find(
+                (candidate) => candidate.relativePath === parsed.relativePath,
+              )
+          : undefined;
+        if (node) selectNode({ brainId, nodeId: node.id });
+        return;
+      }
+
+      try {
+        // Added, then focused. `addBrain` deliberately leaves the focus where
+        // it was — displaying a brain is not choosing it — so following a
+        // relation says so explicitly instead of relying on a side effect.
+        const next = focusBrain(addBrain(current, order, brainId), order, brainId);
+        const endpointKey =
+          "endpointKey" in target
+            ? target.endpointKey
+            : `cek1|${brainId}|${
+                loadedRef.current.get(brainId)?.hierarchy.byId.get(target.nodeId)
+                  ?.relativePath ?? ""
+              }`;
+        setStatus(
+          `Navigation inter-cerveaux : ${brainId} rejoint la vue. Aucune relation n'est créée, modifiée ni approuvée.`,
+        );
+        void applyComposition(next, { selectEndpoint: { brainId, endpointKey } });
+      } catch (error) {
+        refuse(error);
+      }
+    },
+    [applyComposition, order, refuse, selectNode],
+  );
+
+  const runCrossCheck = useCallback(async () => {
+    try {
+      setCrossCheck(await invoke<CrossRelationsSelfCheck>("map_cross_relations_self_check"));
+    } catch (error) {
+      setStatus(`Contrôle inter-cerveaux impossible : ${String(error)}`);
+    }
+  }, []);
 
   const runRelationsCheck = useCallback(async () => {
     const brainId = selectedRef.current?.brainId ?? composed?.focusedBrainId;
@@ -1070,6 +1300,25 @@ export default function MapApp() {
 
   runComposedScenarioRef.current = runComposedScenario;
 
+  const runCrossScenario = useCallback(() => {
+    const pass = host?.autoCrossPass === 2 ? 2 : 1;
+    return runCross(
+      {
+        invoke: (command, args) => invoke(command, args),
+        host,
+        showOnly,
+        remove: onRemoveBrain,
+        select: selectNode,
+        readComposition: () => composedRef.current,
+        setStatus,
+        log: hostLog,
+      },
+      pass,
+    );
+  }, [host, onRemoveBrain, selectNode, showOnly]);
+
+  runCrossScenarioRef.current = runCrossScenario;
+
   const selectedNode: MapNode | null =
     selected && selectedBrain ? selectedBrain.hierarchy.byId.get(selected.nodeId) ?? null : null;
   const selectedTerritory = selected
@@ -1168,6 +1417,14 @@ export default function MapApp() {
             onClick={runRelationsCheck}
           >
             {t.relationsCheck}
+          </button>
+          <button
+            type="button"
+            data-testid="cross-check"
+            disabled={measuring}
+            onClick={runCrossCheck}
+          >
+            {t.crossCheck}
           </button>
           <button type="button" disabled={measuring || busy} onClick={runMeasurement}>
             {measuring ? t.measuring : t.measure}
@@ -1271,6 +1528,37 @@ export default function MapApp() {
         </section>
       ) : null}
 
+      {crossCheck ? (
+        <section className="app__report" aria-label="Contrôle M1 à M5">
+          <span className={crossCheck.allRejected ? "ok" : "ko"}>
+            M1–M3 · {crossCheck.rejections.filter((entry) => entry.rejected).length}/
+            {crossCheck.rejections.length} tentative(s) invalide(s) rejetée(s)
+          </span>
+          <span className={crossCheck.sameBrainRelations.length === 0 ? "ok" : "ko"}>
+            M1 · {crossCheck.sameBrainRelations.length} relation(s) à un seul cerveau
+          </span>
+          <span className={crossCheck.replayStable ? "ok" : "ko"}>
+            M2 · {crossCheck.deterministicTotal} déterministe(s), rejeu{" "}
+            {crossCheck.replayStable ? "identique" : "DIVERGENT"}
+          </span>
+          <span className={crossCheck.suggestionsInEstablished.length === 0 ? "ok" : "ko"}>
+            M3 · {crossCheck.approvedTotal} approuvée(s),{" "}
+            {crossCheck.pendingSuggestionTotal} suggestion(s) hors des comptes
+          </span>
+          <span className={crossCheck.countsAgree ? "ok" : "ko"}>
+            M4 · {crossCheck.counts.filter((entry) => entry.matches).length}/
+            {crossCheck.counts.length} extrémité(s) conformes à l'attendu gelé
+          </span>
+          <span className={crossCheck.inventedInverses.length === 0 ? "ok" : "ko"}>
+            M2 · {crossCheck.inventedInverses.length} inverse(s) inventé(s)
+          </span>
+          <span className={crossCheck.unresolvedEndpoints.length === 0 ? "ok" : "ko"}>
+            M5 · {crossCheck.unresolvedEndpoints.length} extrémité(s) non résolue(s)
+          </span>
+          <span data-testid="cross-store-path">{crossCheck.storePath}</span>
+        </section>
+      ) : null}
+
       <main className="app__main">
         <div className="app__map">
           <div className="toolbar" role="toolbar" aria-label={t.map}>
@@ -1357,6 +1645,7 @@ export default function MapApp() {
           {renderedBrains.length > 0 && composed ? (
             <MapView
               brains={renderedBrains}
+              crossSegments={crossSegments}
               composition={composition}
               view={view}
               viewport={viewport}
@@ -1398,6 +1687,18 @@ export default function MapApp() {
             onSelect={selectInSelectedBrain}
             onApprove={approveSuggestion}
             approving={approving}
+          />
+
+          <CrossRelationsPanel
+            relations={nodeCross}
+            loading={crossLoading}
+            // What is on screen, so the panel can say « hors de la vue ». The
+            // store never learns this: it is the interface's question, not the
+            // model's — §4.1, §4.8.
+            displayedBrainIds={composed?.displayedBrainIds ?? []}
+            onNavigate={navigateCross}
+            onApprove={approveCrossSuggestion}
+            approving={approvingCross}
           />
 
           {measurement ? (

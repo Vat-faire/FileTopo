@@ -694,6 +694,11 @@ fn map_host_info(app: tauri::AppHandle) -> map::commands::HostInfo {
             .and_then(|value| value.parse::<u8>().ok())
             .filter(|pass| *pass == 1 || *pass == 2)
             .unwrap_or(0),
+        auto_cross_pass: std::env::var("FILETOPO_AUTO_CROSS")
+            .ok()
+            .and_then(|value| value.parse::<u8>().ok())
+            .filter(|pass| *pass == 1 || *pass == 2)
+            .unwrap_or(0),
     }
 }
 
@@ -743,6 +748,84 @@ fn map_relations_self_check(
 ) -> Result<map::relation_commands::RelationsSelfCheck, String> {
     let (paths, brain) = resolve_brain(&app, &brain_id)?;
     map::relation_commands::self_check(&paths, &brain).map_err(String::from)
+}
+
+/// The catalogue's brains, for a command that works across **all** of them.
+///
+/// Inter-brain relations join two brains, so no single `brain_id` argument
+/// could name what they need. The catalogue is the source, and it is read here
+/// rather than passed in from the page: what a relation joins is a property of
+/// the store, never of what happens to be on screen.
+fn map_all_brains(app: &tauri::AppHandle) -> Result<Vec<map::brains::BrainRecord>, String> {
+    let paths = map_sandbox(app)?;
+    let mut catalog =
+        map::brains::BrainCatalog::open(&paths.catalog_database()).map_err(String::from)?;
+    catalog.seed_frozen().map_err(String::from)?;
+    let brains = catalog.list().map_err(String::from)?;
+    Ok(brains)
+}
+
+/// `TASK-0020` — the inter-brain relations of the whole catalogue.
+///
+/// Replays the frozen `XBR-1` derivation and seeds its four suggestions once,
+/// then reads everything back with **each end resolved in its own brain**.
+///
+/// **The composition is not an argument.** A relation towards a brain nobody is
+/// looking at — or one whose index has never been built — comes back all the
+/// same, with `brainIndexed: false` and no `nodeId`, so the interface can say
+/// « hors de la vue » instead of hiding it.
+#[tauri::command]
+fn map_cross_relations_open(
+    app: tauri::AppHandle,
+) -> Result<map::cross_commands::CrossRelationsOverview, String> {
+    let paths = map_sandbox(&app)?;
+    let brains = map_all_brains(&app)?;
+    map::cross_commands::open_cross_relations(&paths, &brains).map_err(String::from)
+}
+
+/// Incoming and outgoing **inter-brain** relations of one node, read with two
+/// separate queries so neither direction is ever derived from the other.
+#[tauri::command]
+fn map_cross_relations_for_node(
+    app: tauri::AppHandle,
+    reference: map::brains::BrainNodeRef,
+) -> Result<map::cross_commands::NodeCrossRelations, String> {
+    let paths = map_sandbox(&app)?;
+    let brains = map_all_brains(&app)?;
+    map::cross_commands::node_cross_relations(&paths, &brains, &reference).map_err(String::from)
+}
+
+/// The one explicit act that turns an inter-brain suggestion into a relation.
+///
+/// Returns the whole overview, so the interface displays counts that came back
+/// from the store rather than counts it incremented itself.
+#[tauri::command]
+fn map_cross_relations_approve(
+    app: tauri::AppHandle,
+    suggestion_key: String,
+) -> Result<map::cross_commands::CrossRelationsOverview, String> {
+    let paths = map_sandbox(&app)?;
+    let brains = map_all_brains(&app)?;
+    map::cross_commands::approve_cross_suggestion(&paths, &brains, &suggestion_key)
+        .map_err(String::from)
+}
+
+/// Replays `M1` to `M5` against the live common store and reports what it
+/// found — reported, never asserted away.
+#[tauri::command]
+fn map_cross_relations_self_check(
+    app: tauri::AppHandle,
+) -> Result<map::cross_commands::CrossRelationsSelfCheck, String> {
+    let paths = map_sandbox(&app)?;
+    let brains = map_all_brains(&app)?;
+    map::cross_commands::cross_self_check(&paths, &brains).map_err(String::from)
+}
+
+/// The frozen `XBR-1` references, published so the scenario reads them from
+/// the one place they are spelled rather than repeating them in TypeScript.
+#[tauri::command]
+fn map_cross_relations_frozen() -> Vec<map::cross_commands::FrozenCrossReference> {
+    map::cross_commands::frozen_references()
 }
 
 /// Development-only: writes a measurement artefact into the repository.
@@ -796,8 +879,11 @@ pub fn run() {
                 .any(|name| std::env::var(name).is_ok_and(|value| value == "1"))
                 // `K12` needs the window forward for the same reason `J12`
                 // does: a real keystroke goes to the foreground window.
-                || std::env::var("FILETOPO_AUTO_BRAINS")
-                    .is_ok_and(|value| value == "1" || value == "2");
+                || ["FILETOPO_AUTO_BRAINS", "FILETOPO_AUTO_COMPOSED", "FILETOPO_AUTO_CROSS"]
+                    .iter()
+                    .any(|name| {
+                        std::env::var(name).is_ok_and(|value| value == "1" || value == "2")
+                    });
             if unattended {
                 if let Some(window) = app.get_webview_window("main") {
                     let _ = window.set_always_on_top(true);
@@ -820,6 +906,11 @@ pub fn run() {
             map_relations_for_node,
             map_relations_approve,
             map_relations_self_check,
+            map_cross_relations_open,
+            map_cross_relations_for_node,
+            map_cross_relations_approve,
+            map_cross_relations_self_check,
+            map_cross_relations_frozen,
             map_host_info,
             map_log,
             map_write_run_artifact

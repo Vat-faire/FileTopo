@@ -117,9 +117,13 @@ function Harness({
           hierarchy,
           segments,
           relationNeighbours,
+          // No inter-brain relation in this harness: it draws ONE brain, and an
+          // inter-brain relation needs two.
+          crossNeighbours: new Set<number>(),
           nodeCount: nodes.length,
         },
       ]}
+      crossSegments={[]}
       composition={composition}
       view={view}
       viewport={viewport}

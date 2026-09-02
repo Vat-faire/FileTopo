@@ -382,9 +382,15 @@ function MapHarness({ selectedId }: { selectedId: number }) {
           hierarchy,
           segments,
           relationNeighbours: neighbours,
+          // `TASK-0017`'s criteria are about relations INSIDE one brain. This
+          // harness draws one brain, so there is no inter-brain relation to
+          // have — and passing an empty set is what keeps `J8` and `J9` about
+          // what they were always about.
+          crossNeighbours: new Set<number>(),
           nodeCount: hierarchy.byId.size,
         },
       ]}
+      crossSegments={[]}
       composition={composition}
       view={view}
       viewport={viewport}

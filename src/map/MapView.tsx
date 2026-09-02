@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef } from "react";
 import { domNodeId, domTerritoryId } from "./composedView";
 import type { Hierarchy } from "./hierarchy";
 import { hierarchicalNeighbourhood, move } from "./hierarchy";
+import type { CrossSegment } from "./crossRelations";
 import type { RelationSegment } from "./relations";
 import type { Composition, Territory } from "./territories";
 import { headerBox, territoryOf } from "./territories";
@@ -38,6 +39,15 @@ import { fitToBox, fitView, panBy, zoomAbout } from "./viewState";
  * `map-node-6` exists in both. Every node id is therefore namespaced by its
  * brain — `brain-alpha-map-node-6` — and the selection that travels is a
  * `BrainNodeRef`, never a bare row number.
+ *
+ * **`TASK-0020` — edges that really cross.** `L8` forbade any edge from
+ * crossing a territory boundary, and that was right while no model carried such
+ * a link. `M6` now asks for the opposite, for **one** kind of edge and only
+ * that one: an inter-brain relation is drawn from a rectangle in one brain's
+ * coordinates to a rectangle in another's, each translated by **its own**
+ * territory offset. The two kinds never share a code path, so an intra-brain
+ * edge still cannot leave its territory — that is not discipline, it is that
+ * `RelationSegment` carries one brain id and `CrossSegment` carries two.
  */
 
 /** One brain, ready to be drawn: its tree, its edges, its accents. */
@@ -57,11 +67,27 @@ export interface RenderedBrain {
    * relation. Suggestions are deliberately absent — `J8`.
    */
   relationNeighbours: Set<number>;
+  /**
+   * Node ids of **this brain** linked to the selection by an established
+   * **inter-brain** relation — `M`. Kept apart from
+   * {@link RenderedBrain.relationNeighbours} because the panel distinguishes
+   * the two and the map must not contradict it.
+   */
+  crossNeighbours: Set<number>;
   nodeCount: number;
 }
 
 interface MapViewProps {
   brains: RenderedBrain[];
+  /**
+   * Inter-brain relations, with **one end in each of two brains' own
+   * coordinates** — `TASK-0020` §4.6.
+   *
+   * Passed whole rather than split per brain: an edge that belonged to one
+   * brain would be an edge that could be drawn inside it, which is the defect
+   * `M6` counts.
+   */
+  crossSegments: CrossSegment[];
   composition: Composition;
   view: View;
   viewport: Viewport;
@@ -96,6 +122,7 @@ function arrowHead(x: number, y: number, ux: number, uy: number): string {
 
 export default function MapView({
   brains,
+  crossSegments,
   composition,
   view,
   viewport,
@@ -152,9 +179,21 @@ export default function MapView({
         // neighbours as links. Two accentuations rather than one, because the
         // panel distinguishes them and the map must not contradict it.
         const linked = brain.relationNeighbours.has(node.id);
+        // `M` — an inter-brain neighbour is accentuated **as one**, with its own
+        // state rather than by borrowing `linked`: the panel says the two are
+        // different things, and a map that drew them alike would contradict it.
+        const crossLinked = brain.crossNeighbours.has(node.id);
         // Attenuated, never erased: the rectangle keeps its outline and its
         // accessible name whatever the selection is — parity §3, point 4.
-        const state = isSelected ? "selected" : related ? "related" : linked ? "linked" : "plain";
+        const state = isSelected
+          ? "selected"
+          : related
+            ? "related"
+            : crossLinked
+              ? "cross-linked"
+              : linked
+                ? "linked"
+                : "plain";
         const corner = Math.min(node.rect.w, node.rect.h) * 0.06;
         const marker = Math.min(node.rect.w, node.rect.h) * 0.28;
         return (
@@ -167,6 +206,7 @@ export default function MapView({
             id={domNodeId(brain.brainId, node.id)}
             data-brain-id={brain.brainId}
             data-node-id={node.id}
+            data-cross-linked={crossLinked ? "true" : undefined}
             role="treeitem"
             aria-level={node.depth + 1}
             aria-selected={isSelected}
@@ -269,6 +309,98 @@ export default function MapView({
     }
     return drawn;
   }, [territories, view.scale, view.tx, view.ty, viewport.height, viewport.width]);
+
+  /**
+   * Inter-brain relations, in the same screen-space layer — `M6`.
+   *
+   * The only place in this component where **two** territory offsets are read
+   * for one drawing. Each end is translated by the offset of the brain it
+   * belongs to; there is no fallback to "the current territory", so an edge
+   * whose target brain is not displayed produces nothing at all rather than a
+   * line to an arbitrary point.
+   *
+   * Drawn **before** the intra-brain edges in the DOM so a cross edge never
+   * hides one — and marked three ways that survive a colour setting: a doubled
+   * stroke, a mid-path chevron carrying the direction, and `data-cross="true"`
+   * with two **different** `data-*-brain-id` attributes.
+   */
+  const crossEdges = useMemo(() => {
+    const drawn: React.ReactElement[] = [];
+    for (const segment of crossSegments) {
+      const from = territoryOf(composition, segment.fromBrainId);
+      const to = territoryOf(composition, segment.toBrainId);
+      // Both ends must be on screen. `M9` keeps such a relation visible in the
+      // panel; it does not ask for a line towards a territory that is not there.
+      if (!from || !to) continue;
+
+      const x1 = (segment.x1 + from.offsetX) * view.scale + view.tx;
+      const y1 = (segment.y1 + from.offsetY) * view.scale + view.ty;
+      const x2 = (segment.x2 + to.offsetX) * view.scale + view.tx;
+      const y2 = (segment.y2 + to.offsetY) * view.scale + view.ty;
+      const offScreen =
+        (x1 < 0 && x2 < 0) ||
+        (y1 < 0 && y2 < 0) ||
+        (x1 > viewport.width && x2 > viewport.width) ||
+        (y1 > viewport.height && y2 > viewport.height);
+      if (offScreen) continue;
+
+      const length = Math.hypot(x2 - x1, y2 - y1);
+      if (!(length > 1)) continue;
+      const ux = (x2 - x1) / length;
+      const uy = (y2 - y1) / length;
+      const established = segment.kind === "established";
+      const state = segment.touchesSelection ? "touching" : "distant";
+      const className =
+        `map-edge map-cross-edge map-cross-edge--${segment.kind} map-cross-edge--${state}` +
+        (segment.provenance ? ` map-cross-edge--${segment.provenance.toLowerCase()}` : "");
+      // Halfway along, a second arrow head. Direction therefore reads even when
+      // both ends are off screen and the tip is not visible — and it reads by
+      // SHAPE, never by hue.
+      const midX = x1 + ux * (length / 2);
+      const midY = y1 + uy * (length / 2);
+
+      drawn.push(
+        <g
+          key={`cross|${segment.key}`}
+          className={className}
+          // `M6` — an inter-brain edge names BOTH its brains, and they differ.
+          // A reader counting `from !== to` is counting exactly the property
+          // that makes this edge legitimate.
+          data-cross="true"
+          data-from-brain-id={segment.fromBrainId}
+          data-to-brain-id={segment.toBrainId}
+          data-kind={segment.kind}
+          data-provenance={segment.provenance ?? ""}
+          role="presentation"
+        >
+          <title>{segment.label}</title>
+          {/* Two strokes: a wide pale one under a narrow dark one. The doubling
+              is what tells an inter-brain edge from an intra-brain one without
+              relying on colour. */}
+          <line className="map-cross-edge__casing" x1={x1} y1={y1} x2={x2} y2={y2} />
+          <line className="map-cross-edge__line" x1={x1} y1={y1} x2={x2} y2={y2} />
+          {established ? (
+            <>
+              <path
+                className="map-cross-edge__arrow"
+                d={arrowHead(x2 - ux * 11, y2 - uy * 11, ux, uy)}
+              />
+              <path
+                className="map-cross-edge__chevron"
+                d={arrowHead(midX, midY, ux, uy)}
+              />
+            </>
+          ) : (
+            <>
+              <circle className="map-cross-edge__ring" cx={x1} cy={y1} r={4.5} />
+              <circle className="map-cross-edge__ring" cx={x2} cy={y2} r={4.5} />
+            </>
+          )}
+        </g>,
+      );
+    }
+    return drawn;
+  }, [composition, crossSegments, view.scale, view.tx, view.ty, viewport.height, viewport.width]);
 
   /**
    * Screen-space labels: the territory identities, then the node names.
@@ -573,6 +705,9 @@ export default function MapView({
           )}
         </g>
 
+        <g className="map-view__cross-edges" data-testid="cross-edges" aria-hidden="true">
+          {crossEdges}
+        </g>
         <g className="map-view__edges" aria-hidden="true">
           {edges}
         </g>

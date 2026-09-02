@@ -149,6 +149,11 @@ export interface HostInfo {
    * different things and must remain replayable one without the other.
    */
   autoComposedPass: number;
+  /**
+   * `M12` — `0` none, `1` the twenty-three steps before the real restart, `2`
+   * the five only a relaunched process can observe.
+   */
+  autoCrossPass: number;
 }
 
 export interface FixtureIntegrity {
@@ -307,4 +312,161 @@ export interface RelationsSelfCheck {
   inventedInverses: string[];
   suggestionsInEstablished: string[];
   unresolvedEndpoints: string[];
+}
+
+/* --- TASK-0020 — relations inter-cerveaux explicites ---------------------- */
+
+/**
+ * One end of an inter-brain relation, resolved in **its own** brain.
+ *
+ * `brainId` is not decoration: `brain-alpha` and `brain-gamma` read the same
+ * tree, so `dossier-a/note-1.txt` exists in both and an endpoint that did not
+ * name its brain would resolve in whichever index was asked first.
+ */
+export interface CrossEndpoint {
+  key: string;
+  brainId: string;
+  /** From the catalogue, so the panel says « Cerveau Gamma », not an id. */
+  brainDisplayName: string;
+  brainIcon: string;
+  /** `null` when that brain's current index does not hold this endpoint. */
+  nodeId: number | null;
+  name: string;
+  relativePath: string;
+  /**
+   * `false` when the brain's index has never been built in this sandbox.
+   *
+   * Deliberately **not** the same question as « is this brain displayed ».
+   * The store knows nothing about the composition; whether an endpoint is on
+   * screen is decided in the interface, from the composed view.
+   */
+  brainIndexed: boolean;
+}
+
+export interface CrossRelationEdge {
+  id: number;
+  provenance: RelationProvenance;
+  relationType: string;
+  source: CrossEndpoint;
+  target: CrossEndpoint;
+  /** Present exactly when the provenance is `DETERMINISTIC` — `M7`. */
+  ruleName: string | null;
+  ruleVersion: string | null;
+  suggestionKey: string | null;
+}
+
+/**
+ * An inter-brain suggestion, as its own type all the way to the screen.
+ *
+ * Deliberately not a {@link CrossRelationEdge} with a flag: no rendering path
+ * can mistake one for the other if they never share a type — `M10`.
+ */
+export interface CrossSuggestionEdge {
+  suggestionKey: string;
+  relationType: string;
+  source: CrossEndpoint;
+  target: CrossEndpoint;
+  state: "pending" | "approved";
+  basis: string;
+}
+
+export interface CrossRuleInfo {
+  name: string;
+  version: string;
+  relationType: string;
+  symmetric: boolean;
+  produced: number;
+}
+
+export interface CrossRelationsOverview {
+  /** The COMMON store, named relative to the sandbox — `M1`, §4.1. */
+  storePath: string;
+  schemaVersion: number;
+  endpointKeyScheme: string;
+  established: CrossRelationEdge[];
+  /** Pending only — an approved suggestion is already a relation. */
+  pendingSuggestions: CrossSuggestionEdge[];
+  deterministicCount: number;
+  approvedCount: number;
+  pendingSuggestionCount: number;
+  rules: CrossRuleInfo[];
+  unresolvedEndpoints: string[];
+  resolvedBrainIds: string[];
+  deterministicDigest: string;
+  seeded: number;
+}
+
+export interface NodeCrossRelationEntry {
+  direction: RelationDirection;
+  provenance: RelationProvenance;
+  relationType: string;
+  /** The end that is not the selected node — always in another brain. */
+  other: CrossEndpoint;
+  ruleName: string | null;
+  ruleVersion: string | null;
+  suggestionKey: string | null;
+}
+
+export interface NodeCrossRelations {
+  reference: BrainNodeRef;
+  endpointKey: string;
+  relativePath: string;
+  outgoing: NodeCrossRelationEntry[];
+  incoming: NodeCrossRelationEntry[];
+  outgoingCount: number;
+  incomingCount: number;
+  /** Never counted in `outgoingCount` or `incomingCount` — `M10`. */
+  suggestions: CrossSuggestionEdge[];
+}
+
+export interface CrossCountComparison {
+  brainId: string;
+  relativePath: string;
+  expectedOutgoing: number;
+  observedOutgoing: number;
+  expectedIncoming: number;
+  observedIncoming: number;
+  matches: boolean;
+}
+
+export interface CrossRejectionOutcome {
+  case: string;
+  attempt: string;
+  expectedMotif: string;
+  observedMotif: string;
+  rejected: boolean;
+}
+
+export interface CrossRelationsSelfCheck {
+  storePath: string;
+  establishedTotal: number;
+  deterministicTotal: number;
+  approvedTotal: number;
+  pendingSuggestionTotal: number;
+  rejections: CrossRejectionOutcome[];
+  allRejected: boolean;
+  replayDigestFirst: string;
+  replayDigestSecond: string;
+  replayStable: boolean;
+  counts: CrossCountComparison[];
+  countsAgree: boolean;
+  approvedSinceSeed: string[];
+  inventedInverses: string[];
+  suggestionsInEstablished: string[];
+  unresolvedEndpoints: string[];
+  /** `M1` — established relations whose two ends are in one brain. Empty. */
+  sameBrainRelations: string[];
+  resolvedBrainIds: string[];
+}
+
+/** One frozen `XBR-1` reference, published by the backend — §4.4. */
+export interface FrozenCrossReference {
+  reference: string;
+  sourceBrainId: string;
+  sourceKey: string;
+  targetBrainId: string;
+  targetKey: string;
+  relationType: string;
+  ruleName: string;
+  ruleVersion: string;
 }

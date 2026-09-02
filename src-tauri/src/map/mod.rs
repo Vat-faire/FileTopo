@@ -18,6 +18,8 @@
 
 pub mod brains;
 pub mod commands;
+pub mod cross_commands;
+pub mod cross_relations;
 pub mod fixtures;
 pub mod layout;
 pub mod relation_commands;
@@ -46,6 +48,13 @@ pub enum MapError {
     /// motif frozen by `TASK-0017` §4.6.4 reaches the caller unchanged.
     #[error("{0}")]
     Relation(#[from] relations::RelationError),
+    /// A refusal from the **inter-brain** relations model — `TASK-0020` §4.3.
+    ///
+    /// Kept apart from [`MapError::Relation`] rather than folded into it: the
+    /// two models refuse for different reasons, and a caller reading
+    /// `relation_rejected_…` should never have to guess which one spoke.
+    #[error("{0}")]
+    CrossRelation(#[from] cross_relations::CrossRelationError),
     #[error("map_scan_failed: {0}")]
     Scan(String),
     #[error("map_unknown_fixture: {0}")]
