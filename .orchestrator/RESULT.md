@@ -3,6 +3,7 @@ AGENT: CLAUDE
 RESULT: DONE
 BRANCH: build/v0.2-a4-composed-view
 BASE_HEAD: 21acd64aca0c03b68b7e2eccc792f716fa7f2f9a
+FINAL_HEAD: 8bd0bbab199219ebeb4957fe37a2250c4297fce7
 TASK_STATE: IMPLEMENTED — VERIFIED NON attribué, X6 reste OPEN
 SESSION: début de session normal. Git vérifié d'abord : racine, branche
 `build/v0.2-a4-composed-view`, `HEAD` `21acd64`, arbre propre, aligné sur
