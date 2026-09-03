@@ -4,15 +4,22 @@
 - **Branche active :** **`build/v0.2-a5-interbrain-relations`**, créée depuis
   le tip **contrôlé** `8d1e27151f53d082551e05b00816100cb790542b` de
   `build/v0.2-a4-composed-view`
-- **Dernière tâche vérifiée :** **`TASK-0019`, `VERIFIED`** le 2026-09-02, sur
+- **Dernière tâche vérifiée :** **`TASK-0020`, `VERIFIED`** le 2026-09-02, sur
+  **contrôle indépendant**
+  [`ACTION-0032`](../reviews/ACTION-0032-independent-control.md) — **`CLOSED`**,
+  `HEAD` contrôlé **`9a7206a1e246258259096b1679f19ac5b53005d7`**, `main`
+  intacte `91bbe90f`. Verdict **rendu par l'orchestrateur**, **enregistré** par
+  l'exécuteur. **Sixième** tâche `VERIFIED` de l'étape A
+- **Tâche vérifiée précédente :** **`TASK-0019`, `VERIFIED`** le 2026-09-02, sur
   re-contrôle indépendant
   [`ACTION-0031`](../reviews/ACTION-0031-independent-recontrol.md) — **réserve
   `X6` et `ACTION-0030` : `CLOSED`**, `HEAD` contrôlé `8d1e271`. La cible
   autrefois manquée de `L12` étape 7 a été **corrigée et `L12` rejoué en
   entier** avant ce verdict. `TASK-0018` est `VERIFIED` depuis le 2026-09-01,
   `TASK-0017` depuis le 2026-09-01, `TASK-0016` depuis le 2026-08-31
-- **Tâche livrée, NON vérifiée :** **`TASK-0020`, `IMPLEMENTED`** le
-  2026-09-02 — **relations inter-cerveaux explicites**, sous
+- **Tâche livrée, NON vérifiée :** **aucune**
+- **Ce que `TASK-0020` a livré, désormais `VERIFIED`** — **relations
+  inter-cerveaux explicites**, sous
   [`DEC-0018`](../decisions/DEC-0018-explicit-interbrain-relations.md),
   fonction **`F-041`**. Gel `M1`–`M12` en `7746fd4`, **avant la première ligne
   de code** de la tranche. **`M1`–`M12` tenus**, `M12` aux **vingt-huit
@@ -24,7 +31,15 @@
   `L12` de travers alors que rien n'était cassé; et un contrôle `DOM` capturé
   avant un `await`, remplacé par un re-rendu. Après correction, `J12` et `L12`
   retrouvent **exactement** leurs valeurs d'origine.
-- **Attend son CONTRÔLE indépendant, sur preuves.**
+- **Son contrôle indépendant a eu lieu :** `ACTION-0032`, `CLOSED`,
+  `TASK-0020` **`VERIFIED`**. **`cek1` n'est accepté que comme repli déclaré,
+  PAS comme `I-E` complète.** `R8` reste entière, `P-19` et `P-21` demeurent,
+  `B0` n'est pas corrigé
+- **`X5` couvre désormais les cinq preuves de `TASK-0020`** — `M12`
+  `pass{1,2}`, `J12` intra, `L12` composée `pass{1,2}`. **Les gardes n'ont pas
+  encore été étendues** : la clôture `ACTION-0032` est documentaire. **La
+  prochaine tâche devra commencer par protéger ces preuves** avant toute autre
+  écriture de preuve
 - **Tâche IN_PROGRESS :** aucune
 - **Porte `P4` :** **FRANCHIE** —
   [`DEC-0016`](../decisions/DEC-0016-p4-gate-crossing-and-first-slice.md)
@@ -294,9 +309,18 @@ avant de contrôler GitHub, ce qui permet au rapport terminal de rester court.
 
 ## Prochaine action unique
 
-**Re-contrôle indépendant de `TASK-0018`, sur la réserve `X5` uniquement**, par
-une instance distincte de l'exécuteur, **sur preuves**. Détail dans
-[NEXT_ACTION.md](NEXT_ACTION.md).
+**Réalignement produit post-`TASK-0020` : formaliser, AVANT tout nouveau
+code**, la topographie finale à cartes/nœuds reliés, la correction explicite du
+contrat `P-02`, le moteur déterministe de relations automatiques sans IA, le
+workflow humain de confirmation/rejet des suggestions, l'IA comme couche
+optionnelle `BYOK` jamais requise par le noyau, et la préparation architecture
+mono-utilisateur / multi-utilisateur / permissions héritées de la source.
+Détail dans [NEXT_ACTION.md](NEXT_ACTION.md).
+
+**Aucune nouvelle `TASK` d'implémentation n'est créée à ce stade**; le prochain
+prompt de l'orchestrateur décidera précisément les `DEC`, exigences et tâches à
+créer. **La tâche de réalignement devra commencer par protéger les preuves
+`TASK-0020`, désormais `VERIFIED`.**
 
 ## Commandes sûres
 

@@ -2833,3 +2833,63 @@ vide. Le contrôle est désormais **re-interrogé à l'instant où il est press�
 **Aucune campagne `H9`**, aucun seuil : `R8` entière. **`I-E` complète** hors
 périmètre — `cek1` est le repli déclaré, et un déplacement réel casserait une
 extrémité. **`P-19`** et **`P-21`** demeurent. **`B0`** n'est pas corrigé.
+
+## AC. `TASK-0020` — contrôle indépendant `ACTION-0032` : `CLOSED`, `TASK-0020` `VERIFIED`
+
+**Date :** 2026-09-02. **Contrôleur :** orchestrateur technique, instance
+**distincte de l'exécuteur**. **Rédacteur de cette entrée :** Claude Code,
+exécuteur — **elle enregistre un verdict, elle ne le rend pas.**
+
+**`HEAD` contrôlé :** `9a7206a1e246258259096b1679f19ac5b53005d7`, tip de
+`build/v0.2-a5-interbrain-relations`. **`main` contrôlée intacte :**
+`91bbe90f0f99026c28cd345784d4f579a0016db2`.
+
+| Élément | Verdict |
+|---|---|
+| `ACTION-0032` | **`CLOSED`** |
+| `TASK-0020` | **`VERIFIED`** |
+| `M1` à `M12` | **acceptés** |
+| Gel `7746fd4` **avant** le premier code `d1adcf2` | **accepté** |
+| `X2`, `X3`, `X4`, `X5`, `X6` | **maintenues** |
+
+### AC.1 Ce que le contrôle accepte
+
+**Aucun critère n'est réinterprété, aucun `M1`–`M12` n'est modifié, aucun test
+n'est rejoué.** Enregistré tel que rendu :
+
+- les **relations inter-cerveaux explicites**;
+- le **magasin commun** `brains/interbrain/relations.sqlite`;
+- **`cek1` uniquement comme repli déclaré**, **PAS** comme `I-E` complète;
+- l'**approbation `XB-S01`** et les **contraintes `SQLite`**;
+- la **navigation inter-cerveaux**, cerveau **affiché** et **hors de la vue**;
+- le **rebuild des trois index**, **digest inchangé**, **0** extrémité non
+  résolue;
+- **`M12` en deux passes** dans le vrai `WebView2`;
+- les **régressions `J12` intra** et **`L12` composée**.
+
+### AC.2 Aucune preuve n'a été touchée par cette clôture
+
+**Intervention documentaire seulement.** `M12`, `J12`, `L12` et `H9` n'ont
+**pas** été rejoués; **aucun artefact de preuve `TASK-0020` n'a été modifié**;
+**aucun code produit n'a été modifié**; **aucune décision produit n'a été
+modifiée**.
+
+### AC.3 `X5` s'étend — mais pas encore dans les gardes
+
+`TASK-0020` étant `VERIFIED`, ses **cinq** preuves —
+`TASK-0020-M12-interbrain-relations-webview2-pass{1,2}.json`,
+`TASK-0020-J12-intrabrain-regression-webview2.json`,
+`TASK-0020-L12-composed-regression-webview2-pass{1,2}.json` — deviennent
+**canoniques** au sens de la règle du 2026-09-01.
+
+**Les gardes n'ont PAS été étendues ici.** La **tâche de réalignement à venir
+devra commencer par protéger ces preuves** — porte Rust `write_run_artifact`,
+`src/map/runArtifacts.ts`, `scripts/protected-run-artifacts.ps1` — **avant
+toute autre écriture de preuve.**
+
+### AC.4 Ce que cette entrée ne lève pas
+
+**Aucune campagne `H9`**, aucun seuil : **`R8` entière**. **`I-E` complète**
+hors périmètre. **Aucune détection automatique** entre cerveaux. **`P-19`**,
+**`P-21`** demeurent, **`P-04`** reste PARTIELLE. **`B0`** n'est pas corrigé.
+**`V1`–`V4`, `W1`–`W4`, `R2`–`R9`** restent en vigueur.

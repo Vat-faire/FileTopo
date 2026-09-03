@@ -6,8 +6,12 @@
   cerveau, avec **provenance**, dans un **magasin commun distinct**, visible
   comme une arête qui **traverse réellement** les territoires de la vue
   composée, et **sans aucune fusion**
-- **Statut :** **`IMPLEMENTED`** le 2026-09-02 — **`VERIFIED` non
-  attribué**; l'exécuteur ne s'auto-vérifie pas
+- **Statut :** **`VERIFIED`** le 2026-09-02 — verdict rendu par
+  l'**orchestrateur technique**, instance **distincte de l'exécuteur**, **sur
+  preuves** : [`ACTION-0032`](../reviews/ACTION-0032-independent-control.md),
+  `CLOSED`, `HEAD` contrôlé
+  `9a7206a1e246258259096b1679f19ac5b53005d7`. **Enregistré par l'exécuteur,
+  non attribué par lui.** Livrée `IMPLEMENTED` le 2026-09-02
 - **Phase :** étape **A** de la feuille de route — parité fonctionnelle MVP,
   **cinquième** tranche
 - **Proposée le :** 2026-09-02
@@ -674,6 +678,7 @@ s'auto-vérifie pas.
 | 2026-09-02 | `PROPOSED` | Fiche créée sous `DEC-0018`, fonction `F-041` |
 | 2026-09-02 | `APPROVED` | GO technique de l'orchestrateur, périmètre écrit en §2 et §3 |
 | 2026-09-02 | `IMPLEMENTED` | Tranche livrée. Gel `7746fd4` **avant** le code `d1adcf2`; `M1`–`M12` **tenus**, `M12` aux vingt-huit étapes en deux passes dans le vrai `WebView2`. **`VERIFIED` non attribué** — contrôle indépendant attendu |
+| 2026-09-02 | `VERIFIED` | [`ACTION-0032`](../reviews/ACTION-0032-independent-control.md) — contrôle indépendant `CLOSED` sur `HEAD` `9a7206a`. `M1`–`M12` **acceptés**, gel antérieur au code accepté, `X2`–`X6` maintenues, `main` intacte `91bbe90f`. Verdict de l'orchestrateur, **enregistré** par l'exécuteur |
 
 ---
 
@@ -781,6 +786,16 @@ posé **après** —, et l'étape 12 lisait le panneau entre deux rendus.
   `CARGO_INCREMENTAL=0` a été utilisé, qui **ne supprime rien**.
 - **Une seule machine, un seul runtime `WebView2`.**
 
-**`TASK-0020` est livrée `IMPLEMENTED`. L'exécuteur ne s'attribue pas
-`VERIFIED`.**
+**`TASK-0020` a été livrée `IMPLEMENTED`; l'exécuteur ne s'est pas attribué
+`VERIFIED`.** Le 2026-09-02, l'**orchestrateur technique** — instance distincte
+de l'exécuteur — s'est prononcé **sur les preuves publiées** et a rendu
+**`TASK-0020` `VERIFIED`**, `ACTION-0032` **`CLOSED`**, `HEAD` contrôlé
+`9a7206a1e246258259096b1679f19ac5b53005d7`. **Enregistré, non attribué :**
+[`ACTION-0032`](../reviews/ACTION-0032-independent-control.md).
+
+**Ce verdict ne lève aucune limite du §7.6.** `cek1` est accepté **uniquement**
+comme repli déclaré, **pas** comme `I-E` complète. `R8` reste entière, `P-19`
+et `P-21` demeurent, `B0` n'est pas corrigé.
+
 | 2026-09-02 | `IMPLEMENTED` | Tranche livrée; `M1`–`M12` tenus, `M12` en deux passes dans le vrai `WebView2`. **`VERIFIED` non attribué** — contrôle indépendant attendu |
+| 2026-09-02 | `VERIFIED` | [`ACTION-0032`](../reviews/ACTION-0032-independent-control.md) — contrôle indépendant `CLOSED`, `HEAD` contrôlé `9a7206a`. Verdict de l'orchestrateur, **enregistré** par l'exécuteur |

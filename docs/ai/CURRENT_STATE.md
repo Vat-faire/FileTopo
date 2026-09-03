@@ -1,14 +1,23 @@
 # État courant
 
 - **Dernière mise à jour :** 2026-09-02
-- **Tâche livrée, NON vérifiée :** **`TASK-0020`, `IMPLEMENTED`** le
-  2026-09-02 — **relations inter-cerveaux explicites**,
+- **Dernière tâche vérifiée :** **`TASK-0020`, `VERIFIED` le 2026-09-02** —
+  **relations inter-cerveaux explicites**,
   [fiche](../tasks/TASK-0020-interbrain-relations.md), sous
   [`DEC-0018`](../decisions/DEC-0018-explicit-interbrain-relations.md),
-  fonction **`F-041`**. **Gel `M1`–`M12` en `7746fd4`, avant toute ligne de
-  code de cette tranche.** `M1`–`M12` **TENUS**, `M12` aux **vingt-huit
-  étapes** dans le vrai `WebView2`, deux passes, redémarrage réel.
-  **`VERIFIED` n'est pas attribué; l'exécuteur ne s'auto-vérifie pas.**
+  fonction **`F-041`**. Contrôle indépendant
+  [`ACTION-0032`](../reviews/ACTION-0032-independent-control.md), **`CLOSED`**,
+  `HEAD` contrôlé **`9a7206a1e246258259096b1679f19ac5b53005d7`**. **Gel
+  `M1`–`M12` en `7746fd4`, avant toute ligne de code**, accepté; `M1`–`M12`
+  **acceptés**; `M12` aux **vingt-huit étapes** dans le vrai `WebView2`, deux
+  passes, redémarrage réel. Le verdict a été **rendu par l'orchestrateur** et
+  **enregistré** par l'exécuteur; **l'exécuteur ne s'est rien attribué**. C'est
+  la **sixième** tâche `VERIFIED` de l'étape A
+- **Ce que ce `VERIFIED` n'emporte pas :** **`cek1` est accepté uniquement
+  comme repli déclaré, PAS comme `I-E` complète.** Aucune campagne `H9`, aucun
+  seuil — `R8` **entière**. Aucune détection automatique entre cerveaux.
+  **`P-19`** et **`P-21`** demeurent. **`B0`** n'est pas corrigé
+- **Tâche livrée, NON vérifiée :** aucune
 - **Matrice fonctionnelle :** **41** lignes après l'ajout de `F-041` par
   `DEC-0018`. Répartition : **`MVP` 37, `ULTÉRIEUR` 0, `DIFFÉRÉ` 4**. Aucune
   ligne existante n'a changé de classification, aucune n'est descendue
@@ -30,7 +39,7 @@
 - **`rebuild/v0.2-project-brain` :** `db8d3de0…`, **non touchée**
 - **`main` :** inchangée, `91bbe90f0f99026c28cd345784d4f579a0016db2`, **non
   touchée**
-- **Dernière tâche vérifiée :** **`TASK-0019`, `VERIFIED` le 2026-09-02**, sur
+- **Tâche vérifiée précédente :** **`TASK-0019`, `VERIFIED` le 2026-09-02**, sur
   **re-contrôle indépendant**
   [`ACTION-0031`](../reviews/ACTION-0031-independent-recontrol.md) —
   **`X6` : `CLOSED`**, **`ACTION-0030` : `CLOSED`**, `HEAD` contrôlé
@@ -78,8 +87,24 @@
   et qu'il n'avait pas eu lieu. La correction a ajouté un **espace de noms**
   sans rien supprimer, `L12` a été rejoué **en entier**, et
   [`ACTION-0031`](../reviews/ACTION-0031-independent-recontrol.md) a clos `X6`
+- **Contrôle indépendant de `TASK-0020` :**
+  [`ACTION-0032`](../reviews/ACTION-0032-independent-control.md), **`CLOSED`**
+  le 2026-09-02 sur `9a7206a` — verdict **`APPROVED`**, `TASK-0020`
+  **`VERIFIED`**. Acceptés : le gel `7746fd4` antérieur au premier code
+  `d1adcf2`, `M1`–`M12`, les relations inter-cerveaux explicites, le magasin
+  commun `brains/interbrain/relations.sqlite`, l'approbation `XB-S01` et les
+  contraintes `SQLite`, la navigation affichée et hors vue, le rebuild des
+  trois index à digest inchangé et **0** extrémité non résolue, `M12` en deux
+  passes dans le vrai `WebView2`, les régressions `J12` intra et `L12`
+  composée, et `main` intacte à `91bbe90f`
 - **Réserves `X2`, `X3`, `X4`, `X5`, `X6` :** **maintenues et closes**;
   `X5` étendue une seconde fois, à **quatorze** noms protégés
+- **`X5` s'applique désormais aux cinq preuves de `TASK-0020`**, la tâche étant
+  `VERIFIED` — `M12` `pass{1,2}`, `J12` intra, `L12` composée `pass{1,2}`.
+  **L'extension des gardes n'a PAS été exécutée dans la clôture
+  `ACTION-0032`**, qui est documentaire : la **tâche de réalignement à venir
+  devra commencer par protéger ces preuves** avant toute autre écriture de
+  preuve
 - **Tâche IN_PROGRESS :** aucune
 - **Réserve ouverte :** aucune. `X2`, `X3`, `X4`, `X5`, `X6` sont **closes**, et
   `TASK-0020` les a toutes revérifiées sur ses propres preuves
@@ -620,7 +645,7 @@ transversale. `X1` contraint la tranche qui implémentera `P-04`, `P-05`, `P-07`
 
 | Étape | Objet | État |
 |---|---|---|
-| **A** | **Parité fonctionnelle MVP** | **EN COURS** — `TASK-0016` **`VERIFIED`**, `TASK-0017` **`VERIFIED`**, `TASK-0018` **`IMPLEMENTED`**, en attente de contrôle indépendant; **douze exigences restent entières**, dont `P-20` |
+| **A** | **Parité fonctionnelle MVP** | **EN COURS** — `TASK-0015`, `TASK-0016`, `TASK-0017`, `TASK-0018`, `TASK-0019` et `TASK-0020` **`VERIFIED`**; **aucune tâche `IMPLEMENTED` en attente**, aucune `IN_PROGRESS`; **douze exigences restent entières**, dont `P-20`. **Réalignement produit en cours de formalisation avant tout nouveau code** — voir [NEXT_ACTION.md](NEXT_ACTION.md) |
 | **B** | Finition visuelle moderne | PROPOSED — **ne commence pas** avant que **A** soit contrôlée |
 | **C** | Validation Windows/WebView2 réelle. **`R8` ne peut être levée qu'ici** | PROPOSED |
 | **D** | Empaquetage et publication — **réservé à Sébastien** | PROPOSED |
@@ -646,9 +671,21 @@ réalité de la frappe clavier de `J12`. **Pas** le reste du contrat de parité.
 implémentée**. Elle reste **déclarée manquante et hors périmètre**, et
 **`P-04` demeure PARTIELLE**. **`TASK-0018` ne l'implémente pas.**
 
-**`TASK-0018` est `IMPLEMENTED`, et NON `VERIFIED`.** L'exécuteur ne s'est
-rien attribué. **L'action unique suivante est le contrôle indépendant de
-`TASK-0018`**, par une instance distincte de l'exécuteur et **sur preuves**.
+**`TASK-0018`, `TASK-0019` et `TASK-0020` sont `VERIFIED`**, chacune sur
+contrôle indépendant mené par une instance **distincte de l'exécuteur** et se
+prononçant **sur preuves** — `ACTION-0029`, `ACTION-0031`, `ACTION-0032`.
+L'exécuteur ne s'est rien attribué.
+
+**Ce que le `VERIFIED` de `TASK-0020` porte :** la qualité des preuves de la
+tranche, le gel antérieur au code, `M1`–`M12`, le magasin commun, la navigation
+inter-cerveaux et la survie des extrémités à un rebuild. **Pas** le reste du
+contrat de parité, et **pas** `I-E` : **`cek1` n'est accepté que comme repli
+déclaré**.
+
+**Aucune tâche n'est `IMPLEMENTED` en attente de contrôle, aucune n'est
+`IN_PROGRESS`.** **L'action unique suivante est un réalignement produit
+formalisé AVANT tout nouveau code** — voir [NEXT_ACTION.md](NEXT_ACTION.md).
+**Aucune nouvelle tâche d'implémentation n'est créée à ce stade.**
 
 **Une tranche suivante exigera sa propre fiche, ses critères gelés d'avance et
 son propre GO.**

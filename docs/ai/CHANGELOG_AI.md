@@ -2766,3 +2766,62 @@ supprimé dans `src-tauri/target/`. Une seule machine, un seul `WebView2`.
 
 **`TASK-0020` : `IMPLEMENTED`.** L'action suivante est le **contrôle
 indépendant**, par une instance **distincte de l'exécuteur**, **sur preuves**.
+
+---
+
+## 2026-09-02 — `ACTION-0032` : contrôle indépendant de `TASK-0020`, `VERIFIED`
+
+**Agent :** exécuteur Claude Code. **Branche
+`build/v0.2-a5-interbrain-relations`.** **Intervention documentaire
+seulement** — aucun code produit, aucune preuve, aucune décision produit
+modifiés.
+
+### Enregistré, pas rendu
+
+Le **contrôle indépendant** de l'**orchestrateur technique** — instance
+**distincte de l'exécuteur**, se prononçant **sur les preuves publiées** — clôt
+**`ACTION-0032`** et attribue **`VERIFIED`** à `TASK-0020`. **L'exécuteur
+enregistre ce verdict; il ne se l'attribue pas.**
+
+**`HEAD` contrôlé :** `9a7206a1e246258259096b1679f19ac5b53005d7`.
+**`main` contrôlée intacte :** `91bbe90f0f99026c28cd345784d4f579a0016db2`.
+
+### Accepté
+
+`M1` à `M12`; le **gel `7746fd4` antérieur au premier code `d1adcf2`**; les
+relations inter-cerveaux explicites; le magasin commun
+`brains/interbrain/relations.sqlite`; l'approbation `XB-S01` et les contraintes
+`SQLite`; la navigation inter-cerveaux affichée et **hors de la vue**; le
+rebuild des trois index à **digest inchangé** et **0** extrémité non résolue;
+`M12` en **deux passes** dans le vrai `WebView2`; les régressions `J12` intra
+et `L12` composée. **`X2`, `X3`, `X4`, `X5`, `X6` maintenues.**
+
+**`cek1` est accepté UNIQUEMENT comme repli déclaré, PAS comme `I-E`
+complète.**
+
+### Conséquence — `X5`
+
+Les **cinq** preuves de `TASK-0020` deviennent **canoniques**. **Les gardes
+n'ont pas été étendues dans cette clôture**, qui est documentaire : la **tâche
+de réalignement à venir devra commencer par les protéger** avant toute autre
+écriture de preuve.
+
+### Non fait, volontairement
+
+- **Aucun rejeu** — ni `M12`, ni `J12`, ni `L12`, ni `H9`, ni aucun test.
+- **Aucun artefact de preuve `TASK-0020` modifié.**
+- **Aucune nouvelle `TASK` d'implémentation créée**, aucune `DEC` créée ni
+  modifiée, **aucun code produit touché**.
+- **Aucune garde `X5` modifiée** à ce stade.
+- **Aucune fusion vers `main`, aucune PR, aucune release, aucune étiquette,
+  aucun `force push`**, aucune réécriture d'historique, aucune suppression.
+
+### Prochaine action unique
+
+**Réalignement produit post-`TASK-0020`, à formaliser AVANT tout nouveau
+code** : topographie finale à cartes/nœuds reliés plutôt que l'imbrication de
+rectangles; correction explicite du contrat `P-02`; moteur déterministe de
+relations automatiques sans IA; workflow humain simple de confirmation/rejet
+des suggestions; IA en couche **optionnelle `BYOK`, jamais requise par le
+noyau**; préparation architecture mono-utilisateur / multi-utilisateur /
+permissions héritées de la source. Détail dans `docs/ai/NEXT_ACTION.md`.
