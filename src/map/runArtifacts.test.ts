@@ -33,6 +33,7 @@ import composedScenarioSource from "./composedScenario.ts?raw";
 import crossScenarioSource from "./crossScenario.ts?raw";
 import mapAppSource from "./MapApp.tsx?raw";
 import relationScenarioSource from "./relationScenario.ts?raw";
+import topographicScenarioSource from "./topographicScenario.ts?raw";
 import {
   H9_REGRESSION_ABANDON_ARTIFACT,
   H9_REGRESSION_ARTIFACT,
@@ -45,6 +46,7 @@ import {
   k12Artifact,
   l12Artifact,
   m12Artifact,
+  n15Artifact,
 } from "./runArtifacts";
 
 /** Every source file of this runtime that may write a run artefact. */
@@ -54,10 +56,11 @@ const WRITING_SOURCES: ReadonlyArray<readonly [string, string]> = [
   ["src/map/brainScenario.ts", brainScenarioSource],
   ["src/map/composedScenario.ts", composedScenarioSource],
   ["src/map/crossScenario.ts", crossScenarioSource],
+  ["src/map/topographicScenario.ts", topographicScenarioSource],
 ];
 
 describe("X5 — the runtime never writes over an earlier task's canonical evidence", () => {
-  it("the only protected runtime destinations are the five ACTION-0032 sealed", () => {
+  it("TASK-0022 has no protected runtime destination", () => {
     // The strong form of what used to be « none of them is protected ». Both
     // directions are asserted, because each catches a different accident: a
     // destination sealed without anybody noticing, and a sealed name quietly
@@ -139,7 +142,7 @@ describe("X5 — the runtime never writes over an earlier task's canonical evide
     expect(PROTECTED_RUN_ARTIFACTS).toHaveLength(19);
   });
 
-  it("the migrated scenarios write under TASK-0020, named as regressions", () => {
+  it("the migrated scenarios write under TASK-0022, named as regressions", () => {
     for (const name of [
       H9_REGRESSION_ARTIFACT,
       H9_REGRESSION_ABANDON_ARTIFACT,
@@ -149,7 +152,7 @@ describe("X5 — the runtime never writes over an earlier task's canonical evide
       k12Artifact(1, "written"),
       l12Artifact(1, "written"),
     ]) {
-      expect(name.startsWith("TASK-0020-")).toBe(true);
+      expect(name.startsWith("TASK-0022-")).toBe(true);
       expect(name).toContain("regression");
       expect(name.endsWith(".json")).toBe(true);
     }
@@ -157,44 +160,57 @@ describe("X5 — the runtime never writes over an earlier task's canonical evide
 
   it("the migrated names are exactly the ones this slice froze", () => {
     expect(H9_REGRESSION_ARTIFACT).toBe(
-      "TASK-0020-H9-composed-runtime-regression-webview2.json",
+      "TASK-0022-H9-composed-runtime-regression-webview2.json",
     );
-    expect(J12_REGRESSION_ARTIFACT).toBe("TASK-0020-J12-intrabrain-regression-webview2.json");
+    expect(J12_REGRESSION_ARTIFACT).toBe(
+      "TASK-0022-J12-intrabrain-relations-regression-webview2.json",
+    );
     expect(H9_REGRESSION_ABANDON_ARTIFACT).toBe(
-      "TASK-0020-H9-composed-runtime-regression-webview2-abandon.json",
+      "TASK-0022-H9-composed-runtime-regression-webview2-abandon.json",
     );
     expect(J12_REGRESSION_ABANDON_ARTIFACT).toBe(
-      "TASK-0020-J12-intrabrain-regression-webview2-abandon.json",
+      "TASK-0022-J12-intrabrain-relations-regression-webview2-abandon.json",
     );
-    expect(K11_ARTIFACT).toBe("TASK-0020-K11-readonly-regression-webview2.json");
+    expect(K11_ARTIFACT).toBe(
+      "TASK-0022-K11-readonly-isolation-regression-webview2.json",
+    );
     expect(k12Artifact(1, "written")).toBe(
-      "TASK-0020-K12-foundation-regression-webview2-pass1.json",
+      "TASK-0022-K12-foundation-regression-webview2-pass1.json",
     );
     expect(l12Artifact(1, "written")).toBe(
-      "TASK-0020-L12-composed-regression-webview2-pass1.json",
+      "TASK-0022-L12-composed-view-regression-webview2-pass1.json",
     );
     expect(l12Artifact(2, "written")).toBe(
-      "TASK-0020-L12-composed-regression-webview2-pass2.json",
+      "TASK-0022-L12-composed-view-regression-webview2-pass2.json",
     );
   });
 
-  it("M12 publishes its own evidence, under its own name, in two passes", () => {
+  it("M12 publishes its TASK-0022 regression evidence in two passes", () => {
     // `M12` is a criterion of this slice, not a replay of an earlier one, so
     // its name says `M12` and carries no `regression`.
     expect(m12Artifact(1, "written")).toBe(
-      "TASK-0020-M12-interbrain-relations-webview2-pass1.json",
+      "TASK-0022-M12-interbrain-relations-regression-webview2-pass1.json",
     );
     expect(m12Artifact(2, "written")).toBe(
-      "TASK-0020-M12-interbrain-relations-webview2-pass2.json",
+      "TASK-0022-M12-interbrain-relations-regression-webview2-pass2.json",
     );
     expect(m12Artifact(1, "abandoned")).toBe(
-      "TASK-0020-M12-interbrain-relations-webview2-pass1-abandon.json",
+      "TASK-0022-M12-interbrain-relations-regression-webview2-pass1-abandon.json",
     );
-    expect(m12Artifact(1, "written")).not.toContain("regression");
+    expect(m12Artifact(1, "written")).toContain("regression");
     expect(m12Artifact(1, "written")).not.toBe(m12Artifact(2, "written"));
   });
 
-  it("every runtime destination belongs to TASK-0020", () => {
+  it("N15 publishes two distinct TASK-0022 passes", () => {
+    expect(n15Artifact(1, "written")).toBe(
+      "TASK-0022-N15-topographic-node-graph-webview2-pass1.json",
+    );
+    expect(n15Artifact(2, "written")).toBe(
+      "TASK-0022-N15-topographic-node-graph-webview2-pass2.json",
+    );
+  });
+
+  it("every runtime destination belongs to TASK-0022", () => {
     for (const name of [
       ...RUNTIME_RUN_ARTIFACTS,
       K11_ARTIFACT,
@@ -202,7 +218,7 @@ describe("X5 — the runtime never writes over an earlier task's canonical evide
       l12Artifact(2, "abandoned"),
       m12Artifact(2, "abandoned"),
     ]) {
-      expect(name.startsWith("TASK-0020-")).toBe(true);
+      expect(name.startsWith("TASK-0022-")).toBe(true);
     }
   });
 
@@ -254,7 +270,7 @@ describe("X5 — the runtime never writes over an earlier task's canonical evide
       );
       expect(declarations.length, `${path} declares no task`).toBeGreaterThan(0);
       for (const declared of declarations) {
-        expect(declared, `${path} declares ${declared}`).toBe("TASK-0020");
+        expect(declared, `${path} declares ${declared}`).toBe("TASK-0022");
       }
     }
   });
@@ -266,7 +282,7 @@ describe("X5 — the runtime never writes over an earlier task's canonical evide
       for (const call of calls) {
         const argument = call[1].trim();
         expect(
-          /^(H9_REGRESSION_ARTIFACT|H9_REGRESSION_ABANDON_ARTIFACT|J12_REGRESSION_ARTIFACT|J12_REGRESSION_ABANDON_ARTIFACT|K11_ARTIFACT|k12Artifact\(|l12Artifact\(|m12Artifact\()/.test(
+          /^(H9_REGRESSION_ARTIFACT|H9_REGRESSION_ABANDON_ARTIFACT|J12_REGRESSION_ARTIFACT|J12_REGRESSION_ABANDON_ARTIFACT|K11_ARTIFACT|k12Artifact\(|l12Artifact\(|m12Artifact\(|n15Artifact\()/.test(
             argument,
           ),
           `${path}: artefact name not taken from runArtifacts.ts — ${argument}`,

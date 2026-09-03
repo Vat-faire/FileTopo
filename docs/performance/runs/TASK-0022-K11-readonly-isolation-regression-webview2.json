@@ -1,0 +1,211 @@
+{
+  "task": "TASK-0022",
+  "criteria": [
+    "L11",
+    "L2",
+    "K11",
+    "K3",
+    "H1",
+    "H2",
+    "H3",
+    "H5",
+    "H6",
+    "H7",
+    "H8",
+    "H10",
+    "H11"
+  ],
+  "sourceCriterion": "TASK-0018/K11",
+  "nature": "regression / compatibility replay",
+  "doesNotReplace": "docs/performance/runs/TASK-0018-K11-readonly-and-isolation.json, docs/performance/runs/TASK-0019-K11-readonly-regression-webview2.json",
+  "replacesCanonicalEvidence": false,
+  "note": "Read-only and isolation, replayed on the composed runtime. Driven by brain: the runtime exposes no fixture-keyed command. TASK-0018's own K11 artefact is the canonical evidence of a VERIFIED task and is protected at the write gate.",
+  "capturedAtIso": "2026-09-03T04:53:06.226Z",
+  "host": {
+    "sandboxRoot": "<dépôt>/.filetopo-sandbox/variants/task0022-k11-20260903005304-730649",
+    "appVersion": "0.1.0-alpha.1",
+    "sqliteVersion": "3.53.2",
+    "webviewVersion": "152.0.4191.53",
+    "tauriVersion": "2.11.5",
+    "platform": "windows",
+    "nodeCeiling": 5000,
+    "depthCeiling": 40,
+    "cardWidth": 240,
+    "cardHeight": 64,
+    "layoutAlgorithm": "layered-tree-cards-v1",
+    "autoVerify": true,
+    "autoMeasure": false,
+    "autoRelations": false,
+    "autoBrainsPass": 0,
+    "autoComposedPass": 0,
+    "autoCrossPass": 0,
+    "autoTopographicPass": 0
+  },
+  "l2_indexPaths": [
+    "brains/brain-alpha/map/index.sqlite",
+    "brains/brain-beta/map/index.sqlite",
+    "brains/brain-gamma/map/index.sqlite"
+  ],
+  "l2_indexPathsDistinct": true,
+  "findings": [
+    {
+      "brainId": "brain-alpha",
+      "indexPath": "brains/brain-alpha/map/index.sqlite",
+      "fixtureId": "quasi-empty",
+      "declaredCeiling": 25,
+      "nodeCount": 12,
+      "plannedNodes": 12,
+      "maxDepth": 3,
+      "depthCeiling": 40,
+      "nodeCeiling": 5000,
+      "schemaVersion": 3,
+      "layoutInvocations": 1,
+      "timingsMs": {
+        "scan": 0.6843,
+        "layout": 0.0203,
+        "index": 11.8832
+      },
+      "rebuiltTimingsMs": {
+        "scan": 0.7054,
+        "layout": 0.015099999999999999,
+        "index": 12.2098
+      },
+      "h1_pathsAgree": true,
+      "h1_counts": {
+        "planned": 11,
+        "onDisk": 11,
+        "indexed": 11
+      },
+      "h1_missingFromIndex": [],
+      "h1_unexpectedInIndex": [],
+      "h2_layoutViolations": [],
+      "h3_hierarchyMismatches": [],
+      "h5_detailMismatches": [],
+      "h6_readOnlyConfirmed": true,
+      "h6_fingerprintBefore": "fnv1a64:5a5d4ea787c1fb6f",
+      "h6_fingerprintAfterRebuild": "fnv1a64:5a5d4ea787c1fb6f",
+      "h6_fingerprintUnchanged": true,
+      "h6_filetopoArtifactsInRoot": [],
+      "h7_digestBefore": "fnv1a64:400fab2df3081fc0",
+      "h7_digestAfterRebuild": "fnv1a64:400fab2df3081fc0",
+      "h7_equivalent": true,
+      "h7_nonReconstructible": [
+        "built_unix_ms"
+      ],
+      "h11_withinCeilings": true,
+      "integrityBefore": {
+        "brainId": "brain-alpha",
+        "fixtureId": "quasi-empty",
+        "fingerprint": "fnv1a64:5a5d4ea787c1fb6f",
+        "filetopoArtifacts": [],
+        "observedEntries": 11
+      }
+    },
+    {
+      "brainId": "brain-beta",
+      "indexPath": "brains/brain-beta/map/index.sqlite",
+      "fixtureId": "deep",
+      "declaredCeiling": 500,
+      "nodeCount": 157,
+      "plannedNodes": 157,
+      "maxDepth": 40,
+      "depthCeiling": 40,
+      "nodeCeiling": 5000,
+      "schemaVersion": 3,
+      "layoutInvocations": 1,
+      "timingsMs": {
+        "scan": 12.115300000000001,
+        "layout": 0.0564,
+        "index": 14.3927
+      },
+      "rebuiltTimingsMs": {
+        "scan": 10.2672,
+        "layout": 0.0553,
+        "index": 11.4027
+      },
+      "h1_pathsAgree": true,
+      "h1_counts": {
+        "planned": 156,
+        "onDisk": 156,
+        "indexed": 156
+      },
+      "h1_missingFromIndex": [],
+      "h1_unexpectedInIndex": [],
+      "h2_layoutViolations": [],
+      "h3_hierarchyMismatches": [],
+      "h5_detailMismatches": [],
+      "h6_readOnlyConfirmed": true,
+      "h6_fingerprintBefore": "fnv1a64:5332e62d83297333",
+      "h6_fingerprintAfterRebuild": "fnv1a64:5332e62d83297333",
+      "h6_fingerprintUnchanged": true,
+      "h6_filetopoArtifactsInRoot": [],
+      "h7_digestBefore": "fnv1a64:8765c034d3bf1500",
+      "h7_digestAfterRebuild": "fnv1a64:8765c034d3bf1500",
+      "h7_equivalent": true,
+      "h7_nonReconstructible": [
+        "built_unix_ms"
+      ],
+      "h11_withinCeilings": true,
+      "integrityBefore": {
+        "brainId": "brain-beta",
+        "fixtureId": "deep",
+        "fingerprint": "fnv1a64:5332e62d83297333",
+        "filetopoArtifacts": [],
+        "observedEntries": 156
+      }
+    },
+    {
+      "brainId": "brain-gamma",
+      "indexPath": "brains/brain-gamma/map/index.sqlite",
+      "fixtureId": "quasi-empty",
+      "declaredCeiling": 25,
+      "nodeCount": 12,
+      "plannedNodes": 12,
+      "maxDepth": 3,
+      "depthCeiling": 40,
+      "nodeCeiling": 5000,
+      "schemaVersion": 3,
+      "layoutInvocations": 1,
+      "timingsMs": {
+        "scan": 0.6357999999999999,
+        "layout": 0.0158,
+        "index": 10.9451
+      },
+      "rebuiltTimingsMs": {
+        "scan": 0.5982000000000001,
+        "layout": 0.014199999999999999,
+        "index": 13.8082
+      },
+      "h1_pathsAgree": true,
+      "h1_counts": {
+        "planned": 11,
+        "onDisk": 11,
+        "indexed": 11
+      },
+      "h1_missingFromIndex": [],
+      "h1_unexpectedInIndex": [],
+      "h2_layoutViolations": [],
+      "h3_hierarchyMismatches": [],
+      "h5_detailMismatches": [],
+      "h6_readOnlyConfirmed": true,
+      "h6_fingerprintBefore": "fnv1a64:5a5d4ea787c1fb6f",
+      "h6_fingerprintAfterRebuild": "fnv1a64:5a5d4ea787c1fb6f",
+      "h6_fingerprintUnchanged": true,
+      "h6_filetopoArtifactsInRoot": [],
+      "h7_digestBefore": "fnv1a64:400fab2df3081fc0",
+      "h7_digestAfterRebuild": "fnv1a64:400fab2df3081fc0",
+      "h7_equivalent": true,
+      "h7_nonReconstructible": [
+        "built_unix_ms"
+      ],
+      "h11_withinCeilings": true,
+      "integrityBefore": {
+        "brainId": "brain-gamma",
+        "fixtureId": "quasi-empty",
+        "fingerprint": "fnv1a64:5a5d4ea787c1fb6f",
+        "filetopoArtifacts": [],
+        "observedEntries": 11
+      }
+    }
+  ]
+}

@@ -1,6 +1,6 @@
 <#
 .SYNOPSIS
-    Runs the two passes of M12 (TASK-0020 — inter-brain relations) against the
+    Runs the two passes of M12 (TASK-0022 regression — inter-brain relations) against the
     real host, with a real close and a real restart between them.
 
 .DESCRIPTION
@@ -56,13 +56,17 @@
 [CmdletBinding()]
 param(
     [string]$Executable,
-    [string]$LogDirectory = $env:TEMP,
+    [string]$LogDirectory,
     [int]$TimeoutSeconds = 900
 )
 
 $ErrorActionPreference = 'Stop'
 
 $repository = Split-Path -Parent $PSScriptRoot
+if (-not $LogDirectory) {
+    $LogDirectory = Join-Path $repository '.filetopo-sandbox/task0022-logs'
+}
+$null = New-Item -ItemType Directory -Path $LogDirectory -Force
 if (-not $Executable) {
     $Executable = Join-Path $repository 'src-tauri/target/debug/filetopo.exe'
 }
@@ -88,7 +92,7 @@ $watcher = Join-Path $PSScriptRoot 'j12-send-real-key.ps1'
 #
 # Both passes share the SAME variant, which is what lets pass 2 find the common
 # store pass 1 wrote. The directory is deliberately NOT removed afterwards.
-$variant = 'task0020-m12-{0}-{1}' -f (Get-Date -Format 'yyyyMMddHHmmss'),
+$variant = 'task0022-m12-{0}-{1}' -f (Get-Date -Format 'yyyyMMddHHmmss'),
                                      ([guid]::NewGuid().ToString('N').Substring(0, 6))
 
 # Reserve X5, held outside the application too. The list lives in ONE place —
@@ -110,11 +114,10 @@ function Wait-ForArtifact {
 function Invoke-Pass {
     param([int]$Pass, [switch]$WithKeyWatcher)
 
-    $log = Join-Path $LogDirectory "filetopo-m12-pass$Pass.log"
-    if (Test-Path -LiteralPath $log) { Remove-Item -LiteralPath $log -Force }
+    $log = Join-Path $LogDirectory "filetopo-task0022-m12-$variant-pass$Pass.log"
 
-    $artifact = Join-Path $runs "TASK-0020-M12-interbrain-relations-webview2-pass$Pass.json"
-    $abandoned = Join-Path $runs "TASK-0020-M12-interbrain-relations-webview2-pass$Pass-abandon.json"
+    $artifact = Join-Path $runs "TASK-0022-M12-interbrain-relations-regression-webview2-pass$Pass.json"
+    $abandoned = Join-Path $runs "TASK-0022-M12-interbrain-relations-regression-webview2-pass$Pass-abandon.json"
     foreach ($stale in @($artifact, $abandoned)) {
         Assert-NotProtectedRunArtifact -Path $stale
         if (Test-Path -LiteralPath $stale) { Remove-Item -LiteralPath $stale -Force }

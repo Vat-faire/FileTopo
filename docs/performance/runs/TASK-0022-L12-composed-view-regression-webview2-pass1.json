@@ -1,0 +1,341 @@
+{
+  "task": "TASK-0022",
+  "criterion": "L12",
+  "nature": "criterion evidence",
+  "replacesCanonicalEvidence": false,
+  "pass": 1,
+  "capturedAtIso": "2026-09-03T04:53:41.864Z",
+  "host": {
+    "sandboxRoot": "<dépôt>/.filetopo-sandbox/variants/task0022-l12-20260903005312-927c4c",
+    "appVersion": "0.1.0-alpha.1",
+    "sqliteVersion": "3.53.2",
+    "webviewVersion": "152.0.4191.53",
+    "tauriVersion": "2.11.5",
+    "platform": "windows",
+    "nodeCeiling": 5000,
+    "depthCeiling": 40,
+    "cardWidth": 240,
+    "cardHeight": 64,
+    "layoutAlgorithm": "layered-tree-cards-v1",
+    "autoVerify": false,
+    "autoMeasure": false,
+    "autoRelations": false,
+    "autoBrainsPass": 0,
+    "autoComposedPass": 1,
+    "autoCrossPass": 0,
+    "autoTopographicPass": 0
+  },
+  "evidence": {
+    "pass": 1,
+    "steps": "L12.1 a L12.14",
+    "keyFailures": [],
+    "step1_compositionReady": true,
+    "step1_prepared": {
+      "activeBrainId": "brain-alpha",
+      "alphaIsActive": true,
+      "catalogPath": "brains/catalog.sqlite",
+      "brainsInCatalogue": 3
+    },
+    "step2_alphaAlone": {
+      "displayedBrainIds": [
+        "brain-alpha"
+      ],
+      "aloneOnScreen": true,
+      "canvases": 1,
+      "territories": [
+        "brain-alpha"
+      ],
+      "nodesDrawn": 12,
+      "territoryOffset": {
+        "x": 48,
+        "y": 144
+      },
+      "focusedChip": "▲Cerveau Alphaactifsource quasi-empty"
+    },
+    "step3_addGammaByKey": {
+      "activationIsTrusted": true,
+      "keydownIsTrusted": true,
+      "programmaticClickCalls": 0,
+      "programmaticClickDispatches": 0,
+      "noProgrammaticActivationUsed": true,
+      "displayedAfter": [
+        "brain-alpha",
+        "brain-gamma"
+      ],
+      "isC2": true,
+      "focusStayedOnAlpha": true
+    },
+    "step4_c2": {
+      "canvases": 1,
+      "singleCanvas": true,
+      "territories": [
+        "brain-alpha",
+        "brain-gamma"
+      ],
+      "twoTerritories": true,
+      "alphaTerritoryLabel": "territoire Cerveau Alpha, icône ▲, 12 nœuds, actif",
+      "gammaTerritoryLabel": "territoire Cerveau Gamma, icône ◆, 12 nœuds",
+      "alphaNodesDrawn": 12,
+      "gammaNodesDrawn": 12,
+      "countsAre12And12": true,
+      "alphaSnapshotNodes": 12,
+      "gammaSnapshotNodes": 12,
+      "alphaIndexPath": "brains/brain-alpha/map/index.sqlite",
+      "gammaIndexPath": "brains/brain-gamma/map/index.sqlite",
+      "indexPathsDistinct": true,
+      "sameSource": true,
+      "alphaOffsetComposed": {
+        "x": 48,
+        "y": 144
+      },
+      "gammaOffsetComposed": {
+        "x": 1584,
+        "y": 144
+      },
+      "alphaRectanglesUnchanged": true
+    },
+    "step5_collision": {
+      "sharedNodeId": 4,
+      "theSameIdExistsInBothBrains": true,
+      "inAlpha": {
+        "activeDescendant": "brain-alpha-map-node-4",
+        "focusedBrainId": "brain-alpha",
+        "detailsName": "racine-1.txt",
+        "detailsPath": "racine-1.txt",
+        "selectedInAlpha": 1,
+        "selectedInGamma": 0,
+        "detailSettled": true
+      },
+      "inGamma": {
+        "activeDescendant": "brain-gamma-map-node-4",
+        "focusedBrainId": "brain-gamma",
+        "detailsName": "racine-1.txt",
+        "detailsPath": "racine-1.txt",
+        "selectedInAlpha": 0,
+        "selectedInGamma": 1,
+        "detailSettled": true
+      },
+      "expectedAlphaDomId": "brain-alpha-map-node-4",
+      "expectedGammaDomId": "brain-gamma-map-node-4",
+      "domIdsAreDistinct": true,
+      "selectingAlphaLeftGammaUnselected": true,
+      "selectingGammaLeftAlphaUnselected": true,
+      "noDomIdIsSharedAcrossTerritories": true,
+      "allDomIdsUnique": true
+    },
+    "step6_c2View": {
+      "asked": {
+        "scale": 1.7,
+        "tx": -220,
+        "ty": 75
+      },
+      "onScreen": {
+        "view": {
+          "scale": 1.7,
+          "tx": -220,
+          "ty": 75
+        },
+        "selected": {
+          "brainId": "brain-gamma",
+          "nodeId": 4
+        }
+      },
+      "internalLayoutUnchangedByPanZoom": true
+    },
+    "step7_approvalIsolated": {
+      "s005WasPending": true,
+      "approvalReplayable": true,
+      "approvalNotReplayableReason": null,
+      "s005IsApprovedInAlpha": true,
+      "approvalError": null,
+      "alphaApprovedBefore": 4,
+      "alphaApprovedAfter": 5,
+      "alphaPendingBefore": 4,
+      "alphaPendingAfter": 3,
+      "alphaMovedByExactlyOne": true,
+      "gammaApprovedBefore": 4,
+      "gammaApprovedAfter": 4,
+      "gammaPendingBefore": [
+        "S-005",
+        "S-006",
+        "S-007",
+        "S-008"
+      ],
+      "gammaPendingAfter": [
+        "S-005",
+        "S-006",
+        "S-007",
+        "S-008"
+      ],
+      "gammaStrictlyUnchanged": true,
+      "alphaRelationsPath": "brains/brain-alpha/relations/relations.sqlite",
+      "gammaRelationsPath": "brains/brain-gamma/relations/relations.sqlite",
+      "separateStores": true,
+      "gammaS005StillPending": true
+    },
+    "step7_c2Left": {
+      "view": {
+        "scale": 1.7,
+        "tx": -220,
+        "ty": 75
+      },
+      "selected": {
+        "brainId": "brain-gamma",
+        "nodeId": 4
+      }
+    },
+    "step8_c3": {
+      "activationIsTrusted": true,
+      "keydownIsTrusted": true,
+      "programmaticClickCalls": 0,
+      "programmaticClickDispatches": 0,
+      "displayedAfter": [
+        "brain-alpha",
+        "brain-beta",
+        "brain-gamma"
+      ],
+      "inCatalogueOrder": true,
+      "canvases": 1,
+      "singleCanvas": true,
+      "territories": [
+        "brain-alpha",
+        "brain-beta",
+        "brain-gamma"
+      ],
+      "drawn": {
+        "alpha": 12,
+        "beta": 157,
+        "gamma": 12
+      },
+      "total": 181,
+      "countsAre12_157_12": true,
+      "totalIs181": true,
+      "betaSnapshotNodes": 157,
+      "reportedTotal": "3 territoire(s) · 181 nœuds"
+    },
+    "step9_noCrossBrainEdges": {
+      "edgesDrawn": 32,
+      "crossingEdges": 0,
+      "crossingSamples": [],
+      "everyEdgeStaysInOneBrain": true,
+      "brainsCarryingEdges": [
+        "brain-alpha",
+        "brain-gamma"
+      ],
+      "interBrainLayerPresent": 10,
+      "interBrainLayerCarriesNoMapEdgeClass": true,
+      "interBrainRelationsAreAnotherLayer": "TASK-0020 / DEC-0018 — les aretes inter-cerveaux portent map-cross-edge, jamais map-edge; L8 continue de mesurer les relations INTRA-cerveau"
+    },
+    "step10_betaSelection": {
+      "nodeId": 11,
+      "activeDescendant": "brain-beta-map-node-11",
+      "expectedActiveDescendant": "brain-beta-map-node-11",
+      "detailsName": "annexe",
+      "detailsPath": "niveau-01/niveau-02/niveau-03/annexe",
+      "focusedBrainId": "brain-beta",
+      "focusFollowedTheSelection": true,
+      "activeBrainId": "brain-beta",
+      "activeBrainFollowedTheFocus": true,
+      "composition": {
+        "displayedBrainIds": [
+          "brain-alpha",
+          "brain-beta",
+          "brain-gamma"
+        ],
+        "focusedBrainId": "brain-beta"
+      },
+      "selectedElsewhere": 0
+    },
+    "step11_c3View": {
+      "asked": {
+        "scale": 0.55,
+        "tx": 40,
+        "ty": -30
+      },
+      "onScreen": {
+        "view": {
+          "scale": 0.55,
+          "tx": 40,
+          "ty": -30
+        },
+        "selected": {
+          "brainId": "brain-beta",
+          "nodeId": 11
+        }
+      },
+      "differsFromC2": true
+    },
+    "step12_backToC2": {
+      "displayed": [
+        "brain-alpha",
+        "brain-gamma"
+      ],
+      "settled": true,
+      "waitedMs": 25,
+      "isC2": true,
+      "left": {
+        "view": {
+          "scale": 1.7,
+          "tx": -220,
+          "ty": 75
+        },
+        "selected": {
+          "brainId": "brain-gamma",
+          "nodeId": 4
+        }
+      },
+      "back": {
+        "view": {
+          "scale": 1.7,
+          "tx": -220,
+          "ty": 75
+        },
+        "selected": {
+          "brainId": "brain-gamma",
+          "nodeId": 4
+        }
+      },
+      "restoredExactly": true,
+      "betaStillInCatalogue": true,
+      "betaIndexStillThere": "brains/brain-beta/map/index.sqlite",
+      "betaNodesStillThere": 157
+    },
+    "step13_removeAlphaByKey": {
+      "activationIsTrusted": true,
+      "keydownIsTrusted": true,
+      "programmaticClickCalls": 0,
+      "programmaticClickDispatches": 0,
+      "displayedAfter": [
+        "brain-gamma"
+      ],
+      "gammaAlone": true,
+      "focusedBrainId": "brain-gamma",
+      "gammaIsFocused": true,
+      "activeBrainId": "brain-gamma",
+      "gammaIsActive": true,
+      "alphaStillInCatalogue": true
+    },
+    "step14_lastRemovalRefused": {
+      "ariaDisabled": "true",
+      "stillFocusable": true,
+      "keydownIsTrusted": true,
+      "activationIsTrusted": true,
+      "focusReached": true,
+      "chipDisappeared": false,
+      "displayedAfter": [
+        "brain-gamma"
+      ],
+      "stillDisplayed": true,
+      "status": "Composition refusée — composed_view_cannot_remove_last_brain: brain-gamma — retirer le dernier cerveau affiché est refusé",
+      "refusalIsExplicit": true,
+      "composition": {
+        "displayedBrainIds": [
+          "brain-gamma"
+        ],
+        "focusedBrainId": "brain-gamma"
+      },
+      "refused": true
+    },
+    "step15to16_restart": "fermeture et redemarrage reels: hors de la page, par scripts/l12-run-real-host.ps1"
+  }
+}

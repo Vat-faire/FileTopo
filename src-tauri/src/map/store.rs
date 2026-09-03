@@ -8,7 +8,7 @@
 //! `map_meta` row, both written in the same transaction as the data, so a
 //! half-written index is never mistaken for a complete one.
 
-use super::layout::Rect;
+use super::layout::{LAYOUT_ALGORITHM, Rect};
 use super::{MAX_NODES_PER_MAP, MapError, fnv1a64};
 use crate::domain::{NodeDto, NodeKind, ScanDiagnostic};
 use rusqlite::{Connection, OptionalExtension, params};
@@ -16,15 +16,13 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::path::Path;
 
-/// Bump only together with a migration. `TASK-0016` shipped version 1;
-/// `TASK-0018` raises it to 2, because an index now records **which brain it
-/// was built for**.
+/// Bump only with an explicit compatibility rule. `TASK-0016` shipped version
+/// 1, `TASK-0018` version 2 for brain identity, and `TASK-0022` version 3
+/// because rectangles now mean independent node cards rather than a treemap.
 ///
-/// The bump is not cosmetic. A version-1 index carries no `brain_id`, so
-/// nothing in it could tell `brain-alpha`'s index from `brain-gamma`'s — they
-/// read the same fixture and would be byte-comparable. Refusing to read it as
-/// a brain's index is the only honest answer: it is rebuilt, never guessed at.
-pub const MAP_SCHEMA_VERSION: i64 = 2;
+/// A v1/v2 rectangle cannot be reinterpreted as a v3 node card. It is rebuilt
+/// from the read-only source, never guessed at.
+pub const MAP_SCHEMA_VERSION: i64 = 3;
 
 /// State that a rebuild cannot reproduce, enumerated rather than presumed
 /// empty — `H7` requires the list, not the reassurance.
@@ -64,6 +62,8 @@ pub struct MapSnapshot {
     pub layout_width: f64,
     pub layout_height: f64,
     pub schema_version: i64,
+    /// Read from `map_meta`, never inferred by the frontend.
+    pub layout_algorithm: String,
     pub nodes: Vec<MapNode>,
     pub diagnostics: Vec<ScanDiagnostic>,
 }
@@ -154,8 +154,10 @@ impl MapStore {
     pub fn is_built(&self) -> Result<bool, MapError> {
         let version = self.meta("schema_version")?;
         let complete = self.meta("build_complete")?;
+        let algorithm = self.meta("layout_algorithm")?;
         Ok(version.as_deref() == Some(&MAP_SCHEMA_VERSION.to_string())
-            && complete.as_deref() == Some("1"))
+            && complete.as_deref() == Some("1")
+            && algorithm.as_deref() == Some(LAYOUT_ALGORITHM))
     }
 
     pub fn meta(&self, key: &str) -> Result<Option<String>, MapError> {
@@ -242,7 +244,7 @@ impl MapStore {
                 ("node_count", nodes.len().to_string()),
                 ("layout_width", format!("{layout_width}")),
                 ("layout_height", format!("{layout_height}")),
-                ("layout_algorithm", "squarified-min-area-v1".to_string()),
+                ("layout_algorithm", LAYOUT_ALGORITHM.to_string()),
                 ("built_unix_ms", built_unix_ms.to_string()),
                 ("build_complete", "1".to_string()),
             ] {
@@ -254,6 +256,11 @@ impl MapStore {
     }
 
     pub fn snapshot(&self) -> Result<MapSnapshot, MapError> {
+        if !self.is_built()? {
+            return Err(MapError::NotBuilt(format!(
+                "map schema or layout is not current; rebuild required ({LAYOUT_ALGORITHM})"
+            )));
+        }
         let brain_id = self
             .meta("brain_id")?
             .ok_or_else(|| MapError::NotBuilt("map_meta.brain_id".into()))?;
@@ -269,6 +276,9 @@ impl MapStore {
             .meta("layout_height")?
             .and_then(|value| value.parse::<f64>().ok())
             .unwrap_or_default();
+        let layout_algorithm = self
+            .meta("layout_algorithm")?
+            .ok_or_else(|| MapError::NotBuilt("map_meta.layout_algorithm".into()))?;
 
         let nodes = self.all_nodes()?;
         let root_id = nodes
@@ -298,6 +308,7 @@ impl MapStore {
             layout_width,
             layout_height,
             schema_version: MAP_SCHEMA_VERSION,
+            layout_algorithm,
             nodes,
             diagnostics,
         })
@@ -335,9 +346,7 @@ impl MapStore {
     }
 
     pub fn detail(&self, node_id: i64) -> Result<NodeDetail, MapError> {
-        let node = self
-            .node(node_id)?
-            .ok_or(MapError::NodeMissing(node_id))?;
+        let node = self.node(node_id)?.ok_or(MapError::NodeMissing(node_id))?;
         let parent = match node.parent_id {
             Some(parent_id) => self.node(parent_id)?,
             None => None,
@@ -364,7 +373,8 @@ impl MapStore {
             accumulator.extend_from_slice(&node.size_bytes.to_le_bytes());
             accumulator.extend_from_slice(&node.child_count.to_le_bytes());
             accumulator.extend_from_slice(&node.parent_id.unwrap_or(-1).to_le_bytes());
-            accumulator.extend_from_slice(node.access_diagnostic.as_deref().unwrap_or("").as_bytes());
+            accumulator
+                .extend_from_slice(node.access_diagnostic.as_deref().unwrap_or("").as_bytes());
             for value in [node.rect.x, node.rect.y, node.rect.w, node.rect.h] {
                 accumulator.extend_from_slice(&value.to_bits().to_le_bytes());
             }
@@ -483,7 +493,17 @@ mod tests {
         }];
         let mut store = MapStore::in_memory().expect("store");
         store
-            .replace("brain-demo", "demo", "Demo", &nodes, &rects, 100.0, 100.0, &diagnostics, 7)
+            .replace(
+                "brain-demo",
+                "demo",
+                "Demo",
+                &nodes,
+                &rects,
+                100.0,
+                100.0,
+                &diagnostics,
+                7,
+            )
             .expect("replace");
 
         assert!(store.is_built().expect("built"));
@@ -491,6 +511,7 @@ mod tests {
         assert_eq!(snapshot.node_count, 4);
         assert_eq!(snapshot.root_id, 1);
         assert_eq!(snapshot.schema_version, MAP_SCHEMA_VERSION);
+        assert_eq!(snapshot.layout_algorithm, LAYOUT_ALGORITHM);
         // The access diagnostic reaches the node it belongs to, so the details
         // panel can show it instead of burying it in a global list.
         let unreadable = snapshot
@@ -510,7 +531,17 @@ mod tests {
         let (nodes, rects) = sample_nodes();
         let mut store = MapStore::in_memory().expect("store");
         store
-            .replace("brain-demo", "demo", "Demo", &nodes, &rects, 100.0, 100.0, &[], 7)
+            .replace(
+                "brain-demo",
+                "demo",
+                "Demo",
+                &nodes,
+                &rects,
+                100.0,
+                100.0,
+                &[],
+                7,
+            )
             .expect("replace");
 
         let root = store.detail(1).expect("root detail");
@@ -531,17 +562,80 @@ mod tests {
         let (nodes, rects) = sample_nodes();
         let mut store = MapStore::in_memory().expect("store");
         store
-            .replace("brain-demo", "demo", "Demo", &nodes, &rects, 100.0, 100.0, &[], 7)
+            .replace(
+                "brain-demo",
+                "demo",
+                "Demo",
+                &nodes,
+                &rects,
+                100.0,
+                100.0,
+                &[],
+                7,
+            )
             .expect("first");
         let first = store.reconstructible_digest().expect("digest");
         store
-            .replace("brain-demo", "demo", "Demo", &nodes, &rects, 100.0, 100.0, &[], 999)
+            .replace(
+                "brain-demo",
+                "demo",
+                "Demo",
+                &nodes,
+                &rects,
+                100.0,
+                100.0,
+                &[],
+                999,
+            )
             .expect("second");
 
         assert_eq!(store.snapshot().expect("snapshot").node_count, 4);
         // The build timestamp changed; nothing reconstructible did.
         assert_eq!(first, store.reconstructible_digest().expect("digest"));
-        assert_eq!(store.meta("built_unix_ms").expect("meta").as_deref(), Some("999"));
+        assert_eq!(
+            store.meta("built_unix_ms").expect("meta").as_deref(),
+            Some("999")
+        );
+    }
+
+    #[test]
+    fn schema_two_treemap_is_never_served_as_schema_three() {
+        let (nodes, mut rects) = sample_nodes();
+        for rect in &mut rects {
+            rect.w = 13.0;
+            rect.h = 17.0;
+        }
+        let mut store = MapStore::in_memory().expect("store");
+        store
+            .replace(
+                "brain-demo",
+                "demo",
+                "Demo",
+                &nodes,
+                &rects,
+                100.0,
+                100.0,
+                &[],
+                7,
+            )
+            .expect("replace");
+        store
+            .connection
+            .execute(
+                "UPDATE map_meta SET value = '2' WHERE key = 'schema_version'",
+                [],
+            )
+            .expect("schema v2");
+        store
+            .connection
+            .execute(
+                "UPDATE map_meta SET value = 'squarified-min-area-v1' WHERE key = 'layout_algorithm'",
+                [],
+            )
+            .expect("old layout");
+
+        assert!(!store.is_built().expect("compatibility"));
+        assert!(matches!(store.snapshot(), Err(MapError::NotBuilt(_))));
     }
 
     #[test]
@@ -574,7 +668,17 @@ mod tests {
         ];
 
         let error = store
-            .replace("brain-demo", "demo", "Demo", &nodes, &rects, 1.0, 1.0, &[], 0)
+            .replace(
+                "brain-demo",
+                "demo",
+                "Demo",
+                &nodes,
+                &rects,
+                1.0,
+                1.0,
+                &[],
+                0,
+            )
             .expect_err("over budget");
 
         assert!(matches!(error, MapError::NodeBudgetExceeded { .. }));

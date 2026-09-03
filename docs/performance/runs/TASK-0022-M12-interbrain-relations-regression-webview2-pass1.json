@@ -1,0 +1,455 @@
+{
+  "task": "TASK-0022",
+  "criterion": "M12",
+  "nature": "criterion evidence",
+  "replacesCanonicalEvidence": false,
+  "pass": 1,
+  "capturedAtIso": "2026-09-03T04:54:01.500Z",
+  "host": {
+    "sandboxRoot": "<dépôt>/.filetopo-sandbox/variants/task0022-m12-20260903005349-eb4823",
+    "appVersion": "0.1.0-alpha.1",
+    "sqliteVersion": "3.53.2",
+    "webviewVersion": "152.0.4191.53",
+    "tauriVersion": "2.11.5",
+    "platform": "windows",
+    "nodeCeiling": 5000,
+    "depthCeiling": 40,
+    "cardWidth": 240,
+    "cardHeight": 64,
+    "layoutAlgorithm": "layered-tree-cards-v1",
+    "autoVerify": false,
+    "autoMeasure": false,
+    "autoRelations": false,
+    "autoBrainsPass": 0,
+    "autoComposedPass": 0,
+    "autoCrossPass": 1,
+    "autoTopographicPass": 0
+  },
+  "evidence": {
+    "pass": 1,
+    "steps": "M12.1 a M12.22",
+    "keyFailures": [],
+    "step1_alphaAlone": {
+      "displayedBrainIds": [
+        "brain-alpha"
+      ],
+      "aloneOnScreen": true,
+      "focusedBrainId": "brain-alpha",
+      "canvases": 1
+    },
+    "step2_sixDeterministic": {
+      "storePath": "brains/interbrain/relations.sqlite",
+      "storeIsCommon": true,
+      "schemaVersion": 1,
+      "endpointKeyScheme": "cek1",
+      "deterministicCount": 6,
+      "approvedCount": 0,
+      "pendingSuggestionCount": 4,
+      "sixDeterministic": true,
+      "eachFrozenRelationPresent": [
+        {
+          "reference": "XB-D01",
+          "present": true
+        },
+        {
+          "reference": "XB-D02",
+          "present": true
+        },
+        {
+          "reference": "XB-D03",
+          "present": true
+        },
+        {
+          "reference": "XB-D04",
+          "present": true
+        },
+        {
+          "reference": "XB-D05",
+          "present": true
+        },
+        {
+          "reference": "XB-D06",
+          "present": true
+        }
+      ],
+      "allSixPresent": true,
+      "everyRelationJoinsTwoBrains": true,
+      "resolvedBrainIds": [
+        "brain-alpha"
+      ],
+      "deterministicDigest": "fnv1a64:3020af7489aab581"
+    },
+    "step3_addGammaByKey": {
+      "keydownIsTrusted": true,
+      "activationIsTrusted": true,
+      "programmaticClickCalls": 0,
+      "programmaticClickDispatches": 0,
+      "displayedAfter": [
+        "brain-alpha",
+        "brain-gamma"
+      ],
+      "isC2": true,
+      "territories": [
+        "brain-alpha",
+        "brain-gamma"
+      ]
+    },
+    "step4_crossingEdges": {
+      "settled": true,
+      "waitedMs": 92,
+      "crossEdgesDrawn": 4,
+      "alphaToGamma": 2,
+      "atLeastOneCrossing": true,
+      "everyCrossEdgeNamesTwoBrains": true,
+      "crossEdgesDrawnInsideOneBrain": 0,
+      "intraEdgesDrawn": 32,
+      "intraEdgesLeavingTheirBrain": 0,
+      "canvases": 1,
+      "singleCanvas": true
+    },
+    "step5_selectSource": {
+      "reference": "XB-D01",
+      "sourceNodeId": 6,
+      "targetNodeId": 9,
+      "activeDescendant": "brain-alpha-map-node-6",
+      "expectedActiveDescendant": "brain-alpha-map-node-6",
+      "panelSettled": true,
+      "crossLinkedInGamma": 1,
+      "crossLinkedInAlpha": 0,
+      "neighbourAccentuated": true
+    },
+    "step6_panel": {
+      "internalSectionPresent": true,
+      "crossSectionPresent": true,
+      "sectionsAreDistinct": true,
+      "internalTotals": "3 sortante(s) · 1 entrante(s) · 1 suggestion(s) non comptée(s)",
+      "crossTotals": "1 sortante(s) · 0 entrante(s) · 0 suggestion(s) non comptée(s)",
+      "totalsDiffer": true,
+      "outgoingEntries": 1,
+      "incomingEntries": 0,
+      "entryCounts": {
+        "internal": 4,
+        "cross": 1
+      },
+      "crossEntriesCarryNoIntraClass": true,
+      "entryTowardsGamma": {
+        "endpointKey": "cek1|brain-gamma|dossier-b/note-1.txt",
+        "targetBrainId": "brain-gamma",
+        "direction": "outgoing",
+        "provenance": "DETERMINISTIC",
+        "relationType": "reference",
+        "displayed": true,
+        "ruleText": "Règle : cross-homonymes version v1",
+        "accessibleName": "relation inter-cerveaux sortante, de ce cerveau vers Cerveau Gamma, référence, provenance déterministe, nœud note-1.txt"
+      },
+      "showsSourceAndTargetBrain": true,
+      "showsDirection": true,
+      "showsType": true,
+      "showsProvenance": true,
+      "showsRuleAndVersion": true
+    },
+    "step7_followByKey": {
+      "keydownIsTrusted": true,
+      "activationIsTrusted": true,
+      "programmaticClickCalls": 0,
+      "programmaticClickDispatches": 0,
+      "noProgrammaticActivationUsed": true,
+      "observedChange": true,
+      "waitedMs": 1180
+    },
+    "step8_landedInGamma": {
+      "activeDescendant": "brain-gamma-map-node-9",
+      "expectedActiveDescendant": "brain-gamma-map-node-9",
+      "exactEndpointSelected": true,
+      "selectedInGamma": 1,
+      "selectedInAlpha": 0,
+      "onlyOneNodeSelected": true,
+      "focusedBrainId": "brain-gamma",
+      "gammaIsFocused": true,
+      "activeBrainId": "brain-gamma",
+      "gammaIsActive": true,
+      "composition": {
+        "displayedBrainIds": [
+          "brain-alpha",
+          "brain-gamma"
+        ],
+        "focusedBrainId": "brain-gamma"
+      },
+      "crossCountsUnchanged": 6
+    },
+    "step9_backToAlpha": {
+      "suggestionSourceId": 7,
+      "focusedBrainId": "brain-alpha",
+      "activeDescendant": "brain-alpha-map-node-7",
+      "expectedActiveDescendant": "brain-alpha-map-node-7",
+      "backOnAlpha": true
+    },
+    "step10_suggestionNotCounted": {
+      "xbS01IsPending": true,
+      "xbS01Source": "cek1|brain-alpha|dossier-a/note-2.txt",
+      "xbS01Target": "cek1|brain-gamma|dossier-a/note-2.txt",
+      "approvedCountBefore": 0,
+      "pendingCountBefore": 4,
+      "panelSaysNotEstablished": true,
+      "approveControlPresent": true,
+      "crossTotalsBefore": "0 sortante(s) · 0 entrante(s) · 1 suggestion(s) non comptée(s)",
+      "establishedEdgesBefore": 2,
+      "suggestionEdgesBefore": 2,
+      "outgoingIsZeroBefore": true
+    },
+    "step11_approveByKey": {
+      "keydownIsTrusted": true,
+      "activationIsTrusted": true,
+      "programmaticClickCalls": 0,
+      "programmaticClickDispatches": 0,
+      "noProgrammaticActivationUsed": true,
+      "observedChange": true,
+      "status": "Suggestion inter-cerveaux XB-S01 approuvée : elle est désormais une relation APPROVED."
+    },
+    "step12_approvedExactly": {
+      "approvedCountAfter": 1,
+      "pendingCountAfter": 3,
+      "movedByExactlyOne": true,
+      "deterministicUnchanged": true,
+      "approvedRelation": {
+        "sourceBrainId": "brain-alpha",
+        "sourceKey": "cek1|brain-alpha|dossier-a/note-2.txt",
+        "targetBrainId": "brain-gamma",
+        "targetKey": "cek1|brain-gamma|dossier-a/note-2.txt",
+        "relationType": "reference",
+        "provenance": "APPROVED",
+        "ruleName": null,
+        "ruleVersion": null
+      },
+      "matchesTheSuggestion": true,
+      "provenanceIsApproved": true,
+      "noDeterministicRuleInvented": true,
+      "suggestionGoneFromPending": true,
+      "approveControlGone": true,
+      "establishedEdgesAfter": 3,
+      "suggestionEdgesAfter": 1,
+      "establishedEdgeAppeared": true,
+      "panelSettledAfterApproval": true,
+      "crossTotalsAfter": "1 sortante(s) · 0 entrante(s) · 0 suggestion(s) non comptée(s)",
+      "outgoingIsOneAfter": true
+    },
+    "step13_removeGamma": {
+      "displayedAfter": [
+        "brain-alpha"
+      ],
+      "alphaAlone": true,
+      "storeAfterRemoval": {
+        "deterministic": 6,
+        "approved": 1
+      }
+    },
+    "step14_sourceSelectedAlone": {
+      "activeDescendant": "brain-alpha-map-node-6",
+      "entryStillListed": true,
+      "crossTotals": "1 sortante(s) · 0 entrante(s) · 0 suggestion(s) non comptée(s)"
+    },
+    "step15_offScreenIsSaid": {
+      "entryMarkedNotDisplayed": true,
+      "panelSaysOffScreen": true,
+      "accessibleNameSaysOffScreen": true,
+      "brainNamedInWords": true,
+      "provenance": "DETERMINISTIC",
+      "relationType": "reference",
+      "crossEdgesDrawn": 0,
+      "noEdgeToAnAbsentTerritory": true
+    },
+    "step16_navigateByKey": {
+      "keydownIsTrusted": true,
+      "activationIsTrusted": true,
+      "programmaticClickCalls": 0,
+      "programmaticClickDispatches": 0,
+      "noProgrammaticActivationUsed": true,
+      "observedChange": true
+    },
+    "step17_navigationLanded": {
+      "displayedAfter": [
+        "brain-alpha",
+        "brain-gamma"
+      ],
+      "gammaAddedAutomatically": true,
+      "inCatalogueOrder": true,
+      "activeDescendant": "brain-gamma-map-node-9",
+      "expectedActiveDescendant": "brain-gamma-map-node-9",
+      "exactEndpointSelected": true,
+      "focusedBrainId": "brain-gamma",
+      "gammaIsFocused": true,
+      "activeBrainId": "brain-gamma",
+      "deterministicBefore": 6,
+      "deterministicAfter": 6,
+      "approvedBefore": 1,
+      "approvedAfter": 1,
+      "pendingBefore": 3,
+      "pendingAfter": 3,
+      "navigationCreatedNothing": true,
+      "status": "Navigation inter-cerveaux : brain-gamma rejoint la vue. Aucune relation n'est créée, modifiée ni approuvée."
+    },
+    "step18_c3": {
+      "keydownIsTrusted": true,
+      "activationIsTrusted": true,
+      "displayedAfter": [
+        "brain-alpha",
+        "brain-beta",
+        "brain-gamma"
+      ],
+      "isC3": true,
+      "territories": [
+        "brain-alpha",
+        "brain-beta",
+        "brain-gamma"
+      ],
+      "canvases": 1,
+      "singleCanvas": true
+    },
+    "step19_pairsInC3": {
+      "crossEdgesDrawn": 10,
+      "pairs": [
+        "brain-alpha→brain-beta",
+        "brain-alpha→brain-gamma",
+        "brain-beta→brain-alpha",
+        "brain-beta→brain-gamma",
+        "brain-gamma→brain-alpha",
+        "brain-gamma→brain-beta"
+      ],
+      "alphaToBeta": true,
+      "betaToGamma": true,
+      "gammaToBeta": true,
+      "everyEdgeJoinsTwoBrains": true,
+      "crossEdgesDrawnInsideOneBrain": 0,
+      "intraEdgesLeavingTheirBrain": 0
+    },
+    "step20_noInverses": {
+      "inventedInverses": [],
+      "noInverseInvented": true,
+      "sameBrainRelations": [],
+      "suggestionsInEstablished": [],
+      "allRejected": true,
+      "rejections": [
+        {
+          "case": "M1 — same brain on both ends",
+          "attempt": "insert_established(DETERMINISTIC, alpha → alpha)",
+          "expectedMotif": "cross_relation_rejected_same_brain",
+          "observedMotif": "cross_relation_rejected_same_brain",
+          "rejected": true
+        },
+        {
+          "case": "M1 — no endpoint",
+          "attempt": "insert_established(DETERMINISTIC, empty target)",
+          "expectedMotif": "cross_relation_rejected_empty_endpoint",
+          "observedMotif": "cross_relation_rejected_empty_endpoint",
+          "rejected": true
+        },
+        {
+          "case": "M1 — no type",
+          "attempt": "insert_established(DETERMINISTIC, type ``)",
+          "expectedMotif": "cross_relation_rejected_empty_type",
+          "observedMotif": "cross_relation_rejected_empty_type",
+          "rejected": true
+        },
+        {
+          "case": "M1 — a third provenance",
+          "attempt": "insert_established(SUGGESTED, …)",
+          "expectedMotif": "cross_relation_rejected_unknown_provenance",
+          "observedMotif": "cross_relation_rejected_unknown_provenance",
+          "rejected": true
+        },
+        {
+          "case": "M2 — DETERMINISTIC without a versioned rule",
+          "attempt": "insert_established(DETERMINISTIC, rule ``/``)",
+          "expectedMotif": "cross_relation_rejected_missing_rule",
+          "observedMotif": "cross_relation_rejected_missing_rule",
+          "rejected": true
+        },
+        {
+          "case": "M3 — a direct APPROVED write",
+          "attempt": "insert_established(APPROVED, XB-S01)",
+          "expectedMotif": "cross_relation_rejected_suggestion_is_not_a_relation",
+          "observedMotif": "cross_relation_rejected_suggestion_is_not_a_relation",
+          "rejected": true
+        },
+        {
+          "case": "M3 — approving a suggestion that does not exist",
+          "attempt": "approve(XB-S99)",
+          "expectedMotif": "cross_relation_rejected_unknown_suggestion",
+          "observedMotif": "cross_relation_rejected_unknown_suggestion",
+          "rejected": true
+        },
+        {
+          "case": "M1 — an endpoint key naming another brain",
+          "attempt": "insert_established(DETERMINISTIC, gamma key filed under alpha)",
+          "expectedMotif": "cross_relation_rejected_malformed_endpoint",
+          "observedMotif": "cross_relation_rejected_malformed_endpoint",
+          "rejected": true
+        },
+        {
+          "case": "M3 — a second approval of the same suggestion",
+          "attempt": "approve(XB-S01) twice",
+          "expectedMotif": "cross_relation_rejected_suggestion_already_decided",
+          "observedMotif": "cross_relation_rejected_suggestion_already_decided",
+          "rejected": true
+        }
+      ],
+      "countsAgree": true,
+      "countsMismatched": [],
+      "replayStable": true,
+      "approvedSinceSeed": [
+        "XB-S01"
+      ]
+    },
+    "step21_rebuild": {
+      "rebuilds": [
+        {
+          "brainId": "brain-alpha",
+          "rebuilt": true,
+          "indexPath": "brains/brain-alpha/map/index.sqlite",
+          "nodeCount": 12
+        },
+        {
+          "brainId": "brain-gamma",
+          "rebuilt": true,
+          "indexPath": "brains/brain-gamma/map/index.sqlite",
+          "nodeCount": 12
+        },
+        {
+          "brainId": "brain-beta",
+          "rebuilt": true,
+          "indexPath": "brains/brain-beta/map/index.sqlite",
+          "nodeCount": 157
+        }
+      ]
+    },
+    "step22_afterRebuild": {
+      "storePath": "brains/interbrain/relations.sqlite",
+      "storeSurvived": true,
+      "deterministicCount": 6,
+      "approvedCount": 1,
+      "pendingSuggestionCount": 3,
+      "deterministicIdentical": true,
+      "digestBefore": "fnv1a64:3020af7489aab581",
+      "digestAfter": "fnv1a64:3020af7489aab581",
+      "digestUnchanged": true,
+      "approvedSurvived": true,
+      "xbS01StillApproved": true,
+      "suggestionsSurvived": true,
+      "unresolvedEndpoints": [],
+      "everyEndpointResolved": true,
+      "everyRelationStillJoinsTwoBrains": true,
+      "endpointBrains": [
+        "brain-alpha→brain-gamma",
+        "brain-alpha→brain-gamma",
+        "brain-alpha→brain-beta",
+        "brain-beta→brain-gamma",
+        "brain-beta→brain-alpha",
+        "brain-gamma→brain-alpha",
+        "brain-gamma→brain-beta"
+      ],
+      "selfCheckCountsAgree": true,
+      "selfCheckUnresolved": []
+    },
+    "step23_close": "fermeture reelle: hors de la page, par scripts/m12-run-real-host.ps1"
+  }
+}

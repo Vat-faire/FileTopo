@@ -3050,3 +3050,28 @@ architecture, ses fixtures, ses critères gelés, sa compatibilité
 multi-cerveaux, ses relations intra et inter-cerveaux, son `pan`/`zoom`, son
 clavier, ses labels et ses tests réels `WebView2` seront définis par le
 **prochain prompt de l'orchestrateur**.
+
+## 2026-09-03 — TASK-0022 IMPLEMENTED
+
+- Gel `TASK-0022` et `DEC-0024` en `289cf9b`, poussé avant tout code produit;
+  N1 à N15 demeurés immuables.
+- Remplacement du treemap principal par `layered-tree-cards-v1` : schéma carte
+  3, cartes 240 × 64, profondeur gauche→droite, espaces 120/28, arêtes
+  hiérarchiques orthogonales exactes.
+- Refus et reconstruction sûre des index v2; catalogue et stores relationnels
+  hors index conservés; algorithme exposé par les DTO backend.
+- `MapView` conserve un SVG C1/C2/C3, ids brain+node, labels screen-space et
+  glyphes structurels; relations intra, suggestions et interbrain projetées
+  bord à bord.
+- Navigation clavier gauche/droite/haut/bas alignée sur parent/enfant/frères;
+  destinations hors vue rendues visibles sans relayout; pan/zoom/fit/reset
+  restent des transformations de vue.
+- Ajout de tests Rust/TypeScript et de N15 réel en deux processus; rejeux J12,
+  K11, L12 et M12 sous huit noms `TASK-0022-*`.
+- Validation : 149 tests Rust, 188 tests TypeScript, check/build/Tauri debug,
+  N1–N15 et régressions réelles passés. WebView2 `152.0.4191.53`.
+- `F-007`, `F-008`, `F-016` → `IMPLEMENTED`; `F-042` reste
+  `PROPOSED / ULTÉRIEUR`. Aucun statut `VERIFIED` attribué par l'exécuteur.
+- B0 observé puis contourné avec `CARGO_INCREMENTAL=0`, non corrigé. Aucune
+  dépendance, donnée réelle, opération sur `main`, PR, release ou suppression
+  de preuve historique.

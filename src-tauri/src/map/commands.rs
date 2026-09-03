@@ -7,9 +7,9 @@
 //! guesswork.
 
 use super::brains::{BrainNodeRef, BrainRecord};
-use super::layout::{self, LayoutInput};
-use super::store::{MapSnapshot, MapStore, NON_RECONSTRUCTIBLE_KEYS, NodeDetail};
+use super::layout::{self, LAYOUT_ALGORITHM, LayoutInput};
 use super::sandbox::{self, SandboxPaths};
+use super::store::{MapSnapshot, MapStore, NON_RECONSTRUCTIBLE_KEYS, NodeDetail};
 use super::{MAX_FIXTURE_DEPTH, MAX_NODES_PER_MAP, MapError, fixtures};
 use crate::domain::ScanDiagnostic;
 use crate::scanner::scan_tree_controlled;
@@ -59,6 +59,8 @@ pub struct MapBuildReport {
     pub reconstructible_digest: String,
     pub non_reconstructible: Vec<String>,
     pub schema_version: i64,
+    /// The algorithm persisted by the map store and read back after the build.
+    pub layout_algorithm: String,
     pub diagnostics: Vec<ScanDiagnostic>,
 }
 
@@ -77,7 +79,9 @@ pub struct HostInfo {
     pub platform: String,
     pub node_ceiling: usize,
     pub depth_ceiling: u32,
-    pub min_leaf_area: f64,
+    pub card_width: f64,
+    pub card_height: f64,
+    pub layout_algorithm: String,
     /// Set by `FILETOPO_AUTO_VERIFY`: replays `H1` to `H7` against the real
     /// host and writes the evidence, unattended.
     pub auto_verify: bool,
@@ -113,6 +117,9 @@ pub struct HostInfo {
     /// Kept apart from the other two because `K12`, `L12` and `M12` prove
     /// different things and must stay replayable one without the others.
     pub auto_cross_pass: u8,
+    /// `N15` — `0` none, `1` the full interaction pass, `2` the persisted
+    /// state observed only after a real process restart.
+    pub auto_topographic_pass: u8,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -141,7 +148,7 @@ pub struct MapSelfCheck {
     pub paths_agree: bool,
     pub missing_from_index: Vec<String>,
     pub unexpected_in_index: Vec<String>,
-    /// `H2`: no null dimension, no sibling overlap, every child inside its parent.
+    /// `N3`: fixed finite cards, depth columns and no overlap.
     pub layout_violations: Vec<String>,
     /// `H3`: parent and direct children agree with an independent query.
     pub hierarchy_mismatches: Vec<String>,
@@ -187,11 +194,14 @@ pub fn build_map(
     // An index built for another brain — or a version-1 index, which names no
     // brain at all — is **rebuilt**, never read. Serving it would be exactly
     // the leak `K3` forbids.
+    let mut compatibility_rebuild = false;
     if database.is_file() && !rebuild {
         let existing = MapStore::open(&database)?;
         let built_for = existing.built_for_brain()?;
+        let compatible = existing.is_built()?;
         drop(existing);
-        if built_for.as_deref() != Some(brain.brain_id.as_str()) {
+        if built_for.as_deref() != Some(brain.brain_id.as_str()) || !compatible {
+            compatibility_rebuild = true;
             remove_index_files(&database)?;
         }
     }
@@ -251,7 +261,7 @@ pub fn build_map(
         max_depth,
         node_ceiling: MAX_NODES_PER_MAP,
         depth_ceiling: MAX_FIXTURE_DEPTH,
-        rebuilt: rebuild,
+        rebuilt: rebuild || compatibility_rebuild,
         scan_ms,
         layout_ms,
         index_ms,
@@ -266,6 +276,9 @@ pub fn build_map(
             .map(|key| (*key).to_string())
             .collect(),
         schema_version: super::store::MAP_SCHEMA_VERSION,
+        layout_algorithm: store
+            .meta("layout_algorithm")?
+            .unwrap_or_else(|| LAYOUT_ALGORITHM.to_string()),
         diagnostics: scan.diagnostics,
     })
 }
@@ -408,45 +421,72 @@ pub fn self_check(paths: &SandboxPaths, brain: &BrainRecord) -> Result<MapSelfCh
 
     let mut layout_violations = Vec::new();
     let mut by_id = std::collections::HashMap::new();
-    let mut children_of: std::collections::HashMap<i64, Vec<usize>> = std::collections::HashMap::new();
+    let mut children_of: std::collections::HashMap<i64, Vec<usize>> =
+        std::collections::HashMap::new();
+    let mut by_depth: std::collections::BTreeMap<u32, Vec<usize>> =
+        std::collections::BTreeMap::new();
+    let mut root_count = 0usize;
     for (position, node) in nodes.iter().enumerate() {
         by_id.insert(node.id, position);
         if let Some(parent) = node.parent_id {
             children_of.entry(parent).or_default().push(position);
+        } else {
+            root_count += 1;
         }
-        if !(node.rect.w > 0.0) || !(node.rect.h > 0.0) {
-            layout_violations.push(format!("null dimension on {}", node.relative_path));
+        by_depth.entry(node.depth).or_default().push(position);
+        if !node.rect.x.is_finite()
+            || !node.rect.y.is_finite()
+            || !node.rect.w.is_finite()
+            || !node.rect.h.is_finite()
+            || node.rect.w != layout::CARD_WIDTH
+            || node.rect.h != layout::CARD_HEIGHT
+        {
+            layout_violations.push(format!("invalid card geometry on {}", node.relative_path));
+        }
+        let expected_x = f64::from(node.depth) * (layout::CARD_WIDTH + layout::COLUMN_GAP);
+        if node.rect.x != expected_x {
+            layout_violations.push(format!("wrong depth column on {}", node.relative_path));
         }
     }
-    for (parent_id, siblings) in &children_of {
+    if root_count != 1 {
+        layout_violations.push(format!("expected one root, found {root_count}"));
+    }
+    for (parent_id, children) in &children_of {
         let Some(parent_position) = by_id.get(parent_id) else {
             layout_violations.push(format!("orphan children under id {parent_id}"));
             continue;
         };
         let parent = &nodes[*parent_position];
-        let tolerance = 1e-6 * parent.rect.w.max(1.0);
-        let allowed_overlap = 1e-9 * parent.rect.area().max(1.0);
-        for position in siblings {
-            if !parent.rect.contains(&nodes[*position].rect, tolerance) {
+        for position in children {
+            let child = &nodes[*position];
+            if child.depth != parent.depth + 1 {
                 layout_violations.push(format!(
-                    "{} escapes its parent {}",
-                    nodes[*position].relative_path, parent.relative_path
+                    "{} has wrong depth for parent {}",
+                    child.relative_path, parent.relative_path
+                ));
+            }
+            if parent.rect.x + parent.rect.w >= child.rect.x {
+                layout_violations.push(format!(
+                    "{} is not an independent card to the right of {}",
+                    child.relative_path, parent.relative_path
                 ));
             }
         }
-        for (offset, left) in siblings.iter().enumerate() {
-            for right in &siblings[offset + 1..] {
-                let overlap = nodes[*left].rect.intersection_area(&nodes[*right].rect);
-                if overlap > allowed_overlap {
-                    layout_violations.push(format!(
-                        "{} overlaps {}",
-                        nodes[*left].relative_path, nodes[*right].relative_path
-                    ));
-                }
+    }
+    // Different depths occupy disjoint x-columns. Within one column, sorting
+    // by y means only adjacent cards can overlap, so this remains bounded and
+    // never compares every pair of nodes.
+    for positions in by_depth.values_mut() {
+        positions.sort_by(|left, right| nodes[*left].rect.y.total_cmp(&nodes[*right].rect.y));
+        for pair in positions.windows(2) {
+            let left = &nodes[pair[0]];
+            let right = &nodes[pair[1]];
+            if left.rect.y + left.rect.h > right.rect.y {
+                layout_violations.push(format!(
+                    "{} overlaps {}",
+                    left.relative_path, right.relative_path
+                ));
             }
-        }
-        if layout_violations.len() > 40 {
-            break;
         }
     }
 
@@ -463,7 +503,11 @@ pub fn self_check(paths: &SandboxPaths, brain: &BrainRecord) -> Result<MapSelfCh
             .map(|positions| positions.iter().map(|p| nodes[*p].id).collect::<Vec<_>>())
             .unwrap_or_default();
         expected_children.sort_unstable();
-        let mut reported = detail.children.iter().map(|child| child.id).collect::<Vec<_>>();
+        let mut reported = detail
+            .children
+            .iter()
+            .map(|child| child.id)
+            .collect::<Vec<_>>();
         reported.sort_unstable();
         if reported != expected_children {
             hierarchy_mismatches.push(format!("children mismatch on {}", node.relative_path));
@@ -870,7 +914,10 @@ mod tests {
 
         assert_eq!(first.reconstructible_digest, second.reconstructible_digest);
         assert_eq!(first.node_count, second.node_count);
-        assert_eq!(second.non_reconstructible, vec!["built_unix_ms".to_string()]);
+        assert_eq!(
+            second.non_reconstructible,
+            vec!["built_unix_ms".to_string()]
+        );
 
         let store = open_store(&paths, &brain).expect("store");
         assert_ne!(
@@ -882,11 +929,58 @@ mod tests {
     }
 
     #[test]
+    fn a_schema_two_treemap_is_detected_and_rebuilt_as_schema_three() {
+        let temp = tempfile::tempdir().expect("temp");
+        let paths = SandboxPaths::under(temp.path().join("sandbox"));
+        let brain = brain_reading("quasi-empty");
+        let first = build_map(&paths, &brain, false).expect("initial v3 build");
+        let database = paths.brain_map_database(&brain.brain_id);
+
+        let legacy = rusqlite::Connection::open(&database).expect("legacy index");
+        legacy
+            .execute(
+                "UPDATE map_meta SET value = '2' WHERE key = 'schema_version'",
+                [],
+            )
+            .expect("schema v2");
+        legacy
+            .execute(
+                "UPDATE map_meta SET value = 'squarified-min-area-v1' WHERE key = 'layout_algorithm'",
+                [],
+            )
+            .expect("old algorithm");
+        legacy
+            .execute("UPDATE map_nodes SET rect_w = 13, rect_h = 17", [])
+            .expect("representative old rectangles");
+        legacy
+            .execute_batch("PRAGMA user_version=2;")
+            .expect("user version 2");
+        drop(legacy);
+
+        let rebuilt = build_map(&paths, &brain, false).expect("compatibility rebuild");
+        assert!(
+            rebuilt.rebuilt,
+            "an incompatible index must report its rebuild"
+        );
+        assert_eq!(rebuilt.schema_version, 3);
+        assert_eq!(rebuilt.layout_algorithm, LAYOUT_ALGORITHM);
+        assert_eq!(rebuilt.layout_invocations, 1);
+        assert_eq!(rebuilt.fingerprint_before, first.fingerprint_before);
+        assert_eq!(rebuilt.fingerprint_after, first.fingerprint_after);
+        let snapshot = snapshot(&paths, &brain).expect("v3 snapshot");
+        assert_eq!(snapshot.schema_version, 3);
+        assert_eq!(snapshot.layout_algorithm, LAYOUT_ALGORITHM);
+        assert!(snapshot.nodes.iter().all(|node| {
+            node.rect.w == layout::CARD_WIDTH && node.rect.h == layout::CARD_HEIGHT
+        }));
+    }
+
+    #[test]
     fn an_unknown_fixture_is_refused_by_name() {
         let temp = tempfile::tempdir().expect("temp");
         let paths = SandboxPaths::under(temp.path().to_path_buf());
-        let error = build_map(&paths, &brain_reading("ailleurs"), false)
-            .expect_err("unknown fixture");
+        let error =
+            build_map(&paths, &brain_reading("ailleurs"), false).expect_err("unknown fixture");
         assert!(matches!(error, MapError::UnknownFixture(_)));
     }
 
@@ -920,18 +1014,26 @@ mod tests {
         assert_eq!(gamma_report.node_count, 12);
         // ...and `K3`: in two different files, neither naming the fixture.
         assert_ne!(alpha_report.index_path, gamma_report.index_path);
-        assert_eq!(alpha_report.index_path, "brains/brain-alpha/map/index.sqlite");
-        assert_eq!(gamma_report.index_path, "brains/brain-gamma/map/index.sqlite");
-        assert!(
-            paths
-                .brain_map_database("brain-alpha")
-                .is_file()
+        assert_eq!(
+            alpha_report.index_path,
+            "brains/brain-alpha/map/index.sqlite"
         );
+        assert_eq!(
+            gamma_report.index_path,
+            "brains/brain-gamma/map/index.sqlite"
+        );
+        assert!(paths.brain_map_database("brain-alpha").is_file());
         assert!(paths.brain_map_database("brain-gamma").is_file());
 
         // Each snapshot names its own brain, read back from its own index.
-        assert_eq!(snapshot(&paths, &alpha).expect("alpha").brain_id, "brain-alpha");
-        assert_eq!(snapshot(&paths, &gamma).expect("gamma").brain_id, "brain-gamma");
+        assert_eq!(
+            snapshot(&paths, &alpha).expect("alpha").brain_id,
+            "brain-alpha"
+        );
+        assert_eq!(
+            snapshot(&paths, &gamma).expect("gamma").brain_id,
+            "brain-gamma"
+        );
     }
 
     /// `K4`: the frozen counts of §4.8, from the real pipeline.
@@ -971,8 +1073,7 @@ mod tests {
         // Alpha's index, dropped into Gamma's place.
         let gamma_database = paths.brain_map_database(&gamma.brain_id);
         std::fs::create_dir_all(gamma_database.parent().expect("map dir")).expect("dir");
-        std::fs::copy(paths.brain_map_database(&alpha.brain_id), &gamma_database)
-            .expect("copy");
+        std::fs::copy(paths.brain_map_database(&alpha.brain_id), &gamma_database).expect("copy");
 
         let outcome = open_store(&paths, &gamma);
         match outcome.err().expect("must refuse") {

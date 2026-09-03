@@ -16,6 +16,7 @@ import type {
   RelationsOverview,
   SuggestionEdge,
 } from "./types";
+import { edgeAnchors } from "./geometry";
 
 /** Machine value → the two things the interface must be able to say about it. */
 export const PROVENANCE_LABELS: Record<RelationProvenance, string> = {
@@ -86,16 +87,12 @@ export interface RelationSegment {
   label: string;
 }
 
-function centre(node: MapNode): { x: number; y: number } {
-  return { x: node.rect.x + node.rect.w / 2, y: node.rect.y + node.rect.h / 2 };
-}
-
 /**
  * Projects relations onto the rectangles the index already holds.
  *
  * **No layout is recomputed here** — `H10` of `TASK-0016` stays true: the
- * rectangles come from the index, and an edge is just the segment between two
- * of their centres.
+ * rectangles come from the index, and an edge is just the border-to-border
+ * segment between them.
  *
  * An endpoint the index cannot resolve produces no segment; it is reported by
  * the store's `unresolvedEndpoints` instead of being drawn at the origin.
@@ -121,8 +118,7 @@ export function relationSegments(
     const from = byId.get(fromId);
     const to = byId.get(toId);
     if (!from || !to) return;
-    const start = centre(from);
-    const end = centre(to);
+    const { source: start, target: end } = edgeAnchors(from.rect, to.rect);
     segments.push({
       key,
       kind,

@@ -4,6 +4,7 @@ import {
   ZOOM_MAX_FACTOR,
   ZOOM_MIN_FACTOR,
   clampView,
+  ensureRectVisible,
   fitScale,
   fitToBox,
   fitView,
@@ -90,6 +91,25 @@ describe("view bounds — H4", () => {
     expect(Number.isFinite(clamped.scale)).toBe(true);
     expect(Number.isFinite(clamped.tx)).toBe(true);
     expect(Number.isFinite(clamped.ty)).toBe(true);
+  });
+});
+
+describe("selection visibility — N15", () => {
+  it("pans minimally to reveal an off-screen target without changing scale", () => {
+    const view = { scale: 1, tx: 0, ty: 0 };
+    const target = { x: 2_000, y: 300, w: 240, h: 64 };
+    const next = ensureRectVisible(target, view, world, viewport);
+    const projected = worldToScreen(target, next);
+    expect(next.scale).toBe(view.scale);
+    expect(projected.x + projected.w).toBeLessThanOrEqual(viewport.width - 18);
+    expect(projected.y).toBeGreaterThanOrEqual(18);
+  });
+
+  it("returns the same view when the target is already visible", () => {
+    const view = { scale: 1, tx: 20, ty: 20 };
+    expect(
+      ensureRectVisible({ x: 100, y: 100, w: 240, h: 64 }, view, world, viewport),
+    ).toBe(view);
   });
 });
 

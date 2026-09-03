@@ -38,6 +38,7 @@ import { runBrainScenario as runBrains } from "./brainScenario";
 import { runComposedScenario as runComposed } from "./composedScenario";
 import { runCrossScenario as runCross } from "./crossScenario";
 import { runRelationScenario as runScenario } from "./relationScenario";
+import { runTopographicScenario as runTopographic } from "./topographicScenario";
 import {
   H9_REGRESSION_ABANDON_ARTIFACT,
   H9_REGRESSION_ARTIFACT,
@@ -268,6 +269,7 @@ export default function MapApp() {
   const runBrainScenarioRef = useRef<(() => Promise<void>) | null>(null);
   const runComposedScenarioRef = useRef<(() => Promise<void>) | null>(null);
   const runCrossScenarioRef = useRef<(() => Promise<void>) | null>(null);
+  const runTopographicScenarioRef = useRef<(() => Promise<void>) | null>(null);
 
   const order = useMemo(() => catalogueOrder(catalog?.brains ?? []), [catalog]);
 
@@ -403,6 +405,15 @@ export default function MapApp() {
       autoStarted.current = true;
       hostLog("info", "démarrage automatique du scénario J12");
       void runRelationScenarioRef.current?.();
+      return;
+    }
+    if (host.autoTopographicPass === 1 || host.autoTopographicPass === 2) {
+      autoStarted.current = true;
+      hostLog(
+        "info",
+        `démarrage automatique du scénario N15, passe ${host.autoTopographicPass}`,
+      );
+      void runTopographicScenarioRef.current?.();
       return;
     }
     if (host.autoCrossPass === 1 || host.autoCrossPass === 2) {
@@ -1083,7 +1094,7 @@ export default function MapApp() {
         name: K11_ARTIFACT,
         contents: JSON.stringify(
           {
-            task: "TASK-0020",
+            task: "TASK-0022",
             criteria: ["L11", "L2", "K11", "K3", "H1", "H2", "H3", "H5", "H6", "H7", "H8", "H10", "H11"],
             sourceCriterion: "TASK-0018/K11",
             nature: "regression / compatibility replay",
@@ -1183,7 +1194,7 @@ export default function MapApp() {
       }
 
       const artifact = {
-        task: "TASK-0020",
+        task: "TASK-0022",
         sourceCriterion: "TASK-0016/H9",
         nature: "regression / compatibility replay",
         doesNotReplace:
@@ -1218,7 +1229,7 @@ export default function MapApp() {
           name: H9_REGRESSION_ABANDON_ARTIFACT,
           contents: JSON.stringify(
             {
-              task: "TASK-0020",
+              task: "TASK-0022",
               sourceCriterion: "TASK-0016/H9",
               nature: "regression / compatibility replay",
               doesNotReplace:
@@ -1324,6 +1335,26 @@ export default function MapApp() {
   }, [host, onRemoveBrain, selectNode, showOnly]);
 
   runCrossScenarioRef.current = runCrossScenario;
+
+  const runTopographicScenario = useCallback(() => {
+    const pass = host?.autoTopographicPass === 2 ? 2 : 1;
+    return runTopographic(
+      {
+        invoke: (command, args) => invoke(command, args),
+        host,
+        showOnly,
+        remove: onRemoveBrain,
+        select: selectNode,
+        readComposition: () => composedRef.current,
+        readView: () => viewRef.current,
+        setStatus,
+        log: hostLog,
+      },
+      pass,
+    );
+  }, [host, onRemoveBrain, selectNode, showOnly]);
+
+  runTopographicScenarioRef.current = runTopographicScenario;
 
   const selectedNode: MapNode | null =
     selected && selectedBrain ? selectedBrain.hierarchy.byId.get(selected.nodeId) ?? null : null;
@@ -1473,6 +1504,9 @@ export default function MapApp() {
           <span>
             {report.nodeCount} {t.nodes} / {t.ceiling} {report.nodeCeiling}
           </span>
+          <span data-testid="layout-algorithm">
+            schema {report.schemaVersion} · {report.layoutAlgorithm}
+          </span>
           <span>
             {t.depth} {report.maxDepth} / {report.depthCeiling}
           </span>
@@ -1498,7 +1532,7 @@ export default function MapApp() {
             {selfCheck.indexedPaths}
           </span>
           <span className={selfCheck.layoutViolations.length === 0 ? "ok" : "ko"}>
-            H2 · {selfCheck.layoutViolations.length} violation(s)
+            N3 · {selfCheck.layoutViolations.length} violation(s)
           </span>
           <span className={selfCheck.hierarchyMismatches.length === 0 ? "ok" : "ko"}>
             H3 · {selfCheck.hierarchyMismatches.length} écart(s)

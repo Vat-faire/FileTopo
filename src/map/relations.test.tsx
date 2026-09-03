@@ -505,12 +505,12 @@ describe("projection des relations", () => {
     expect(relationSegments(orphaned, hierarchy.byId, 2)).toHaveLength(0);
   });
 
-  it("relie les centres des rectangles déjà persistés, sans recalcul de calepinage", () => {
+  it("relie les bords des rectangles déjà persistés, sans recalcul de calepinage", () => {
     const segments = relationSegments(overview, hierarchy.byId, null);
     const first = segments.find((segment) => segment.fromNodeId === 2 && segment.toNodeId === 3);
     expect(first).toBeDefined();
-    // Centre of `note-1.txt` (10,10,100,100) and of `note-2.txt` (150,10,100,100).
-    expect(first).toMatchObject({ x1: 60, y1: 60, x2: 200, y2: 60 });
+    // Right edge of `note-1.txt` and left edge of `note-2.txt`.
+    expect(first).toMatchObject({ x1: 110, y1: 60, x2: 150, y2: 60 });
   });
 
   it("marque les segments qui touchent la sélection", () => {

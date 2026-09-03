@@ -20,16 +20,8 @@
  * applied the moment a task becomes `VERIFIED`.
  *
  * **`TASK-0020` is `VERIFIED` since `ACTION-0032`**, and its five proofs join
- * in turn. This extension differs from the previous two in one respect worth
- * naming rather than hiding: the runtime shipped in this checkout still spells
- * those five names as destinations, so five of its own destinations are now
- * **sealed** — the Rust gate answers with a refusal instead of writing, and
- * the PowerShell guard refuses to delete a stale copy before a pass. Those
- * scenarios are therefore no longer runnable **under these names**, which is
- * correct: `TASK-0020` is controlled and finished, and a slice that needs to
- * replay one of them republishes it under its own task name, exactly as
- * `TASK-0020` did for `TASK-0019`. {@link SEALED_RUNTIME_DESTINATIONS} names
- * the five so the state is asserted rather than discovered.
+ * in turn. TASK-0022 republishes every current replay under `TASK-0022-*`, so
+ * none of the runtime destinations collides with the protected set.
  *
  * Every name lives here so there is one spelling of each and a guard test can
  * hold the whole surface at once — see `runArtifacts.test.ts`.
@@ -75,9 +67,9 @@ export const PROTECTED_RUN_ARTIFACTS = [
  * exists so that pressing the button can never write over anything.
  */
 export const H9_REGRESSION_ARTIFACT =
-  "TASK-0020-H9-composed-runtime-regression-webview2.json";
+  "TASK-0022-H9-composed-runtime-regression-webview2.json";
 export const H9_REGRESSION_ABANDON_ARTIFACT =
-  "TASK-0020-H9-composed-runtime-regression-webview2-abandon.json";
+  "TASK-0022-H9-composed-runtime-regression-webview2-abandon.json";
 
 /**
  * The **intra-brain** relations scenario of `TASK-0017`/`J12`, on `brain-alpha`.
@@ -88,12 +80,12 @@ export const H9_REGRESSION_ABANDON_ARTIFACT =
  * first.
  */
 export const J12_REGRESSION_ARTIFACT =
-  "TASK-0020-J12-intrabrain-regression-webview2.json";
+  "TASK-0022-J12-intrabrain-relations-regression-webview2.json";
 export const J12_REGRESSION_ABANDON_ARTIFACT =
-  "TASK-0020-J12-intrabrain-regression-webview2-abandon.json";
+  "TASK-0022-J12-intrabrain-relations-regression-webview2-abandon.json";
 
 /** `L11` — read-only and isolation, replayed on the composed runtime. */
-export const K11_ARTIFACT = "TASK-0020-K11-readonly-regression-webview2.json";
+export const K11_ARTIFACT = "TASK-0022-K11-readonly-isolation-regression-webview2.json";
 
 /**
  * `K12` of `TASK-0018`, replayed against the composition bar.
@@ -103,7 +95,7 @@ export const K11_ARTIFACT = "TASK-0020-K11-readonly-regression-webview2.json";
  */
 export function k12Artifact(pass: number, outcome: "written" | "abandoned"): string {
   const suffix = outcome === "abandoned" ? "-abandon" : "";
-  return `TASK-0020-K12-foundation-regression-webview2-pass${pass}${suffix}.json`;
+  return `TASK-0022-K12-foundation-regression-webview2-pass${pass}${suffix}.json`;
 }
 
 /**
@@ -114,13 +106,19 @@ export function k12Artifact(pass: number, outcome: "written" | "abandoned"): str
  */
 export function l12Artifact(pass: number, outcome: "written" | "abandoned"): string {
   const suffix = outcome === "abandoned" ? "-abandon" : "";
-  return `TASK-0020-L12-composed-regression-webview2-pass${pass}${suffix}.json`;
+  return `TASK-0022-L12-composed-view-regression-webview2-pass${pass}${suffix}.json`;
 }
 
 /** `M12` — the twenty-eight steps of inter-brain relations, in the real host. */
 export function m12Artifact(pass: number, outcome: "written" | "abandoned"): string {
   const suffix = outcome === "abandoned" ? "-abandon" : "";
-  return `TASK-0020-M12-interbrain-relations-webview2-pass${pass}${suffix}.json`;
+  return `TASK-0022-M12-interbrain-relations-regression-webview2-pass${pass}${suffix}.json`;
+}
+
+/** `N15` — the topographic node graph in the real Tauri/WebView2 host. */
+export function n15Artifact(pass: number, outcome: "written" | "abandoned"): string {
+  const suffix = outcome === "abandoned" ? "-abandon" : "";
+  return `TASK-0022-N15-topographic-node-graph-webview2-pass${pass}${suffix}.json`;
 }
 
 /**
@@ -151,24 +149,14 @@ export const RUNTIME_RUN_ARTIFACTS = [
   m12Artifact(1, "abandoned"),
   m12Artifact(2, "written"),
   m12Artifact(2, "abandoned"),
+  n15Artifact(1, "written"),
+  n15Artifact(1, "abandoned"),
+  n15Artifact(2, "written"),
+  n15Artifact(2, "abandoned"),
 ] as const;
 
 /**
- * The five runtime destinations that `ACTION-0032` sealed.
- *
- * They are `TASK-0020`'s own canonical evidence, and the scenarios that
- * produced them still name them. Writing one now fails at the Rust gate, and
- * deleting a stale copy fails in `scripts/protected-run-artifacts.ps1`. This
- * constant exists so that the state is **declared and tested** rather than
- * discovered by somebody pressing a button and reading an error.
- *
- * Nothing here is a to-do: the next slice does not "unseal" these. It names
- * its own replays after itself, and this list keeps growing.
+ * Exact protected/runtime intersection. TASK-0022 keeps it empty by using its
+ * own names; the guard test fails if a historical destination returns.
  */
-export const SEALED_RUNTIME_DESTINATIONS = [
-  m12Artifact(1, "written"),
-  m12Artifact(2, "written"),
-  J12_REGRESSION_ARTIFACT,
-  l12Artifact(1, "written"),
-  l12Artifact(2, "written"),
-] as const;
+export const SEALED_RUNTIME_DESTINATIONS = [] as const;

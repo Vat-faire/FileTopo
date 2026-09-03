@@ -1,7 +1,7 @@
 # DEC-0024 — deterministic layered node-card layout
 
 - **Date :** 2026-09-03
-- **Statut :** `APPROVED`
+- **Statut :** `IMPLEMENTED` par `TASK-0022`, contrôle indépendant attendu
 - **Nom versionné :** `layered-tree-cards-v1`
 - **Portée :** `TASK-0022`, première tranche d'implémentation post-réalignement
 - **Autorité :** GO technique explicite de l'orchestrateur dans le prompt
@@ -161,5 +161,6 @@ aux relations intra/inter-cerveaux, ni aux approbations, suggestions ou autres
 
 Les preuves appartiennent à `TASK-0022`: tests Rust et TypeScript, contrôles
 `N1` à `N14`, scénario réel Tauri/WebView2 `N15` en deux passes, et régressions
-`J12`, `K11`, `L12`, `M12` sous de nouveaux noms `TASK-0022-*`. Cette décision
-n'affirme aucun résultat avant leur exécution.
+`J12`, `K11`, `L12`, `M12` sous huit nouveaux noms `TASK-0022-*`. Elles ont été
+exécutées le 2026-09-03; l'attribution `VERIFIED` reste réservée au contrôle
+indépendant.

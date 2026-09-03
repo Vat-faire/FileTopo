@@ -2,7 +2,7 @@ import { cleanup, fireEvent, render, screen, within } from "@testing-library/rea
 import { useState } from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import DetailsPanel from "./DetailsPanel";
-import MapView from "./MapView";
+import MapView, { LABEL_MIN_HEIGHT, LABEL_MIN_WIDTH, truncateCardLabel } from "./MapView";
 import type { RelationSegment } from "./relations";
 import { buildHierarchy, hierarchicalNeighbourhood, move } from "./hierarchy";
 import { aggregate, selectionTargets, summarize } from "./measure";
@@ -42,17 +42,17 @@ function node(
 }
 
 const nodes: MapNode[] = [
-  node(1, null, "racine", "root", 0, { x: 0, y: 0, w: 400, h: 400 }, { childCount: 2 }),
-  node(2, 1, "alpha", "directory", 1, { x: 10, y: 30, w: 180, h: 340 }, { childCount: 2 }),
-  node(3, 1, "beta", "directory", 1, { x: 200, y: 30, w: 180, h: 340 }, {
+  node(1, null, "racine", "root", 0, { x: 0, y: 138, w: 240, h: 64 }, { childCount: 2 }),
+  node(2, 1, "alpha", "directory", 1, { x: 360, y: 46, w: 240, h: 64 }, { childCount: 2 }),
+  node(3, 1, "beta", "directory", 1, { x: 360, y: 230, w: 240, h: 64 }, {
     childCount: 0,
     accessDiagnostic: "directory_unreadable",
   }),
-  node(4, 2, "un.txt", "file", 2, { x: 20, y: 60, w: 160, h: 140 }),
-  node(5, 2, "deux.txt", "file", 2, { x: 20, y: 210, w: 160, h: 140 }),
+  node(4, 2, "un.txt", "file", 2, { x: 720, y: 0, w: 240, h: 64 }),
+  node(5, 2, "deux.txt", "file", 2, { x: 720, y: 92, w: 240, h: 64 }),
 ];
 
-const world: Rect = { x: 0, y: 0, w: 400, h: 400 };
+const world: Rect = { x: 0, y: 0, w: 960, h: 294 };
 const hierarchy = buildHierarchy(nodes, 1);
 
 /**
@@ -164,17 +164,17 @@ describe("map selection — P-06, H4", () => {
     const map = screen.getByRole("tree");
     map.focus();
 
-    fireEvent.keyDown(map, { key: "ArrowDown" }); // root → first child
+    fireEvent.keyDown(map, { key: "ArrowRight" }); // root → first child
     expect(screen.getByLabelText("alpha (directory)")).toHaveAttribute("aria-selected", "true");
 
-    fireEvent.keyDown(map, { key: "ArrowRight" }); // next sibling
+    fireEvent.keyDown(map, { key: "ArrowDown" }); // next sibling
     expect(screen.getByLabelText("beta (directory)")).toHaveAttribute("aria-selected", "true");
 
-    fireEvent.keyDown(map, { key: "ArrowLeft" }); // previous sibling
-    fireEvent.keyDown(map, { key: "ArrowDown" }); // into alpha's children
+    fireEvent.keyDown(map, { key: "ArrowUp" }); // previous sibling
+    fireEvent.keyDown(map, { key: "ArrowRight" }); // into alpha's children
     expect(screen.getByLabelText("un.txt (file)")).toHaveAttribute("aria-selected", "true");
 
-    fireEvent.keyDown(map, { key: "ArrowUp" }); // back to the parent
+    fireEvent.keyDown(map, { key: "ArrowLeft" }); // back to the parent
     expect(screen.getByLabelText("alpha (directory)")).toHaveAttribute("aria-selected", "true");
 
     fireEvent.keyDown(map, { key: "Home" });
@@ -185,6 +185,28 @@ describe("map selection — P-06, H4", () => {
     const { container } = render(<Harness />);
     const flagged = container.querySelectorAll(".map-node__diagnostic");
     expect(flagged).toHaveLength(1);
+  });
+
+  it("draws one namespaced hierarchy edge per non-root card", () => {
+    const { container } = render(<Harness />);
+    const cards = container.querySelectorAll('[data-card="true"]');
+    const edges = container.querySelectorAll('[data-edge-kind="hierarchy"]');
+    expect(cards).toHaveLength(nodes.length);
+    expect(edges).toHaveLength(nodes.length - 1);
+    for (const edge of edges) {
+      expect(edge.id.startsWith(`${BRAIN}-hierarchy-edge-`)).toBe(true);
+      expect(edge.getAttribute("data-brain-id")).toBe(BRAIN);
+    }
+  });
+
+  it("renders fixed independent cards with non-colour kind glyphs", () => {
+    const { container } = render(<Harness />);
+    for (const card of container.querySelectorAll<SVGGElement>('[data-card="true"]')) {
+      expect(card.dataset.cardWidth).toBe("240");
+      expect(card.dataset.cardHeight).toBe("64");
+      expect(card.querySelector(".map-node__kind-glyph")).not.toBeNull();
+      expect(card.querySelector("title")?.textContent).toBeTruthy();
+    }
   });
 
   it("keeps the selected label drawn, in the screen-space label layer", () => {
@@ -229,6 +251,22 @@ describe("hierarchy helpers", () => {
     expect(move(hierarchy, 3, "child")).toBeNull();
     expect(move(hierarchy, 2, "previous")).toBeNull();
     expect(move(hierarchy, 3, "next")).toBeNull();
+  });
+});
+
+describe("node-card labels", () => {
+  it("uses a stable screen-space threshold", () => {
+    expect(LABEL_MIN_WIDTH).toBeGreaterThan(0);
+    expect(LABEL_MIN_HEIGHT).toBeGreaterThan(0);
+    expect(LABEL_MIN_WIDTH).toBeLessThan(240);
+    expect(LABEL_MIN_HEIGHT).toBeLessThan(64);
+  });
+
+  it("truncates only the rendered copy and preserves the supplied name", () => {
+    const original = "un-nom-de-document-volontairement-tres-long.txt";
+    const rendered = truncateCardLabel(original, 70);
+    expect(rendered).toMatch(/…$/);
+    expect(rendered.length).toBeLessThan(original.length);
   });
 });
 

@@ -112,6 +112,9 @@ export interface CrossSegment {
   y1: number;
   x2: number;
   y2: number;
+  /** Source and target boxes in their own brain coordinate spaces. */
+  fromRect: MapNode["rect"];
+  toRect: MapNode["rect"];
   /** True when either end is the current selection — used for accentuation. */
   touchesSelection: boolean;
   label: string;
@@ -176,6 +179,8 @@ export function crossSegments(
       y1: start.y,
       x2: end.x,
       y2: end.y,
+      fromRect: fromNode.rect,
+      toRect: toNode.rect,
       touchesSelection:
         selected !== null &&
         ((selected.brainId === from.brainId && selected.nodeId === from.nodeId) ||

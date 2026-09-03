@@ -1,0 +1,103 @@
+{
+  "task": "TASK-0022",
+  "criterion": "M12",
+  "nature": "criterion evidence",
+  "replacesCanonicalEvidence": false,
+  "pass": 2,
+  "capturedAtIso": "2026-09-03T04:54:04.929Z",
+  "host": {
+    "sandboxRoot": "<dépôt>/.filetopo-sandbox/variants/task0022-m12-20260903005349-eb4823",
+    "appVersion": "0.1.0-alpha.1",
+    "sqliteVersion": "3.53.2",
+    "webviewVersion": "152.0.4191.53",
+    "tauriVersion": "2.11.5",
+    "platform": "windows",
+    "nodeCeiling": 5000,
+    "depthCeiling": 40,
+    "cardWidth": 240,
+    "cardHeight": 64,
+    "layoutAlgorithm": "layered-tree-cards-v1",
+    "autoVerify": false,
+    "autoMeasure": false,
+    "autoRelations": false,
+    "autoBrainsPass": 0,
+    "autoComposedPass": 0,
+    "autoCrossPass": 2,
+    "autoTopographicPass": 0
+  },
+  "evidence": {
+    "pass": 2,
+    "steps": "M12.24 a M12.28 — apres une fermeture et un redemarrage reels",
+    "compositionReady": true,
+    "step24_storePersisted": {
+      "storePath": "brains/interbrain/relations.sqlite",
+      "storeIsCommon": true,
+      "schemaVersion": 1,
+      "endpointKeyScheme": "cek1",
+      "seededOnThisStart": 0,
+      "seedCreatedNothing": true
+    },
+    "step25_approvalPersisted": {
+      "approvedCount": 1,
+      "xbS01IsApproved": true,
+      "xbS01NotPendingAgain": true,
+      "pendingSuggestionCount": 3,
+      "exactlyOneApproved": true
+    },
+    "step26_deterministicIdentical": {
+      "deterministicCount": 6,
+      "sixDeterministic": true,
+      "eachFrozenRelationPresent": [
+        {
+          "reference": "XB-D01",
+          "present": true
+        },
+        {
+          "reference": "XB-D02",
+          "present": true
+        },
+        {
+          "reference": "XB-D03",
+          "present": true
+        },
+        {
+          "reference": "XB-D04",
+          "present": true
+        },
+        {
+          "reference": "XB-D05",
+          "present": true
+        },
+        {
+          "reference": "XB-D06",
+          "present": true
+        }
+      ],
+      "allSixPresent": true,
+      "deterministicDigest": "fnv1a64:3020af7489aab581",
+      "replayStable": true,
+      "inventedInverses": [],
+      "unresolvedEndpoints": [],
+      "countsAgree": true,
+      "sameBrainRelations": []
+    },
+    "step27_compositionIsNotPersisted": {
+      "displayedBrainIds": [
+        "brain-gamma"
+      ],
+      "singleBrainOnStart": true,
+      "canvases": 1,
+      "territories": [
+        "brain-gamma"
+      ],
+      "focusedBrainId": "brain-gamma",
+      "composedViewPersistence": "non implementee dans TASK-0020 — P-19",
+      "noMultiBrainCompositionClaimed": true
+    },
+    "step28_historicalEvidenceUntouched": {
+      "artefactWritten": "TASK-0022-M12-interbrain-relations-regression-webview2-pass2.json",
+      "writesUnderItsOwnTaskOnly": false,
+      "protectedNamesNeverWritten": "map_write_run_artifact refuse les 14 noms proteges avant tout acces disque"
+    }
+  }
+}

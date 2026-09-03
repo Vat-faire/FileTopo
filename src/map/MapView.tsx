@@ -1,14 +1,20 @@
 import { useCallback, useEffect, useMemo, useRef } from "react";
 import { domNodeId, domTerritoryId } from "./composedView";
 import type { Hierarchy } from "./hierarchy";
-import { hierarchicalNeighbourhood, move } from "./hierarchy";
+import {
+  domHierarchyEdgeId,
+  hierarchicalNeighbourhood,
+  hierarchyEdges,
+  move,
+} from "./hierarchy";
+import { edgeAnchors } from "./geometry";
 import type { CrossSegment } from "./crossRelations";
 import type { RelationSegment } from "./relations";
 import type { Composition, Territory } from "./territories";
-import { headerBox, territoryOf } from "./territories";
+import { headerBox, placeRect, territoryOf } from "./territories";
 import type { BrainNodeRef, BrainRecord, MapNode } from "./types";
 import type { View, Viewport } from "./viewState";
-import { fitToBox, fitView, panBy, zoomAbout } from "./viewState";
+import { ensureRectVisible, fitToBox, fitView, panBy, sameView, zoomAbout } from "./viewState";
 
 /**
  * The map itself: **one** accessible `SVG`, holding one territory per brain.
@@ -102,8 +108,8 @@ interface MapViewProps {
 }
 
 /** Below this on-screen size a label cannot be read, so it is not drawn. */
-const LABEL_MIN_WIDTH = 46;
-const LABEL_MIN_HEIGHT = 15;
+export const LABEL_MIN_WIDTH = 46;
+export const LABEL_MIN_HEIGHT = 15;
 const WHEEL_ZOOM_STEP = 1.0015;
 const KEY_ZOOM_STEP = 1.35;
 const KEY_PAN_STEP = 90;
@@ -118,6 +124,28 @@ function arrowHead(x: number, y: number, ux: number, uy: number): string {
   const rightX = x + uy * (size * 0.45);
   const rightY = y - ux * (size * 0.45);
   return `M ${tipX} ${tipY} L ${leftX} ${leftY} L ${rightX} ${rightY} Z`;
+}
+
+export function truncateCardLabel(name: string, projectedWidth: number): string {
+  const availableCharacters = Math.max(1, Math.floor((projectedWidth - 24) / 7));
+  if (name.length <= availableCharacters) return name;
+  if (availableCharacters <= 1) return "…";
+  return `${name.slice(0, availableCharacters - 1)}…`;
+}
+
+function nodeGlyph(node: MapNode): React.ReactElement {
+  const x = node.rect.x + 16;
+  const y = node.rect.y + 20;
+  if (node.kind === "root") {
+    return <path className="map-node__kind-glyph" d={`M ${x + 8} ${y - 8} L ${x + 16} ${y} L ${x + 8} ${y + 8} L ${x} ${y} Z`} />;
+  }
+  if (node.kind === "directory") {
+    return <path className="map-node__kind-glyph" d={`M ${x} ${y - 6} H ${x + 8} L ${x + 11} ${y - 2} H ${x + 20} V ${y + 9} H ${x} Z`} />;
+  }
+  if (node.kind === "file") {
+    return <path className="map-node__kind-glyph" d={`M ${x + 3} ${y - 8} H ${x + 13} L ${x + 19} ${y - 2} V ${y + 10} H ${x + 3} Z M ${x + 13} ${y - 8} V ${y - 2} H ${x + 19}`} />;
+  }
+  return <path className="map-node__kind-glyph" d={`M ${x} ${y - 7} L ${x + 18} ${y + 9} M ${x + 18} ${y - 7} L ${x} ${y + 9}`} />;
 }
 
 export default function MapView({
@@ -137,6 +165,7 @@ export default function MapView({
 }: MapViewProps) {
   const hostRef = useRef<HTMLDivElement>(null);
   const dragRef = useRef<{ pointerId: number; x: number; y: number } | null>(null);
+  const visibilityKeyRef = useRef<string | null>(null);
 
   const world = composition.world;
 
@@ -169,6 +198,28 @@ export default function MapView({
           ? hierarchicalNeighbourhood(brain.hierarchy, selected.nodeId)
           : new Set<number>();
 
+      const hierarchy = hierarchyEdges(brain.hierarchy, brain.brainId).map((edge) => {
+        const touchesSelection =
+          selected?.brainId === brain.brainId &&
+          (selected.nodeId === edge.parentNodeId || selected.nodeId === edge.childNodeId);
+        return (
+          <g
+            key={`${edge.parentNodeId}|${edge.childNodeId}`}
+            id={domHierarchyEdgeId(brain.brainId, edge.parentNodeId, edge.childNodeId)}
+            className={`map-hierarchy-edge map-hierarchy-edge--${
+              touchesSelection ? "touching" : "distant"
+            }`}
+            data-edge-kind="hierarchy"
+            data-brain-id={brain.brainId}
+            data-parent-node-id={edge.parentNodeId}
+            data-child-node-id={edge.childNodeId}
+            role="presentation"
+          >
+            <path d={edge.path} vectorEffect="non-scaling-stroke" />
+          </g>
+        );
+      });
+
       const blocks = brain.hierarchy.drawOrder.map((node) => {
         const isSelected =
           selected !== null &&
@@ -194,7 +245,7 @@ export default function MapView({
               : linked
                 ? "linked"
                 : "plain";
-        const corner = Math.min(node.rect.w, node.rect.h) * 0.06;
+        const corner = 6;
         const marker = Math.min(node.rect.w, node.rect.h) * 0.28;
         return (
           <g
@@ -206,6 +257,10 @@ export default function MapView({
             id={domNodeId(brain.brainId, node.id)}
             data-brain-id={brain.brainId}
             data-node-id={node.id}
+            data-node-kind={node.kind}
+            data-card="true"
+            data-card-width={node.rect.w}
+            data-card-height={node.rect.h}
             data-cross-linked={crossLinked ? "true" : undefined}
             role="treeitem"
             aria-level={node.depth + 1}
@@ -217,6 +272,7 @@ export default function MapView({
               onSelect({ brainId: brain.brainId, nodeId: node.id });
             }}
           >
+            <title>{node.name}</title>
             <rect
               x={node.rect.x}
               y={node.rect.y}
@@ -225,6 +281,7 @@ export default function MapView({
               rx={corner}
               vectorEffect="non-scaling-stroke"
             />
+            <g aria-hidden="true">{nodeGlyph(node)}</g>
             {node.accessDiagnostic ? (
               // A hatched corner marks an access diagnostic without relying on
               // colour alone; the panel spells it out in words.
@@ -237,7 +294,7 @@ export default function MapView({
         );
       });
 
-      return { brain, territory, blocks };
+      return { brain, territory, hierarchy, blocks };
     });
   }, [brains, composition, labelFor, onSelect, selected]);
 
@@ -289,6 +346,9 @@ export default function MapView({
             data-brain-id={brain.brainId}
             data-from-brain-id={brain.brainId}
             data-to-brain-id={brain.brainId}
+            data-edge-kind={segment.kind}
+            data-source-node-id={segment.fromNodeId}
+            data-target-node-id={segment.toNodeId}
             role="presentation"
           >
             <title>{segment.label}</title>
@@ -333,10 +393,14 @@ export default function MapView({
       // panel; it does not ask for a line towards a territory that is not there.
       if (!from || !to) continue;
 
-      const x1 = (segment.x1 + from.offsetX) * view.scale + view.tx;
-      const y1 = (segment.y1 + from.offsetY) * view.scale + view.ty;
-      const x2 = (segment.x2 + to.offsetX) * view.scale + view.tx;
-      const y2 = (segment.y2 + to.offsetY) * view.scale + view.ty;
+      const anchors = edgeAnchors(
+        placeRect(from, segment.fromRect),
+        placeRect(to, segment.toRect),
+      );
+      const x1 = anchors.source.x * view.scale + view.tx;
+      const y1 = anchors.source.y * view.scale + view.ty;
+      const x2 = anchors.target.x * view.scale + view.tx;
+      const y2 = anchors.target.y * view.scale + view.ty;
       const offScreen =
         (x1 < 0 && x2 < 0) ||
         (y1 < 0 && y2 < 0) ||
@@ -377,6 +441,8 @@ export default function MapView({
           data-to-brain-id={segment.toBrainId}
           data-kind={segment.kind}
           data-provenance={segment.provenance ?? ""}
+          data-source-node-id={segment.fromNodeId}
+          data-target-node-id={segment.toNodeId}
           role="presentation"
         >
           <title>{segment.label}</title>
@@ -451,14 +517,16 @@ export default function MapView({
           selected !== null && selected.brainId === brain.brainId && selected.nodeId === node.id;
         const big = sw >= LABEL_MIN_WIDTH && sh >= LABEL_MIN_HEIGHT;
         if (!big && !isSelected) continue;
+        const labelInset = Math.min(40, Math.max(5, sw * 0.18));
         drawn.push(
           <text
             key={`${brain.brainId}|${node.id}`}
             className={`map-node__label${isSelected ? " map-node__label--selected" : ""}`}
-            x={sx + 5}
-            y={sy + 13}
+            data-full-name={node.name}
+            x={sx + labelInset}
+            y={sy + Math.min(22, Math.max(13, sh / 2 + 4))}
           >
-            {node.name}
+            {truncateCardLabel(node.name, Math.max(sw - labelInset - 8, 1))}
           </text>,
         );
       }
@@ -511,6 +579,22 @@ export default function MapView({
     [selected, selectedBrain],
   );
 
+  useEffect(() => {
+    if (!selected || !selectedNode) return;
+    const territory = territoryOf(composition, selected.brainId);
+    if (!territory) return;
+    const key = `${selected.brainId}|${selected.nodeId}|${territory.offsetX}|${territory.offsetY}`;
+    if (visibilityKeyRef.current === key) return;
+    visibilityKeyRef.current = key;
+    const next = ensureRectVisible(
+      placeRect(territory, selectedNode.rect),
+      view,
+      world,
+      viewport,
+    );
+    if (!sameView(next, view)) onViewChange(next);
+  }, [composition, onViewChange, selected, selectedNode, view, viewport, world]);
+
   /**
    * Moves the selection to another territory, by keyboard.
    *
@@ -547,19 +631,19 @@ export default function MapView({
       switch (event.key) {
         case "ArrowUp":
           if (panning) onViewChange(panBy(view, 0, KEY_PAN_STEP, world, viewport));
-          else walk("parent");
+          else walk("previous");
           break;
         case "ArrowDown":
           if (panning) onViewChange(panBy(view, 0, -KEY_PAN_STEP, world, viewport));
-          else walk("child");
+          else walk("next");
           break;
         case "ArrowLeft":
           if (panning) onViewChange(panBy(view, KEY_PAN_STEP, 0, world, viewport));
-          else walk("previous");
+          else walk("parent");
           break;
         case "ArrowRight":
           if (panning) onViewChange(panBy(view, -KEY_PAN_STEP, 0, world, viewport));
-          else walk("next");
+          else walk("child");
           break;
         case "+":
         case "=":
@@ -705,6 +789,9 @@ export default function MapView({
                 // rectangles inside keep the coordinates the index gave them.
                 transform={`translate(${entry.territory.offsetX} ${entry.territory.offsetY})`}
               >
+                <g className="map-territory__hierarchy" aria-hidden="true">
+                  {entry.hierarchy}
+                </g>
                 {entry.blocks}
               </g>
             ) : null,

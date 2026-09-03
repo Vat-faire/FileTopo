@@ -3,7 +3,7 @@
 - **Date :** 2026-09-03
 - **Branche :** `build/v0.2-a6-topographic-node-graph`
 - **Base contrôlée :** `c16396d41d24866bd9ea9b229c5815c9518ed552`
-- **Statut courant :** `IN_PROGRESS`
+- **Statut courant :** `IMPLEMENTED` — contrôle indépendant requis
 - **Agent d'exécution :** Codex
 - **GO :** prompt technique explicite `TASK-0022` du 2026-09-03
 - **Décisions :** [`DEC-0020`](../decisions/DEC-0020-topographic-node-graph.md),
@@ -461,3 +461,36 @@ indépendant. Aucune `TASK-0023` n'est créée.
 | 2026-09-03 | `PROPOSED` | Fiche créée depuis le prompt technique autoritatif, avant toute ligne de code |
 | 2026-09-03 | `APPROVED` | Périmètre, architecture, N1–N15, validations, limites et hors-scope intégralement écrits |
 | 2026-09-03 | `IN_PROGRESS` | Gel prêt à être commité et poussé avant la première modification de code produit |
+| 2026-09-03 | `IMPLEMENTED` | Layout v3, cartes et arêtes hiérarchiques, ancres bord-à-bord, navigation et régressions livrés; N15 et rejeux WebView2 passés; `VERIFIED` réservé au contrôle indépendant |
+
+## 21. Résultat et preuves d'exécution
+
+- Gel antérieur au code : commit `289cf9b`, poussé avant la première ligne de
+  produit; N1 à N15 n'ont pas été modifiés ensuite.
+- Backend : schéma carte `3`, algorithme persisté
+  `layered-tree-cards-v1`, reconstruction contrôlée d'un v2, une invocation de
+  layout par build/rebuild, stores relationnels hors index préservés.
+- Layout : cartes `240 × 64`, colonnes de profondeur espacées de `120`, lignes
+  espacées de `28`, aucun chevauchement sur les quatre fixtures, profondeur 40
+  à `x = 14 400` sans compression.
+- Rendu : un SVG pour C1/C2/C3, une carte et une arête hiérarchique exacte par
+  nœud non racine, quatre familles graphiques distinctes, noms complets
+  accessibles et ancres bord-à-bord intra/suggestion/inter.
+- Validation locale : `149` tests Rust et `188` tests TypeScript passés;
+  `pnpm check`, `pnpm build` et `pnpm tauri build --debug --no-bundle` passés.
+- Hôte réel : WebView2 `152.0.4191.53`; N15 pass1/pass2, J12, K11, L12
+  pass1/pass2 et M12 pass1/pass2 publiés sous les huit noms `TASK-0022-*`.
+- N15 : frappes probatoires `isTrusted = true`, activation `isTrusted = true`
+  quand applicable, `programmaticClickCount = 0`,
+  `dispatchEventClickCount = 0`; zéro collision Beta; zéro endpoint inter non
+  résolu; XB-S01 reste `APPROVED` après rebuild et redémarrage.
+- Lecture seule : empreintes sources identiques, zéro état FileTopo dans les
+  racines analysées; aucune fixture historique changée.
+- X5 : 19 preuves protégées, zéro modification depuis la base contrôlée.
+- B0 : l'ICE incrémental `rustc 1.98.0` a été observé; la validation Rust et le
+  build Tauri ont réussi avec `CARGO_INCREMENTAL=0`. B0 n'est pas déclaré
+  corrigé.
+
+Limites inchangées : `F-042` non implémentée; `R8` non levée; `P-19` maintenue;
+aucun `H9`, aucune nouvelle dépendance, aucune donnée réelle, aucun picker,
+aucune modification de `main`.

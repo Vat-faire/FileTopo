@@ -3076,3 +3076,47 @@ pas satisfaite**, sous sa formulation corrigée **`P02-R1`**; le contrat reste �
 n'est pas corrigé. **`V1`–`V4`, `W1`–`W4`, `R2`–`R9`** restent en vigueur.
 Aucune autorisation de **fusion vers `main`**, de `PR`, de **release**,
 d'**étiquette**, de `force push` ni de réécriture d'historique.
+
+---
+
+## AG. TASK-0022 — topographie à cartes et connexions explicites
+
+**Date :** 2026-09-03. **État exécutant :** `IMPLEMENTED`, jamais
+`VERIFIED`. **Gel :** `289cf9b`, poussé avant le code produit.
+
+| Contrôle | Résultat | Preuve |
+|---|---|---|
+| N1 moteur/version | **PASS** | schéma 3, `layered-tree-cards-v1`, v2 reconstruit, invocation 1 |
+| N2 exactitude | **PASS** | quatre fixtures, une racine, `edgeCount = nodeCount - 1` |
+| N3 géométrie | **PASS** | cartes 240 × 64, x par profondeur, zéro collision |
+| N4 déterminisme | **PASS** | rects/sérialisation/digest identiques aux rebuilds |
+| N5 P02-R1 | **PASS exécutant** | huit contrôles couverts; verdict indépendant attendu |
+| N6 cartes/labels | **PASS** | formes non-couleur, titre/ARIA complet, label sélectionné |
+| N7 vue | **PASS** | pan/zoom/fit/reset réels; rects inchangés |
+| N8 intra | **PASS** | comptes/provenance/suggestions conservés; ancres bord à bord |
+| N9 multibrain | **PASS** | C2/C3, un SVG, géométrie Alpha/Gamma identique, DOM distinct |
+| N10 interbrain | **PASS** | visible/hors vue, auto-ajout, cible exacte, aucune inverse |
+| N11 rebuild/stores | **PASS** | stores et approbations intacts, zéro endpoint non résolu |
+| N12 read-only | **PASS** | empreintes identiques, zéro état sous source |
+| N13 X5 | **PASS** | 19 preuves protégées, zéro modification depuis `c16396d` |
+| N14 global | **PASS** | suites complètes, check/build/Tauri, aucune dépendance |
+| N15 hôte réel | **PASS** | deux processus, même variante, WebView2 `152.0.4191.53` |
+
+Validations finales : `cargo test --lib` avec `CARGO_INCREMENTAL=0` — **149
+passés**; `pnpm test` — **188 passés**; `pnpm check` — **PASS**; `pnpm build`
+— **PASS**; `pnpm tauri build --debug --no-bundle` — **PASS**.
+
+Artefacts : `TASK-0022-N15-topographic-node-graph-webview2-pass{1,2}.json`,
+`TASK-0022-J12-intrabrain-relations-regression-webview2.json`,
+`TASK-0022-K11-readonly-isolation-regression-webview2.json`,
+`TASK-0022-L12-composed-view-regression-webview2-pass{1,2}.json`,
+`TASK-0022-M12-interbrain-relations-regression-webview2-pass{1,2}.json`.
+
+N15 relève `isTrusted = true` pour les frappes et activations applicables,
+zéro `HTMLElement.click()`, zéro dispatch de clic, zéro collision Beta, six
+relations inter déterministes, XB-S01 `APPROVED` après rebuild/redémarrage,
+zéro extrémité non résolue et zéro artefact dans les racines analysées.
+
+**B0 observé :** ICE incrémental `rustc 1.98.0`; succès avec
+`CARGO_INCREMENTAL=0`. B0 n'est pas corrigé. **Non testé volontairement :**
+H9 et seuils de performance; `F-042`; données réelles/picker; release.

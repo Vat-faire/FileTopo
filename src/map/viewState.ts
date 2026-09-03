@@ -166,6 +166,41 @@ export function panBy(
   return clampView({ scale: view.scale, tx: view.tx + dx, ty: view.ty + dy }, world, viewport);
 }
 
+/** Pans only as far as needed to reveal a newly selected rectangle. */
+export function ensureRectVisible(
+  rect: Rect,
+  view: View,
+  world: Rect,
+  viewport: Viewport,
+  margin = 18,
+): View {
+  const port = usable(viewport);
+  const projected = worldToScreen(rect, view);
+  const safeMargin = Math.max(0, Math.min(margin, port.width / 2, port.height / 2));
+  const availableWidth = port.width - safeMargin * 2;
+  const availableHeight = port.height - safeMargin * 2;
+
+  const dx =
+    projected.w > availableWidth
+      ? port.width / 2 - (projected.x + projected.w / 2)
+      : projected.x < safeMargin
+        ? safeMargin - projected.x
+        : projected.x + projected.w > port.width - safeMargin
+          ? port.width - safeMargin - (projected.x + projected.w)
+          : 0;
+  const dy =
+    projected.h > availableHeight
+      ? port.height / 2 - (projected.y + projected.h / 2)
+      : projected.y < safeMargin
+        ? safeMargin - projected.y
+        : projected.y + projected.h > port.height - safeMargin
+          ? port.height - safeMargin - (projected.y + projected.h)
+          : 0;
+
+  if (dx === 0 && dy === 0) return view;
+  return clampView({ ...view, tx: view.tx + dx, ty: view.ty + dy }, world, viewport);
+}
+
 /** Parameter-by-parameter comparison, as `H4` words it. */
 export function sameView(left: View, right: View, tolerance = 1e-9): boolean {
   return (

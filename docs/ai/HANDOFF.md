@@ -1,5 +1,40 @@
 # HANDOFF — passage de relais
 
+## Relais actuel — TASK-0022 IMPLEMENTED, 2026-09-03
+
+`TASK-0022` est livrée sur `build/v0.2-a6-topographic-node-graph`, mais n'est
+pas `VERIFIED`. Le commit de gel `289cf9b` précède tout code produit et N1 à
+N15 sont restés immuables.
+
+Le backend persiste le schéma carte `3` et
+`layout_algorithm = layered-tree-cards-v1`. Le layout construit en parcours
+linéaires des cartes `240 × 64`, profondeur en colonnes de 360 unités, et un
+monde non comprimé. Un index v2 est refusé puis reconstruit sans toucher au
+catalogue ni aux stores intra/inter. `MapSnapshot` et `MapBuildReport` exposent
+l'algorithme effectivement lu du backend.
+
+`MapView` conserve un SVG commun à C1/C2/C3. Les cartes root/directory/file et
+diagnostic se distinguent sans couleur seule; chaque non-racine porte une
+arête hiérarchique orthogonale namespacée. Les relations établies, suggestions
+et relations inter-cerveaux sont ancrées bord à bord. Les flèches suivent
+parent, premier enfant, frère précédent et frère suivant, avec mise en vue sans
+relayout. Pan, zoom, fit et reset ne modifient aucun rectangle.
+
+Preuves : 149 tests Rust et 188 tests TypeScript; check/build/Tauri debug
+passés; N15 pass1/pass2 et régressions J12/K11/L12/M12 dans le vrai WebView2
+`152.0.4191.53`. Les huit artefacts sont sous
+`docs/performance/runs/TASK-0022-*`. Les frappes probatoires sont fiables,
+aucun clic programmatique n'est utilisé. Les 19 preuves X5 sont inchangées.
+
+Limites : Beta/deep n'a pas de store intra par contrat historique; cette
+absence reste explicite. `F-042`, H9, R8, P-19 et P-21 restent hors de cette
+tranche. B0 n'est pas corrigé; employer `CARGO_INCREMENTAL=0` pour les
+validations Rust si l'ICE réapparaît.
+
+**Prochaine action unique : contrôle indépendant de `TASK-0022`.** Vérifier les
+artefacts et le commit substantif, puis décider seul de `VERIFIED`. Ne pas
+créer `TASK-0023` dans ce contrôle.
+
 - **Dernière mise à jour :** 2026-09-02
 - **Branche active :** **`build/v0.2-a5-interbrain-relations`**, créée depuis
   le tip **contrôlé** `8d1e27151f53d082551e05b00816100cb790542b` de

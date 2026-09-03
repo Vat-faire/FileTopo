@@ -1,6 +1,6 @@
 <#
 .SYNOPSIS
-    Runs the two passes of the L12 COMPOSED-VIEW REGRESSION (TASK-0020) against
+    Runs the two passes of the L12 COMPOSED-VIEW REGRESSION (TASK-0022) against
     the real host, with a real
     close and a real restart between them.
 
@@ -57,13 +57,17 @@
 [CmdletBinding()]
 param(
     [string]$Executable,
-    [string]$LogDirectory = $env:TEMP,
+    [string]$LogDirectory,
     [int]$TimeoutSeconds = 900
 )
 
 $ErrorActionPreference = 'Stop'
 
 $repository = Split-Path -Parent $PSScriptRoot
+if (-not $LogDirectory) {
+    $LogDirectory = Join-Path $repository '.filetopo-sandbox/task0022-logs'
+}
+$null = New-Item -ItemType Directory -Path $LogDirectory -Force
 if (-not $Executable) {
     $Executable = Join-Path $repository 'src-tauri/target/debug/filetopo.exe'
 }
@@ -96,7 +100,7 @@ $watcher = Join-Path $PSScriptRoot 'j12-send-real-key.ps1'
 #
 # The directory is deliberately NOT removed afterwards: the evidence needs no
 # deletion, and a later invocation simply creates another variant.
-$variant = 'task0020-l12-{0}-{1}' -f (Get-Date -Format 'yyyyMMddHHmmss'),
+$variant = 'task0022-l12-{0}-{1}' -f (Get-Date -Format 'yyyyMMddHHmmss'),
                                      ([guid]::NewGuid().ToString('N').Substring(0, 6))
 
 # Reserve X5, held outside the application too.
@@ -128,11 +132,10 @@ function Wait-ForArtifact {
 function Invoke-Pass {
     param([int]$Pass, [switch]$WithKeyWatcher)
 
-    $log = Join-Path $LogDirectory "filetopo-l12-pass$Pass.log"
-    if (Test-Path -LiteralPath $log) { Remove-Item -LiteralPath $log -Force }
+    $log = Join-Path $LogDirectory "filetopo-task0022-l12-$variant-pass$Pass.log"
 
-    $artifact = Join-Path $runs "TASK-0020-L12-composed-regression-webview2-pass$Pass.json"
-    $abandoned = Join-Path $runs "TASK-0020-L12-composed-regression-webview2-pass$Pass-abandon.json"
+    $artifact = Join-Path $runs "TASK-0022-L12-composed-view-regression-webview2-pass$Pass.json"
+    $abandoned = Join-Path $runs "TASK-0022-L12-composed-view-regression-webview2-pass$Pass-abandon.json"
     foreach ($stale in @($artifact, $abandoned)) {
         # Only this script's own previous output for THIS pass, and only so a
         # stale file cannot be mistaken for a fresh result.

@@ -1,5 +1,29 @@
 # État courant
 
+## Mise à jour TASK-0022 — 2026-09-03
+
+- **Tâche livrée, NON vérifiée :** `TASK-0022`, **`IMPLEMENTED`** sur
+  `build/v0.2-a6-topographic-node-graph`; contrôle indépendant requis.
+- **Représentation principale réelle :** schéma carte `3`, layout versionné
+  `layered-tree-cards-v1`, cartes indépendantes `240 × 64` orientées de gauche
+  à droite et une arête hiérarchique orthogonale exacte par nœud non racine.
+- **Parité conservée :** C1/C2/C3 dans un SVG, sélection namespacée
+  `BrainNodeRef`, clavier, pan/zoom/fit/reset, relations et suggestions intra,
+  relations inter-cerveaux, navigation vers cible visible ou hors vue.
+- **Fonctions :** `F-007`, `F-008`, `F-016` deviennent `IMPLEMENTED`;
+  `F-042` reste `PROPOSED / ULTÉRIEUR`.
+- **Preuves :** 149 tests Rust, 188 tests TypeScript, `pnpm check`, `pnpm
+  build`, Tauri debug `--no-bundle`; N15 deux passes dans WebView2
+  `152.0.4191.53` et régressions J12/K11/L12/M12 sous huit noms `TASK-0022-*`.
+- **Lecture seule et historique :** empreintes sources identiques, zéro état
+  FileTopo dans les racines analysées, 19 preuves protégées inchangées,
+  `main` toujours `91bbe90f0f99026c28cd345784d4f579a0016db2`.
+- **Limites :** `R8`, `P-19`, `P-21` et le repli `cek1` demeurent; aucun H9,
+  aucune nouvelle dépendance. B0 a été observé et contourné avec
+  `CARGO_INCREMENTAL=0`; il n'est pas corrigé.
+- **Action unique suivante :** contrôle indépendant de `TASK-0022`. Codex ne
+  s'attribue pas `VERIFIED`.
+
 - **Dernière mise à jour :** 2026-09-02
 - **Dernière tâche vérifiée :** **`TASK-0021`, `VERIFIED` le 2026-09-02** —
   **réalignement produit**, livrable **DOCUMENTAIRE**,

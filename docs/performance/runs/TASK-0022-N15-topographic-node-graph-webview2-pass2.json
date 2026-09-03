@@ -1,0 +1,91 @@
+{
+  "task": "TASK-0022",
+  "criterion": "N15",
+  "pass": 2,
+  "startedAt": "2026-09-03T04:52:38.353Z",
+  "realHost": true,
+  "host": {
+    "appVersion": "0.1.0-alpha.1",
+    "tauriVersion": "2.11.5",
+    "webviewVersion": "152.0.4191.53",
+    "platform": "windows",
+    "cardWidth": 240,
+    "cardHeight": 64,
+    "layoutAlgorithm": "layered-tree-cards-v1"
+  },
+  "steps": "N15.60 a N15.72",
+  "step60_to_65_restartAndIndexes": {
+    "newProcessByDriver": true,
+    "sameSandboxRoot": "<dépôt>/.filetopo-sandbox/variants/task0022-n15-20260903005211-f98579",
+    "webviewVersion": "152.0.4191.53",
+    "reports": [
+      {
+        "brainId": "brain-alpha",
+        "rebuilt": false,
+        "schemaVersion": 3,
+        "layoutAlgorithm": "layered-tree-cards-v1"
+      },
+      {
+        "brainId": "brain-gamma",
+        "rebuilt": false,
+        "schemaVersion": 3,
+        "layoutAlgorithm": "layered-tree-cards-v1"
+      },
+      {
+        "brainId": "brain-beta",
+        "rebuilt": false,
+        "schemaVersion": 3,
+        "layoutAlgorithm": "layered-tree-cards-v1"
+      }
+    ],
+    "snapshots": [
+      {
+        "brainId": "brain-alpha",
+        "schemaVersion": 3,
+        "layoutAlgorithm": "layered-tree-cards-v1"
+      },
+      {
+        "brainId": "brain-gamma",
+        "schemaVersion": 3,
+        "layoutAlgorithm": "layered-tree-cards-v1"
+      },
+      {
+        "brainId": "brain-beta",
+        "schemaVersion": 3,
+        "layoutAlgorithm": "layered-tree-cards-v1"
+      }
+    ],
+    "noUnexpectedRebuild": true
+  },
+  "step66_to_72_persistence": {
+    "activeBrainId": "brain-alpha",
+    "displayedBrainIds": [
+      "brain-alpha"
+    ],
+    "compositionPersistenceClaimed": false,
+    "compositionLimit": "P-19: multi-brain composition is session-only",
+    "xbS01StillApproved": true,
+    "deterministicCount": 6,
+    "deterministicDigest": "fnv1a64:3020af7489aab581",
+    "intra": [
+      {
+        "brainId": "brain-alpha",
+        "deterministicCount": 8,
+        "approvedCount": 4,
+        "pendingSuggestionCount": 4,
+        "unresolvedEndpoints": []
+      },
+      {
+        "brainId": "brain-gamma",
+        "deterministicCount": 8,
+        "approvedCount": 4,
+        "pendingSuggestionCount": 4,
+        "unresolvedEndpoints": []
+      }
+    ],
+    "betaRelationsRemainOutOfScope": true,
+    "unresolvedEndpoints": [],
+    "historicalEvidenceDestinationsUsed": []
+  },
+  "finishedAt": "2026-09-03T04:52:38.837Z"
+}

@@ -16,6 +16,13 @@ export interface Hierarchy {
   drawOrder: MapNode[];
 }
 
+export interface HierarchyEdge {
+  brainId: string;
+  parentNodeId: number;
+  childNodeId: number;
+  path: string;
+}
+
 export function buildHierarchy(nodes: MapNode[], rootId: number): Hierarchy {
   const byId = new Map<number, MapNode>();
   const childrenOf = new Map<number, number[]>();
@@ -54,6 +61,36 @@ export function hierarchicalNeighbourhood(hierarchy: Hierarchy, id: number): Set
   if (node.parentId !== null) related.add(node.parentId);
   for (const child of childrenIds(hierarchy, id)) related.add(child);
   return related;
+}
+
+export function domHierarchyEdgeId(
+  brainId: string,
+  parentNodeId: number,
+  childNodeId: number,
+): string {
+  return `${brainId}-hierarchy-edge-${parentNodeId}-${childNodeId}`;
+}
+
+/** One exact orthogonal edge for every non-root node, in index order. */
+export function hierarchyEdges(hierarchy: Hierarchy, brainId: string): HierarchyEdge[] {
+  const edges: HierarchyEdge[] = [];
+  for (const child of hierarchy.drawOrder) {
+    if (child.parentId === null) continue;
+    const parent = hierarchy.byId.get(child.parentId);
+    if (!parent) continue;
+    const parentRightX = parent.rect.x + parent.rect.w;
+    const parentY = parent.rect.y + parent.rect.h / 2;
+    const childLeftX = child.rect.x;
+    const childY = child.rect.y + child.rect.h / 2;
+    const midpointX = (parentRightX + childLeftX) / 2;
+    edges.push({
+      brainId,
+      parentNodeId: parent.id,
+      childNodeId: child.id,
+      path: `M ${parentRightX} ${parentY} H ${midpointX} V ${childY} H ${childLeftX}`,
+    });
+  }
+  return edges;
 }
 
 export type Direction = "parent" | "child" | "previous" | "next";

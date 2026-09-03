@@ -88,7 +88,7 @@ export interface RealKeyEvidence {
  *   mistaken for success.
  */
 export async function pressRealKey(
-  target: HTMLElement,
+  target: HTMLElement | SVGSVGElement,
   key: string,
   changed: () => boolean,
   log: ScenarioLog,
@@ -105,9 +105,11 @@ export async function pressRealKey(
     if (activationIsTrusted === null) activationIsTrusted = event.isTrusted;
   };
   const onKeyDown = (event: Event) => {
-    if (keydownIsTrusted === null) {
+    const key = (event as KeyboardEvent).key;
+    const incidental = ["Alt", "Control", "Meta", "NumLock", "Shift"].includes(key);
+    if (keydownIsTrusted === null && !incidental) {
       keydownIsTrusted = event.isTrusted;
-      keydownKey = (event as KeyboardEvent).key;
+      keydownKey = key;
     }
   };
   target.addEventListener("click", onClick, true);
@@ -166,4 +168,3 @@ export async function pressRealKey(
   evidence.waitedMs = Math.round(outcome.waitedMs);
   return evidence;
 }
-

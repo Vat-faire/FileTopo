@@ -680,7 +680,9 @@ fn map_host_info(app: tauri::AppHandle) -> map::commands::HostInfo {
         platform: std::env::consts::OS.to_string(),
         node_ceiling: map::MAX_NODES_PER_MAP,
         depth_ceiling: map::MAX_FIXTURE_DEPTH,
-        min_leaf_area: map::layout::MIN_LEAF_AREA,
+        card_width: map::layout::CARD_WIDTH,
+        card_height: map::layout::CARD_HEIGHT,
+        layout_algorithm: map::layout::LAYOUT_ALGORITHM.to_string(),
         auto_measure: std::env::var("FILETOPO_AUTO_MEASURE").is_ok_and(|value| value == "1"),
         auto_verify: std::env::var("FILETOPO_AUTO_VERIFY").is_ok_and(|value| value == "1"),
         auto_relations: std::env::var("FILETOPO_AUTO_RELATIONS").is_ok_and(|value| value == "1"),
@@ -695,6 +697,11 @@ fn map_host_info(app: tauri::AppHandle) -> map::commands::HostInfo {
             .filter(|pass| *pass == 1 || *pass == 2)
             .unwrap_or(0),
         auto_cross_pass: std::env::var("FILETOPO_AUTO_CROSS")
+            .ok()
+            .and_then(|value| value.parse::<u8>().ok())
+            .filter(|pass| *pass == 1 || *pass == 2)
+            .unwrap_or(0),
+        auto_topographic_pass: std::env::var("FILETOPO_AUTO_TOPOGRAPHIC")
             .ok()
             .and_then(|value| value.parse::<u8>().ok())
             .filter(|pass| *pass == 1 || *pass == 2)
@@ -879,7 +886,12 @@ pub fn run() {
                 .any(|name| std::env::var(name).is_ok_and(|value| value == "1"))
                 // `K12` needs the window forward for the same reason `J12`
                 // does: a real keystroke goes to the foreground window.
-                || ["FILETOPO_AUTO_BRAINS", "FILETOPO_AUTO_COMPOSED", "FILETOPO_AUTO_CROSS"]
+                || [
+                    "FILETOPO_AUTO_BRAINS",
+                    "FILETOPO_AUTO_COMPOSED",
+                    "FILETOPO_AUTO_CROSS",
+                    "FILETOPO_AUTO_TOPOGRAPHIC",
+                ]
                     .iter()
                     .any(|name| {
                         std::env::var(name).is_ok_and(|value| value == "1" || value == "2")

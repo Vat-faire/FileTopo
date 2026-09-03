@@ -381,8 +381,42 @@ button:disabled {
    is encoded by colour alone. */
 .map-node rect {
   stroke: var(--ink);
-  stroke-width: 0.5;
-  fill-opacity: 0.5;
+  stroke-width: 1.25;
+  fill-opacity: 0.88;
+}
+
+.map-node__kind-glyph {
+  fill: none;
+  stroke: var(--ink);
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+}
+
+.map-node--root .map-node__kind-glyph {
+  fill: var(--panel);
+  stroke-width: 2.5;
+}
+
+.map-territory__hierarchy,
+.map-hierarchy-edge {
+  pointer-events: none;
+}
+
+.map-hierarchy-edge path {
+  fill: none;
+  stroke: var(--ink);
+  stroke-width: 1.35;
+  stroke-opacity: 0.48;
+  stroke-linecap: square;
+  stroke-linejoin: miter;
+}
+
+.map-hierarchy-edge--touching path {
+  stroke: var(--accent);
+  stroke-width: 2.8;
+  stroke-opacity: 1;
 }
 
 .map-node--root rect {
@@ -400,8 +434,8 @@ button:disabled {
 }
 
 .map-node--plain rect {
-  fill-opacity: 0.28;
-  stroke-opacity: 0.45;
+  fill-opacity: 0.66;
+  stroke-opacity: 0.7;
 }
 
 .map-node--related rect {
@@ -425,9 +459,9 @@ button:disabled {
 }
 
 .map-node__label {
-  font-size: 10px;
+  font-size: 12px;
   fill: var(--ink);
-  fill-opacity: 0.85;
+  fill-opacity: 0.95;
   paint-order: stroke;
   stroke: var(--panel);
   stroke-width: 2.5;

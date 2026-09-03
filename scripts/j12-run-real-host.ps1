@@ -1,7 +1,7 @@
 <#
 .SYNOPSIS
     Replays the J12 INTRA-BRAIN relations scenario against the real host, once,
-    with a real keystroke — the regression TASK-0020 §4.13 owes.
+    with a real keystroke — the regression TASK-0022 owes.
 
 .DESCRIPTION
     J12 is a criterion of TASK-0017: the relations panel of ONE brain, its
@@ -9,10 +9,10 @@
     TASK-0020 touches that panel — a second one now sits beside it — so J12 is
     replayed to show the first was not disturbed.
 
-    The criterion is TASK-0017's; the artefact belongs to TASK-0020, and its
+    The criterion is TASK-0017's; the artefact belongs to TASK-0022, and its
     name says so:
 
-        TASK-0020-J12-intrabrain-regression-webview2.json
+        TASK-0022-J12-intrabrain-relations-regression-webview2.json
 
     TASK-0017's own J12 evidence, and TASK-0019's replay of it, are BOTH
     protected: this script deletes only its own previous output, and the guard
@@ -38,13 +38,17 @@
 [CmdletBinding()]
 param(
     [string]$Executable,
-    [string]$LogDirectory = $env:TEMP,
+    [string]$LogDirectory,
     [int]$TimeoutSeconds = 900
 )
 
 $ErrorActionPreference = 'Stop'
 
 $repository = Split-Path -Parent $PSScriptRoot
+if (-not $LogDirectory) {
+    $LogDirectory = Join-Path $repository '.filetopo-sandbox/task0022-logs'
+}
+$null = New-Item -ItemType Directory -Path $LogDirectory -Force
 if (-not $Executable) {
     $Executable = Join-Path $repository 'src-tauri/target/debug/filetopo.exe'
 }
@@ -57,14 +61,13 @@ $watcher = Join-Path $PSScriptRoot 'j12-send-real-key.ps1'
 
 . (Join-Path $PSScriptRoot 'protected-run-artifacts.ps1')
 
-$variant = 'task0020-j12-{0}-{1}' -f (Get-Date -Format 'yyyyMMddHHmmss'),
+$variant = 'task0022-j12-{0}-{1}' -f (Get-Date -Format 'yyyyMMddHHmmss'),
                                      ([guid]::NewGuid().ToString('N').Substring(0, 6))
 
-$log = Join-Path $LogDirectory 'filetopo-j12-regression.log'
-if (Test-Path -LiteralPath $log) { Remove-Item -LiteralPath $log -Force }
+$log = Join-Path $LogDirectory "filetopo-task0022-j12-$variant.log"
 
-$artifact = Join-Path $runs 'TASK-0020-J12-intrabrain-regression-webview2.json'
-$abandoned = Join-Path $runs 'TASK-0020-J12-intrabrain-regression-webview2-abandon.json'
+$artifact = Join-Path $runs 'TASK-0022-J12-intrabrain-relations-regression-webview2.json'
+$abandoned = Join-Path $runs 'TASK-0022-J12-intrabrain-relations-regression-webview2-abandon.json'
 foreach ($stale in @($artifact, $abandoned)) {
     Assert-NotProtectedRunArtifact -Path $stale
     if (Test-Path -LiteralPath $stale) { Remove-Item -LiteralPath $stale -Force }

@@ -81,6 +81,8 @@ export interface MapSnapshot {
   layoutWidth: number;
   layoutHeight: number;
   schemaVersion: number;
+  /** Persisted by and read from the backend map index. */
+  layoutAlgorithm: string;
   nodes: MapNode[];
   diagnostics: ScanDiagnostic[];
 }
@@ -123,6 +125,7 @@ export interface MapBuildReport {
   reconstructibleDigest: string;
   nonReconstructible: string[];
   schemaVersion: number;
+  layoutAlgorithm: string;
   diagnostics: ScanDiagnostic[];
 }
 
@@ -135,7 +138,9 @@ export interface HostInfo {
   platform: string;
   nodeCeiling: number;
   depthCeiling: number;
-  minLeafArea: number;
+  cardWidth: number;
+  cardHeight: number;
+  layoutAlgorithm: string;
   autoMeasure: boolean;
   autoVerify: boolean;
   autoRelations: boolean;
@@ -154,6 +159,8 @@ export interface HostInfo {
    * the five only a relaunched process can observe.
    */
   autoCrossPass: number;
+  /** `N15` — `0` none, `1` interaction pass, `2` post-restart pass. */
+  autoTopographicPass: number;
 }
 
 export interface FixtureIntegrity {

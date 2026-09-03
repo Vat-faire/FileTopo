@@ -1,0 +1,569 @@
+{
+  "task": "TASK-0022",
+  "criterion": "N15",
+  "pass": 1,
+  "startedAt": "2026-09-03T04:52:13.824Z",
+  "realHost": true,
+  "host": {
+    "appVersion": "0.1.0-alpha.1",
+    "tauriVersion": "2.11.5",
+    "webviewVersion": "152.0.4191.53",
+    "platform": "windows",
+    "cardWidth": 240,
+    "cardHeight": 64,
+    "layoutAlgorithm": "layered-tree-cards-v1"
+  },
+  "steps": "N15.1 a N15.59",
+  "step1_freshVariant": {
+    "sandboxRoot": "<dépôt>/.filetopo-sandbox/variants/task0022-n15-20260903005211-f98579",
+    "freshByDriver": true
+  },
+  "step2_alphaActiveAlone": {
+    "displayedBrainIds": [
+      "brain-alpha"
+    ],
+    "activeBrainId": "brain-alpha",
+    "focusedBrainId": "brain-alpha"
+  },
+  "step3_to_8_alphaLayout": {
+    "schemaVersion": 3,
+    "reportSchemaVersion": 3,
+    "layoutAlgorithm": "layered-tree-cards-v1",
+    "reportLayoutAlgorithm": "layered-tree-cards-v1",
+    "layoutInvocations": 1,
+    "nodeCount": 12,
+    "plannedNodes": 12,
+    "hierarchyEdgeCount": 11,
+    "expectedHierarchyEdgeCount": 11,
+    "cardCount": 12,
+    "everyCard240x64": true,
+    "allFinite": true,
+    "kinds": [
+      "root",
+      "directory",
+      "directory",
+      "file",
+      "file",
+      "file",
+      "file",
+      "file",
+      "file",
+      "directory",
+      "file",
+      "file"
+    ]
+  },
+  "step9_to_10_hierarchy": {
+    "folderRect": {
+      "x": 360,
+      "y": 92,
+      "w": 240,
+      "h": 64
+    },
+    "children": [
+      {
+        "id": 6,
+        "path": "dossier-a/note-1.txt",
+        "parentId": 2
+      },
+      {
+        "id": 7,
+        "path": "dossier-a/note-2.txt",
+        "parentId": 2
+      },
+      {
+        "id": 8,
+        "path": "dossier-a/note-3.txt",
+        "parentId": 2
+      }
+    ],
+    "childContainedInParent": false,
+    "hierarchySamplesExact": [
+      {
+        "path": "dossier-a",
+        "nodeId": 2,
+        "parentId": 1,
+        "depth": 1
+      },
+      {
+        "path": "dossier-a/note-1.txt",
+        "nodeId": 6,
+        "parentId": 2,
+        "depth": 2
+      },
+      {
+        "path": "dossier-b/sous-dossier",
+        "nodeId": 10,
+        "parentId": 3,
+        "depth": 2
+      }
+    ]
+  },
+  "step11_selectFolderByRealInteraction": {
+    "keyRequested": "{RIGHT}",
+    "keydownIsTrusted": true,
+    "keydownKey": "ArrowRight",
+    "activationIsTrusted": null,
+    "programmaticClickCount": 0,
+    "dispatchEventClickCount": 0,
+    "observedChange": true,
+    "focusReached": true,
+    "selected": "brain-alpha-map-node-2",
+    "expected": "brain-alpha-map-node-2"
+  },
+  "step12_label": {
+    "visible": true,
+    "renderedText": "dossie…",
+    "fullName": "dossier-a",
+    "ariaLabel": "Cerveau Alpha · dossier-a, dossier, profondeur 1, 3 enfants directs",
+    "title": "dossier-a"
+  },
+  "step13_arrowRight": {
+    "keyRequested": "{RIGHT}",
+    "keydownIsTrusted": true,
+    "keydownKey": "ArrowRight",
+    "activationIsTrusted": null,
+    "programmaticClickCount": 0,
+    "dispatchEventClickCount": 0,
+    "observedChange": true,
+    "focusReached": true,
+    "selected": "brain-alpha-map-node-6",
+    "expected": "brain-alpha-map-node-6"
+  },
+  "step14_arrowDown": {
+    "keyRequested": "{DOWN}",
+    "keydownIsTrusted": true,
+    "keydownKey": "ArrowDown",
+    "activationIsTrusted": null,
+    "programmaticClickCount": 0,
+    "dispatchEventClickCount": 0,
+    "observedChange": true,
+    "focusReached": true,
+    "selected": "brain-alpha-map-node-7",
+    "expected": "brain-alpha-map-node-7"
+  },
+  "step15_arrowUp": {
+    "keyRequested": "{UP}",
+    "keydownIsTrusted": true,
+    "keydownKey": "ArrowUp",
+    "activationIsTrusted": null,
+    "programmaticClickCount": 0,
+    "dispatchEventClickCount": 0,
+    "observedChange": true,
+    "focusReached": true,
+    "selected": "brain-alpha-map-node-6",
+    "expected": "brain-alpha-map-node-6"
+  },
+  "step16_arrowLeft": {
+    "keyRequested": "{LEFT}",
+    "keydownIsTrusted": true,
+    "keydownKey": "ArrowLeft",
+    "activationIsTrusted": null,
+    "programmaticClickCount": 0,
+    "dispatchEventClickCount": 0,
+    "observedChange": true,
+    "focusReached": true,
+    "selected": "brain-alpha-map-node-2",
+    "expected": "brain-alpha-map-node-2"
+  },
+  "step17_refs": {
+    "activeDescendant": "brain-alpha-map-node-2",
+    "expected": "brain-alpha-map-node-2",
+    "namespaced": true
+  },
+  "step18_to_22_viewGestures": {
+    "pan": {
+      "keyRequested": "%{RIGHT}",
+      "keydownIsTrusted": true,
+      "keydownKey": "ArrowRight",
+      "activationIsTrusted": null,
+      "programmaticClickCount": 0,
+      "dispatchEventClickCount": 0,
+      "observedChange": true,
+      "focusReached": true,
+      "before": {
+        "scale": 0.4418,
+        "tx": 122.2056,
+        "ty": 12.689999999999998
+      },
+      "after": {
+        "scale": 0.4418,
+        "tx": 32.205600000000004,
+        "ty": 12.689999999999998
+      }
+    },
+    "zoom": {
+      "keyRequested": "{+}",
+      "keydownIsTrusted": true,
+      "keydownKey": "+",
+      "activationIsTrusted": null,
+      "programmaticClickCount": 0,
+      "dispatchEventClickCount": 0,
+      "observedChange": true,
+      "focusReached": true,
+      "before": {
+        "scale": 0.4418,
+        "tx": 32.205600000000004,
+        "ty": 12.689999999999998
+      },
+      "after": {
+        "scale": 0.5964300000000001,
+        "tx": 0,
+        "ty": 0
+      }
+    },
+    "fit": {
+      "keyRequested": "f",
+      "keydownIsTrusted": true,
+      "keydownKey": "f",
+      "activationIsTrusted": null,
+      "programmaticClickCount": 0,
+      "dispatchEventClickCount": 0,
+      "observedChange": true,
+      "focusReached": true,
+      "before": {
+        "scale": 0.5964300000000001,
+        "tx": 0,
+        "ty": 0
+      },
+      "after": {
+        "scale": 3.34875,
+        "tx": -1340.6399999999999,
+        "ty": -357.7149999999999
+      }
+    },
+    "reset": {
+      "keyRequested": "r",
+      "keydownIsTrusted": true,
+      "keydownKey": "r",
+      "activationIsTrusted": null,
+      "programmaticClickCount": 0,
+      "dispatchEventClickCount": 0,
+      "observedChange": true,
+      "focusReached": true,
+      "before": {
+        "scale": 3.34875,
+        "tx": -1340.6399999999999,
+        "ty": -357.7149999999999
+      },
+      "after": {
+        "scale": 0.5675847457627118,
+        "tx": 25.650000000000034,
+        "ty": 284.3368644067797
+      }
+    },
+    "structuralBefore": {
+      "digest": "fnv1a64:400fab2df3081fc0",
+      "geometry": "[[1,null,0,{\"x\":0,\"y\":368,\"w\":240,\"h\":64}],[2,1,1,{\"x\":360,\"y\":92,\"w\":240,\"h\":64}],[3,1,1,{\"x\":360,\"y\":345,\"w\":240,\"h\":64}],[4,1,1,{\"x\":360,\"y\":552,\"w\":240,\"h\":64}],[5,1,1,{\"x\":360,\"y\":644,\"w\":240,\"h\":64}],[6,2,2,{\"x\":720,\"y\":0,\"w\":240,\"h\":64}],[7,2,2,{\"x\":720,\"y\":92,\"w\":240,\"h\":64}],[8,2,2,{\"x\":720,\"y\":184,\"w\":240,\"h\":64}],[9,3,2,{\"x\":720,\"y\":276,\"w\":240,\"h\":64}],[10,3,2,{\"x\":720,\"y\":414,\"w\":240,\"h\":64}],[11,10,3,{\"x\":1080,\"y\":368,\"w\":240,\"h\":64}],[12,10,3,{\"x\":1080,\"y\":460,\"w\":240,\"h\":64}]]"
+    },
+    "geometryAfter": "[[1,null,0,{\"x\":0,\"y\":368,\"w\":240,\"h\":64}],[2,1,1,{\"x\":360,\"y\":92,\"w\":240,\"h\":64}],[3,1,1,{\"x\":360,\"y\":345,\"w\":240,\"h\":64}],[4,1,1,{\"x\":360,\"y\":552,\"w\":240,\"h\":64}],[5,1,1,{\"x\":360,\"y\":644,\"w\":240,\"h\":64}],[6,2,2,{\"x\":720,\"y\":0,\"w\":240,\"h\":64}],[7,2,2,{\"x\":720,\"y\":92,\"w\":240,\"h\":64}],[8,2,2,{\"x\":720,\"y\":184,\"w\":240,\"h\":64}],[9,3,2,{\"x\":720,\"y\":276,\"w\":240,\"h\":64}],[10,3,2,{\"x\":720,\"y\":414,\"w\":240,\"h\":64}],[11,10,3,{\"x\":1080,\"y\":368,\"w\":240,\"h\":64}],[12,10,3,{\"x\":1080,\"y\":460,\"w\":240,\"h\":64}]]",
+    "rectsUnchanged": true,
+    "layoutAlgorithmAfter": "layered-tree-cards-v1"
+  },
+  "step23_to_25_intraRelations": {
+    "deterministicCount": 8,
+    "approvedCount": 4,
+    "pendingSuggestionCount": 4,
+    "establishedDrawn": 4,
+    "suggestionsDrawn": 1,
+    "visuallyDistinct": true,
+    "anchor": {
+      "present": true,
+      "sourceOnBorder": true,
+      "targetOnBorder": true,
+      "finite": true,
+      "start": {
+        "x": 548.6652542372881,
+        "y": 738.3944915254237
+      },
+      "end": {
+        "x": 548.6652542372881,
+        "y": 754.2868644067796
+      }
+    }
+  },
+  "step26_to_29_gamma": {
+    "add": {
+      "open": {
+        "keyRequested": "{DOWN}",
+        "keydownIsTrusted": true,
+        "keydownKey": "ArrowDown",
+        "activationIsTrusted": null,
+        "programmaticClickCount": 0,
+        "dispatchEventClickCount": 0,
+        "observedChange": true,
+        "focusReached": true
+      },
+      "choose": {
+        "keyRequested": "{ENTER}",
+        "keydownIsTrusted": true,
+        "keydownKey": "Enter",
+        "activationIsTrusted": true,
+        "programmaticClickCount": 0,
+        "dispatchEventClickCount": 0,
+        "observedChange": true,
+        "focusReached": true
+      }
+    },
+    "displayedBrainIds": [
+      "brain-alpha",
+      "brain-gamma"
+    ],
+    "canvasCount": 1,
+    "territories": [
+      "brain-alpha",
+      "brain-gamma"
+    ],
+    "sameInternalGeometry": true,
+    "distinctNodeDom": true,
+    "composition": {
+      "displayedBrainIds": [
+        "brain-alpha",
+        "brain-gamma"
+      ],
+      "focusedBrainId": "brain-alpha"
+    }
+  },
+  "step30_to_31_crossEdge": {
+    "entryPresent": true,
+    "anchor": {
+      "present": true,
+      "sourceOnBorder": true,
+      "targetOnBorder": true,
+      "finite": true,
+      "start": {
+        "x": 319.0841463414634,
+        "y": 1072.1082888719511
+      },
+      "end": {
+        "x": 671.9280487804879,
+        "y": 1135.5099275914636
+      }
+    }
+  },
+  "step32_to_33_followCross": {
+    "keyRequested": "{ENTER}",
+    "keydownIsTrusted": true,
+    "keydownKey": "Enter",
+    "activationIsTrusted": true,
+    "programmaticClickCount": 0,
+    "dispatchEventClickCount": 0,
+    "observedChange": true,
+    "focusReached": true,
+    "selected": "brain-gamma-map-node-9",
+    "expected": "brain-gamma-map-node-9"
+  },
+  "step34_backAlpha": {
+    "selected": "brain-alpha-map-node-6",
+    "focusedBrainId": "brain-alpha"
+  },
+  "step35_to_36_hiddenGamma": {
+    "displayedBrainIds": [
+      "brain-alpha"
+    ],
+    "entryStillPresent": true,
+    "markedOffView": true,
+    "accessibleName": "relation inter-cerveaux sortante, de ce cerveau vers Cerveau Gamma, référence, provenance déterministe, nœud note-1.txt, cerveau Cerveau Gamma hors de la vue"
+  },
+  "step37_revealGamma": {
+    "keyRequested": "{ENTER}",
+    "keydownIsTrusted": true,
+    "keydownKey": "Enter",
+    "activationIsTrusted": true,
+    "programmaticClickCount": 0,
+    "dispatchEventClickCount": 0,
+    "observedChange": true,
+    "focusReached": true,
+    "displayedBrainIds": [
+      "brain-alpha",
+      "brain-gamma"
+    ],
+    "selected": "brain-gamma-map-node-9",
+    "expected": "brain-gamma-map-node-9"
+  },
+  "step38_to_46_beta": {
+    "add": {
+      "open": {
+        "keyRequested": "{DOWN}",
+        "keydownIsTrusted": true,
+        "keydownKey": "ArrowDown",
+        "activationIsTrusted": null,
+        "programmaticClickCount": 0,
+        "dispatchEventClickCount": 0,
+        "observedChange": true,
+        "focusReached": true
+      },
+      "choose": {
+        "keyRequested": "{ENTER}",
+        "keydownIsTrusted": true,
+        "keydownKey": "Enter",
+        "activationIsTrusted": true,
+        "programmaticClickCount": 0,
+        "dispatchEventClickCount": 0,
+        "observedChange": true,
+        "focusReached": true
+      }
+    },
+    "displayedBrainIds": [
+      "brain-alpha",
+      "brain-beta",
+      "brain-gamma"
+    ],
+    "canvasCount": 1,
+    "territories": [
+      "brain-alpha",
+      "brain-beta",
+      "brain-gamma"
+    ],
+    "schemaVersion": 3,
+    "layoutAlgorithm": "layered-tree-cards-v1",
+    "nodeCount": 157,
+    "hierarchyEdgeCount": 156,
+    "expectedHierarchyEdgeCount": 156,
+    "maxDepth": 40,
+    "deepestX": 14400,
+    "exactDepthColumn": true,
+    "selected": "brain-beta-map-node-155",
+    "labelAvailable": true,
+    "labelSettled": true,
+    "cardCollisionCount": 0
+  },
+  "step47_to_48_approval": {
+    "keyRequested": "{ENTER}",
+    "keydownIsTrusted": true,
+    "keydownKey": "Enter",
+    "activationIsTrusted": true,
+    "programmaticClickCount": 0,
+    "dispatchEventClickCount": 0,
+    "observedChange": true,
+    "focusReached": true,
+    "approvedBefore": 0,
+    "approvedAfter": 1,
+    "pendingBefore": 4,
+    "pendingAfter": 3,
+    "movedExactlyOne": true,
+    "noFakeRule": true
+  },
+  "step49_to_58_rebuild": {
+    "rebuilds": [
+      {
+        "brainId": "brain-alpha",
+        "schemaVersion": 3,
+        "layoutAlgorithm": "layered-tree-cards-v1",
+        "layoutInvocations": 1,
+        "digest": "fnv1a64:400fab2df3081fc0"
+      },
+      {
+        "brainId": "brain-gamma",
+        "schemaVersion": 3,
+        "layoutAlgorithm": "layered-tree-cards-v1",
+        "layoutInvocations": 1,
+        "digest": "fnv1a64:400fab2df3081fc0"
+      },
+      {
+        "brainId": "brain-beta",
+        "schemaVersion": 3,
+        "layoutAlgorithm": "layered-tree-cards-v1",
+        "layoutInvocations": 1,
+        "digest": "fnv1a64:8765c034d3bf1500"
+      }
+    ],
+    "layoutDigestsDeterministic": true,
+    "intraStores": {
+      "brain-alpha": {
+        "before": {
+          "available": true,
+          "deterministicCount": 8,
+          "approvedCount": 4,
+          "pendingSuggestionCount": 4,
+          "deterministicDigest": "fnv1a64:f2dc56476a45221f",
+          "unresolvedEndpoints": []
+        },
+        "after": {
+          "available": true,
+          "deterministicCount": 8,
+          "approvedCount": 4,
+          "pendingSuggestionCount": 4,
+          "deterministicDigest": "fnv1a64:f2dc56476a45221f",
+          "unresolvedEndpoints": []
+        }
+      },
+      "brain-gamma": {
+        "before": {
+          "available": true,
+          "deterministicCount": 8,
+          "approvedCount": 4,
+          "pendingSuggestionCount": 4,
+          "deterministicDigest": "fnv1a64:e8bf307e065c0eb1",
+          "unresolvedEndpoints": []
+        },
+        "after": {
+          "available": true,
+          "deterministicCount": 8,
+          "approvedCount": 4,
+          "pendingSuggestionCount": 4,
+          "deterministicDigest": "fnv1a64:e8bf307e065c0eb1",
+          "unresolvedEndpoints": []
+        }
+      },
+      "brain-beta": {
+        "before": {
+          "available": false,
+          "expectedOutOfScope": true,
+          "error": "relations_out_of_scope_for_fixture: `brain-beta` reads `deep` and carries no relations: TASK-0017 §4.6 freezes `quasi-empty` as the relations source of this slice"
+        },
+        "after": {
+          "available": false,
+          "expectedOutOfScope": true,
+          "error": "relations_out_of_scope_for_fixture: `brain-beta` reads `deep` and carries no relations: TASK-0017 §4.6 freezes `quasi-empty` as the relations source of this slice"
+        }
+      }
+    },
+    "crossCountsBefore": {
+      "deterministic": 6,
+      "approved": 1,
+      "pending": 3
+    },
+    "crossCountsAfter": {
+      "deterministic": 6,
+      "approved": 1,
+      "pending": 3
+    },
+    "xbS01StillApproved": true,
+    "deterministicSix": true,
+    "unresolvedEndpoints": [],
+    "fingerprintsBefore": [
+      {
+        "brainId": "brain-alpha",
+        "fingerprint": "fnv1a64:0730617acda289d9"
+      },
+      {
+        "brainId": "brain-gamma",
+        "fingerprint": "fnv1a64:0730617acda289d9"
+      },
+      {
+        "brainId": "brain-beta",
+        "fingerprint": "fnv1a64:4c6333d43751c8da"
+      }
+    ],
+    "fingerprintsAfter": [
+      {
+        "brainId": "brain-alpha",
+        "fingerprint": "fnv1a64:0730617acda289d9"
+      },
+      {
+        "brainId": "brain-gamma",
+        "fingerprint": "fnv1a64:0730617acda289d9"
+      },
+      {
+        "brainId": "brain-beta",
+        "fingerprint": "fnv1a64:4c6333d43751c8da"
+      }
+    ],
+    "sourcesUnchanged": true,
+    "sourceArtifacts": [],
+    "keyFailures": []
+  },
+  "step59_realClose": "performed by scripts/task0022-n15-run-real-host.ps1",
+  "finishedAt": "2026-09-03T04:52:35.113Z"
+}
