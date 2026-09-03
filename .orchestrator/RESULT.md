@@ -3,7 +3,7 @@ AGENT: CLAUDE
 RESULT: DONE
 BRANCH: build/v0.2-a5-interbrain-relations
 BASE_HEAD: c1c747a2bbcbc45bb2920378e4967fe81004a2c8
-FINAL_HEAD: <renseigné au commit>
+FINAL_HEAD: 7f97fc673cfc76cfb4c6ee6c59de90afaa0e57c1
 TASK_STATE: TASK-0021 = IMPLEMENTED (en attente de contrôle indépendant)
 
 SESSION: début de session normal. Git vérifié AVANT toute lecture : racine
