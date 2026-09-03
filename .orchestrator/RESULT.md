@@ -1,27 +1,26 @@
-TASK_ID: TASK-0022 — enregistrement VERIFIED / scellement X5
+TASK_ID: TASK-0023
 AGENT: CODEX
 RESULT: DONE
-BRANCH: build/v0.2-a6-topographic-node-graph
-FINAL_HEAD: 4e48b046d6402b09edf968df88324c72da00dd3f
+BRANCH: build/v0.2-a7-exact-content-observations
+FINAL_HEAD: 756b97bd1b04f6b214c8519581cc681cd7f1e25f
 
 SUMMARY:
-- Verdict indépendant enregistré dans `ACTION-0036` sur `645b9484790f8e766f7eed93107b9431d144aaa6`, correction `X8` `d6963e65e9829b8c17196eeb469eabfb3aa86aeb` : `ACTION-0036`, `X8` et `ACTION-0035` `CLOSED`; `TASK-0022` `VERIFIED`. Codex n'a pas rendu le verdict.
-- X5 étendue de 19 à 27 noms identiques dans Rust, TypeScript et PowerShell : ajout exact des huit preuves TASK-0022 J12, K11, L12 pass1/pass2, M12 pass1/pass2 et N15 pass1/pass2. H9, K12 et `-abandon` restent non protégés; aucune preuve modifiée.
+- Fondation SHA-256 `sha256-v1` streaming, store atomique par cerveau, fraîcheur honnête, API/UI FR/EN; aucune relation, suggestion, identité physique ou donnée réelle.
+- EC15 réussi en deux vrais processus WebView2; Alpha/Gamma isolés, rebuild persistant, rehash réel après redémarrage; `TASK-0023` `IMPLEMENTED`, jamais auto-`VERIFIED`.
 
 VALIDATIONS:
-- `pnpm test -- src/map/runArtifacts.test.ts` PASS — 26/26; parité exacte Rust/TypeScript/PowerShell, 19 anciens noms et 8 nouveaux contrôlés, aucune neuvième destination.
-- Rust ciblé X5 PASS — 3/3 avec `CARGO_INCREMENTAL=0`; chacun des 27 noms refusé et variantes non canoniques non protégées.
-- PowerShell ciblé PASS — 27/27 refus attendus; variantes non canoniques contrôlées autorisées. `main` intacte à `91bbe90f0f99026c28cd345784d4f579a0016db2`.
+- 171 tests Rust, 208 tests TypeScript, `pnpm check`, `pnpm build`, Tauri debug `--no-bundle` : PASS.
+- EC15 pass1/pass2 WebView2 `152.0.4191.62` : PASS; passe 2 = 8 fichiers ouverts, 1 424 octets relus, 8 digests recalculés; X5 27 inchangé.
 
 IMPORTANT_FILES:
-- `docs/reviews/ACTION-0036-independent-recontrol.md`; `src-tauri/src/map/commands.rs`; `src/map/runArtifacts.ts`; `src/map/runArtifacts.test.ts`; `scripts/protected-run-artifacts.ps1`; documents durables `docs/ai/`.
+- `src-tauri/src/map/content_signals.rs`; `src/map/ContentObservationsPanel.tsx`; `src/map/contentScenario.ts`; deux preuves `docs/performance/runs/TASK-0023-EC15-*`; `docs/tasks/TASK-0023-exact-content-observations.md`; `docs/decisions/DEC-0025-exact-content-observation-boundary.md`.
 
-COMMIT:
-4e48b046d6402b09edf968df88324c72da00dd3f
+COMMIT: 756b97bd1b04f6b214c8519581cc681cd7f1e25f
 PUSHED: yes
 
 LIMITS_OR_BLOCKERS:
-- N15, J12, K11, L12, M12 et H9 non rejoués conformément au périmètre; aucun test complet, check ou build. B0 inchangé; aucune dépendance, aucun clean, aucune suppression de `target`, aucune action destructive.
+- `F-043`, `F-044`, `F-045`, `F-046` restent `PROPOSED`; aucun moteur/règle/suggestion/IA, H9, seuil 100K ou donnée réelle.
+- DEC-0013/F physical identity persistence remains blocked.
 
 NEXT_ORCHESTRATOR_DECISION:
-- Définir la prochaine tranche; `TASK-0023` n'est pas créée.
+- contrôle indépendant TASK-0023
