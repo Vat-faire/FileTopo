@@ -4,7 +4,7 @@ RESULT: DONE
 BRANCH: build/v0.2-a5-interbrain-relations
 BASE_HEAD: 8d1e27151f53d082551e05b00816100cb790542b
 GEL_COMMIT: 7746fd4e9c2fad42b23bb9d88a75550d375d3279
-FINAL_HEAD: (renseigné par le commit suivant)
+FINAL_HEAD: 4a49f8fae37685e6a500715fc85d0872224a59f2
 TASK_STATE: IMPLEMENTED — VERIFIED NON attribué
 SESSION: début de session normal. Git vérifié d'abord : racine, branche
 `build/v0.2-a4-composed-view`, `HEAD` `8d1e271`, arbre propre, aligné sur
