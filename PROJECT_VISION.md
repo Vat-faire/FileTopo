@@ -23,6 +23,28 @@ les changements et ouvre un élément dans l'Explorateur Windows.
 Plusieurs cerveaux peuvent coexister. Chacun conserve sa racine, son nom, sa
 couleur, son icône, ses préférences, sa vue, son index et son état vu/non vu.
 
+> **Précision du 2026-09-02 — réalignement produit, `DEC-0019` à `DEC-0023`.**
+> Rien de cette vision n'est retiré; quatre points sont **précisés** :
+>
+> 1. **FileTopo n'est PAS un produit juridique** — `DEC-0019`. La cible est
+>    générique : particuliers, équipes, entreprises, cabinets professionnels,
+>    développeurs, chercheurs, architecture, comptabilité, juridique, autres
+>    environnements documentaires. Le juridique est un **cas d'usage
+>    important**, jamais une hypothèse du noyau, et **aucune catégorie métier
+>    n'est codée en dur**.
+> 2. **La représentation principale finale est un graphe topographique
+>    hiérarchique à nœuds/cartes reliés** — `DEC-0020` —, non un pavage de
+>    rectangles imbriqués. « Blocs », plus haut, se lit désormais « **nœuds
+>    identifiables reliés** ».
+> 3. **Le produit doit être très utile SANS LLM** — `DEC-0021`. Les relations
+>    automatiques viennent de **règles nommées, versionnées et explicables**,
+>    jamais d'un score seul. Une **suggestion n'est jamais une relation
+>    établie**.
+> 4. **L'IA reste facultative et `BYOK`** — `DEC-0022` — et **ne produit que
+>    des suggestions**. **Un ou plusieurs utilisateurs** partagent un seul
+>    modèle conceptuel, et **la source reste autoritaire sur les
+>    permissions** — `DEC-0023`.
+
 ## Carte générique et relations
 
 La hiérarchie vient exclusivement de l'arborescence observée. Les relations

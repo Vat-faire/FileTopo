@@ -17,6 +17,20 @@
   **jamais comptés comme relation** avant approbation. **Aucune portée n'a
   changé**, aucune exigence n'a été ajoutée ni retirée. Enregistrée par
   [`DEC-0016`](../decisions/DEC-0016-p4-gate-crossing-and-first-slice.md) B.
+- **Correction normative `X2`, 2026-09-02.** Le **réalignement produit** de
+  [`TASK-0021`](../tasks/TASK-0021-product-realignment.md), sous
+  [`DEC-0020`](../decisions/DEC-0020-topographic-node-graph.md), corrige
+  **`P-02`** et **elle seule**. L'ancienne formulation exigeait que la
+  **relation d'inclusion visuelle** reproduise la hiérarchie : ainsi écrite,
+  elle **rendait le pavage imbriqué obligatoire** et **interdisait
+  contractuellement** la topographie à nœuds reliés que la direction produit
+  retient. La formulation est remplacée **sur ce point**; **l'ancienne est
+  conservée, visible, sous la nouvelle** — §4.1 — et **n'est ni supprimée ni
+  réécrite en silence**. **`P-02` ne descend pas** : l'exigence corrigée est
+  **plus forte**, puisqu'elle ajoute l'interdiction d'une **arête inventée** et
+  d'un **nœud placé dans la mauvaise branche**, deux échecs qu'un pavage
+  correct peut commettre. **Le contrat reste à 22 exigences**; `P-01` et `P-03`
+  à `P-22` sont **inchangées**.
 - **Autorité :** ce document **prime** sur toute lecture antérieure du
   périmètre produit tirée de l'ancienne version publique de FileTopo.
 
@@ -119,7 +133,21 @@ est falsifiable sur fixtures synthétiques. « Matrice » renvoie aux fonctions 
 | # | Exigence | Comportement exigé | Critère d'acceptation | Matrice |
 |---|---|---|---|---|
 | `P-01` | **Carte construite depuis l'arborescence réelle** | Choisir une racine suffit : la carte se construit à partir de la structure réellement observée, sans configuration préalable, sans catégorie codée en dur et sans intervention manuelle | Sur quatre arbres synthétiques de formes différentes — large, profond, mixte, quasi vide —, l'ensemble des nœuds cartographiés **égale** l'ensemble des nœuds indexés, qui égale l'ensemble attendu de la fixture. Aucun élément affiché n'est absent de la source, aucun élément de la source n'est absent sans motif affiché | `F-001`, `F-003`, `F-006`, `F-007` |
-| `P-02` | **Blocs et nœuds hiérarchiques lisibles** | La carte montre des blocs et des nœuds dont l'imbrication visuelle **est** la hiérarchie réelle, et qui restent lisibles quelle que soit la forme de l'arbre | Sur les mêmes quatre arbres : aucun bloc de largeur ou de hauteur nulle, aucun chevauchement entre frères, la relation d'inclusion visuelle reproduit la relation parent/enfant **nœud par nœud**, et l'étiquette du bloc sélectionné reste lisible | `F-007`, `F-008` |
+| `P-02` | **Hiérarchie lisible et non ambiguë** — *corrigée par `X2`* | La topographie rend la **hiérarchie réelle lisible et non ambiguë**. Chaque nœud/fichier/dossier possède une **représentation identifiable**. La relation parent/enfant est représentée **nœud par nœud** par une **connexion et/ou une organisation spatiale explicite**. **Aucune relation hiérarchique affichée ne peut être inventée. Aucun parent/enfant réel ne peut être attribué au mauvais nœud** | Sur les mêmes quatre arbres — large, profond, mixte, quasi vide — **huit** contrôles : (1) **ensemble de nœuds correct**, égal à l'index et à l'attendu; (2) **parent exact** pour chaque nœud; (3) **enfants directs exacts** pour chaque nœud; (4) **aucune arête hiérarchique inventée**; (5) **aucun nœud attribué à la mauvaise branche**; (6) **labels disponibles** au niveau de zoom prévu, une indisponibilité étant **déclarée** et non silencieuse; (7) **navigation souris ET clavier**, sans piège; (8) **hiérarchie compréhensible sans la couleur seule**. **Aucun algorithme de disposition n'est imposé** — Sugiyama, *layered graph*, *tree layout*, *orthogonal layout* et les autres restent des choix techniques futurs | `F-007`, `F-008`, `F-042` |
+
+> **`X2` — formulation d'origine de `P-02`, conservée pour mémoire, remplacée
+> le 2026-09-02 par [`DEC-0020`](../decisions/DEC-0020-topographic-node-graph.md) :**
+>
+> | `P-02` | **Blocs et nœuds hiérarchiques lisibles** | La carte montre des blocs et des nœuds dont l'imbrication visuelle **est** la hiérarchie réelle, et qui restent lisibles quelle que soit la forme de l'arbre | Sur les mêmes quatre arbres : aucun bloc de largeur ou de hauteur nulle, aucun chevauchement entre frères, la relation d'inclusion visuelle reproduit la relation parent/enfant **nœud par nœud**, et l'étiquette du bloc sélectionné reste lisible | `F-007`, `F-008` |
+>
+> **Ce qui a été retiré :** l'obligation que la hiérarchie passe par
+> l'**inclusion visuelle**. **Ce qui a été ajouté :** l'interdiction d'inventer
+> une arête et celle d'attribuer un nœud à la mauvaise branche. Les garanties
+> de non-dégénérescence de l'ancienne version — largeur nulle, chevauchement
+> entre frères — étaient des propriétés **du pavage**; sur un graphe de nœuds,
+> elles sont remplacées par les contrôles (1) à (5), qui portent sur la
+> **structure affichée** plutôt que sur la géométrie des rectangles.
+> **`P-02` n'a jamais été déclarée satisfaite, ni avant ni après `X2`.**
 | `P-03` | **Parent et enfants directs** | Depuis n'importe quel nœud, l'utilisateur voit son parent et ses enfants directs, et peut se déplacer vers chacun | Pour **chaque** nœud d'une fixture, le parent et l'ensemble des enfants directs affichés égalent ceux de l'index. Aucun lien affiché sans contrepartie dans l'arborescence | `F-016` |
 
 ### 4.2 Relations
@@ -216,6 +244,15 @@ exigible** ici.
   l'utilisateur est révocable par lui.
 - Faire dépendre une relation d'une **extraction de contenu**, d'un modèle d'IA
   ou d'un service distant : ces couches restent `DIFFÉRÉ` — §6.
+- **Ajouté le 2026-09-02, [`DEC-0021`](../decisions/DEC-0021-deterministic-relation-engine.md)
+  et [`DEC-0022`](../decisions/DEC-0022-optional-byok-ai-layer.md).** Créer une
+  relation établie à partir d'un **score numérique seul**, sans règle **nommée,
+  versionnée et de sens explicitement défini**. Confondre **contenu binaire
+  identique** — ce qu'un hash prouve — avec **même objet physique**, **copie**,
+  **nom similaire** ou **relation logique** : ce sont cinq notions distinctes,
+  de valeurs de vérité différentes. Et faire produire à un `LLM` une relation
+  **établie** : il ne produit que des **suggestions**, et **aucune troisième
+  provenance « AI » n'existe**.
 
 ## 6. Ce qui reste DIFFÉRÉ, et ne remonte pas
 
@@ -230,6 +267,7 @@ décision humaine séparée, conformément à `PROJECT_VISION.md` et à
 | `F-037` — extraction de contenu, OCR | `DIFFÉRÉ` | oui |
 | `F-038` — RAG cité | `DIFFÉRÉ` | oui |
 | `F-039` — GraphRAG | `DIFFÉRÉ` | oui |
+| `F-047` — couche IA facultative `BYOK` | `DIFFÉRÉ` | **ajoutée le 2026-09-02** par [`DEC-0022`](../decisions/DEC-0022-optional-byok-ai-layer.md) |
 
 **Conséquence pour la parité :** aucune exigence `P-01` à `P-22` ne peut être
 satisfaite **au moyen** d'une de ces couches. Un produit qui n'a ni IA, ni OCR,

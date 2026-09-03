@@ -17,10 +17,45 @@
   comme repli déclaré, PAS comme `I-E` complète.** Aucune campagne `H9`, aucun
   seuil — `R8` **entière**. Aucune détection automatique entre cerveaux.
   **`P-19`** et **`P-21`** demeurent. **`B0`** n'est pas corrigé
-- **Tâche livrée, NON vérifiée :** aucune
-- **Matrice fonctionnelle :** **41** lignes après l'ajout de `F-041` par
-  `DEC-0018`. Répartition : **`MVP` 37, `ULTÉRIEUR` 0, `DIFFÉRÉ` 4**. Aucune
-  ligne existante n'a changé de classification, aucune n'est descendue
+- **Tâche livrée, NON vérifiée :** **`TASK-0021`, `IMPLEMENTED` le
+  2026-09-02** — **réalignement produit**,
+  [fiche](../tasks/TASK-0021-product-realignment.md). **Livrable
+  DOCUMENTAIRE**, en attente de **contrôle indépendant**. **L'exécuteur ne
+  s'est pas attribué `VERIFIED`**
+- **Ce que `TASK-0021` a enregistré :** cinq décisions de **direction produit**
+  de Sébastien —
+  [`DEC-0019`](../decisions/DEC-0019-general-purpose-product-scope.md)
+  (FileTopo **n'est pas** un produit juridique; cible générique; **aucune
+  catégorie métier codée en dur**),
+  [`DEC-0020`](../decisions/DEC-0020-topographic-node-graph.md) (la
+  **représentation principale finale** est un **graphe hiérarchique à
+  nœuds/cartes reliés**; le **treemap n'est plus la cible visuelle**;
+  **correction normative `X2` de `P-02`**),
+  [`DEC-0021`](../decisions/DEC-0021-deterministic-relation-engine.md)
+  (**moteur déterministe explicable, très utile SANS LLM**; trois niveaux;
+  **score ≠ vérité**; workflow humain; mémoire des rejets),
+  [`DEC-0022`](../decisions/DEC-0022-optional-byok-ai-layer.md) (IA
+  **facultative `BYOK`**, provider-agnostic; un `LLM` **suggère**, n'établit
+  jamais; **aucune troisième provenance**), et
+  [`DEC-0023`](../decisions/DEC-0023-identity-and-source-permissions.md) (un
+  seul modèle mono/multi-utilisateur; **la source reste autoritaire**; « ne
+  peut pas ouvrir » **n'est pas suffisant**)
+- **Gardes `X5` étendues aux cinq preuves `TASK-0020` :** **14 → 19 noms**,
+  dans les **trois** gardes — porte Rust `write_run_artifact`,
+  `src/map/runArtifacts.ts`, `scripts/protected-run-artifacts.ps1`. **Seule
+  modification de code de `TASK-0021`.** Conséquence assumée : les
+  destinations `M12`, `J12` et `L12` du runtime livré sont désormais
+  **scellées** — la porte **refuse** au lieu d'écrire, et c'est le résultat
+  voulu
+- **`P-02` est corrigée, pas supprimée.** L'ancienne formulation est
+  **conservée et visible** dans le contrat. **Le contrat reste à 22
+  exigences**; `P-01` et `P-03` à `P-22` sont **inchangées**. **`P-02` n'est
+  pas satisfaite** et ne l'a jamais été déclarée
+- **Matrice fonctionnelle :** **49** lignes après l'ajout de `F-042` à `F-049`
+  par `DEC-0019` à `DEC-0023`. Répartition : **`MVP` 41, `ULTÉRIEUR` 3,
+  `DIFFÉRÉ` 5**. Aucune ligne existante n'a changé de classification, aucune
+  n'est descendue. **`F-007` et `F-008` changent de comportement cible** —
+  nœuds reliés plutôt que blocs imbriqués — **et pas de classification**
 - **Branche active :** **`build/v0.2-a5-interbrain-relations`**, créée depuis
   le tip **contrôlé** `8d1e27151f53d082551e05b00816100cb790542b` de
   `build/v0.2-a4-composed-view`
@@ -363,10 +398,10 @@ un succès** alors que la passe 1 avait abandonné.
   **PARTIELLE**.
 - **`ek1` n'est pas `I-E`**, et rien ne prétend qu'il soit globalement unique
   entre cerveaux — l'isolation vient du **stockage**.
-- **`B0` s'est reproduit une cinquième fois**, la dernière sur `cargo test`
-  pendant la correction d'`X5`. **Rien n'a été supprimé ni renommé** dans
-  `src-tauri/target/`; `CARGO_INCREMENTAL=0` suffit à contourner —
-  `DEC-0013` E.
+- **`B0` s'est reproduit une sixième fois**, la dernière sur `cargo test`
+  pendant l'extension d'`X5` de `TASK-0021`. **Rien n'a été supprimé ni
+  renommé** dans `src-tauri/target/`; `CARGO_INCREMENTAL=0` suffit à
+  contourner — `DEC-0013` E.
 - **`P-21` n'est pas satisfaite** : français seulement, aucun audit WCAG
   complet, **aucun lecteur d'écran réel**.
 

@@ -69,6 +69,38 @@ Les preuves et constats ci-dessous sont inchangés.
 > **Une relation inter-cerveaux ne fusionne jamais deux cerveaux**, n'est jamais
 > créée par le seul fait d'un affichage, et n'invente jamais son inverse.
 
+> **Amendement du 2026-09-02 — réalignement produit, `DEC-0019` à `DEC-0023`.**
+>
+> **Huit lignes sont ajoutées : `F-042` à `F-049`.** Ce sont des **extensions
+> produit décidées**, déclarées comme telles, et **non** des reclassifications
+> silencieuses : **aucune ligne existante ne change de classification, aucune
+> ne descend, aucune ne disparaît.**
+>
+> **La matrice passe de 41 à 49 lignes.** Répartition : **`MVP` 41**,
+> **`ULTÉRIEUR` 3**, **`DIFFÉRÉ` 5**, **total 49**. `F-001` à `F-049`, **sans
+> trou ni doublon**. La colonne `ULTÉRIEUR` **cesse d'être vide** : elle
+> accueille trois fonctions **nommées pour ne pas être oubliées**, et **non
+> promises au MVP**.
+>
+> **`F-007` et `F-008` changent de COMPORTEMENT CIBLE, pas de
+> classification.** [`DEC-0020`](../decisions/DEC-0020-topographic-node-graph.md)
+> fait de la **représentation principale finale** un **graphe hiérarchique à
+> nœuds/cartes reliés**, et non un pavage de rectangles imbriqués. Leur cible
+> se lit désormais « **nœuds identifiables reliés** » là où elle disait
+> « blocs »; elles restent **`MVP`**, **`P0`**, et leur colonne « Prototype
+> actuel » — qui décrit l'ancienne version publique — **n'est pas retouchée**.
+> Le pavage `CAL-B` **demeure une primitive technique**, une représentation de
+> diagnostic et une vue secondaire éventuelle : **il n'impose plus l'UX
+> finale**. `DEC-0014` et `DEC-0015` sont **inchangées**.
+>
+> **Le contrat de parité conserve ses 22 exigences.** `P-02` est **corrigée**
+> par la correction normative **`X2`**, jamais supprimée; `P-01` et `P-03` à
+> `P-22` sont **inchangées**. `F-047` rejoint les fonctions `DIFFÉRÉ` du §6 du
+> contrat.
+>
+> **Aucune de ces huit fonctions n'est implémentée, prouvée ni commencée.**
+> Elles sont toutes `PROPOSED`, et ce sont des **cibles à falsifier**.
+
 | Identifiant | Fonction | Comportement cible | Prototype actuel | Preuve dans le dépôt | Écart | Priorité | Phase | État | Critères d'acceptation | Baseline TASK-0011 |
 |---|---|---|---|---|---|---|---|---|---|---|
 | F-001 | Choix de racine | Sélecteur Windows guidé | Présent | src-tauri/src/lib.rs:136 | Flux cerveau incomplet | P0 | 2 | IMPLEMENTED | Sélection synthétique testée, annulation sûre | `MVP` |
@@ -77,8 +109,8 @@ Les preuves et constats ci-dessous sont inchangés.
 | F-004 | Identifiants stables | Survivre aux changements raisonnables | IDs recréés par parcours | scanner.rs:68; index.rs:85 | Instables au déplacement | P0 | 2 | PROPOSED | Renommage/déplacement corrélé sans faux positif | `MVP` |
 | F-005 | Exclusions | Règles sûres, visibles et configurables | Reparse points ignorés | scanner.rs:121 | Pas de politique complète | P0 | 2 | PROPOSED | Exclusions testées et explicables | `MVP` |
 | F-006 | Index reconstructible | Refaire depuis la source sans perte | Schéma versionné, remplacement complet | index.rs:70,75 | Migration/reprise à préciser | P0 | 3 | PROPOSED | Reconstruction déterministe et atomique | `MVP` |
-| F-007 | Carte en blocs | Blocs issus de la hiérarchie réelle | Points en spirale | synthetic.rs:79 | À remplacer | P0 | 4 | PROPOSED | Parent/enfants lisibles sur arbres variés | `MVP` |
-| F-008 | Adaptation aux arbres | Disposition générique | Échantillonnage uniforme | TerrainMap.tsx:19 | Hiérarchie ignorée | P0 | 4 | PROPOSED | Fixtures de formes différentes restent lisibles | `MVP` |
+| F-007 | Carte topographique à nœuds reliés | **Nœuds/cartes identifiables** issus de la hiérarchie réelle, reliés par des **connexions explicites** — *cible modifiée le 2026-09-02 par `DEC-0020`; classification inchangée* | Points en spirale | synthetic.rs:79 | À remplacer | P0 | 4 | PROPOSED | Parent/enfants lisibles sur arbres variés, **sans arête inventée ni nœud dans la mauvaise branche** — `P-02` corrigée par `X2` | `MVP` |
+| F-008 | Adaptation aux arbres | Disposition générique de graphe hiérarchique, **aucun algorithme imposé** — *cible modifiée le 2026-09-02 par `DEC-0020`; classification inchangée* | Échantillonnage uniforme | TerrainMap.tsx:19 | Hiérarchie ignorée | P0 | 4 | PROPOSED | Les quatre fixtures — large, profonde, mixte, quasi vide — restent lisibles, **noms disponibles au zoom prévu** | `MVP` |
 | F-009 | Panoramique | Déplacer la carte | Aucune preuve trouvée | TerrainMap.tsx | Manquant | P1 | 5 | PROPOSED | Souris, pavé et clavier testés | `MVP` |
 | F-010 | Zoom | Zoom avant/arrière | Niveau de détail seulement | TerrainMap.tsx:77 | Pas de transformation de vue | P1 | 5 | PROPOSED | Zoom borné et centré | `MVP` |
 | F-011 | Ajuster à l'écran | Cadrer carte ou sélection | Aucune preuve trouvée | TerrainMap.tsx | Manquant | P1 | 5 | PROPOSED | Toute carte peut être recadrée | `MVP` |
@@ -112,3 +144,11 @@ Les preuves et constats ci-dessous sont inchangés.
 | F-039 | GraphRAG | Seulement si besoin démontré | Absent | aucune dépendance graphe IA | Facultatif | P3 | 12 | DEFERRED | Gain mesuré après RAG fiable | `DIFFÉRÉ` |
 | F-040 | Vue composée multi-cerveaux | Un ou plusieurs cerveaux indépendants dans le même graphique, sans fusion | Absent | aucun catalogue de cerveaux dans le prototype | Manquant | P1 | 7 | PROPOSED | Deux cerveaux affichés ensemble ne partagent aucun stockage ni aucun état, et chaque élément porte son cerveau d'origine | **`MVP`** (extension produit `DEC-0017`) |
 | F-041 | Relations inter-cerveaux explicites | Un nœud d'un cerveau relié explicitement à un nœud d'un autre cerveau, avec provenance, sans jamais fusionner les deux | Absent | aucune relation entre cerveaux dans le prototype | Manquant | P1 | 7 | PROPOSED | Une relation `A → B` porte deux extrémités, un type et une provenance `DETERMINISTIC` ou `APPROVED`; elle survit à une reconstruction d'index; elle n'implique jamais `B → A`; et la ressemblance de noms ou de fichiers n'en crée aucune | **`MVP`** (extension produit `DEC-0018`) |
+| F-042 | Repli/dépli et focus de branche | Replier ou déplier une branche du graphe, et focaliser la vue sur une branche ou un sous-ensemble, sans perdre la position dans la hiérarchie | Absent | aucun graphe repliable dans le prototype | Manquant | P2 | 5 | PROPOSED | Replier une branche masque **exactement** ses descendants et rien d'autre; déplier restitue l'état antérieur; le focus sur une branche n'affiche **aucun** nœud extérieur à elle et le signale en mots; les deux sont atteignables au clavier et réversibles en une action | **`ULTÉRIEUR`** (extension produit `DEC-0020`) — *possibilité future, non promise au MVP* |
+| F-043 | Moteur de signaux et relations déterministes explicables | Des règles **nommées et versionnées** produisent des relations `DETERMINISTIC` et des suggestions, à partir de signaux observables, **sans aucun LLM** | Absent | aucune règle ne produit de relation; toute relation vient d'une fixture | Manquant | P0 | 5 | PROPOSED | Chaque relation produite cite la **règle** et sa **version**; chaque suggestion est **explicable en langage ordinaire** par les signaux observés; **aucun score numérique seul** ne crée de relation établie; **contenu binaire identique** n'est jamais présenté comme « même fichier physique »; le moteur fonctionne **hors ligne, sans clé et sans compte** | **`MVP`** (extension produit `DEC-0021`) |
+| F-044 | File de révision des suggestions | Une file simple — « 17 relations à confirmer » — où l'utilisateur traite oui / non / plus tard, sans ouvrir d'interface technique | Absent | aucune notion de suggestion dans le prototype | Manquant | P1 | 5 | PROPOSED | États **`PENDING`, `APPROVED`, `REJECTED`**, plus `DEFERRED` seulement si le besoin est démontré; activer une suggestion montre **source, cible, type proposé, pourquoi, signaux observés**; **`Confirmer`** produit une relation de provenance **`APPROVED`** et **jamais** une troisième valeur; une suggestion est distinguable d'une relation établie **sans recourir à la seule couleur** | **`MVP`** (extension produit `DEC-0021`) |
+| F-045 | Mémoire des décisions humaines sur les suggestions | Une suggestion rejetée n'est pas reproposée indéfiniment à chaque scan, sans changement pertinent des données ou de la règle | Absent | aucune décision humaine mémorisée | Manquant | P1 | 6 | PROPOSED | Une décision enregistre **suggestion, règle et version, extrémités, décision, date**, et l'éventuelle **cause de réévaluation**; rejouer un scan **sans changement** ne repropose **aucune** suggestion déjà rejetée; la décision **survit au redémarrage** et **n'affecte aucun autre cerveau** | **`MVP`** (extension produit `DEC-0021`) |
+| F-046 | Identité de contenu et doublons exacts | Distinguer **même objet physique**, **contenu identique**, **copie probable**, **nom similaire** et **relation logique**, sans jamais les confondre | Absent | aucun hash, aucune identité de contenu | Manquant | P1 | 5 | PROPOSED | Deux fichiers de **hash identique** sont déclarés « contenu binaire identique » et **jamais** « même fichier physique »; l'identité d'objet, quand l'OS la donne, emploie le couple **`VolumeSerialNumber` + `FileId`** — `FileId` seul interdit, `DEC-0013`; le calcul **ne modifie aucune source** — `I-1`; deux fichiers vides identiques ne produisent **aucune** relation logique automatique | **`MVP`** (extension produit `DEC-0021`) |
+| F-047 | Couche IA facultative `BYOK` | Un fournisseur choisi par l'utilisateur, avec sa propre clé, produit des **suggestions enrichies** — jamais des relations établies | Absent | aucune dépendance IA | Facultatif, jamais requis | P3 | 11 | DEFERRED | Le produit est **complet sans clé, sans compte et sans connexion**; l'architecture est **agnostique du fournisseur**; une suggestion IA porte **fournisseur, modèle, date et justification** pour l'audit; approuvée, elle devient une relation de provenance **`APPROVED`** — **aucune troisième provenance « AI »**; **rien ne sort** sans autorisation explicite, par niveaux — métadonnées, contenu, pièces jointes, OCR, aucun envoi | **`DIFFÉRÉ`** (extension produit `DEC-0022`) |
+| F-048 | Identités, groupes et mode équipe | Le même modèle conceptuel représente un utilisateur seul ou plusieurs utilisateurs et groupes, sans créer deux produits | Absent | un seul utilisateur implicite | Manquant | P2 | 7 | PROPOSED | Le mode personnel emploie l'**identité de l'OS courante**, sans compte ni connexion, et **ne montre aucune trace** du mode équipe; `Identity`, `Groups`, `Brains`, `Views`, `Relations`, `Permissions` sont **un seul modèle**, pas deux; **aucun contrôleur de domaine n'est exigé** | **`ULTÉRIEUR`** (extension produit `DEC-0023`) |
+| F-049 | Rendu, recherche et relations conscients des permissions | Ce qu'un utilisateur n'a pas le droit de voir ne lui est **pas divulgué**, à aucun endroit du produit | Absent | aucune notion de permission par utilisateur | Manquant | P0 | 7 | PROPOSED | Pour un objet non autorisé, l'utilisateur n'obtient **ni nom, ni chemin, ni métadonnée, ni relation, ni suggestion, ni résultat de recherche, ni compteur révélateur** — un total qui trahit par soustraction est un échec; le filtrage s'applique **avant** le rendu, la recherche et les relations, **jamais** au moment de l'ouverture; **la source reste autoritaire** et **aucun droit n'est écrit, créé ni modifié** — `I-1` | **`ULTÉRIEUR`** (extension produit `DEC-0023`) — **prérequis dur de `F-048`** |

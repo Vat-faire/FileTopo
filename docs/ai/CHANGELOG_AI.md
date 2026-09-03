@@ -2825,3 +2825,91 @@ relations automatiques sans IA; workflow humain simple de confirmation/rejet
 des suggestions; IA en couche **optionnelle `BYOK`, jamais requise par le
 noyau**; préparation architecture mono-utilisateur / multi-utilisateur /
 permissions héritées de la source. Détail dans `docs/ai/NEXT_ACTION.md`.
+
+## 2026-09-02 — `TASK-0021` : réalignement produit, `IMPLEMENTED`
+
+**Intervention documentaire et produit. Une seule exception de code : les
+gardes `X5`.**
+
+### Gardes `X5` étendues aux cinq preuves de `TASK-0020`
+
+`TASK-0020` étant `VERIFIED` (`ACTION-0032`), ses cinq preuves sont
+**canoniques**. La liste protégée passe de **14 à 19 noms**, identiquement dans
+les **trois** gardes — porte Rust `write_run_artifact`,
+`src/map/runArtifacts.ts`, `scripts/protected-run-artifacts.ps1`. **Testé** :
+`vitest` 14/14, `cargo test map::commands::tests` 14/14, et le module
+PowerShell refuse effectivement les cinq tout en laissant passer les variantes
+`-abandon`.
+
+**Conséquence assumée et déclarée :** les destinations `M12`, `J12` et `L12`
+du runtime livré sont désormais **scellées** — la porte refuse au lieu
+d'écrire. C'est le résultat voulu; une tranche qui rejouerait ces scénarios
+republie sous son propre nom de tâche.
+
+### Cinq décisions produit enregistrées
+
+- **`DEC-0019`** — FileTopo **n'est pas** un produit juridique. Cible
+  générique; le juridique est un **cas d'usage**, pas une hypothèse
+  d'architecture; **aucune catégorie métier codée en dur** dans le noyau; des
+  **packs** spécialisés pourront exister plus tard.
+- **`DEC-0020`** — la **représentation principale finale** est un **graphe
+  topographique hiérarchique à nœuds/cartes et connexions explicites**. Le
+  **treemap n'est plus la cible visuelle** : primitive de calcul,
+  représentation technique, vue secondaire éventuelle. **Aucun algorithme
+  imposé**, **aucune copie pixel de CarteTopo**.
+- **`DEC-0021`** — **FileTopo doit être très utile SANS LLM.** Trois niveaux :
+  prouvé/observé, relation déterministe (règle **nommée, versionnée,
+  explicable**), suggestion. **Une suggestion n'est jamais une relation.**
+  Architecture de signaux; **« hash identique » = contenu binaire identique**,
+  jamais « même fichier physique »; **un score seul ne crée aucune vérité**;
+  workflow `PENDING`/`APPROVED`/`REJECTED`, file de révision, **mémoire des
+  rejets**. **Provenance inchangée : `DETERMINISTIC` ou `APPROVED`.**
+- **`DEC-0022`** — l'IA n'est **jamais nécessaire au noyau**;
+  **provider-agnostic** et **`BYOK`**; un `LLM` produit une **suggestion**,
+  jamais une relation établie; **aucune troisième provenance « AI »**;
+  autorisations d'envoi par niveaux. **`F-047` `DIFFÉRÉ`.**
+- **`DEC-0023`** — **un seul modèle conceptuel** pour un ou plusieurs
+  utilisateurs; **la source reste autoritaire** sur les permissions; **aucun
+  contrôleur de domaine exigé**; « ne peut pas ouvrir le fichier » **n'est pas
+  suffisant** — ni nom, ni chemin, ni métadonnée, ni relation, ni suggestion,
+  ni résultat, ni **compteur révélateur**; filtrage **avant** rendu, recherche
+  et relations.
+
+### Correction normative `X2` — `P-02`
+
+L'ancienne formulation exigeait que l'**inclusion visuelle** reproduise la
+hiérarchie, ce qui rendait le pavage imbriqué **obligatoire**. La nouvelle
+demande une **connexion et/ou organisation spatiale explicite**, **aucune arête
+inventée**, **aucun nœud dans la mauvaise branche**. **L'ancienne formulation
+est conservée et visible**; **le contrat reste à 22 exigences**; **`P-02` ne
+descend pas** — elle est plus forte — et **n'est pas satisfaite**.
+
+### Matrice : 41 → 49 fonctions
+
+`F-042` à `F-049` ajoutées. Répartition **`MVP` 41, `ULTÉRIEUR` 3, `DIFFÉRÉ`
+5**, total **49**, `F-001` à `F-049`, **sans trou ni doublon**. **Aucune
+classification existante n'a changé, aucune n'est descendue.** `F-007` et
+`F-008` changent de **comportement cible**, déclaré, **pas de classification**.
+
+### Séquence de sept tranches futures — `PROPOSED`, non exécutée
+
+Layout à nœuds → moteur de signaux → workflow de validation → doublons à
+l'échelle → recherche/filtres/watchers → fondation permissions/identités →
+couche IA `BYOK`. Ordre justifié par dépendances dans `TASK-0021` §6. **Aucune
+`TASK` d'implémentation n'a été créée.**
+
+### Non fait, volontairement
+
+- **Aucun code d'implémentation** : ni layout, ni moteur de règles, ni IA, ni
+  serveur, ni permissions.
+- **Aucun rejeu** — ni `M12`, ni `J12`, ni `L12`, ni `H9`. **`R8` entière.**
+- **Aucun artefact de preuve modifié**, aucune preuve historique touchée.
+- **Aucune fusion vers `main`, aucune PR, aucune release, aucune étiquette,
+  aucun `force push`**, aucune réécriture d'historique, aucune suppression.
+
+### Prochaine action unique
+
+**Contrôle indépendant de `TASK-0021`.** La première tranche recommandée — le
+**layout topographique à nœuds/cartes/liens** — reste **`PROPOSED`** tant que
+l'orchestrateur n'a pas contrôlé le réalignement. Détail dans
+`docs/ai/NEXT_ACTION.md`.

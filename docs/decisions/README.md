@@ -83,6 +83,37 @@ l'exigence d'isolation, et laisse **`I-1`, `I-2`, `I-3` inchangés**. Le
 **contrat de parité n'est pas retouché** et conserve ses 22 exigences. **Aucune
 réserve n'est levée.**
 
+**Mise à jour du 2026-09-02 — réalignement produit avant toute nouvelle
+implémentation.** `TASK-0020` étant `VERIFIED`
+([`ACTION-0032`](../reviews/ACTION-0032-independent-control.md)), Sébastien a
+arrêté cinq décisions de **direction produit**, enregistrées par
+[`TASK-0021`](../tasks/TASK-0021-product-realignment.md) :
+
+| Fiche | État | Ce qui est retenu |
+|---|---|---|
+| [DEC-0019](DEC-0019-general-purpose-product-scope.md) | `APPROVED` | **FileTopo n'est PAS un produit juridique.** La cible est **générique** — particuliers, équipes, entreprises, cabinets, développeurs, chercheurs, architecture, comptabilité, juridique, autres. Le juridique est un **cas d'usage important**, jamais une hypothèse d'architecture. **Aucune catégorie métier codée en dur dans le noyau**; des **packs** spécialisés pourront exister plus tard, jamais actifs par défaut |
+| [DEC-0020](DEC-0020-topographic-node-graph.md) | `APPROVED` | La **représentation principale finale** est un **graphe topographique hiérarchique à nœuds/cartes et connexions explicites** : nœud identifiable, nom lisible, hiérarchie par **position + connexion**, relations transversales visibles, pan/zoom, repli/dépli et focus **futurs**. Le **treemap n'est PAS la cible visuelle finale** — il reste primitive de calcul, représentation technique et vue secondaire éventuelle. **Correction normative `X2` de `P-02`**, dont l'ancienne formulation est **conservée et visible**. **Aucun algorithme de disposition imposé**; **aucune copie pixel de CarteTopo** |
+| [DEC-0021](DEC-0021-deterministic-relation-engine.md) | `APPROVED` | **FileTopo doit être très utile SANS LLM.** *Deterministic Relation Engine* : trois niveaux — **prouvé/observé**, **relation déterministe** (règle nommée, versionnée, explicable), **suggestion**. Une suggestion **n'est jamais** une relation. Architecture de **signaux** extensible; **« hash identique » = contenu binaire identique**, jamais « même fichier physique »; **un score seul ne crée aucune vérité**; workflow humain `PENDING`/`APPROVED`/`REJECTED` avec **file de révision** et **mémoire des rejets**. **Provenance inchangée** : `DETERMINISTIC` ou `APPROVED` |
+| [DEC-0022](DEC-0022-optional-byok-ai-layer.md) | `APPROVED` | L'IA n'est **jamais nécessaire au noyau**. Architecture future **provider-agnostic** et **`BYOK`** — le client fournit clé, point de terminaison et contrat. Un `LLM` produit une **suggestion**, **jamais** une relation établie; approuvée, elle reste de provenance **`APPROVED`** — **aucune troisième provenance « AI »**. Niveaux d'autorisation d'envoi à prévoir. **`F-047` `DIFFÉRÉ`**, rien n'est implémenté |
+| [DEC-0023](DEC-0023-identity-and-source-permissions.md) | `APPROVED` | **Un seul modèle conceptuel** — `Identity`, `Groups`, `Brains`, `Views`, `Relations`, `Permissions` — pour le **mode personnel** et le **mode équipe**; pas trois produits. **La source reste autoritaire** : NTFS, SMB, NAS, comptes locaux, groupes, AD, autres; **aucun contrôleur de domaine exigé**. « Ne peut pas ouvrir le fichier » **n'est pas suffisant** : nom, chemin, métadonnées, relation, suggestion, résultat et **compteur révélateur** ne sont **pas divulgués**. Toute architecture multi-utilisateur est **permission-aware AVANT** rendu, recherche et relations. **Rien n'est implémenté** |
+
+**Ces cinq fiches ne supplantent rien.** `DEC-0020` **corrige `P-02`** du
+contrat de parité et **prolonge** `DEC-0015`; `DEC-0021` **construit sur**
+`DEC-0009` et la correction `X1`, dont le modèle de provenance est **inchangé**;
+`DEC-0022` **complète** `DEC-0012`, dont la frontière `F-D` tient; `DEC-0023`
+**généralise** `DEC-0017` sans affaiblir l'isolation de `P-20`. **`DEC-0011`,
+`DEC-0013`, `DEC-0014`, `DEC-0018` sont inchangées. Aucune réserve n'est
+levée** — `R8` demeure entière.
+
+**Huit fonctions sont ajoutées** — `F-042` à `F-049` —, la matrice passe de
+**41 à 49 lignes**, et **aucune classification existante ne change**. **Le
+contrat de parité conserve ses 22 exigences.**
+
+Les points `B` à `N` du prompt de réalignement relèvent de la **direction
+produit de Sébastien**, que la délégation d'orchestration technique **ne couvre
+pas**. **Aucune de ces cinq fiches n'est prouvée** : ce sont des décisions,
+pas des résultats.
+
 `DEC-0013` **complète** `DEC-0008`, `DEC-0009` et `DEC-0011` sans les
 remplacer : chacune porte un **amendement en fin de fiche**, et leur texte
 d'origine est conservé intact. Le paragraphe ci-dessus reste vrai **au moment

@@ -1,62 +1,61 @@
 # Prochaine action
 
-## Réalignement produit post-`TASK-0020` — formaliser AVANT tout nouveau code
+## Contrôler `TASK-0021` — le réalignement produit, livré `IMPLEMENTED`
 
-- **Statut de `TASK-0020` :** **`VERIFIED`** le 2026-09-02 —
-  [`ACTION-0032`](../reviews/ACTION-0032-independent-control.md), `CLOSED`,
-  `HEAD` contrôlé `9a7206a1e246258259096b1679f19ac5b53005d7`
+- **Statut de `TASK-0021` :** **`IMPLEMENTED`** le 2026-09-02 —
+  [fiche](../tasks/TASK-0021-product-realignment.md). **Livrable
+  DOCUMENTAIRE.** **L'exécuteur ne s'est pas attribué `VERIFIED`**
+- **Statut de `TASK-0020` :** **`VERIFIED`** —
+  [`ACTION-0032`](../reviews/ACTION-0032-independent-control.md), `CLOSED`
 - **Tâche `IN_PROGRESS` :** **aucune**
-- **Tâche `IMPLEMENTED` en attente de contrôle :** **aucune**
 - **Branche :** `build/v0.2-a5-interbrain-relations`
-- **Action unique :** **formaliser le réalignement produit**, et **rien
-  d'autre**
+- **Action unique :** **contrôle indépendant du réalignement produit**, et
+  **rien d'autre**
 
-### Ce qu'il y a à formaliser, avant toute nouvelle ligne de code
+### Ce qu'il y a à contrôler
 
-1. **La topographie finale à cartes/nœuds reliés** plutôt que l'imbrication de
-   rectangles comme représentation principale;
-2. **la correction explicite du contrat `P-02`**;
-3. **le moteur déterministe de relations automatiques, sans IA**;
-4. **le workflow humain simple pour confirmer/rejeter les suggestions**;
-5. **l'IA comme couche optionnelle `BYOK`, jamais requise par le noyau**;
-6. **la préparation architecture mono-utilisateur / multi-utilisateur /
-   permissions héritées de la source.**
+1. **Les gardes `X5`** couvrent bien les **cinq** preuves `TASK-0020`, dans les
+   **trois** listes, et **aucune preuve n'a été touchée**;
+2. **les cinq fiches `DEC-0019` à `DEC-0023`** enregistrent la direction
+   produit **sans rien décider** que le prompt n'ait nommé;
+3. **la correction normative `X2`** de `P-02` conserve l'ancienne formulation,
+   **ne descend pas** l'exigence, et laisse le contrat à **22** exigences;
+4. **la matrice** est cohérente : **49** lignes, `F-001` à `F-049`, **sans trou
+   ni doublon**, `MVP` 41 / `ULTÉRIEUR` 3 / `DIFFÉRÉ` 5, **aucune
+   classification existante changée**;
+5. **la séquence de sept tranches** de `TASK-0021` §6 est justifiée par des
+   **dépendances réelles**, et reste `PROPOSED`.
+
+### La première tranche recommandée — `PROPOSED`, NON exécutée
+
+**Tranche 1 — nouveau layout topographique à nœuds/cartes/liens**, satisfaisant
+`P-02` sous sa formulation corrigée, sous
+[`DEC-0020`](../decisions/DEC-0020-topographic-node-graph.md).
+
+**Pourquoi celle-là d'abord :** la représentation conditionne tout ce qui
+s'affiche ensuite. Une relation, une suggestion, un état de validation et une
+permission se **montrent** sur une carte; construire le moteur de relations
+avant la carte produirait des relations que rien n'affiche, et le pavage
+imbriqué actuel n'a de place ni pour une arête transversale, ni pour un état
+« à confirmer ».
+
+**Elle reste `PROPOSED` et n'est pas créée tant que l'orchestrateur n'a pas
+contrôlé le réalignement.** Aucune fiche `TASK-0022` n'existe.
 
 ### Ce que cette action n'autorise pas
 
-- **Aucune nouvelle `TASK` d'implémentation n'est créée à ce stade.** Le
-  **prochain prompt de l'orchestrateur** décidera précisément les `DEC`, les
-  exigences et les tâches à créer.
-- **Aucune modification de code produit.**
-- **Aucune modification de décision produit** n'a été faite par la clôture
-  d'`ACTION-0032`.
+- **Aucun code d'implémentation** : ni layout, ni moteur de règles, ni IA, ni
+  serveur, ni permissions.
+- **Aucune nouvelle `TASK` d'implémentation créée.**
 - **Aucun rejeu** de `M12`, `J12`, `L12`, `H9` ni d'aucun test.
 - **Aucune fusion vers `main`, PR, release, étiquette, `force push`**, aucune
   réécriture d'historique.
 
-### Le préalable de la tâche de réalignement
-
-`TASK-0020` étant `VERIFIED`, ses **cinq** preuves deviennent canoniques au
-sens de `X5` :
-
-| Preuve désormais canonique |
-|---|
-| `TASK-0020-M12-interbrain-relations-webview2-pass1.json` |
-| `TASK-0020-M12-interbrain-relations-webview2-pass2.json` |
-| `TASK-0020-J12-intrabrain-regression-webview2.json` |
-| `TASK-0020-L12-composed-regression-webview2-pass1.json` |
-| `TASK-0020-L12-composed-regression-webview2-pass2.json` |
-
-**Les gardes `X5` n'ont PAS été étendues** par la clôture `ACTION-0032`, qui
-est documentaire. **La tâche de réalignement devra commencer par protéger ces
-preuves** — porte Rust `write_run_artifact`, `src/map/runArtifacts.ts`,
-`scripts/protected-run-artifacts.ps1` — **avant toute autre écriture de
-preuve.**
-
 ### Ce qui reste hors sujet
 
 - **Aucune campagne `H9`**, aucun seuil. **`R8` entière.**
-- **`I-E` complète** hors périmètre; **`cek1` reste le repli déclaré**, et le
-  contrôle indépendant ne l'a accepté qu'à ce titre.
-- **`P-19`** et **`P-21`** demeurent. **`P-04` reste PARTIELLE.**
-- **`B0` n'est pas corrigé**; rien n'est nettoyé dans `src-tauri/target/`.
+- **`I-E` complète** hors périmètre; **`cek1` reste le repli déclaré**.
+- **`P-19`** et **`P-21`** demeurent. **`P-04` reste PARTIELLE.** **`P-02`
+  n'est pas satisfaite**, sous sa formulation corrigée.
+- **`B0` n'est pas corrigé** — reproduit une **sixième** fois; rien n'est
+  nettoyé dans `src-tauri/target/`.

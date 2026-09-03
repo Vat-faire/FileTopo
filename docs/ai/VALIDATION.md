@@ -2893,3 +2893,72 @@ toute autre écriture de preuve.**
 hors périmètre. **Aucune détection automatique** entre cerveaux. **`P-19`**,
 **`P-21`** demeurent, **`P-04`** reste PARTIELLE. **`B0`** n'est pas corrigé.
 **`V1`–`V4`, `W1`–`W4`, `R2`–`R9`** restent en vigueur.
+
+## `TASK-0021` — réalignement produit, `IMPLEMENTED` le 2026-09-02
+
+**Intervention DOCUMENTAIRE, avec une seule exception de code : les gardes
+`X5`.** Ce qui suit distingue strictement ce qui a été **exécuté** de ce qui ne
+l'a pas été.
+
+### AD.1 Ce qui a été exécuté — gardes `X5` seulement
+
+| Contrôle | Commande | Résultat |
+|---|---|---|
+| Gardes `X5` TypeScript | `npx vitest run src/map/runArtifacts.test.ts` | **14 tests, 14 passés** |
+| Gardes `X5` Rust | `CARGO_INCREMENTAL=0 cargo test --lib map::commands::tests` | **14 tests, 14 passés**, dont `task_0020s_own_evidence_became_protected_when_it_was_verified` |
+| Garde `X5` PowerShell | chargement de `scripts/protected-run-artifacts.ps1` | **19** noms; les **cinq** preuves `TASK-0020` sont **refusées**; les variantes `-abandon` **passent** |
+| Preuves intactes | `git status --porcelain docs/performance/runs/` | **vide** — aucun artefact touché |
+
+**La liste protégée passe de 14 à 19 noms**, identiquement dans les trois
+gardes : porte Rust `write_run_artifact`, `src/map/runArtifacts.ts`,
+`scripts/protected-run-artifacts.ps1`.
+
+**`B0` s'est reproduit une sixième fois** — panique interne du compilateur au
+premier `cargo test`, en compilation incrémentale. `CARGO_INCREMENTAL=0` suffit
+à contourner (`DEC-0013` E). **Rien n'a été supprimé ni renommé dans
+`src-tauri/target/`.**
+
+### AD.2 Ce que l'extension des gardes change, dit franchement
+
+C'est la **première** extension d'`X5` dont les noms sont **encore employés
+comme destinations** par le runtime livré. `crossScenario`, `relationScenario`
+et `composedScenario` les demandent, et la porte répond désormais **non** : les
+boutons `M12`, `J12` et `L12` **n'écrivent plus**, et les scripts de campagne
+refusent de supprimer une copie périmée avant une passe.
+
+**C'est le résultat voulu, pas un défaut.** `TASK-0020` est close et
+contrôlée. Une tranche qui aurait besoin de rejouer l'un de ces scénarios
+**republie sous son propre nom de tâche**, comme `TASK-0020` l'a fait pour
+`TASK-0019`. Le constant `SEALED_RUNTIME_DESTINATIONS` nomme les cinq, et un
+test asserte que l'intersection des deux listes vaut **exactement** ces cinq —
+ni une sixième destination scellée sans qu'on le voie, ni l'une des cinq
+silencieusement libérée.
+
+### AD.3 Ce qui n'a PAS été exécuté
+
+- **Aucune campagne `WebView2`** : ni `M12`, ni `J12`, ni `L12`, ni `H9`.
+  **`R8` entière**, aucun seuil, aucune mesure.
+- **La suite complète `vitest` et `cargo test` n'a PAS été exécutée.** Seuls
+  les deux fichiers de garde `X5` l'ont été. Aucun autre code n'a été touché,
+  mais ce n'est pas la même chose que de l'avoir vérifié.
+- **Aucune cible de `DEC-0019` à `DEC-0023` n'est prouvée.** Ce sont des
+  **cibles à falsifier** : aucun layout, aucun moteur de règles, aucune
+  suggestion, aucune IA, aucune identité, aucune permission n'existe.
+
+### AD.4 Contrôles documentaires — par relecture, non exécutés
+
+| # | Contrôle | Constat |
+|---|---|---|
+| `N3` | Matrice sans trou ni doublon | **49** lignes, `F-001` à `F-049`; `MVP` 41, `ULTÉRIEUR` 3, `DIFFÉRÉ` 5 |
+| `N4` | Contrat de parité | **22** exigences, inchangé en nombre; `P-02` **corrigée** par `X2`, ancienne formulation **conservée et visible**; `P-01`, `P-03` à `P-22` **inchangées** |
+| `N5` | Traçabilité normative | `F-042` → `DEC-0020`; `F-043` à `F-046` → `DEC-0021`; `F-047` → `DEC-0022`; `F-048`, `F-049` → `DEC-0023`; `X2` → `DEC-0020` |
+| — | Classifications existantes | **aucune** n'a changé, **aucune** n'est descendue, **aucune** n'a disparu |
+| — | Comportement cible | `F-007` et `F-008` **modifiés** sous `DEC-0020`, **déclarés**, **classification inchangée** |
+
+### AD.5 Ce que cette entrée ne lève pas
+
+**`R8` entière.** **`I-E` complète** hors périmètre; **`cek1`** reste le repli
+déclaré. **`P-19`**, **`P-21`** demeurent; **`P-04`** reste **PARTIELLE**;
+**`P-02` n'est pas satisfaite**, sous sa formulation corrigée. **`B0`** n'est
+pas corrigé. **`V1`–`V4`, `W1`–`W4`, `R2`–`R9`** restent en vigueur.
+**`TASK-0021` n'est PAS `VERIFIED`** : elle attend un contrôle indépendant.

@@ -21,6 +21,29 @@ attend un contrôle indépendant avant la suivante.
 | **C** | **Validation Windows / WebView2 réelle** | PROPOSED | Un **véritable hôte Tauri** existe et l'application s'exécute dans **WebView2**, sur Windows. Les mesures de performance sont refaites **dans ce moteur** : elles remplacent, pour toute communication, les mesures Edge et Chrome des spikes. **La réserve `R8` ne peut être levée qu'ici.** Le **budget adaptatif est réévalué ici**, et pas avant — `DEC-0015` F |
 | **D** | **Empaquetage et publication** | PROPOSED | Application empaquetée, audit, tests, documentation FR/EN, notes de version. **La décision de publier appartient à Sébastien** : fusion vers `main`, PR, release, étiquette et annonce sont des **points d'arrêt réservés**, jamais délégués |
 
+> **Réalignement produit du 2026-09-02 — l'étape A ne change ni de rang ni de
+> nature, sa CIBLE est précisée.**
+>
+> Après le `VERIFIED` de `TASK-0020`,
+> [`TASK-0021`](docs/tasks/TASK-0021-product-realignment.md) enregistre cinq
+> décisions produit — [`DEC-0019`](docs/decisions/DEC-0019-general-purpose-product-scope.md)
+> à [`DEC-0023`](docs/decisions/DEC-0023-identity-and-source-permissions.md).
+> **L'étape A reste « parité fonctionnelle MVP »** et conserve ses **22
+> exigences**; **`P-02` est corrigée** par la correction normative **`X2`** :
+> la hiérarchie s'exprime par **connexion et organisation spatiale explicites**,
+> et non plus obligatoirement par **inclusion visuelle**. **La représentation
+> principale finale est un graphe à nœuds reliés; le pavage imbriqué n'est plus
+> la cible visuelle.**
+>
+> **La matrice passe de 41 à 49 fonctions** — `F-042` à `F-049` —, **sans
+> qu'aucune classification existante ne change**. `F-047` rejoint les fonctions
+> `DIFFÉRÉ`, aux phases 10 à 12, qui **restent différées**.
+>
+> **Aucune étape n'est franchie, aucune réserve n'est levée, `R8` demeure
+> entière**, et **rien de ces cinq fiches n'est implémenté ni prouvé**. La
+> séquence de tranches proposée par `TASK-0021` §6 est **`PROPOSED`** : elle
+> attend le contrôle de l'orchestrateur.
+
 **Trois règles de passage propres à ces étapes :**
 
 1. **La parité précède l'esthétique.** L'étape **B** ne peut pas commencer

@@ -17,7 +17,15 @@
   autrefois manquée de `L12` étape 7 a été **corrigée et `L12` rejoué en
   entier** avant ce verdict. `TASK-0018` est `VERIFIED` depuis le 2026-09-01,
   `TASK-0017` depuis le 2026-09-01, `TASK-0016` depuis le 2026-08-31
-- **Tâche livrée, NON vérifiée :** **aucune**
+- **Tâche livrée, NON vérifiée :** **`TASK-0021`, `IMPLEMENTED`** le
+  2026-09-02 — **réalignement produit**, livrable **documentaire**, en attente
+  de contrôle indépendant. **L'exécuteur ne s'est pas attribué `VERIFIED`**
+- **Ce que `TASK-0021` a livré :** cinq fiches `DEC-0019` à `DEC-0023`; la
+  **correction normative `X2`** de `P-02`, dont l'ancienne formulation est
+  **conservée et visible**; **huit fonctions** `F-042` à `F-049`, matrice
+  **41 → 49**; une **séquence de sept tranches futures**, `PROPOSED` et **non
+  exécutée**. **Aucun layout, aucun moteur, aucune IA, aucun serveur
+  implémenté.**
 - **Ce que `TASK-0020` a livré, désormais `VERIFIED`** — **relations
   inter-cerveaux explicites**, sous
   [`DEC-0018`](../decisions/DEC-0018-explicit-interbrain-relations.md),
@@ -36,10 +44,13 @@
   PAS comme `I-E` complète.** `R8` reste entière, `P-19` et `P-21` demeurent,
   `B0` n'est pas corrigé
 - **`X5` couvre désormais les cinq preuves de `TASK-0020`** — `M12`
-  `pass{1,2}`, `J12` intra, `L12` composée `pass{1,2}`. **Les gardes n'ont pas
-  encore été étendues** : la clôture `ACTION-0032` est documentaire. **La
-  prochaine tâche devra commencer par protéger ces preuves** avant toute autre
-  écriture de preuve
+  `pass{1,2}`, `J12` intra, `L12` composée `pass{1,2}` — **et les gardes ont
+  été étendues** par `TASK-0021` : **14 → 19 noms** dans les **trois** gardes.
+  Testé : `vitest` 14/14, `cargo test map::commands::tests` 14/14, et le
+  module PowerShell refuse effectivement les cinq. **Conséquence assumée :**
+  les boutons `M12`, `J12` et `L12` du runtime livré n'écrivent plus — la porte
+  refuse. Une tranche qui aurait besoin de rejouer l'un de ces scénarios
+  **republie sous son propre nom de tâche**
 - **Tâche IN_PROGRESS :** aucune
 - **Porte `P4` :** **FRANCHIE** —
   [`DEC-0016`](../decisions/DEC-0016-p4-gate-crossing-and-first-slice.md)
