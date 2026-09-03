@@ -27,8 +27,11 @@
       * TASK-0020 — verified by ACTION-0032, FIVE proofs: the M12 campaign's
         two WebView2 passes, the J12 intra-brain regression, and the two passes
         of the L12 composed regression.
+      * TASK-0022 — verified by ACTION-0036, EIGHT proofs: J12, K11, the two
+        L12 passes, the two M12 passes and the two N15 passes. H9, K12 and
+        every -abandon variant remain noncanonical and are not protected.
 
-    Nineteen names. Nothing here deletes, renames or moves anything: this file
+    Twenty-seven names. Nothing here deletes, renames or moves anything: this file
     only refuses.
 #>
 
@@ -51,11 +54,19 @@ $script:ProtectedRunArtifacts = @(
     'TASK-0020-M12-interbrain-relations-webview2-pass2.json',
     'TASK-0020-J12-intrabrain-regression-webview2.json',
     'TASK-0020-L12-composed-regression-webview2-pass1.json',
-    'TASK-0020-L12-composed-regression-webview2-pass2.json'
+    'TASK-0020-L12-composed-regression-webview2-pass2.json',
+    'TASK-0022-J12-intrabrain-relations-regression-webview2.json',
+    'TASK-0022-K11-readonly-isolation-regression-webview2.json',
+    'TASK-0022-L12-composed-view-regression-webview2-pass1.json',
+    'TASK-0022-L12-composed-view-regression-webview2-pass2.json',
+    'TASK-0022-M12-interbrain-relations-regression-webview2-pass1.json',
+    'TASK-0022-M12-interbrain-relations-regression-webview2-pass2.json',
+    'TASK-0022-N15-topographic-node-graph-webview2-pass1.json',
+    'TASK-0022-N15-topographic-node-graph-webview2-pass2.json'
 )
 
 function Get-ProtectedRunArtifact {
-    <# The nineteen names, for a caller that wants to report them. #>
+    <# The twenty-seven names, for a caller that wants to report them. #>
     return $script:ProtectedRunArtifacts
 }
 

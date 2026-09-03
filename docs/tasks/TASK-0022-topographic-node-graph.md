@@ -3,7 +3,8 @@
 - **Date :** 2026-09-03
 - **Branche :** `build/v0.2-a6-topographic-node-graph`
 - **Base contrôlée :** `c16396d41d24866bd9ea9b229c5815c9518ed552`
-- **Statut courant :** `IMPLEMENTED` — contrôle indépendant requis
+- **Statut courant :** `VERIFIED` — verdict indépendant enregistré par
+  [`ACTION-0036`](../reviews/ACTION-0036-independent-recontrol.md)
 - **Agent d'exécution :** Codex
 - **GO :** prompt technique explicite `TASK-0022` du 2026-09-03
 - **Décisions :** [`DEC-0020`](../decisions/DEC-0020-topographic-node-graph.md),
@@ -463,6 +464,7 @@ indépendant. Aucune `TASK-0023` n'est créée.
 | 2026-09-03 | `IN_PROGRESS` | Gel prêt à être commité et poussé avant la première modification de code produit |
 | 2026-09-03 | `IMPLEMENTED` | Layout v3, cartes et arêtes hiérarchiques, ancres bord-à-bord, navigation et régressions livrés; N15 et rejeux WebView2 passés; `VERIFIED` réservé au contrôle indépendant |
 | 2026-09-03 | `IMPLEMENTED` | `ACTION-0035` `CHANGES_REQUIRED` : fond accepté, réserve unique `X8` `OPEN` — défaut de migration du harnais de preuve `M12`, corrigé et rejoué; statut inchangé, re-contrôle ciblé requis |
+| 2026-09-03 | `VERIFIED` | Verdict rendu par l'orchestrateur technique indépendant et enregistré dans `ACTION-0036`; `X8` et `ACTION-0035` `CLOSED`, aucun autre point rouvert |
 
 ## 21. Résultat et preuves d'exécution
 
@@ -534,3 +536,23 @@ preuves protégées identiques avant/après.
 `TASK-0022` **reste `IMPLEMENTED`**. `X8` **reste `OPEN`**. `ACTION-0035`
 **reste `CHANGES_REQUIRED`**. L'action suivante unique est le **re-contrôle
 indépendant ciblé `X8`**.
+
+## 23. ACTION-0036 — re-contrôle indépendant et scellement X5
+
+Le verdict rendu par l'orchestrateur technique indépendant est enregistré dans
+[`ACTION-0036`](../reviews/ACTION-0036-independent-recontrol.md), sur le `HEAD`
+`645b9484790f8e766f7eed93107b9431d144aaa6` et le commit substantif de
+correction `X8` `d6963e65e9829b8c17196eeb469eabfb3aa86aeb` :
+`ACTION-0036` **`CLOSED`**, `X8` **`CLOSED`**, `ACTION-0035` **`CLOSED`** et
+`TASK-0022` **`VERIFIED`**. Codex enregistre ce verdict; il ne le rend pas.
+
+Conséquence de `VERIFIED`, les huit artefacts canoniques énumérés au §13 et les
+deux passes N15 du §12 rejoignent la garde `X5`. Les trois gardes Rust,
+TypeScript et PowerShell contiennent exactement **27** noms : les 19 anciens,
+inchangés, suivis des 8 preuves `TASK-0022`. Le `H9` non exécuté, les sorties
+`K12` non publiées comme preuves de la tâche et toutes les variantes
+`-abandon` restent non protégés. Les preuves elles-mêmes sont inchangées.
+
+Validations ciblées seulement : `runArtifacts.test.ts` **26/26**, tests Rust
+X5 ciblés **3/3**, exercice direct PowerShell **27/27 refus** et variantes
+non canoniques acceptées. Aucun rejeu N15/J12/K11/L12/M12/H9 n'a été effectué.

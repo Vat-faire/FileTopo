@@ -3102,3 +3102,27 @@ clavier, ses labels et ses tests réels `WebView2` seront définis par le
   preuves protégées identiques par `sha256`. `main` intacte.
 - `TASK-0022` reste `IMPLEMENTED`, `X8` reste `OPEN`, `ACTION-0035` reste
   `CHANGES_REQUIRED`. L'exécuteur ne s'attribue pas `VERIFIED`.
+
+## 2026-09-03 — ACTION-0036 : TASK-0022 VERIFIED et scellement X5
+
+- Verdict rendu par l'orchestrateur technique indépendant et enregistré par
+  Codex, sans auto-attribution : `ACTION-0036`, `X8` et `ACTION-0035`
+  **`CLOSED`**; `TASK-0022` **`VERIFIED`**.
+- HEAD re-contrôlé `645b9484790f8e766f7eed93107b9431d144aaa6`; commit substantif
+  de correction `X8` `d6963e65e9829b8c17196eeb469eabfb3aa86aeb`; aucun autre point
+  de `TASK-0022` rouvert.
+- Extension X5 de **19 à 27** preuves canoniques : ajout exact des huit
+  artefacts `TASK-0022` J12, K11, L12 pass1/pass2, M12 pass1/pass2 et N15
+  pass1/pass2 dans les gardes Rust, TypeScript et PowerShell.
+- H9 non exécuté, K12 non publié comme preuve `TASK-0022` et variantes
+  `-abandon` laissés hors protection.
+- Tests de parité renforcés pour comparer exactement Rust, TypeScript et
+  PowerShell; les 19 noms antérieurs sont explicitement conservés et les huit
+  ajouts sont contrôlés sans neuvième destination.
+- Validations ciblées : `runArtifacts.test.ts` **26/26**; Rust X5 **3/3**;
+  PowerShell **27/27** refus attendus et variantes non canoniques autorisées.
+- Aucun rejeu N15/J12/K11/L12/M12/H9, aucun artefact de preuve modifié, aucune
+  dépendance, aucun clean ni suppression de `target`; `main` intacte à
+  `91bbe90f0f99026c28cd345784d4f579a0016db2`.
+- Action unique suivante : retour à l'orchestrateur pour définir la prochaine
+  tranche. `TASK-0023` n'est pas créée.

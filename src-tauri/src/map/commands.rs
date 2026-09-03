@@ -575,7 +575,13 @@ pub fn self_check(paths: &SandboxPaths, brain: &BrainRecord) -> Result<MapSelfCh
 /// no legitimate execution needs to write those files again, and the next
 /// slice republishes its replays under **its own** task name, exactly as
 /// `TASK-0020` did for `TASK-0019`.
-pub const PROTECTED_RUN_ARTIFACTS: [&str; 19] = [
+///
+/// **`TASK-0022` is `VERIFIED` since `ACTION-0036`**, so its **eight**
+/// canonical proofs join the list, which grows from nineteen names to
+/// twenty-seven. Its `H9` was not run, its `K12` outputs were not published as
+/// `TASK-0022` evidence, and no `-abandon` variant is canonical; none of those
+/// names is protected.
+pub const PROTECTED_RUN_ARTIFACTS: [&str; 27] = [
     "TASK-0016-H1-H7-verification.json",
     "TASK-0016-H9-webview2.json",
     "TASK-0017-J11-isolation.json",
@@ -595,6 +601,14 @@ pub const PROTECTED_RUN_ARTIFACTS: [&str; 19] = [
     "TASK-0020-J12-intrabrain-regression-webview2.json",
     "TASK-0020-L12-composed-regression-webview2-pass1.json",
     "TASK-0020-L12-composed-regression-webview2-pass2.json",
+    "TASK-0022-J12-intrabrain-relations-regression-webview2.json",
+    "TASK-0022-K11-readonly-isolation-regression-webview2.json",
+    "TASK-0022-L12-composed-view-regression-webview2-pass1.json",
+    "TASK-0022-L12-composed-view-regression-webview2-pass2.json",
+    "TASK-0022-M12-interbrain-relations-regression-webview2-pass1.json",
+    "TASK-0022-M12-interbrain-relations-regression-webview2-pass2.json",
+    "TASK-0022-N15-topographic-node-graph-webview2-pass1.json",
+    "TASK-0022-N15-topographic-node-graph-webview2-pass2.json",
 ];
 
 /// Writes a measurement artefact into `docs/performance/runs/` of this
@@ -738,6 +752,61 @@ mod tests {
                     Err(MapError::ArtifactRejected(_))
                 ),
                 "{name} was accepted as a destination"
+            );
+        }
+    }
+
+    /// Reserve `X5`, extended a fourth time: exactly the eight canonical
+    /// proofs of `TASK-0022` became untouchable when `ACTION-0036` made the
+    /// task `VERIFIED`.
+    #[test]
+    fn task_0022s_eight_canonical_proofs_are_protected_after_verification() {
+        for name in [
+            "TASK-0022-J12-intrabrain-relations-regression-webview2.json",
+            "TASK-0022-K11-readonly-isolation-regression-webview2.json",
+            "TASK-0022-L12-composed-view-regression-webview2-pass1.json",
+            "TASK-0022-L12-composed-view-regression-webview2-pass2.json",
+            "TASK-0022-M12-interbrain-relations-regression-webview2-pass1.json",
+            "TASK-0022-M12-interbrain-relations-regression-webview2-pass2.json",
+            "TASK-0022-N15-topographic-node-graph-webview2-pass1.json",
+            "TASK-0022-N15-topographic-node-graph-webview2-pass2.json",
+        ] {
+            assert!(
+                PROTECTED_RUN_ARTIFACTS.contains(&name),
+                "{name} is TASK-0022 canonical evidence and is not protected"
+            );
+            assert!(
+                matches!(
+                    write_run_artifact(name, "{}"),
+                    Err(MapError::ArtifactRejected(_))
+                ),
+                "{name} was accepted as a destination"
+            );
+        }
+    }
+
+    /// `TASK-0022` published no `H9` or `K12` proof, and an abandoned run is
+    /// evidence of nothing. Verification must not widen the seal to them.
+    #[test]
+    fn task_0022_noncanonical_variants_stay_unprotected() {
+        for name in [
+            "TASK-0022-H9-composed-runtime-regression-webview2.json",
+            "TASK-0022-K12-foundation-regression-webview2-pass1.json",
+            "TASK-0022-K12-foundation-regression-webview2-pass2.json",
+            "TASK-0022-H9-composed-runtime-regression-webview2-abandon.json",
+            "TASK-0022-J12-intrabrain-relations-regression-webview2-abandon.json",
+            "TASK-0022-K12-foundation-regression-webview2-pass1-abandon.json",
+            "TASK-0022-K12-foundation-regression-webview2-pass2-abandon.json",
+            "TASK-0022-L12-composed-view-regression-webview2-pass1-abandon.json",
+            "TASK-0022-L12-composed-view-regression-webview2-pass2-abandon.json",
+            "TASK-0022-M12-interbrain-relations-regression-webview2-pass1-abandon.json",
+            "TASK-0022-M12-interbrain-relations-regression-webview2-pass2-abandon.json",
+            "TASK-0022-N15-topographic-node-graph-webview2-pass1-abandon.json",
+            "TASK-0022-N15-topographic-node-graph-webview2-pass2-abandon.json",
+        ] {
+            assert!(
+                !PROTECTED_RUN_ARTIFACTS.contains(&name),
+                "{name} is noncanonical and was protected"
             );
         }
     }

@@ -17,11 +17,13 @@
  * what the tests below hold.
  *
  * **`ACTION-0032` made `TASK-0020` `VERIFIED`**, and the list grew a third
- * time. This extension seals five of the runtime's *own* destinations, so the
- * old blanket claim « no runtime destination is a protected artefact » is now
- * false — and replacing it with nothing would be how a guard quietly stops
- * guarding. It is replaced by an exact one: the intersection of the two lists
- * is `SEALED_RUNTIME_DESTINATIONS`, no more and no less.
+ * time. `TASK-0022` renamed its current outputs, leaving the protected/runtime
+ * intersection empty until the current task itself became verified.
+ *
+ * **`ACTION-0036` made `TASK-0022` `VERIFIED`**. Exactly its eight canonical
+ * proofs are now sealed; H9, K12 and every abandonment variant remain
+ * noncanonical and unprotected. The three executable guards must carry the
+ * same twenty-seven names in the same order.
  */
 
 import { describe, expect, it } from "vitest";
@@ -55,6 +57,7 @@ import {
 // below is only its mirror. Read through `?raw` for the same reason as the
 // scenario sources — no `node:fs`, no new dependency.
 import rustGateSource from "../../src-tauri/src/map/commands.rs?raw";
+import powershellGateSource from "../../scripts/protected-run-artifacts.ps1?raw";
 
 /** Every source file of this runtime that may write a run artefact. */
 const WRITING_SOURCES: ReadonlyArray<readonly [string, string]> = [
@@ -66,40 +69,83 @@ const WRITING_SOURCES: ReadonlyArray<readonly [string, string]> = [
   ["src/map/topographicScenario.ts", topographicScenarioSource],
 ];
 
-describe("X5 — the runtime never writes over an earlier task's canonical evidence", () => {
-  it("TASK-0022 has no protected runtime destination", () => {
-    // The strong form of what used to be « none of them is protected ». Both
-    // directions are asserted, because each catches a different accident: a
-    // destination sealed without anybody noticing, and a sealed name quietly
-    // dropped back out of the protected list.
+const ORIGINAL_19_PROTECTED = [
+  "TASK-0016-H1-H7-verification.json",
+  "TASK-0016-H9-webview2.json",
+  "TASK-0017-J11-isolation.json",
+  "TASK-0017-J12-webview2.json",
+  "TASK-0018-K11-readonly-and-isolation.json",
+  "TASK-0018-K12-webview2-pass1.json",
+  "TASK-0018-K12-webview2-pass2.json",
+  "TASK-0018-J12-relations-regression-webview2.json",
+  "TASK-0019-J12-relations-regression-webview2.json",
+  "TASK-0019-K11-readonly-regression-webview2.json",
+  "TASK-0019-K12-foundation-regression-webview2-pass1.json",
+  "TASK-0019-K12-foundation-regression-webview2-pass2.json",
+  "TASK-0019-L12-composed-view-webview2-pass1.json",
+  "TASK-0019-L12-composed-view-webview2-pass2.json",
+  "TASK-0020-M12-interbrain-relations-webview2-pass1.json",
+  "TASK-0020-M12-interbrain-relations-webview2-pass2.json",
+  "TASK-0020-J12-intrabrain-regression-webview2.json",
+  "TASK-0020-L12-composed-regression-webview2-pass1.json",
+  "TASK-0020-L12-composed-regression-webview2-pass2.json",
+] as const;
+
+const TASK_0022_CANONICAL_EVIDENCE = [
+  "TASK-0022-J12-intrabrain-relations-regression-webview2.json",
+  "TASK-0022-K11-readonly-isolation-regression-webview2.json",
+  "TASK-0022-L12-composed-view-regression-webview2-pass1.json",
+  "TASK-0022-L12-composed-view-regression-webview2-pass2.json",
+  "TASK-0022-M12-interbrain-relations-regression-webview2-pass1.json",
+  "TASK-0022-M12-interbrain-relations-regression-webview2-pass2.json",
+  "TASK-0022-N15-topographic-node-graph-webview2-pass1.json",
+  "TASK-0022-N15-topographic-node-graph-webview2-pass2.json",
+] as const;
+
+const TASK_0022_NONCANONICAL = [
+  "TASK-0022-H9-composed-runtime-regression-webview2.json",
+  "TASK-0022-K12-foundation-regression-webview2-pass1.json",
+  "TASK-0022-K12-foundation-regression-webview2-pass2.json",
+  "TASK-0022-H9-composed-runtime-regression-webview2-abandon.json",
+  "TASK-0022-J12-intrabrain-relations-regression-webview2-abandon.json",
+  "TASK-0022-K12-foundation-regression-webview2-pass1-abandon.json",
+  "TASK-0022-K12-foundation-regression-webview2-pass2-abandon.json",
+  "TASK-0022-L12-composed-view-regression-webview2-pass1-abandon.json",
+  "TASK-0022-L12-composed-view-regression-webview2-pass2-abandon.json",
+  "TASK-0022-M12-interbrain-relations-regression-webview2-pass1-abandon.json",
+  "TASK-0022-M12-interbrain-relations-regression-webview2-pass2-abandon.json",
+  "TASK-0022-N15-topographic-node-graph-webview2-pass1-abandon.json",
+  "TASK-0022-N15-topographic-node-graph-webview2-pass2-abandon.json",
+] as const;
+
+describe("X5 — the runtime never writes over canonical evidence", () => {
+  it("TASK-0022 has exactly its eight canonical runtime destinations sealed", () => {
+    // Both directions are asserted: no ninth destination is silently sealed,
+    // and none of the eight canonical destinations is silently unsealed.
     const sealed = SEALED_RUNTIME_DESTINATIONS as readonly string[];
     const collisions = (RUNTIME_RUN_ARTIFACTS as readonly string[]).filter((name) =>
       (PROTECTED_RUN_ARTIFACTS as readonly string[]).includes(name),
     );
-    expect([...collisions].sort()).toStrictEqual([...sealed].sort());
+    expect(sealed).toStrictEqual([...TASK_0022_CANONICAL_EVIDENCE]);
+    expect(collisions).toStrictEqual([...TASK_0022_CANONICAL_EVIDENCE]);
     for (const name of sealed) {
       expect(RUNTIME_RUN_ARTIFACTS as readonly string[]).toContain(name);
       expect(PROTECTED_RUN_ARTIFACTS as readonly string[]).toContain(name);
     }
   });
 
-  it("an abandonment variant is never sealed — it is evidence of nothing", () => {
-    // The distinction the seal rests on: a pass that was abandoned published
-    // no proof, so its file is not canonical and stays writable.
-    for (const name of [
-      J12_REGRESSION_ABANDON_ARTIFACT,
-      l12Artifact(1, "abandoned"),
-      l12Artifact(2, "abandoned"),
-      m12Artifact(1, "abandoned"),
-      m12Artifact(2, "abandoned"),
-      H9_REGRESSION_ARTIFACT,
-      H9_REGRESSION_ABANDON_ARTIFACT,
-      K11_ARTIFACT,
-      k12Artifact(1, "written"),
-      k12Artifact(2, "written"),
-    ]) {
+  it("H9, K12 and abandonment variants stay noncanonical and unprotected", () => {
+    for (const name of TASK_0022_NONCANONICAL) {
       expect(PROTECTED_RUN_ARTIFACTS as readonly string[]).not.toContain(name);
     }
+  });
+
+  it("the protected set is exactly the unchanged nineteen plus TASK-0022's eight", () => {
+    expect(PROTECTED_RUN_ARTIFACTS).toStrictEqual([
+      ...ORIGINAL_19_PROTECTED,
+      ...TASK_0022_CANONICAL_EVIDENCE,
+    ]);
+    expect(PROTECTED_RUN_ARTIFACTS).toHaveLength(27);
   });
 
   it("TASK-0018's own four proofs became protected when it was verified", () => {
@@ -146,7 +192,12 @@ describe("X5 — the runtime never writes over an earlier task's canonical evide
     ]) {
       expect(PROTECTED_RUN_ARTIFACTS as readonly string[]).toContain(name);
     }
-    expect(PROTECTED_RUN_ARTIFACTS).toHaveLength(19);
+  });
+
+  it("TASK-0022's eight canonical proofs became protected when it was verified", () => {
+    for (const name of TASK_0022_CANONICAL_EVIDENCE) {
+      expect(PROTECTED_RUN_ARTIFACTS as readonly string[]).toContain(name);
+    }
   });
 
   it("the migrated scenarios write under TASK-0022, named as regressions", () => {
@@ -330,42 +381,49 @@ describe("X8 — M12 derives who owns what it writes, and how many names are pro
     };
   };
 
-  it("the TypeScript protected list mirrors the Rust write gate exactly", () => {
+  /** The protected list as the PowerShell deletion guard declares it. */
+  const powershellGate = (): readonly string[] => {
+    const block =
+      /\$script:ProtectedRunArtifacts\s*=\s*@\(([\s\S]*?)\r?\n\)/.exec(
+        powershellGateSource,
+      );
+    if (block === null) {
+      throw new Error("ProtectedRunArtifacts not found in protected-run-artifacts.ps1");
+    }
+    return [...block[1].matchAll(/'([^']+)'/g)].map((match) => match[1]);
+  };
+
+  it("the TypeScript and PowerShell lists mirror the Rust write gate exactly", () => {
     // The canonical source of `X5` is the gate that refuses the write. Any
     // count published from TypeScript is only trustworthy because this holds.
     const gate = rustGate();
     expect(gate.names).toStrictEqual([...PROTECTED_RUN_ARTIFACTS]);
+    expect(powershellGate()).toStrictEqual(gate.names);
     expect(gate.declaredLength).toBe(gate.names.length);
     expect(PROTECTED_RUN_ARTIFACTS).toHaveLength(gate.declaredLength);
+    expect(gate.declaredLength).toBe(27);
   });
 
   it("no historical protected name was dropped by this repair", () => {
     // Named one by one on purpose: a set comparison against a list this same
     // change could have shortened would prove nothing.
-    for (const name of [
-      "TASK-0016-H1-H7-verification.json",
-      "TASK-0016-H9-webview2.json",
-      "TASK-0017-J11-isolation.json",
-      "TASK-0017-J12-webview2.json",
-      "TASK-0018-K11-readonly-and-isolation.json",
-      "TASK-0018-K12-webview2-pass1.json",
-      "TASK-0018-K12-webview2-pass2.json",
-      "TASK-0018-J12-relations-regression-webview2.json",
-      "TASK-0019-J12-relations-regression-webview2.json",
-      "TASK-0019-K11-readonly-regression-webview2.json",
-      "TASK-0019-K12-foundation-regression-webview2-pass1.json",
-      "TASK-0019-K12-foundation-regression-webview2-pass2.json",
-      "TASK-0019-L12-composed-view-webview2-pass1.json",
-      "TASK-0019-L12-composed-view-webview2-pass2.json",
-      "TASK-0020-M12-interbrain-relations-webview2-pass1.json",
-      "TASK-0020-M12-interbrain-relations-webview2-pass2.json",
-      "TASK-0020-J12-intrabrain-regression-webview2.json",
-      "TASK-0020-L12-composed-regression-webview2-pass1.json",
-      "TASK-0020-L12-composed-regression-webview2-pass2.json",
-    ]) {
+    for (const name of ORIGINAL_19_PROTECTED) {
       expect(PROTECTED_RUN_ARTIFACTS as readonly string[]).toContain(name);
       expect(rustGate().names).toContain(name);
+      expect(powershellGate()).toContain(name);
     }
+  });
+
+  it("the eight newly protected names are exactly TASK-0022's canonical proofs", () => {
+    expect(PROTECTED_RUN_ARTIFACTS.slice(19)).toStrictEqual([
+      ...TASK_0022_CANONICAL_EVIDENCE,
+    ]);
+    expect(rustGate().names.slice(19)).toStrictEqual([
+      ...TASK_0022_CANONICAL_EVIDENCE,
+    ]);
+    expect(powershellGate().slice(19)).toStrictEqual([
+      ...TASK_0022_CANONICAL_EVIDENCE,
+    ]);
   });
 
   it("artifactTaskId reads the owner off the name, and tells two owners apart", () => {
@@ -381,43 +439,48 @@ describe("X8 — M12 derives who owns what it writes, and how many names are pro
     expect(artifactTaskId("no-task-here.json")).toBeNull();
   });
 
-  it("the M12 artefact belongs to the task the runtime writes under", () => {
+  it("the M12 artefact still derives the sole task identity of the runtime", () => {
     const ownership = runtimeWriteOwnership();
     const written = m12Artifact(2, "written");
     expect(ownership.owningTaskId).not.toBeNull();
     expect(artifactTaskId(written)).toBe(ownership.owningTaskId);
     expect(ownership.taskIdsWritten).toStrictEqual([ownership.owningTaskId]);
-    // The defect verbatim: this is the field that was published `false`.
-    expect(ownership.writesUnderItsOwnTaskOnly).toBe(true);
+    // At the re-controlled HEAD this derived field was true. Sealing the
+    // TASK-0022 destinations after VERIFIED now makes it false for the
+    // equally derived reason that this runtime may no longer rewrite them.
+    expect(ownership.writesUnderItsOwnTaskOnly).toBe(false);
   });
 
-  it("the M12 artefact is not protected evidence, and no destination is", () => {
+  it("the protected runtime destinations are exactly the eight sealed proofs", () => {
     const ownership = runtimeWriteOwnership();
-    expect(PROTECTED_RUN_ARTIFACTS as readonly string[]).not.toContain(
+    expect(PROTECTED_RUN_ARTIFACTS as readonly string[]).toContain(
       m12Artifact(2, "written"),
     );
-    expect(PROTECTED_RUN_ARTIFACTS as readonly string[]).not.toContain(
+    expect(PROTECTED_RUN_ARTIFACTS as readonly string[]).toContain(
       m12Artifact(1, "written"),
     );
-    expect(ownership.protectedDestinations).toStrictEqual([]);
+    expect(ownership.protectedDestinations).toStrictEqual([
+      ...TASK_0022_CANONICAL_EVIDENCE,
+    ]);
     expect(ownership.runtimeDestinationCount).toBe(RUNTIME_RUN_ARTIFACTS.length);
   });
 
   it("the count M12 publishes is the count the gate enforces", () => {
-    // Nineteen today. The assertion is not the number: it is that the number
+    // Twenty-seven today. The assertion is not only the number: it is that the number
     // published and the number enforced are the same object, so the next
     // extension of `X5` moves both at once.
     const ownership = runtimeWriteOwnership();
     expect(ownership.protectedArtifactCount).toBe(rustGate().declaredLength);
-    expect(ownership.protectedArtifactCount).toBe(19);
+    expect(ownership.protectedArtifactCount).toBe(27);
     expect(ownership.protectedTaskIds).toStrictEqual([
       "TASK-0016",
       "TASK-0017",
       "TASK-0018",
       "TASK-0019",
       "TASK-0020",
+      "TASK-0022",
     ]);
-    expect(ownership.protectedTaskIds).not.toContain(ownership.owningTaskId);
+    expect(ownership.protectedTaskIds).toContain(ownership.owningTaskId);
   });
 
   it("a stale owner among the destinations would break the verdict", () => {

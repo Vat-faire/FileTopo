@@ -1,5 +1,31 @@
 # État courant
 
+## Mise à jour ACTION-0036 — 2026-09-03
+
+- **Verdict indépendant enregistré, non rendu par Codex :** sur le `HEAD`
+  re-contrôlé `645b9484790f8e766f7eed93107b9431d144aaa6` et le commit
+  substantif `X8` `d6963e65e9829b8c17196eeb469eabfb3aa86aeb`, l'orchestrateur
+  technique indépendant a rendu `ACTION-0036` **`CLOSED`**, `X8` **`CLOSED`**,
+  `ACTION-0035` **`CLOSED`** et `TASK-0022` **`VERIFIED`**.
+- **Motif ciblé :** identité réellement dérivée par `artifactTaskId` /
+  `runtimeWriteOwnership`, aucun préfixe de tâche codé en dur dans `M12.28`,
+  compte protégé dérivé, parité TypeScript/Rust testée, rejeu réel M12
+  pass1/pass2 sur variant neuf réussi, `writesUnderItsOwnTaskOnly = true`,
+  `protectedArtifactCount = 19`, `protectedDestinations = []`, critères M12
+  inchangés, `main` intacte. Aucun autre point de `TASK-0022` n'est rouvert.
+- **Conséquence X5 :** les huit preuves canoniques J12, K11, L12 pass1/pass2,
+  M12 pass1/pass2 et N15 pass1/pass2 de `TASK-0022` sont scellées. Les trois
+  gardes Rust, TypeScript et PowerShell contiennent exactement **27** noms :
+  les 19 anciens inchangés plus ces 8 noms exacts. H9, K12 et `-abandon`
+  restent non canoniques et non protégés.
+- **Validations ciblées :** `runArtifacts.test.ts` **26/26**; Rust X5 ciblé
+  **3/3**; PowerShell **27/27** refusés, variantes non canoniques contrôlées
+  autorisées. Aucune preuve modifiée; aucun rejeu N15/J12/K11/L12/M12/H9.
+- **Branche active :** `build/v0.2-a6-topographic-node-graph`. `main` reste
+  `91bbe90f0f99026c28cd345784d4f579a0016db2`.
+- **Action unique suivante :** retour à l'orchestrateur pour définir la
+  prochaine tranche. `TASK-0023` n'est pas créée.
+
 ## Mise à jour ACTION-0035 — 2026-09-03
 
 - **Verdict indépendant enregistré :** `ACTION-0035` = **`CHANGES_REQUIRED`**,

@@ -1,7 +1,7 @@
 /**
  * The names this runtime is allowed to write under `docs/performance/runs/`.
  *
- * **Reserve `X5` of `ACTION-0028`, `CLOSED` and extended three times.**
+ * **Reserve `X5` of `ACTION-0028`, `CLOSED` and extended four times.**
  * `map_write_run_artifact` writes by replacement, so a scenario that keeps an
  * older task's file name silently overwrites that task's published evidence
  * the next time somebody presses the button.
@@ -20,8 +20,13 @@
  * applied the moment a task becomes `VERIFIED`.
  *
  * **`TASK-0020` is `VERIFIED` since `ACTION-0032`**, and its five proofs join
- * in turn. TASK-0022 republishes every current replay under `TASK-0022-*`, so
- * none of the runtime destinations collides with the protected set.
+ * in turn. Before its own verification, TASK-0022 republished every current
+ * replay under `TASK-0022-*`, so none of its destinations collided then.
+ *
+ * **`TASK-0022` is `VERIFIED` since `ACTION-0036`**, and its eight canonical
+ * proofs join in turn. They are now sealed destinations in this checkout. H9,
+ * K12 and every `-abandon` variant remain outside the protected set because
+ * they are not canonical `TASK-0022` evidence.
  *
  * Every name lives here so there is one spelling of each and a guard test can
  * hold the whole surface at once — see `runArtifacts.test.ts`.
@@ -34,8 +39,9 @@
  *
  * Four names come from `TASK-0016` and `TASK-0017`, four from `TASK-0018`
  * (added by `ACTION-0029`), six are `TASK-0019`'s, added when `ACTION-0031`
- * made it `VERIFIED`, and the last five are `TASK-0020`'s, added when
- * `ACTION-0032` made it `VERIFIED`.
+ * made it `VERIFIED`, five are `TASK-0020`'s, added when `ACTION-0032` made it
+ * `VERIFIED`, and the last eight are `TASK-0022`'s, added when `ACTION-0036`
+ * made it `VERIFIED`.
  */
 export const PROTECTED_RUN_ARTIFACTS = [
   "TASK-0016-H1-H7-verification.json",
@@ -57,6 +63,14 @@ export const PROTECTED_RUN_ARTIFACTS = [
   "TASK-0020-J12-intrabrain-regression-webview2.json",
   "TASK-0020-L12-composed-regression-webview2-pass1.json",
   "TASK-0020-L12-composed-regression-webview2-pass2.json",
+  "TASK-0022-J12-intrabrain-relations-regression-webview2.json",
+  "TASK-0022-K11-readonly-isolation-regression-webview2.json",
+  "TASK-0022-L12-composed-view-regression-webview2-pass1.json",
+  "TASK-0022-L12-composed-view-regression-webview2-pass2.json",
+  "TASK-0022-M12-interbrain-relations-regression-webview2-pass1.json",
+  "TASK-0022-M12-interbrain-relations-regression-webview2-pass2.json",
+  "TASK-0022-N15-topographic-node-graph-webview2-pass1.json",
+  "TASK-0022-N15-topographic-node-graph-webview2-pass2.json",
 ] as const;
 
 /**
@@ -125,11 +139,11 @@ export function n15Artifact(pass: number, outcome: "written" | "abandoned"): str
  * Every name this runtime **spells as a destination**. The guard test
  * enumerates it.
  *
- * Since `ACTION-0032` this is no longer the same set as « every name this
- * runtime may write »: five of these are now protected evidence, and the gate
+ * Since `ACTION-0036` this is no longer the same set as « every name this
+ * runtime may write »: eight of these are now protected evidence, and the gate
  * refuses them. {@link SEALED_RUNTIME_DESTINATIONS} is that intersection, and
- * the guard test asserts it is *exactly* those five — neither a sixth
- * destination silently sealed, nor one of the five silently unsealed.
+ * the guard test asserts it is *exactly* those eight — neither a ninth
+ * destination silently sealed, nor one of the eight silently unsealed.
  */
 export const RUNTIME_RUN_ARTIFACTS = [
   H9_REGRESSION_ARTIFACT,
@@ -156,10 +170,21 @@ export const RUNTIME_RUN_ARTIFACTS = [
 ] as const;
 
 /**
- * Exact protected/runtime intersection. TASK-0022 keeps it empty by using its
- * own names; the guard test fails if a historical destination returns.
+ * Exact protected/runtime intersection. Since `ACTION-0036`, it is exactly
+ * the eight canonical `TASK-0022` proofs: this checkout still spells their
+ * destinations, and the write gate now refuses them. H9, K12 and abandonment
+ * variants remain writable.
  */
-export const SEALED_RUNTIME_DESTINATIONS = [] as const;
+export const SEALED_RUNTIME_DESTINATIONS = [
+  J12_REGRESSION_ARTIFACT,
+  K11_ARTIFACT,
+  l12Artifact(1, "written"),
+  l12Artifact(2, "written"),
+  m12Artifact(1, "written"),
+  m12Artifact(2, "written"),
+  n15Artifact(1, "written"),
+  n15Artifact(2, "written"),
+] as const;
 
 /**
  * The task an artefact name declares as its owner, or `null` when the name
@@ -191,7 +216,7 @@ export interface RuntimeWriteOwnership {
   protectedTaskIds: readonly string[];
   /** Runtime destinations that are protected evidence. Expected empty. */
   protectedDestinations: readonly string[];
-  /** True when this runtime can only ever write under its own task. */
+  /** True only while every destination belongs to one unprotected task and none is sealed. */
   writesUnderItsOwnTaskOnly: boolean;
 }
 

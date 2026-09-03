@@ -1,6 +1,6 @@
 # VALIDATION.md — État de vérification
 
-**Dernière mise à jour :** 2026-09-02
+**Dernière mise à jour :** 2026-09-03
 **Portée :** TASK-0001 (phase 0) — `VERIFIED` ; TASK-0002 (phase 1) —
 `VERIFIED` le 2026-08-25, sur preuves indépendantes de l'orchestrateur
 (section A.7) ; TASK-0010 (rebaseline et mémoire) — `VERIFIED` le 2026-08-31,
@@ -3149,3 +3149,39 @@ schéma `3`, ni `DEC-0024`, ni `N1` à `N15`, ni une fixture n'ont été touché
 `L12`, `H9`, la suite Rust — aucun source Rust modifié — et tout rejeu non
 nécessaire. **B0** inchangé : contourné par `CARGO_INCREMENTAL=0`, non corrigé.
 Aucune nouvelle dépendance.
+
+---
+
+## AH. ACTION-0036 — re-contrôle X8 enregistré et X5 étendue à 27
+
+**Date :** 2026-09-03. **Verdict indépendant enregistré :** `ACTION-0036`,
+`X8` et `ACTION-0035` **`CLOSED`**; `TASK-0022` **`VERIFIED`**. Verdict rendu
+par l'orchestrateur technique indépendant sur le HEAD
+`645b9484790f8e766f7eed93107b9431d144aaa6` et le commit substantif `X8`
+`d6963e65e9829b8c17196eeb469eabfb3aa86aeb`, non par Codex.
+
+| Contrôle ciblé | Résultat | Preuve |
+|---|---|---|
+| Parité Rust / TypeScript / PowerShell | **PASS** | `runArtifacts.test.ts` compare noms, ordre et longueur des trois listes |
+| Nombre protégé exact | **PASS** | `[&str; 27]`; 27 noms dans chaque garde |
+| Anciens noms conservés | **PASS** | les 19 noms antérieurs sont énumérés et présents dans les trois gardes |
+| Nouvelles preuves exactes | **PASS** | exactement J12, K11, L12 pass1/pass2, M12 pass1/pass2 et N15 pass1/pass2 de `TASK-0022` |
+| Aucune destination supplémentaire scellée | **PASS** | intersection runtime/protection exactement égale aux huit preuves canoniques |
+| Refus Rust sur chacun des 27 noms | **PASS** | `cargo test a_verified_tasks_evidence_is_never_a_destination` — 1/1 |
+| Tests Rust `TASK-0022` | **PASS** | `cargo test task_0022` — 2/2; huit preuves refusées et variantes non canoniques non protégées |
+| Tests TypeScript X5/X8 | **PASS** | `pnpm test -- src/map/runArtifacts.test.ts` — 26/26 |
+| Refus PowerShell sur chacun des 27 noms | **PASS** | module dot-sourcé, `Assert-NotProtectedRunArtifact` — 27/27 refus attendus |
+| H9, K12 et `-abandon` | **PASS** | exclus des trois listes; sélection représentative acceptée par la garde PowerShell |
+| Preuves `TASK-0022` | **INCHANGÉES** | aucun fichier sous `docs/performance/runs/` modifié |
+| `main` | **INCHANGÉE** | `91bbe90f0f99026c28cd345784d4f579a0016db2` |
+
+La fermeture `ACTION-0036` accepte les valeurs observées au HEAD re-contrôlé :
+`writesUnderItsOwnTaskOnly = true`, `protectedArtifactCount = 19` et
+`protectedDestinations = []`. Après le scellement consécutif à `VERIFIED`, les
+valeurs courantes dérivées deviennent respectivement `false`, `27` et les huit
+destinations canoniques : la porte refuse désormais leur réécriture. Les
+preuves M12 publiées ne sont pas modifiées.
+
+**Non rejoué, conformément au périmètre :** N15, J12, K11, L12, M12 et H9.
+Aucun test complet, `pnpm check`, build ou Tauri n'était demandé; aucune
+nouvelle dépendance, aucun clean, aucune suppression de `target`.

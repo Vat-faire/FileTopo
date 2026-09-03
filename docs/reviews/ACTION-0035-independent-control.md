@@ -1,4 +1,4 @@
-# ACTION-0035 — Contrôle indépendant de TASK-0022 : CHANGES_REQUIRED, réserve X8
+# ACTION-0035 — Contrôle indépendant de TASK-0022 : CLOSED après ACTION-0036
 
 - **Date :** 2026-09-03
 - **Objet :** **contrôle indépendant** de `TASK-0022` — topographie
@@ -13,6 +13,9 @@
   `build/v0.2-a6-topographic-node-graph` au moment du contrôle
 - **Verdict :** **`CHANGES_REQUIRED`** — `TASK-0022` reste **`IMPLEMENTED`**,
   **une seule réserve : `X8`, `OPEN`**
+- **État actuel :** **`CLOSED`** par le re-contrôle indépendant ciblé
+  [`ACTION-0036`](ACTION-0036-independent-recontrol.md); `X8` **`CLOSED`** et
+  `TASK-0022` **`VERIFIED`**
 
 ## 1. Le verdict, tel qu'il a été rendu
 
@@ -166,3 +169,19 @@ Aucune affirmation « 14 protected names » ne subsiste dans le produit.
 - **`TASK-0022` reste `IMPLEMENTED`.** L'exécuteur ne s'attribue pas
   `VERIFIED`.
 - **Un re-contrôle indépendant ciblé `X8` est requis** avant toute suite.
+
+## 7. Clôture indépendante — ACTION-0036
+
+L'orchestrateur technique indépendant a re-contrôlé la correction au `HEAD`
+`645b9484790f8e766f7eed93107b9431d144aaa6`, dont le commit substantif `X8`
+est `d6963e65e9829b8c17196eeb469eabfb3aa86aeb`, puis a rendu le verdict
+enregistré dans [`ACTION-0036`](ACTION-0036-independent-recontrol.md) :
+
+- `ACTION-0036` **`CLOSED`**;
+- `X8` **`CLOSED`**;
+- `ACTION-0035` **`CLOSED`**;
+- `TASK-0022` **`VERIFIED`**.
+
+Ce re-contrôle ciblé ne rouvre aucun autre point de `TASK-0022`. La conséquence
+de `VERIFIED` est l'extension séparée de la garde `X5` de 19 à 27 preuves
+canoniques.

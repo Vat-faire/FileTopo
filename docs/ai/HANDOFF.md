@@ -1,5 +1,28 @@
 # HANDOFF — passage de relais
 
+## Relais actuel — TASK-0022 VERIFIED, 2026-09-03
+
+Le verdict rendu par l'orchestrateur technique indépendant est enregistré dans
+[`ACTION-0036`](../reviews/ACTION-0036-independent-recontrol.md) : sur le HEAD
+`645b9484790f8e766f7eed93107b9431d144aaa6` et le commit substantif `X8`
+`d6963e65e9829b8c17196eeb469eabfb3aa86aeb`, `ACTION-0036`, `X8` et
+`ACTION-0035` sont **`CLOSED`**; `TASK-0022` est **`VERIFIED`**. Codex a
+enregistré ce verdict sans le rendre et sans rouvrir un autre point.
+
+Conséquence X5 : les huit preuves canoniques `TASK-0022` — J12, K11, L12 en
+deux passes, M12 en deux passes et N15 en deux passes — sont ajoutées aux 19
+preuves antérieures. Rust, TypeScript et PowerShell portent exactement les
+mêmes **27** noms, dans le même ordre. Le H9 non exécuté, K12 non publié comme
+preuve `TASK-0022` et les variantes `-abandon` ne sont pas protégés.
+
+Validations limitées au périmètre demandé : 26/26 tests TypeScript
+`runArtifacts`, 3/3 tests Rust X5 ciblés, et garde PowerShell exercée sur les
+27 refus. Aucun scénario WebView2 n'a été rejoué et aucun artefact de preuve
+n'a été modifié. `main` est intacte à `91bbe90f0f99026c28cd345784d4f579a0016db2`.
+
+**Prochaine action unique : retour à l'orchestrateur pour définir la prochaine
+tranche.** Ne pas créer `TASK-0023` sans nouvelle décision.
+
 ## Relais actuel — TASK-0022 IMPLEMENTED, 2026-09-03
 
 `TASK-0022` est livrée sur `build/v0.2-a6-topographic-node-graph`, mais n'est
