@@ -4,10 +4,22 @@ RESULT: DONE
 BRANCH: build/v0.2-a5-interbrain-relations
 BASE_HEAD: 8d1e27151f53d082551e05b00816100cb790542b
 GEL_COMMIT: 7746fd4e9c2fad42b23bb9d88a75550d375d3279
+FINAL_HEAD: (renseigné par le commit suivant)
 TASK_STATE: IMPLEMENTED — VERIFIED NON attribué
 SESSION: début de session normal. Git vérifié d'abord : racine, branche
 `build/v0.2-a4-composed-view`, `HEAD` `8d1e271`, arbre propre, aligné sur
 `origin`, aucune tâche `IN_PROGRESS`. Aucun écart.
+
+REPRISE: la session d'exécution s'est interrompue APRÈS le commit `eed36e5` et
+AVANT sa clôture. Une reprise `/reprise-session` a établi l'état par Git : arbre
+propre, `HEAD` `eed36e5`, `origin` resté à `7746fd4`, `main` intacte `91bbe90f`.
+Trois choses étaient annoncées mais non enregistrées, et seulement celles-là :
+la fiche `TASK-0020` portait encore `APPROVED` alors que `CURRENT_STATE.md`,
+`NEXT_ACTION.md` et ce rapport la disaient `IMPLEMENTED`; l'entête de
+`HANDOFF.md` désignait encore `TASK-0019` et la branche `a4`; et les deux
+commits n'étaient pas poussés. Rien n'a été refait, rien n'effacé, aucune
+récupération destructive. §4 de la fiche, GELÉE, est restée intacte — vérifié
+par `git diff 7746fd4 HEAD`, qui ne montre que des ajouts après la ligne 672.
 
 SUMMARY:
 - LE VERDICT EST ENREGISTRÉ, PAS RENDU PAR L'EXÉCUTEUR. `ACTION-0031` : `X6`
@@ -114,10 +126,11 @@ NON TESTÉ / LIMITES:
 - Une seule machine, un seul runtime WebView2.
 
 GIT: commits sur `build/v0.2-a5-interbrain-relations`, push vers
-`origin/build/v0.2-a5-interbrain-relations` (branche de travail publiée par
-cette session). AUCUNE fusion vers `main`, aucune PR, aucune release, aucune
-étiquette, aucun `force push`, aucune réécriture d'historique, aucune
-suppression.
+`origin/build/v0.2-a5-interbrain-relations` (branche de travail DÉJÀ publiée —
+`origin` la portait à `7746fd4`). Le push a eu lieu à la REPRISE, pas à
+l'exécution : avance rapide seule, aucun commit distant écrasé. AUCUNE fusion
+vers `main`, aucune PR, aucune release, aucune étiquette, aucun `force push`,
+aucune réécriture d'historique, aucune suppression.
 
 NEXT: contrôle indépendant de `TASK-0020`, par une instance distincte de
 l'exécuteur, sur preuves. `TASK-0020` reste `IMPLEMENTED`.

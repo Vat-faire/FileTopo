@@ -6,7 +6,8 @@
   cerveau, avec **provenance**, dans un **magasin commun distinct**, visible
   comme une arête qui **traverse réellement** les territoires de la vue
   composée, et **sans aucune fusion**
-- **Statut :** **`APPROVED`** le 2026-09-02
+- **Statut :** **`IMPLEMENTED`** le 2026-09-02 — **`VERIFIED` non
+  attribué**; l'exécuteur ne s'auto-vérifie pas
 - **Phase :** étape **A** de la feuille de route — parité fonctionnelle MVP,
   **cinquième** tranche
 - **Proposée le :** 2026-09-02
@@ -672,6 +673,7 @@ s'auto-vérifie pas.
 |---|---|---|
 | 2026-09-02 | `PROPOSED` | Fiche créée sous `DEC-0018`, fonction `F-041` |
 | 2026-09-02 | `APPROVED` | GO technique de l'orchestrateur, périmètre écrit en §2 et §3 |
+| 2026-09-02 | `IMPLEMENTED` | Tranche livrée. Gel `7746fd4` **avant** le code `d1adcf2`; `M1`–`M12` **tenus**, `M12` aux vingt-huit étapes en deux passes dans le vrai `WebView2`. **`VERIFIED` non attribué** — contrôle indépendant attendu |
 
 ---
 

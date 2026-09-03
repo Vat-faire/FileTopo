@@ -1,22 +1,29 @@
 # HANDOFF — passage de relais
 
 - **Dernière mise à jour :** 2026-09-02
-- **Branche active :** **`build/v0.2-a4-composed-view`**, créée depuis le tip
-  contrôlé `9e77a6d` de `build/v0.2-a3-multibrain-foundation`
-- **Dernière tâche vérifiée :** **`TASK-0018`, `VERIFIED`** le 2026-09-01, sur
+- **Branche active :** **`build/v0.2-a5-interbrain-relations`**, créée depuis
+  le tip **contrôlé** `8d1e27151f53d082551e05b00816100cb790542b` de
+  `build/v0.2-a4-composed-view`
+- **Dernière tâche vérifiée :** **`TASK-0019`, `VERIFIED`** le 2026-09-02, sur
   re-contrôle indépendant
-  [`ACTION-0029`](../reviews/ACTION-0029-independent-recontrol.md) — **`X5` et
-  `ACTION-0028` : `CLOSED`**. `TASK-0017` est `VERIFIED` depuis le 2026-09-01,
-  `TASK-0016` depuis le 2026-08-31
-- **Tâche livrée, NON vérifiée :** **`TASK-0019`, `IMPLEMENTED`** le
-  2026-09-02 — **vue composée multi-cerveaux**. Gel `L1`–`L12` en `bcbc4aa`,
-  **avant la première ligne de code**. **`L1`–`L11` tenus; `L12` tenu à seize
-  étapes sur dix-sept.**
-- **La seule cible manquée, publiée comme manquée :** `L12` étape 7, moitié
-  « approuver `S-005` dans Alpha », **NON REJOUÉE** — `S-005` était déjà
-  approuvée dans le bac à sable persistant, et le magasin refuse une seconde
-  approbation, ce qui est **`X3` qui fonctionne**. La moitié « Gamma inchangé »
-  est tenue.
+  [`ACTION-0031`](../reviews/ACTION-0031-independent-recontrol.md) — **réserve
+  `X6` et `ACTION-0030` : `CLOSED`**, `HEAD` contrôlé `8d1e271`. La cible
+  autrefois manquée de `L12` étape 7 a été **corrigée et `L12` rejoué en
+  entier** avant ce verdict. `TASK-0018` est `VERIFIED` depuis le 2026-09-01,
+  `TASK-0017` depuis le 2026-09-01, `TASK-0016` depuis le 2026-08-31
+- **Tâche livrée, NON vérifiée :** **`TASK-0020`, `IMPLEMENTED`** le
+  2026-09-02 — **relations inter-cerveaux explicites**, sous
+  [`DEC-0018`](../decisions/DEC-0018-explicit-interbrain-relations.md),
+  fonction **`F-041`**. Gel `M1`–`M12` en `7746fd4`, **avant la première ligne
+  de code** de la tranche. **`M1`–`M12` tenus**, `M12` aux **vingt-huit
+  étapes** dans le vrai `WebView2`, **deux passes**, fermeture et redémarrage
+  réels, **aucun indicateur faux** dans l'arbre de preuve.
+- **Ce que la mesure a trouvé, publié tel quel :** **deux défauts**, corrigés
+  **à la source** et non contournés dans la mesure — des classes `CSS`
+  partagées entre panneaux et couches d'arêtes, qui faisaient compter `J12` et
+  `L12` de travers alors que rien n'était cassé; et un contrôle `DOM` capturé
+  avant un `await`, remplacé par un re-rendu. Après correction, `J12` et `L12`
+  retrouvent **exactement** leurs valeurs d'origine.
 - **Attend son CONTRÔLE indépendant, sur preuves.**
 - **Tâche IN_PROGRESS :** aucune
 - **Porte `P4` :** **FRANCHIE** —
