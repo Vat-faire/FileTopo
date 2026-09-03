@@ -127,6 +127,17 @@ source reste déclarée dans la fiche.
 Aucune décision n'autorise une réservation, un achat, une publication ni une
 ligne de code de production.
 
+**Mise à jour du 2026-09-03 — observations cryptographiques exactes.** Le GO
+technique `TASK-0023` ajoute la décision suivante, avant tout code produit :
+
+| Fiche | État | Ce qui est retenu |
+|---|---|---|
+| [DEC-0025](DEC-0025-exact-content-observation-boundary.md) | `APPROVED` | SHA-256 `sha256-v1` via RustCrypto `sha2 0.11.0`, lecture streaming bornée, observation datée par génération atomique dans `brains/<brain_id>/signals/content.sqlite`, aucune confiance dans taille+mtime, aucune identité Windows persistante, relation ou suggestion |
+
+`DEC-0025` ne ferme pas `DEC-0013/F` et ne rend aucune fonction de la matrice
+`IMPLEMENTED`. Ses preuves appartiennent à `TASK-0023`; un même digest signifie
+seulement « contenu binaire identique observé ».
+
 ## Rôle
 
 Consigner les décisions qui engagent le projet, avec leur date, leur motif et
