@@ -2,7 +2,7 @@ TASK_ID: TASK-0022 — correction X8
 AGENT: CLAUDE
 RESULT: DONE
 BRANCH: build/v0.2-a6-topographic-node-graph
-FINAL_HEAD: __FINAL_HEAD__
+FINAL_HEAD: d6963e65e9829b8c17196eeb469eabfb3aa86aeb
 
 SUMMARY:
 - `ACTION-0035` enregistree `CHANGES_REQUIRED` sur `HEAD` controle `f6f0214`; fond de `TASK-0022` accepte, reserve unique `X8` `OPEN`.
@@ -22,7 +22,7 @@ IMPORTANT_FILES:
 - `docs/reviews/ACTION-0035-independent-control.md`; `src/map/runArtifacts.ts`; `src/map/crossScenario.ts`; `src/map/runArtifacts.test.ts`; `docs/performance/runs/TASK-0022-M12-interbrain-relations-regression-webview2-pass{1,2}.json`.
 
 COMMIT:
-__FINAL_HEAD__
+d6963e65e9829b8c17196eeb469eabfb3aa86aeb
 PUSHED: yes
 
 LIMITS_OR_BLOCKERS:
