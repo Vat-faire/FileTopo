@@ -2875,7 +2875,7 @@ republie sous son propre nom de tâche.
   ni résultat, ni **compteur révélateur**; filtrage **avant** rendu, recherche
   et relations.
 
-### Correction normative `X2` — `P-02`
+### Correction normative `P02-R1` — `P-02`
 
 L'ancienne formulation exigeait que l'**inclusion visuelle** reproduise la
 hiérarchie, ce qui rendait le pavage imbriqué **obligatoire**. La nouvelle
@@ -2912,4 +2912,70 @@ couche IA `BYOK`. Ordre justifié par dépendances dans `TASK-0021` §6. **Aucun
 **Contrôle indépendant de `TASK-0021`.** La première tranche recommandée — le
 **layout topographique à nœuds/cartes/liens** — reste **`PROPOSED`** tant que
 l'orchestrateur n'a pas contrôlé le réalignement. Détail dans
+`docs/ai/NEXT_ACTION.md`.
+
+
+## 2026-09-02 — `ACTION-0033` : contrôle indépendant de `TASK-0021`, réserve `X7`
+
+**Verdict `CHANGES_REQUIRED`**, rendu par l'**orchestrateur technique
+indépendant** sur `HEAD` `68211c83c2390a250d6b9a42679202ee14782977`, et
+**enregistré** par l'exécuteur —
+[`ACTION-0033`](../reviews/ACTION-0033-independent-control.md). **`TASK-0021`
+reste `IMPLEMENTED`**; **`VERIFIED` est interdit avant re-contrôle indépendant
+ciblé de `X7`**.
+
+### Le fond est accepté en entier
+
+Gardes `X5` à **19** preuves; ordre des commits `aeee5a8` **avant** `7f97fc6`;
+`DEC-0019` à `DEC-0023`; nouvelle direction topographique; **correction de fond
+de `P-02`**; moteur déterministe sans IA; workflow humain de validation; IA
+facultative `BYOK`; architecture mono/multi-utilisateur et permissions; matrice
+`F-001` à `F-049`; séquence future proposée. **Aucune de ces cibles n'est
+considérée implémentée** — ce sont des cibles à falsifier.
+
+### `X7` — un identifiant ne peut pas désigner deux choses
+
+`X2` désignait **déjà**, depuis le 2026-08-31, la **réserve technique de
+`TASK-0016`** sur la surface runtime héritée, `CLOSED` par `ACTION-0026`.
+`TASK-0021` a **réutilisé le même nom** pour la correction normative de `P-02`.
+Les deux sens coexistaient dans `CURRENT_STATE.md` et dans les documents
+produit. **Cette ambiguïté est refusée.**
+
+### `X2` → `P02-R1`, et rien d'autre
+
+La correction de `P-02` s'appelle désormais **`P02-R1`** — `P-02`, **révision
+normative 1**. **22** occurrences renommées dans **12** fichiers : `ROADMAP.md`,
+`CARTETOPO_FUNCTIONAL_PARITY.md`, `FEATURE_MATRIX.md`,
+`REQUIREMENTS_BASELINE.md`, `DEC-0020`, `docs/decisions/README.md`,
+`TASK-0021`, `CURRENT_STATE.md`, `NEXT_ACTION.md`, `HANDOFF.md`,
+`VALIDATION.md`, `CHANGELOG_AI.md`. `PROJECT_VISION.md` n'en contenait
+**aucune**.
+
+**Aucun remplacement aveugle.** Les **110** occurrences de `X2` du dépôt ont
+été examinées une par une. **Le `X2` de `TASK-0016` reste `X2` et reste
+`CLOSED`**; `X1` reste `X1`; `X3`, `X4`, `X5`, `X6` sont inchangées; **`X7`
+désigne uniquement la présente réserve de contrôle**.
+
+**La substance ne bouge pas.** Le `diff` mot-à-mot ne porte **que** sur
+l'identifiant : **22** retraits `X2`, **22** ajouts `P02-R1`, **aucun autre mot
+changé**. Nouveau comportement de `P-02` et ses **huit** contrôles :
+identiques. Contrat : **22** exigences. `DEC-0020` : décision topographique,
+`T-B`, statut du treemap, critères et conséquences **inchangés**. Matrice :
+`F-001`–`F-049`, **49** uniques, `MVP` 41 / `ULTÉRIEUR` 3 / `DIFFÉRÉ` 5.
+
+### Non fait, volontairement
+
+- **Aucun `WebView2`**, **aucun `H9`**, **aucun test produit**, **aucun
+  build**. Rien n'a été exécuté : la correction est **strictement
+  documentaire**.
+- **Aucune preuve historique modifiée**, **aucun code produit modifié**,
+  **aucune garde `X5` modifiée**, **`main` intacte** `91bbe90f`.
+- **Aucune fusion vers `main`, aucune PR, aucune release, aucune étiquette,
+  aucun `force push`**, aucune réécriture d'historique, aucune suppression.
+- **`X7` n'est PAS fermée par l'exécuteur.** Il enregistre la correction; il ne
+  se prononce pas sur elle.
+
+### Prochaine action unique
+
+**Re-contrôle indépendant ciblé de `X7` / `TASK-0021`.** Détail dans
 `docs/ai/NEXT_ACTION.md`.

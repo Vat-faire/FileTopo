@@ -20,8 +20,17 @@
 - **Tâche livrée, NON vérifiée :** **`TASK-0021`, `IMPLEMENTED` le
   2026-09-02** — **réalignement produit**,
   [fiche](../tasks/TASK-0021-product-realignment.md). **Livrable
-  DOCUMENTAIRE**, en attente de **contrôle indépendant**. **L'exécuteur ne
-  s'est pas attribué `VERIFIED`**
+  DOCUMENTAIRE**. **L'exécuteur ne s'est pas attribué `VERIFIED`**
+- **Contrôle indépendant de `TASK-0021` :**
+  [`ACTION-0033`](../reviews/ACTION-0033-independent-control.md),
+  **`CHANGES_REQUIRED`** le 2026-09-02 sur `HEAD` `68211c8`. **Le FOND est
+  accepté en entier** — gardes `X5` à 19 preuves, ordre des commits
+  `aeee5a8` avant `7f97fc6`, `DEC-0019` à `DEC-0023`, direction topographique,
+  correction de fond de `P-02`, moteur déterministe, workflow humain, IA
+  `BYOK`, mono/multi-utilisateur, matrice `F-001`–`F-049`, séquence future.
+  **Aucune de ces cibles n'est considérée implémentée.** **Une seule réserve**,
+  documentaire : **`X7`**, **`OPEN`**. **`VERIFIED` interdit avant re-contrôle
+  indépendant ciblé**
 - **Ce que `TASK-0021` a enregistré :** cinq décisions de **direction produit**
   de Sébastien —
   [`DEC-0019`](../decisions/DEC-0019-general-purpose-product-scope.md)
@@ -30,7 +39,7 @@
   [`DEC-0020`](../decisions/DEC-0020-topographic-node-graph.md) (la
   **représentation principale finale** est un **graphe hiérarchique à
   nœuds/cartes reliés**; le **treemap n'est plus la cible visuelle**;
-  **correction normative `X2` de `P-02`**),
+  **correction normative `P02-R1` de `P-02`**),
   [`DEC-0021`](../decisions/DEC-0021-deterministic-relation-engine.md)
   (**moteur déterministe explicable, très utile SANS LLM**; trois niveaux;
   **score ≠ vérité**; workflow humain; mémoire des rejets),
@@ -141,8 +150,19 @@
   devra commencer par protéger ces preuves** avant toute autre écriture de
   preuve
 - **Tâche IN_PROGRESS :** aucune
-- **Réserve ouverte :** aucune. `X2`, `X3`, `X4`, `X5`, `X6` sont **closes**, et
-  `TASK-0020` les a toutes revérifiées sur ses propres preuves
+- **Réserve ouverte :** **`X7`, `OPEN`** — collision d'identifiant relevée par
+  [`ACTION-0033`](../reviews/ACTION-0033-independent-control.md),
+  **`CHANGES_REQUIRED`**. `X1`, `X2`, `X3`, `X4`, `X5`, `X6` restent **closes**
+- **`X7` — la réserve, et la correction exécutée :** `X2` désignait **déjà** la
+  réserve technique de `TASK-0016`
+  ([`ACTION-0026`](../reviews/ACTION-0026-independent-control.md), `CLOSED`);
+  `TASK-0021` avait **réutilisé le même nom** pour la correction normative de
+  `P-02`, faisant coexister **deux sens** dans le même corpus. L'ambiguïté est
+  **refusée**. La correction de `P-02` s'appelle désormais **`P02-R1`** —
+  `P-02`, révision normative 1 — sur **22** occurrences dans **12** fichiers.
+  **Le `X2` de `TASK-0016` n'est ni renommé ni réinterprété.** **La substance
+  de `P-02` n'a pas changé.** **`X7` reste `OPEN` : seul le contrôleur
+  indépendant peut la fermer, et l'exécuteur ne s'est pas prononcé**
 - **Porte `P4` :** **FRANCHIE** —
   [`DEC-0016`](../decisions/DEC-0016-p4-gate-crossing-and-first-slice.md)
 

@@ -244,7 +244,7 @@ exécuté :**
   **pas de classification** : elles restent `MVP` et `P0`. Le changement est
   déclaré dans la matrice et dans cette section, jamais silencieux;
 - **le contrat de parité conserve ses 22 exigences.** `P-02` est **corrigée**
-  par la correction normative **`X2`** — l'ancienne formulation est conservée
+  par la correction normative **`P02-R1`** — l'ancienne formulation est conservée
   et visible —, et `P-01`, `P-03` à `P-22` sont **inchangées**. Aucune de ces
   huit fonctions n'est une exigence de parité, et aucune n'en remplace une;
 - **aucune de ces huit fonctions n'est implémentée, prouvée ni commencée.**

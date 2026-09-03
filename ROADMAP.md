@@ -29,7 +29,7 @@ attend un contrôle indépendant avant la suivante.
 > décisions produit — [`DEC-0019`](docs/decisions/DEC-0019-general-purpose-product-scope.md)
 > à [`DEC-0023`](docs/decisions/DEC-0023-identity-and-source-permissions.md).
 > **L'étape A reste « parité fonctionnelle MVP »** et conserve ses **22
-> exigences**; **`P-02` est corrigée** par la correction normative **`X2`** :
+> exigences**; **`P-02` est corrigée** par la correction normative **`P02-R1`** :
 > la hiérarchie s'exprime par **connexion et organisation spatiale explicites**,
 > et non plus obligatoirement par **inclusion visuelle**. **La représentation
 > principale finale est un graphe à nœuds reliés; le pavage imbriqué n'est plus

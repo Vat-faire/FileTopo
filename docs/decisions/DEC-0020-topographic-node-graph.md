@@ -19,7 +19,7 @@
   [contrat de parité](../product/CARTETOPO_FUNCTIONAL_PARITY.md) §3
 - **replaced_by :** —
 - **Supplante :** rien intégralement. Elle **corrige `P-02`** du contrat de
-  parité — correction normative **`X2`**, §5 — et **prolonge `DEC-0015`** en
+  parité — correction normative **`P02-R1`**, §5 — et **prolonge `DEC-0015`** en
   disant, cette fois, ce que la cible **est** et non seulement ce qu'elle
   n'est pas
 
@@ -104,7 +104,7 @@ Il peut demeurer :
 d'acceptation et aucun test ne peut, à partir d'aujourd'hui, présupposer
 l'imbrication.
 
-### 5. Correction normative `X2` — `P-02`
+### 5. Correction normative `P02-R1` — `P-02`
 
 **L'ancienne formulation de `P-02` est remplacée sur ce point précis.** Elle
 n'est **ni supprimée ni réécrite en silence** : elle reste visible dans le

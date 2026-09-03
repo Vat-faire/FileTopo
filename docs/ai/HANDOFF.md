@@ -18,10 +18,22 @@
   entier** avant ce verdict. `TASK-0018` est `VERIFIED` depuis le 2026-09-01,
   `TASK-0017` depuis le 2026-09-01, `TASK-0016` depuis le 2026-08-31
 - **Tâche livrée, NON vérifiée :** **`TASK-0021`, `IMPLEMENTED`** le
-  2026-09-02 — **réalignement produit**, livrable **documentaire**, en attente
-  de contrôle indépendant. **L'exécuteur ne s'est pas attribué `VERIFIED`**
+  2026-09-02 — **réalignement produit**, livrable **documentaire**.
+  **L'exécuteur ne s'est pas attribué `VERIFIED`**
+- **Son contrôle indépendant a eu lieu, avec UNE réserve :**
+  [`ACTION-0033`](../reviews/ACTION-0033-independent-control.md),
+  **`CHANGES_REQUIRED`** sur `HEAD` `68211c8`. **Le FOND est accepté en
+  entier**; **aucune** de ses cibles n'est considérée implémentée. La réserve
+  **`X7`** est **documentaire** : `X2` désignait **déjà** la réserve technique
+  de `TASK-0016` (`ACTION-0026`, `CLOSED`), et `TASK-0021` avait réutilisé le
+  même nom pour la correction de `P-02` — **deux sens simultanés**, refusés.
+  **La correction de `P-02` s'appelle désormais `P02-R1`**, sur **22**
+  occurrences dans **12** fichiers; **le `X2` de `TASK-0016` n'a pas bougé**;
+  **la substance de `P-02` n'a pas changé**. **`X7` reste `OPEN`** : seul le
+  contrôleur indépendant peut la fermer. **`VERIFIED` interdit avant
+  re-contrôle**
 - **Ce que `TASK-0021` a livré :** cinq fiches `DEC-0019` à `DEC-0023`; la
-  **correction normative `X2`** de `P-02`, dont l'ancienne formulation est
+  **correction normative `P02-R1`** de `P-02`, dont l'ancienne formulation est
   **conservée et visible**; **huit fonctions** `F-042` à `F-049`, matrice
   **41 → 49**; une **séquence de sept tranches futures**, `PROPOSED` et **non
   exécutée**. **Aucun layout, aucun moteur, aucune IA, aucun serveur

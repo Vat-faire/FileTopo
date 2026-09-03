@@ -1,118 +1,103 @@
-TASK_ID: TASK-0021 — réalignement produit post-TASK-0020
+TASK_ID: TASK-0021 — correction documentaire ciblée X7 (ACTION-0033)
 AGENT: CLAUDE
 RESULT: DONE
 BRANCH: build/v0.2-a5-interbrain-relations
-BASE_HEAD: c1c747a2bbcbc45bb2920378e4967fe81004a2c8
-FINAL_HEAD: 7f97fc673cfc76cfb4c6ee6c59de90afaa0e57c1
-TASK_STATE: TASK-0021 = IMPLEMENTED (en attente de contrôle indépendant)
+BASE_HEAD: 68211c83c2390a250d6b9a42679202ee14782977
+FINAL_HEAD: (voir dernier commit poussé — renseigné ci-dessous)
+TASK_STATE: TASK-0021 = IMPLEMENTED (inchangée). ACTION-0033 = CHANGES_REQUIRED.
+            X7 = OPEN. VERIFIED interdit avant re-contrôle indépendant.
 
 SESSION: début de session normal. Git vérifié AVANT toute lecture : racine
 `C:/Users/Vatfaire/Documents/TopographicDocumentMap`, branche
-`build/v0.2-a5-interbrain-relations`, `HEAD` `c1c747a2` = `origin` `c1c747a2`
-(0/0), arbre PROPRE, `main` `91bbe90f`, `TASK-0020` `VERIFIED`, `ACTION-0032`
-`CLOSED`, aucune tâche `IN_PROGRESS`. AUCUN écart avec l'état attendu par le
-prompt.
+`build/v0.2-a5-interbrain-relations`, `HEAD` `68211c83` = attendu, upstream
+`origin/build/v0.2-a5-interbrain-relations` aligné, arbre PROPRE, `main`
+`91bbe90f`, `TASK-0021` `IMPLEMENTED`, aucune tâche `IN_PROGRESS`. AUCUN écart
+avec l'état attendu par le prompt.
 
 SUMMARY:
-- LES GARDES X5 ONT ÉTÉ ÉTENDUES D'ABORD, AVANT TOUT TRAVAIL DOCUMENTAIRE.
-  Les cinq preuves `TASK-0020` — `M12` `pass{1,2}`, `J12` intra, `L12`
-  composée `pass{1,2}` — sont protégées dans les TROIS gardes : porte Rust
-  `write_run_artifact`, `src/map/runArtifacts.ts`,
-  `scripts/protected-run-artifacts.ps1`. Liste 14 → 19 noms. TESTÉ :
-  `vitest` 14/14, `cargo test map::commands::tests` 14/14, module PowerShell
-  refusant effectivement les cinq et laissant passer les `-abandon`.
+- VERDICT INDÉPENDANT ENREGISTRÉ, PAS RENDU PAR L'EXÉCUTEUR.
+  `ACTION-0033` = `CHANGES_REQUIRED`, `X7` = `OPEN`, `TASK-0021` reste
+  `IMPLEMENTED`. Fiche nouvelle :
+  `docs/reviews/ACTION-0033-independent-control.md`. Le FOND de `TASK-0021`
+  est accepté EN ENTIER — gardes `X5` à 19 preuves, ordre des commits
+  `aeee5a8` AVANT `7f97fc6`, `DEC-0019` à `DEC-0023`, direction topographique,
+  correction de fond de `P-02`, moteur déterministe sans IA, workflow humain,
+  IA `BYOK`, mono/multi-utilisateur + permissions, matrice `F-001`–`F-049`,
+  séquence future. AUCUNE de ces cibles n'est considérée implémentée.
 
-- CONSÉQUENCE ASSUMÉE, ÉCRITE PLUTÔT QUE DÉCOUVERTE. C'est la première
-  extension d'`X5` dont les noms sont ENCORE des destinations du runtime
-  livré : les boutons `M12`, `J12` et `L12` n'écrivent plus, la porte refuse,
-  et les scripts de campagne refusent de supprimer une copie périmée. C'est le
-  résultat voulu. Le constant `SEALED_RUNTIME_DESTINATIONS` nomme les cinq et
-  un test asserte que l'intersection vaut EXACTEMENT ces cinq.
+- UNE SEULE RÉSERVE, DOCUMENTAIRE : COLLISION D'IDENTIFIANT. `X2` désignait
+  DÉJÀ la réserve technique de `TASK-0016`, `CLOSED` par `ACTION-0026`.
+  `TASK-0021` avait réutilisé `X2` pour la correction normative de `P-02`.
+  Les deux sens coexistaient. Ambiguïté refusée.
 
-- CINQ DÉCISIONS PRODUIT ENREGISTRÉES, PAS PRISES PAR L'EXÉCUTEUR.
-  `DEC-0019` FileTopo n'est PAS un produit juridique — cible générique, aucune
-  catégorie métier codée en dur, packs ultérieurs possibles.
-  `DEC-0020` la représentation principale finale est un GRAPHE TOPOGRAPHIQUE
-  HIÉRARCHIQUE À NŒUDS/CARTES ET CONNEXIONS EXPLICITES; le treemap reste
-  primitive de calcul, représentation technique et vue secondaire éventuelle,
-  et n'impose plus l'UX; aucun algorithme imposé; aucune copie pixel.
-  `DEC-0021` moteur déterministe explicable, très utile SANS LLM : trois
-  niveaux, architecture de signaux, « hash identique » = contenu binaire
-  identique et JAMAIS « même fichier physique », score ≠ vérité, workflow
-  `PENDING`/`APPROVED`/`REJECTED` avec file de révision et mémoire des rejets.
-  `DEC-0022` IA facultative `BYOK`, provider-agnostic; un LLM suggère et
-  n'établit jamais; AUCUNE troisième provenance « AI ».
-  `DEC-0023` un seul modèle mono/multi-utilisateur; la source reste
-  autoritaire; « ne peut pas ouvrir le fichier » n'est PAS suffisant —
-  permission-aware AVANT rendu, recherche et relations.
+- RENOMMAGE CANONIQUE : `X2` -> `P02-R1` (P-02, révision normative 1), sur la
+  NOUVELLE correction SEULEMENT. 22 occurrences renommées, 12 fichiers.
+  `PROJECT_VISION.md` n'en contenait AUCUNE.
 
-- P-02 EST CORRIGÉE, PAS RÉÉCRITE EN SILENCE. Correction normative `X2`, en
-  tête du contrat, sur le modèle de `X1`. L'ancienne formulation est CONSERVÉE
-  ET VISIBLE sous la nouvelle, avec ce qui a été retiré et ce qui a été
-  ajouté. Le contrat reste à 22 exigences; `P-01` et `P-03` à `P-22` sont
-  inchangées. `P-02` ne descend pas — elle est plus forte — et n'est PAS
-  satisfaite.
+- AUCUN REMPLACEMENT AVEUGLE. Les 110 occurrences de `X2` du dépôt ont été
+  examinées une par une. Le `X2` historique de `TASK-0016` reste `X2` et reste
+  `CLOSED`; `X1` reste `X1`; `X3`, `X4`, `X5`, `X6` inchangées; `X7` désigne
+  uniquement la présente réserve de contrôle.
 
-- MATRICE 41 → 49, RECOMPTÉE. `F-042` à `F-049` ajoutées; `MVP` 41,
-  `ULTÉRIEUR` 3, `DIFFÉRÉ` 5; `F-001` à `F-049` SANS TROU NI DOUBLON, vérifié
-  mécaniquement sur les deux documents. AUCUNE classification existante
-  changée, aucune descendue, aucune disparue. `F-007` et `F-008` changent de
-  COMPORTEMENT CIBLE sous `DEC-0020`, déclaré, classification inchangée. Un
-  écart d'une nature nouvelle est déclaré séparément : `F-049`, `P0` classée
-  `ULTÉRIEUR` — aucun abaissement, la fonction est nouvelle.
+- LA SUBSTANCE N'A PAS BOUGÉ, ET C'EST MÉCANIQUEMENT DÉMONTRÉ.
+  `git diff --word-diff` sur les 12 fichiers : 22 retraits `X2`, 22 ajouts
+  `P02-R1`, AUCUN AUTRE MOT CHANGÉ. Nouveau comportement de `P-02` et ses HUIT
+  contrôles : identiques. Contrat : 22 exigences, `P-01`/`P-03`..`P-22`
+  inchangées. `DEC-0020` : décision topographique, `T-B`, statut du treemap,
+  critères et conséquences inchangés — seule la nomenclature change.
 
-- SÉQUENCE DE SEPT TRANCHES PROPOSÉE, NON EXÉCUTÉE. Layout à nœuds → moteur de
-  signaux → workflow de validation → doublons à l'échelle →
-  recherche/filtres/watchers → fondation permissions/identités → couche IA
-  `BYOK`. Ordre justifié par dépendances. AUCUNE `TASK` d'implémentation créée.
+- X7 N'EST PAS FERMÉE PAR L'EXÉCUTEUR. La correction est enregistrée; le
+  contrôleur indépendant seul peut se prononcer.
 
 FILES:
-- docs/tasks/TASK-0021-product-realignment.md (nouveau)
-- docs/decisions/DEC-0019..DEC-0023 (cinq nouveaux)
-- docs/decisions/README.md
-- docs/product/CARTETOPO_FUNCTIONAL_PARITY.md (correction X2), FEATURE_MATRIX.md,
+- docs/reviews/ACTION-0033-independent-control.md (nouveau)
+- ROADMAP.md
+- docs/product/CARTETOPO_FUNCTIONAL_PARITY.md, FEATURE_MATRIX.md,
   REQUIREMENTS_BASELINE.md
-- PROJECT_VISION.md, ROADMAP.md
-- src-tauri/src/map/commands.rs, src/map/runArtifacts.ts,
-  src/map/runArtifacts.test.ts, scripts/protected-run-artifacts.ps1
+- docs/decisions/DEC-0020-topographic-node-graph.md, docs/decisions/README.md
+- docs/tasks/TASK-0021-product-realignment.md
 - docs/ai/CURRENT_STATE.md, NEXT_ACTION.md, HANDOFF.md, VALIDATION.md,
   CHANGELOG_AI.md
 - .orchestrator/RESULT.md
 
-VALIDATIONS:
-- `npx vitest run src/map/runArtifacts.test.ts` → 14 passés / 14.
-- `CARGO_INCREMENTAL=0 cargo test --lib map::commands::tests` → 14 passés / 14.
-- Module PowerShell `protected-run-artifacts.ps1` → 19 noms; cinq preuves
-  refusées; variantes `-abandon` acceptées.
-- `git status --porcelain docs/performance/runs/` → VIDE, aucune preuve
-  touchée.
-- Contrôle mécanique de la matrice : 49 identifiants, 49 uniques, `F-001` à
-  `F-049`, aucun manquant, aucun dupliqué, sur FEATURE_MATRIX et
-  REQUIREMENTS_BASELINE. Contrat de parité : 22 exigences.
+VALIDATIONS (documentaires et Git — RIEN n'a été exécuté du produit):
+- G1 toute référence à la révision de `P-02` utilise `P02-R1` : TENU, 22/22.
+- G2 `X2` historique de `TASK-0016` intact et univoque : TENU —
+  `git diff docs/reviews/ docs/tasks/TASK-0016-p4-vertical-slice.md` VIDE.
+- G3 aucune occurrence de `X2` employé comme nom de la révision de `P-02`
+  ne subsiste : TENU, recherche vide.
+- G4 `P-02` inchangée sur le fond : TENU — diff mot-à-mot = identifiant seul.
+- G5 `DEC-0019`..`DEC-0023` inchangées sur le fond : TENU — seul `DEC-0020`,
+  deux lignes de nomenclature.
+- G6 matrice : 49 identifiants, 49 uniques, `F-001`..`F-049`, aucun trou,
+  aucun doublon; MVP 41, ULTÉRIEUR 3, DIFFÉRÉ 5; contrat 22 exigences.
+- G7 aucune preuve historique modifiée : `git status docs/performance/runs/`
+  VIDE.
+- G8 aucun code produit modifié : `git status src/ src-tauri/ scripts/` VIDE.
+- G9 aucune garde `X5` modifiée : les trois fichiers de garde NON modifiés
+  (`git status` vide); `scripts/protected-run-artifacts.ps1` compte toujours
+  19 noms.
+- G10 `main` intacte : `91bbe90f0f99026c28cd345784d4f579a0016db2`.
 
 NON TESTÉ / LIMITES:
-- AUCUNE campagne WebView2 rejouée — ni `M12`, ni `J12`, ni `L12`, ni `H9`.
-  `R8` ENTIÈRE, aucun seuil, aucune mesure.
-- La suite COMPLÈTE `vitest` et `cargo test` n'a PAS été exécutée : seuls les
-  deux fichiers de garde `X5` l'ont été. Rien d'autre n'a été touché dans le
-  code, mais ce n'est pas la même chose que l'avoir vérifié.
+- AUCUN WebView2, AUCUN `H9`, AUCUN test produit, AUCUN build. Rien du produit
+  n'a été exécuté dans cette session : la correction est STRICTEMENT
+  documentaire. Ne pas lire G1..G10 comme une validation logicielle.
+- `R8` ENTIÈRE, aucun seuil, aucune mesure.
 - AUCUNE cible de `DEC-0019` à `DEC-0023` n'est prouvée : aucun layout, aucun
-  moteur de règles, aucune suggestion, aucune IA, aucune identité, aucune
-  permission n'existe. Ce sont des cibles à falsifier.
-- `B0` s'est reproduit une SIXIÈME fois, au premier `cargo test`, en
-  compilation incrémentale. `CARGO_INCREMENTAL=0` contourne — `DEC-0013` E.
-  RIEN n'a été supprimé ni renommé dans `src-tauri/target/`.
-- `I-E` complète hors périmètre; `cek1` reste le repli déclaré. `P-19`,
-  `P-21` demeurent; `P-04` reste PARTIELLE; `P-02` n'est pas satisfaite.
-- `TASK-0021` n'est PAS `VERIFIED` : l'exécuteur ne s'attribue rien.
+  moteur, aucune suggestion, aucune IA, aucune identité, aucune permission.
+- `I-E` complète hors périmètre; `cek1` reste le repli déclaré. `P-19`, `P-21`
+  demeurent; `P-04` reste PARTIELLE; `P-02` n'est PAS satisfaite. `B0` n'est
+  pas corrigé.
+- `TASK-0021` n'est PAS `VERIFIED`. `X7` reste `OPEN`. L'exécuteur ne
+  s'attribue rien et ne ferme pas sa propre réserve.
 
-GIT: commits sur `build/v0.2-a5-interbrain-relations`, push vers
+GIT: commit sur `build/v0.2-a5-interbrain-relations`, push vers
 `origin/build/v0.2-a5-interbrain-relations` — branche de travail DÉJÀ publiée,
 avance rapide seule. AUCUNE fusion vers `main`, aucune PR, aucune release,
-aucune étiquette, aucun `force push`, aucune réécriture d'historique, aucun
-nettoyage, aucune suppression.
+aucune étiquette, aucun tag, aucun `force push`, aucune réécriture
+d'historique, aucun nettoyage, aucune suppression.
 
-NEXT: contrôle indépendant de `TASK-0021`. La première tranche recommandée —
-LAYOUT TOPOGRAPHIQUE À NŒUDS/CARTES/LIENS satisfaisant `P-02` corrigée — reste
-`PROPOSED` et n'est pas créée tant que l'orchestrateur n'a pas contrôlé le
-réalignement.
+NEXT: re-contrôle indépendant CIBLÉ de `X7` / `TASK-0021`. Objet unique : la
+nomenclature est-elle désormais non ambiguë, et la substance est-elle restée
+intacte. Aucune tranche d'implémentation n'est créée; `TASK-0022` n'existe pas.

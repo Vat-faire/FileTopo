@@ -2950,8 +2950,8 @@ silencieusement libérée.
 | # | Contrôle | Constat |
 |---|---|---|
 | `N3` | Matrice sans trou ni doublon | **49** lignes, `F-001` à `F-049`; `MVP` 41, `ULTÉRIEUR` 3, `DIFFÉRÉ` 5 |
-| `N4` | Contrat de parité | **22** exigences, inchangé en nombre; `P-02` **corrigée** par `X2`, ancienne formulation **conservée et visible**; `P-01`, `P-03` à `P-22` **inchangées** |
-| `N5` | Traçabilité normative | `F-042` → `DEC-0020`; `F-043` à `F-046` → `DEC-0021`; `F-047` → `DEC-0022`; `F-048`, `F-049` → `DEC-0023`; `X2` → `DEC-0020` |
+| `N4` | Contrat de parité | **22** exigences, inchangé en nombre; `P-02` **corrigée** par `P02-R1`, ancienne formulation **conservée et visible**; `P-01`, `P-03` à `P-22` **inchangées** |
+| `N5` | Traçabilité normative | `F-042` → `DEC-0020`; `F-043` à `F-046` → `DEC-0021`; `F-047` → `DEC-0022`; `F-048`, `F-049` → `DEC-0023`; `P02-R1` → `DEC-0020` |
 | — | Classifications existantes | **aucune** n'a changé, **aucune** n'est descendue, **aucune** n'a disparu |
 | — | Comportement cible | `F-007` et `F-008` **modifiés** sous `DEC-0020`, **déclarés**, **classification inchangée** |
 
@@ -2962,3 +2962,64 @@ déclaré. **`P-19`**, **`P-21`** demeurent; **`P-04`** reste **PARTIELLE**;
 **`P-02` n'est pas satisfaite**, sous sa formulation corrigée. **`B0`** n'est
 pas corrigé. **`V1`–`V4`, `W1`–`W4`, `R2`–`R9`** restent en vigueur.
 **`TASK-0021` n'est PAS `VERIFIED`** : elle attend un contrôle indépendant.
+
+
+## `ACTION-0033` — contrôle indépendant de `TASK-0021` : `CHANGES_REQUIRED`, réserve `X7` (2026-09-02)
+
+- **Fiche :** [`ACTION-0033`](../reviews/ACTION-0033-independent-control.md)
+- **Contrôleur :** **orchestrateur technique indépendant**, instance
+  **distincte** de l'exécuteur. **Le verdict est enregistré, non rendu, par
+  l'exécuteur.**
+- **`HEAD` contrôlé :** `68211c83c2390a250d6b9a42679202ee14782977`
+- **Verdict :** **`CHANGES_REQUIRED`** — réserve **`X7`**, **`OPEN`**.
+  **`TASK-0021` reste `IMPLEMENTED`**; **`VERIFIED` interdit avant re-contrôle
+  indépendant ciblé.**
+
+### AE.1 Fond accepté en entier
+
+Gardes `X5` à **19** preuves; ordre des commits `aeee5a8` **avant** `7f97fc6`;
+`DEC-0019` à `DEC-0023`; nouvelle direction topographique; **correction de fond
+de `P-02`**; moteur déterministe sans IA; workflow humain de validation; IA
+facultative `BYOK`; architecture mono/multi-utilisateur et permissions; matrice
+`F-001` à `F-049`; séquence future proposée. **Aucune de ces cibles n'est
+considérée implémentée.**
+
+### AE.2 La réserve `X7` — collision d'identifiant
+
+`X2` désigne **déjà** la réserve technique de `TASK-0016`, `CLOSED` par
+[`ACTION-0026`](../reviews/ACTION-0026-independent-control.md). `TASK-0021`
+avait **réutilisé** `X2` pour la correction normative de `P-02` : **deux sens
+simultanés** dans `CURRENT_STATE.md` et les documents produit. **Ambiguïté
+refusée.**
+
+**Identifiant canonique de la correction de `P-02` : `P02-R1`** — `P-02`,
+révision normative 1.
+
+### AE.3 Contrôles mécaniques de la correction — exécutés par relecture et par `git`
+
+| # | Contrôle | Constat |
+|---|---|---|
+| `G1` | Toute référence à la révision de `P-02` utilise `P02-R1` | **TENU** — **22** occurrences, **12** fichiers |
+| `G2` | `X2` historique de `TASK-0016` intact et univoque | **TENU** — `ACTION-0026` et `TASK-0016` **non modifiés** |
+| `G3` | Aucune occurrence de `X2` employé comme nom de la révision de `P-02` | **TENU** — recherche vide |
+| `G4` | `P-02` inchangée sur le fond | **TENU** — `git diff --word-diff` : **22** retraits `X2`, **22** ajouts `P02-R1`, **aucun autre mot** |
+| `G5` | `DEC-0019`–`DEC-0023` inchangées sur le fond | **TENU** — seul `DEC-0020`, **deux** lignes de nomenclature |
+| `G6` | Matrice | **TENU** — **49** identifiants, **49** uniques, `F-001`–`F-049`, aucun trou, aucun doublon; `MVP` **41**, `ULTÉRIEUR` **3**, `DIFFÉRÉ` **5**; contrat **22** exigences |
+| `G7` | Aucune preuve historique modifiée | **TENU** — `git status docs/performance/runs/` **vide** |
+| `G8` | Aucun code produit modifié | **TENU** — `git status src/ src-tauri/ scripts/` **vide** |
+| `G9` | Aucune garde `X5` modifiée | **TENU** — les trois fichiers de garde **non modifiés** (`git status` vide); `scripts/protected-run-artifacts.ps1` compte toujours **19** noms |
+| `G10` | `main` intacte | **TENU** — `91bbe90f0f99026c28cd345784d4f579a0016db2` |
+
+### AE.4 Non testé, volontairement
+
+**Aucun `WebView2`**, **aucun `H9`**, **aucun test produit**, **aucun build**.
+La correction est **strictement documentaire** et **rien n'a été exécuté**.
+
+### AE.5 Ce que cette entrée ne lève pas
+
+**`X7` reste `OPEN`** — **l'exécuteur ne la ferme pas et ne se prononce pas sur
+sa correction**. **`TASK-0021` n'est PAS `VERIFIED`.** **`R8` entière**;
+**`I-E` complète** hors périmètre, **`cek1`** repli déclaré; **`P-19`**,
+**`P-21`** demeurent; **`P-04`** reste **PARTIELLE**; **`P-02` n'est pas
+satisfaite**; **`B0`** n'est pas corrigé. **`V1`–`V4`, `W1`–`W4`, `R2`–`R9`**
+restent en vigueur.

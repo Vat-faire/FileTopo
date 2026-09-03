@@ -101,7 +101,7 @@ pas subi.
 ### 2.2 Ce que cette tâche produit
 
 - **Cinq fiches `DEC`** : `DEC-0019` à `DEC-0023`;
-- **une correction normative `X2`** du contrat de parité, sur `P-02`;
+- **une correction normative `P02-R1`** du contrat de parité, sur `P-02`;
 - **huit fonctions** ajoutées à la matrice : `F-042` à `F-049`;
 - **une séquence de tranches futures**, ordonnée par dépendances,
   **`PROPOSED`, non exécutée**;
@@ -130,7 +130,7 @@ La fiche **enregistre**; elle ne décide pas.
 | Fiche | Objet | Points du prompt |
 |---|---|---|
 | [`DEC-0019`](../decisions/DEC-0019-general-purpose-product-scope.md) | **FileTopo n'est pas un produit juridique.** Cible générique; aucune catégorie métier codée en dur dans le noyau; packs spécialisés possibles plus tard | `B` |
-| [`DEC-0020`](../decisions/DEC-0020-topographic-node-graph.md) | La représentation principale finale est un **graphe topographique hiérarchique à nœuds/cartes et connexions explicites**. Le treemap reste une **primitive**, jamais l'UX finale. **Correction normative `X2` de `P-02`** | `C`, `D` |
+| [`DEC-0020`](../decisions/DEC-0020-topographic-node-graph.md) | La représentation principale finale est un **graphe topographique hiérarchique à nœuds/cartes et connexions explicites**. Le treemap reste une **primitive**, jamais l'UX finale. **Correction normative `P02-R1` de `P-02`** | `C`, `D` |
 | [`DEC-0021`](../decisions/DEC-0021-deterministic-relation-engine.md) | **Moteur de relations déterministe et explicable, sans IA** : trois niveaux sémantiques, architecture de signaux, score ≠ vérité, workflow humain de validation, mémoire des rejets | `E`, `F`, `G`, `H`, `I` |
 | [`DEC-0022`](../decisions/DEC-0022-optional-byok-ai-layer.md) | **IA facultative, `BYOK`, provider-agnostic**, jamais requise par le noyau; un `LLM` produit une **suggestion**, jamais une relation établie; **pas de troisième provenance** | `J`, `K` |
 | [`DEC-0023`](../decisions/DEC-0023-identity-and-source-permissions.md) | **Mono/multi-utilisateur** sous un seul modèle conceptuel; **la source reste autoritaire** sur les permissions; **rien n'est divulgué** — nom, chemin, métadonnée, relation, suggestion, résultat, compteur — d'un objet non autorisé | `L`, `M` |
@@ -161,7 +161,7 @@ trou ni doublon**. **Aucune classification existante n'a changé.**
 ## 5. Effet sur le contrat de parité
 
 **Une seule exigence est corrigée : `P-02`.** La correction est enregistrée
-comme **`X2`**, en tête du contrat, sur le modèle de `X1`. **L'ancienne
+comme **`P02-R1`**, en tête du contrat, sur le modèle de `X1`. **L'ancienne
 formulation est conservée et visible**; elle n'est ni supprimée ni réécrite en
 silence.
 
@@ -181,7 +181,7 @@ l'orchestrateur. **Aucune n'est créée par cette tâche.**
 
 | # | Tranche proposée | Pourquoi à ce rang | Dépend de |
 |---|---|---|---|
-| 1 | **Layout topographique à nœuds/cartes/liens** et satisfaction de `P-02` corrigée | La représentation conditionne tout ce qui s'affiche ensuite : une relation, une suggestion et une permission se **montrent** sur une carte. Construire le moteur avant la carte produirait des relations invisibles | `DEC-0020`, `X2` |
+| 1 | **Layout topographique à nœuds/cartes/liens** et satisfaction de `P-02` corrigée | La représentation conditionne tout ce qui s'affiche ensuite : une relation, une suggestion et une permission se **montrent** sur une carte. Construire le moteur avant la carte produirait des relations invisibles | `DEC-0020`, `P02-R1` |
 | 2 | **Moteur générique de signaux et relations déterministes** — `F-043`, `F-046` | Premier producteur réel de provenance `DETERMINISTIC`. `F-046` (identité de contenu) est **dans** cette tranche parce que le hash est le signal le plus fort et le plus simple à falsifier | tranche 1, `DEC-0021` |
 | 3 | **Workflow humain de validation** — `F-044`, `F-045` | Une suggestion sans moyen de la confirmer est une nuisance. Vient **après** le moteur parce qu'il faut de vraies suggestions à trier, et **avant** toute autre source de suggestions | tranche 2 |
 | 4 | **Doublons exacts et identité de fichier, à l'échelle** | Sépare le **signal** (tranche 2) de sa **mise à l'échelle** : coût de hachage, cache, invalidation, gros volumes. Découpé pour que la tranche 2 ne devienne pas énorme | tranche 2 |
@@ -242,7 +242,8 @@ supprimé ni renommé dans `src-tauri/target/`.**
 | 2026-09-02 | `PROPOSED` | Réalignement produit demandé par Sébastien, relayé par l'orchestrateur |
 | 2026-09-02 | `APPROVED` | GO nommant le réalignement et son périmètre écrit |
 | 2026-09-02 | `IN_PROGRESS` | Gardes `X5` étendues d'abord, puis travail documentaire |
-| 2026-09-02 | `IMPLEMENTED` | Cinq `DEC`, correction `X2`, huit fonctions, séquence proposée. **En attente de contrôle indépendant** |
+| 2026-09-02 | `IMPLEMENTED` | Cinq `DEC`, correction `P02-R1`, huit fonctions, séquence proposée. **En attente de contrôle indépendant** |
+| 2026-09-02 | `IMPLEMENTED` — inchangée | [`ACTION-0033`](../reviews/ACTION-0033-independent-control.md) : **`CHANGES_REQUIRED`** sur `HEAD` `68211c8`. **Fond accepté en entier**; **une** réserve documentaire **`X7`**, **`OPEN`** — collision entre le `X2` historique de `TASK-0016` et le nom de la révision de `P-02`. Correction exécutée : `X2` → **`P02-R1`**, 22 occurrences, 12 fichiers, **substance inchangée**. **`X7` non fermée par l'exécuteur**; **`VERIFIED` interdit avant re-contrôle** |
 
 ## Documents liés
 

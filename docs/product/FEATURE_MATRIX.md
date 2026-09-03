@@ -94,7 +94,7 @@ Les preuves et constats ci-dessous sont inchangés.
 > finale**. `DEC-0014` et `DEC-0015` sont **inchangées**.
 >
 > **Le contrat de parité conserve ses 22 exigences.** `P-02` est **corrigée**
-> par la correction normative **`X2`**, jamais supprimée; `P-01` et `P-03` à
+> par la correction normative **`P02-R1`**, jamais supprimée; `P-01` et `P-03` à
 > `P-22` sont **inchangées**. `F-047` rejoint les fonctions `DIFFÉRÉ` du §6 du
 > contrat.
 >
@@ -109,7 +109,7 @@ Les preuves et constats ci-dessous sont inchangés.
 | F-004 | Identifiants stables | Survivre aux changements raisonnables | IDs recréés par parcours | scanner.rs:68; index.rs:85 | Instables au déplacement | P0 | 2 | PROPOSED | Renommage/déplacement corrélé sans faux positif | `MVP` |
 | F-005 | Exclusions | Règles sûres, visibles et configurables | Reparse points ignorés | scanner.rs:121 | Pas de politique complète | P0 | 2 | PROPOSED | Exclusions testées et explicables | `MVP` |
 | F-006 | Index reconstructible | Refaire depuis la source sans perte | Schéma versionné, remplacement complet | index.rs:70,75 | Migration/reprise à préciser | P0 | 3 | PROPOSED | Reconstruction déterministe et atomique | `MVP` |
-| F-007 | Carte topographique à nœuds reliés | **Nœuds/cartes identifiables** issus de la hiérarchie réelle, reliés par des **connexions explicites** — *cible modifiée le 2026-09-02 par `DEC-0020`; classification inchangée* | Points en spirale | synthetic.rs:79 | À remplacer | P0 | 4 | PROPOSED | Parent/enfants lisibles sur arbres variés, **sans arête inventée ni nœud dans la mauvaise branche** — `P-02` corrigée par `X2` | `MVP` |
+| F-007 | Carte topographique à nœuds reliés | **Nœuds/cartes identifiables** issus de la hiérarchie réelle, reliés par des **connexions explicites** — *cible modifiée le 2026-09-02 par `DEC-0020`; classification inchangée* | Points en spirale | synthetic.rs:79 | À remplacer | P0 | 4 | PROPOSED | Parent/enfants lisibles sur arbres variés, **sans arête inventée ni nœud dans la mauvaise branche** — `P-02` corrigée par `P02-R1` | `MVP` |
 | F-008 | Adaptation aux arbres | Disposition générique de graphe hiérarchique, **aucun algorithme imposé** — *cible modifiée le 2026-09-02 par `DEC-0020`; classification inchangée* | Échantillonnage uniforme | TerrainMap.tsx:19 | Hiérarchie ignorée | P0 | 4 | PROPOSED | Les quatre fixtures — large, profonde, mixte, quasi vide — restent lisibles, **noms disponibles au zoom prévu** | `MVP` |
 | F-009 | Panoramique | Déplacer la carte | Aucune preuve trouvée | TerrainMap.tsx | Manquant | P1 | 5 | PROPOSED | Souris, pavé et clavier testés | `MVP` |
 | F-010 | Zoom | Zoom avant/arrière | Niveau de détail seulement | TerrainMap.tsx:77 | Pas de transformation de vue | P1 | 5 | PROPOSED | Zoom borné et centré | `MVP` |
