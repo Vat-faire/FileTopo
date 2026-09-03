@@ -2979,3 +2979,74 @@ identiques. Contrat : **22** exigences. `DEC-0020` : décision topographique,
 
 **Re-contrôle indépendant ciblé de `X7` / `TASK-0021`.** Détail dans
 `docs/ai/NEXT_ACTION.md`.
+
+---
+
+## 2026-09-02 — `ACTION-0034` : re-contrôle indépendant ciblé de `X7`, `TASK-0021` `VERIFIED`
+
+**Agent :** exécuteur Claude Code — **enregistrement** d'un verdict rendu par
+l'**orchestrateur technique indépendant**
+**Statut à l'issue :** **`ACTION-0034` `CLOSED`**, **`X7` `CLOSED`**,
+**`ACTION-0033` `CLOSED`**, **`TASK-0021` `VERIFIED`**
+**`HEAD` contrôlé :** `10cf54e31276edeb00bd99a5586578791d7b5bc2`
+
+### Fait
+
+- Création de
+  [`ACTION-0034`](../reviews/ACTION-0034-independent-recontrol.md) : fiche du
+  **re-contrôle indépendant ciblé** de la seule réserve laissée ouverte par
+  `ACTION-0033`.
+- **`X7` fermée.** La collision documentaire est **éliminée** : la révision
+  normative de `P-02` s'appelle **`P02-R1`**, plus aucune référence à cette
+  révision n'utilise `X2`, et le **`X2` historique de `TASK-0016` reste `X2` et
+  reste `CLOSED`**.
+- **Les sept points du périmètre gelé sont TENUS** : nomenclature `P02-R1`,
+  absence d'occurrence ambiguë, `X2` historique intact, `P-02` inchangée sur le
+  fond avec ses **huit** contrôles, `DEC-0019` à `DEC-0023` inchangées sur le
+  fond, matrice `F-001`–`F-049` à **49** uniques (`MVP` **41**, `ULTÉRIEUR`
+  **3**, `DIFFÉRÉ` **5**), et aucune preuve historique, aucun code produit,
+  aucune garde `X5` modifiés, `main` intacte.
+- **`ACTION-0033` close** et `TASK-0021` passée à **`VERIFIED`** — le fond
+  avait déjà été **accepté en entier** par `ACTION-0033` §2.
+- Mise à jour de `docs/tasks/TASK-0021-product-realignment.md`,
+  `docs/reviews/ACTION-0033-independent-control.md`,
+  `docs/ai/CURRENT_STATE.md`, `docs/ai/NEXT_ACTION.md`, `docs/ai/HANDOFF.md`,
+  `docs/ai/VALIDATION.md` et du présent journal.
+  `.orchestrator/RESULT.md` est **remplacé**.
+
+### Ce que ce `VERIFIED` ne dit pas
+
+**`TASK-0021` est un livrable DOCUMENTAIRE.** `VERIFIED` atteste que la
+**cible est correctement écrite**, **jamais** qu'elle est implémentée.
+
+- **Aucune** cible de `DEC-0019` à `DEC-0023` n'est prouvée — ce sont des
+  **cibles à falsifier**.
+- **`P-02` n'est pas satisfaite**, sous sa formulation corrigée `P02-R1`; le
+  contrat reste à **22** exigences.
+- **`R8` entière**; **`I-E` complète** hors périmètre, **`cek1`** repli
+  déclaré; **`P-19`**, **`P-21`** demeurent; **`P-04`** reste **PARTIELLE**;
+  **`B0`** n'est pas corrigé.
+
+### Non fait, volontairement
+
+- **Aucun `WebView2`**, **aucun `H9`**, **aucun test produit**, **aucun
+  build**, **aucun rejeu** de `M12`, `J12` ou `L12`. Intervention
+  **strictement documentaire**.
+- **Aucune preuve historique modifiée**, **aucun code produit modifié**,
+  **aucune garde `X5` modifiée**, **aucune `DEC` modifiée**, **`main`
+  intacte** `91bbe90f`.
+- **Aucune fusion vers `main`, aucune PR, aucune release, aucune étiquette,
+  aucun `force push`**, aucune réécriture d'historique, aucune suppression.
+- **`TASK-0022` n'est ni créée ni exécutée.**
+- **L'exécuteur ne s'est pas attribué `VERIFIED`** : il l'enregistre.
+
+### Prochaine action unique
+
+**Première tranche d'implémentation de la cible post-réalignement :
+`TASK-0022` — layout topographique hiérarchique à nœuds/cartes et connexions
+explicites**, sous `DEC-0020` et `P02-R1`, **sans supprimer les capacités
+`VERIFIED` existantes**. Détail dans `docs/ai/NEXT_ACTION.md`. Son
+architecture, ses fixtures, ses critères gelés, sa compatibilité
+multi-cerveaux, ses relations intra et inter-cerveaux, son `pan`/`zoom`, son
+clavier, ses labels et ses tests réels `WebView2` seront définis par le
+**prochain prompt de l'orchestrateur**.

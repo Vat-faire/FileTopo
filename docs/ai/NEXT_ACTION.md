@@ -1,73 +1,68 @@
 # Prochaine action
 
-## Re-contrôler `X7` — la collision d'identifiant, corrigée
+## Première tranche d'implémentation de la cible post-réalignement
 
-- **Statut de `TASK-0021` :** **`IMPLEMENTED`** le 2026-09-02 —
-  [fiche](../tasks/TASK-0021-product-realignment.md). **Livrable
-  DOCUMENTAIRE.** **L'exécuteur ne s'est pas attribué `VERIFIED`**
-- **Contrôle indépendant :**
-  [`ACTION-0033`](../reviews/ACTION-0033-independent-control.md),
-  **`CHANGES_REQUIRED`** le 2026-09-02 sur `HEAD` `68211c8`. **Le FOND de
-  `TASK-0021` est accepté en entier.** Une **seule** réserve, documentaire :
-  **`X7`**, **`OPEN`**
-- **Statut de `TASK-0020` :** **`VERIFIED`** —
-  [`ACTION-0032`](../reviews/ACTION-0032-independent-control.md), `CLOSED`
-- **Tâche `IN_PROGRESS` :** **aucune**
+**`TASK-0022` — layout topographique hiérarchique à nœuds/cartes et connexions
+explicites**, sous
+[`DEC-0020`](../decisions/DEC-0020-topographic-node-graph.md) et **`P02-R1`**.
+
+- **Statut de `TASK-0021` :** **`VERIFIED`** le 2026-09-02 —
+  [fiche](../tasks/TASK-0021-product-realignment.md). Livrable
+  **DOCUMENTAIRE**. Re-contrôle indépendant ciblé
+  [`ACTION-0034`](../reviews/ACTION-0034-independent-recontrol.md),
+  **`CLOSED`**, `HEAD` contrôlé `10cf54e`. **L'exécuteur ne se l'est pas
+  attribué**
+- **`X7` :** **`CLOSED`**. **`ACTION-0033` :** **`CLOSED`**
+- **Réserve ouverte :** **aucune** — `X1` à `X7` sont **toutes `CLOSED`**
+- **Tâche `IN_PROGRESS` :** **aucune**. **Tâche `IMPLEMENTED` en attente :**
+  **aucune**
 - **Branche :** `build/v0.2-a5-interbrain-relations`
-- **Action unique :** **re-contrôle indépendant ciblé de `X7` / `TASK-0021`**,
-  et **rien d'autre**
+- **Action unique :** **`TASK-0022`**, et **rien d'autre**
 
-### La réserve X7, et la correction exécutée
+### Ce que TASK-0022 devra faire
 
-`X2` désignait **déjà** la réserve technique de `TASK-0016`,
-[`ACTION-0026`](../reviews/ACTION-0026-independent-control.md), **`CLOSED`**.
-`TASK-0021` avait **réutilisé le même nom** pour la correction normative de
-`P-02` : **deux sens simultanés dans le même corpus**. L'ambiguïté est refusée.
+**Remplacer la représentation principale imbriquée par une vraie topographie à
+nœuds reliés**, satisfaisant `P-02` sous sa formulation corrigée **`P02-R1`**,
+**sans supprimer les capacités `VERIFIED` existantes**.
 
-**La correction de `P-02` s'appelle désormais `P02-R1`** — `P-02`, révision
-normative 1. **La substance de `P-02` n'a pas changé.**
+Le **treemap n'est plus la cible visuelle** — `DEC-0020`. Ce que
+`TASK-0015` à `TASK-0020` ont rendu `VERIFIED` **reste acquis et ne doit pas
+régresser**.
 
-### Ce qu'il y a à re-contrôler — et rien d'autre
+### Ce qui n'est PAS encore décidé, et ne doit pas être improvisé
 
-1. **toute référence** à la révision de `P-02` utilise **`P02-R1`**;
-2. le **`X2` historique de `TASK-0016`** existe toujours et ne signifie
-   **toujours que** sa réserve historique, **`CLOSED`**;
-3. **aucune occurrence ambiguë** ne subsiste — `X2` n'est plus employé nulle
-   part comme nom de la révision de `P-02`;
-4. **`P-02` est inchangée sur le fond** — nouveau comportement et **huit**
-   contrôles identiques;
-5. **`DEC-0019` à `DEC-0023` inchangées sur le fond**;
-6. **matrice** : `F-001` à `F-049`, **49** uniques, `MVP` 41 / `ULTÉRIEUR` 3 /
-   `DIFFÉRÉ` 5;
-7. **aucune preuve historique modifiée**, **aucun code produit modifié**,
-   **aucune garde `X5` modifiée**, **`main` intacte**.
+Le **prochain prompt de l'orchestrateur** définira, et lui seul :
 
-**`X7` ne peut être fermée que par le contrôleur indépendant.** L'exécuteur a
-enregistré la correction; **il ne s'est pas prononcé sur elle**.
+- l'**architecture**;
+- les **fixtures**;
+- les **critères gelés** — gelés **avant** toute ligne de code;
+- la **compatibilité multi-cerveaux**;
+- les **relations intra-cerveaux et inter-cerveaux**;
+- le **`pan`/`zoom`**;
+- le **clavier**;
+- les **labels**;
+- les **tests réels `WebView2`**.
 
 ### Ce que cette action n'autorise pas
 
-- **`VERIFIED` pour `TASK-0021` avant la fermeture de `X7`.**
-- **Aucun code d'implémentation** : ni layout, ni moteur de règles, ni IA, ni
-  serveur, ni permissions.
-- **Aucune nouvelle `TASK` d'implémentation créée.** Aucune fiche `TASK-0022`
-  n'existe.
-- **Aucun rejeu** de `M12`, `J12`, `L12`, `H9` ni d'aucun test.
+- **La création ou l'exécution de `TASK-0022` avant son prompt.** **Aucune
+  fiche `TASK-0022` n'existe.**
+- **Aucune ligne de code d'implémentation** tant que les critères ne sont pas
+  gelés dans une fiche `APPROVED` au périmètre écrit.
+- **Aucune suppression ni régression** d'une capacité `VERIFIED`.
+- **Aucun rejeu** de `M12`, `J12`, `L12`, `H9` ni d'aucun test hors périmètre.
 - **Aucune fusion vers `main`, PR, release, étiquette, `force push`**, aucune
   réécriture d'historique.
-
-### La première tranche recommandée — toujours `PROPOSED`, NON exécutée
-
-**Tranche 1 — nouveau layout topographique à nœuds/cartes/liens**, satisfaisant
-`P-02` sous sa formulation corrigée `P02-R1`, sous
-[`DEC-0020`](../decisions/DEC-0020-topographic-node-graph.md). **Elle n'est pas
-créée tant que `X7` n'est pas fermée et `TASK-0021` pas `VERIFIED`.**
+- **Aucune écriture** sous un nom de preuve protégé par les gardes `X5` —
+  **19** noms; la porte **refuse** au lieu d'écrire.
 
 ### Ce qui reste hors sujet
 
 - **Aucune campagne `H9`**, aucun seuil. **`R8` entière.**
 - **`I-E` complète** hors périmètre; **`cek1` reste le repli déclaré**.
 - **`P-19`** et **`P-21`** demeurent. **`P-04` reste PARTIELLE.** **`P-02`
-  n'est pas satisfaite**, sous sa formulation corrigée.
+  n'est pas satisfaite**, sous sa formulation corrigée **`P02-R1`**.
 - **`B0` n'est pas corrigé** — reproduit une **sixième** fois; rien n'est
   nettoyé dans `src-tauri/target/`.
+- **Aucune cible de `DEC-0019` à `DEC-0023` n'est prouvée.** Ce sont des
+  **cibles à falsifier**, pas des résultats.

@@ -41,8 +41,12 @@ attend un contrôle indépendant avant la suivante.
 >
 > **Aucune étape n'est franchie, aucune réserve n'est levée, `R8` demeure
 > entière**, et **rien de ces cinq fiches n'est implémenté ni prouvé**. La
-> séquence de tranches proposée par `TASK-0021` §6 est **`PROPOSED`** : elle
-> attend le contrôle de l'orchestrateur.
+> séquence de tranches proposée par `TASK-0021` §6 est **`PROPOSED`** : le
+> contrôle indépendant l'a **acceptée** — `TASK-0021` est **`VERIFIED`** depuis
+> [`ACTION-0034`](docs/reviews/ACTION-0034-independent-recontrol.md),
+> **`CLOSED`**, `HEAD` contrôlé `10cf54e` —, mais **aucune de ses tranches
+> n'est créée ni exécutée**. La première, **`TASK-0022`**, attend le prochain
+> prompt de l'orchestrateur.
 
 **Trois règles de passage propres à ces étapes :**
 

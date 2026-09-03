@@ -1,7 +1,18 @@
 # État courant
 
 - **Dernière mise à jour :** 2026-09-02
-- **Dernière tâche vérifiée :** **`TASK-0020`, `VERIFIED` le 2026-09-02** —
+- **Dernière tâche vérifiée :** **`TASK-0021`, `VERIFIED` le 2026-09-02** —
+  **réalignement produit**, livrable **DOCUMENTAIRE**,
+  [fiche](../tasks/TASK-0021-product-realignment.md). Re-contrôle indépendant
+  ciblé [`ACTION-0034`](../reviews/ACTION-0034-independent-recontrol.md),
+  **`CLOSED`**, `HEAD` contrôlé
+  **`10cf54e31276edeb00bd99a5586578791d7b5bc2`**. **`X7` `CLOSED`**,
+  **`ACTION-0033` `CLOSED`**. Le verdict a été **rendu par l'orchestrateur** et
+  **enregistré** par l'exécuteur; **l'exécuteur ne s'est rien attribué**.
+  **`VERIFIED` atteste ici que la CIBLE est correctement écrite — jamais
+  qu'elle est implémentée**
+- **Dernière tâche de code vérifiée :** **`TASK-0020`, `VERIFIED` le
+  2026-09-02** —
   **relations inter-cerveaux explicites**,
   [fiche](../tasks/TASK-0020-interbrain-relations.md), sous
   [`DEC-0018`](../decisions/DEC-0018-explicit-interbrain-relations.md),
@@ -17,20 +28,18 @@
   comme repli déclaré, PAS comme `I-E` complète.** Aucune campagne `H9`, aucun
   seuil — `R8` **entière**. Aucune détection automatique entre cerveaux.
   **`P-19`** et **`P-21`** demeurent. **`B0`** n'est pas corrigé
-- **Tâche livrée, NON vérifiée :** **`TASK-0021`, `IMPLEMENTED` le
-  2026-09-02** — **réalignement produit**,
-  [fiche](../tasks/TASK-0021-product-realignment.md). **Livrable
-  DOCUMENTAIRE**. **L'exécuteur ne s'est pas attribué `VERIFIED`**
-- **Contrôle indépendant de `TASK-0021` :**
+- **Tâche livrée, NON vérifiée :** **aucune**
+- **Contrôle indépendant de `TASK-0021`, en deux temps :**
   [`ACTION-0033`](../reviews/ACTION-0033-independent-control.md),
-  **`CHANGES_REQUIRED`** le 2026-09-02 sur `HEAD` `68211c8`. **Le FOND est
-  accepté en entier** — gardes `X5` à 19 preuves, ordre des commits
-  `aeee5a8` avant `7f97fc6`, `DEC-0019` à `DEC-0023`, direction topographique,
-  correction de fond de `P-02`, moteur déterministe, workflow humain, IA
-  `BYOK`, mono/multi-utilisateur, matrice `F-001`–`F-049`, séquence future.
-  **Aucune de ces cibles n'est considérée implémentée.** **Une seule réserve**,
-  documentaire : **`X7`**, **`OPEN`**. **`VERIFIED` interdit avant re-contrôle
-  indépendant ciblé**
+  **`CHANGES_REQUIRED`** le 2026-09-02 sur `HEAD` `68211c8`, puis **`CLOSED`**.
+  **Le FOND avait été accepté en entier** — gardes `X5` à 19 preuves, ordre des
+  commits `aeee5a8` avant `7f97fc6`, `DEC-0019` à `DEC-0023`, direction
+  topographique, correction de fond de `P-02`, moteur déterministe, workflow
+  humain, IA `BYOK`, mono/multi-utilisateur, matrice `F-001`–`F-049`, séquence
+  future. **Aucune de ces cibles n'est considérée implémentée.** L'**unique**
+  réserve, documentaire — **`X7`** — a été **fermée** par
+  [`ACTION-0034`](../reviews/ACTION-0034-independent-recontrol.md) sur `HEAD`
+  `10cf54e` : les **sept** points du périmètre gelé sont **TENUS**
 - **Ce que `TASK-0021` a enregistré :** cinq décisions de **direction produit**
   de Sébastien —
   [`DEC-0019`](../decisions/DEC-0019-general-purpose-product-scope.md)
@@ -142,7 +151,9 @@
   passes dans le vrai `WebView2`, les régressions `J12` intra et `L12`
   composée, et `main` intacte à `91bbe90f`
 - **Réserves `X2`, `X3`, `X4`, `X5`, `X6` :** **maintenues et closes**;
-  `X5` étendue une seconde fois, à **quatorze** noms protégés
+  `X5` étendue une troisième fois par `TASK-0021`, à **dix-neuf** noms
+  protégés. **`X7` est close** depuis
+  [`ACTION-0034`](../reviews/ACTION-0034-independent-recontrol.md)
 - **`X5` s'applique désormais aux cinq preuves de `TASK-0020`**, la tâche étant
   `VERIFIED` — `M12` `pass{1,2}`, `J12` intra, `L12` composée `pass{1,2}`.
   **L'extension des gardes n'a PAS été exécutée dans la clôture
@@ -150,19 +161,18 @@
   devra commencer par protéger ces preuves** avant toute autre écriture de
   preuve
 - **Tâche IN_PROGRESS :** aucune
-- **Réserve ouverte :** **`X7`, `OPEN`** — collision d'identifiant relevée par
-  [`ACTION-0033`](../reviews/ACTION-0033-independent-control.md),
-  **`CHANGES_REQUIRED`**. `X1`, `X2`, `X3`, `X4`, `X5`, `X6` restent **closes**
-- **`X7` — la réserve, et la correction exécutée :** `X2` désignait **déjà** la
-  réserve technique de `TASK-0016`
+- **Réserve ouverte :** **aucune.** `X1` à `X7` sont **toutes `CLOSED`**
+- **`X7` — la réserve, la correction, et sa fermeture :** `X2` désignait
+  **déjà** la réserve technique de `TASK-0016`
   ([`ACTION-0026`](../reviews/ACTION-0026-independent-control.md), `CLOSED`);
   `TASK-0021` avait **réutilisé le même nom** pour la correction normative de
-  `P-02`, faisant coexister **deux sens** dans le même corpus. L'ambiguïté est
-  **refusée**. La correction de `P-02` s'appelle désormais **`P02-R1`** —
+  `P-02`, faisant coexister **deux sens** dans le même corpus. L'ambiguïté a
+  été **refusée**. La correction de `P-02` s'appelle désormais **`P02-R1`** —
   `P-02`, révision normative 1 — sur **22** occurrences dans **12** fichiers.
-  **Le `X2` de `TASK-0016` n'est ni renommé ni réinterprété.** **La substance
-  de `P-02` n'a pas changé.** **`X7` reste `OPEN` : seul le contrôleur
-  indépendant peut la fermer, et l'exécuteur ne s'est pas prononcé**
+  **Le `X2` de `TASK-0016` n'est ni renommé ni réinterprété**, et reste
+  **`CLOSED`**. **La substance de `P-02` n'a pas changé.** **`X7` est `CLOSED`**
+  depuis [`ACTION-0034`](../reviews/ACTION-0034-independent-recontrol.md) :
+  **la collision documentaire est éliminée**
 - **Porte `P4` :** **FRANCHIE** —
   [`DEC-0016`](../decisions/DEC-0016-p4-gate-crossing-and-first-slice.md)
 
@@ -700,7 +710,7 @@ transversale. `X1` contraint la tranche qui implémentera `P-04`, `P-05`, `P-07`
 
 | Étape | Objet | État |
 |---|---|---|
-| **A** | **Parité fonctionnelle MVP** | **EN COURS** — `TASK-0015`, `TASK-0016`, `TASK-0017`, `TASK-0018`, `TASK-0019` et `TASK-0020` **`VERIFIED`**; **aucune tâche `IMPLEMENTED` en attente**, aucune `IN_PROGRESS`; **douze exigences restent entières**, dont `P-20`. **Réalignement produit en cours de formalisation avant tout nouveau code** — voir [NEXT_ACTION.md](NEXT_ACTION.md) |
+| **A** | **Parité fonctionnelle MVP** | **EN COURS** — `TASK-0015`, `TASK-0016`, `TASK-0017`, `TASK-0018`, `TASK-0019`, `TASK-0020` et `TASK-0021` **`VERIFIED`**; **aucune tâche `IMPLEMENTED` en attente**, aucune `IN_PROGRESS`, **aucune réserve ouverte**; **douze exigences restent entières**, dont `P-20`. **Le réalignement produit est FIGÉ et vérifié.** Suite : **première tranche d'implémentation de la cible post-réalignement** — voir [NEXT_ACTION.md](NEXT_ACTION.md) |
 | **B** | Finition visuelle moderne | PROPOSED — **ne commence pas** avant que **A** soit contrôlée |
 | **C** | Validation Windows/WebView2 réelle. **`R8` ne peut être levée qu'ici** | PROPOSED |
 | **D** | Empaquetage et publication — **réservé à Sébastien** | PROPOSED |
@@ -737,10 +747,21 @@ inter-cerveaux et la survie des extrémités à un rebuild. **Pas** le reste du
 contrat de parité, et **pas** `I-E` : **`cek1` n'est accepté que comme repli
 déclaré**.
 
+**`TASK-0021` est `VERIFIED`**, sur **re-contrôle indépendant ciblé** mené par
+une instance **distincte de l'exécuteur** et se prononçant **sur preuves** —
+[`ACTION-0034`](../reviews/ACTION-0034-independent-recontrol.md), `HEAD`
+contrôlé `10cf54e`. **`X7` et `ACTION-0033` sont `CLOSED`.**
+
+**Ce que ce `VERIFIED` porte :** que la **cible produit est correctement
+écrite** et que sa nomenclature est **non ambiguë**. **Il ne porte AUCUNE
+implémentation** : aucune cible de `DEC-0019` à `DEC-0023` n'est prouvée,
+**`P-02` n'est pas satisfaite** sous sa formulation corrigée `P02-R1`, et `R8`
+reste **entière**.
+
 **Aucune tâche n'est `IMPLEMENTED` en attente de contrôle, aucune n'est
-`IN_PROGRESS`.** **L'action unique suivante est un réalignement produit
-formalisé AVANT tout nouveau code** — voir [NEXT_ACTION.md](NEXT_ACTION.md).
-**Aucune nouvelle tâche d'implémentation n'est créée à ce stade.**
+`IN_PROGRESS`, aucune réserve n'est ouverte.** **L'action unique suivante est
+la première tranche d'implémentation de la cible post-réalignement** — voir
+[NEXT_ACTION.md](NEXT_ACTION.md). **`TASK-0022` n'est pas créée à ce stade.**
 
 **Une tranche suivante exigera sa propre fiche, ses critères gelés d'avance et
 son propre GO.**

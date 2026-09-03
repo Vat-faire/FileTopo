@@ -8,9 +8,11 @@
   validation des suggestions**, une **IA facultative `BYOK` qui ne crée jamais
   de vérité**, et une **architecture mono/multi-utilisateur consciente des
   permissions de la source**
-- **Statut :** **`IMPLEMENTED`** le 2026-09-02 — **livrable documentaire
-  produit**, en attente de **contrôle indépendant**. **L'exécuteur ne
-  s'attribue pas `VERIFIED`**
+- **Statut :** **`VERIFIED`** le 2026-09-02 — attribué par le **contrôle
+  indépendant** [`ACTION-0034`](../reviews/ACTION-0034-independent-recontrol.md),
+  **`CLOSED`**, sur `HEAD` `10cf54e`. **L'exécuteur ne se l'est pas
+  attribué**; il l'enregistre. Livrable **documentaire** : `VERIFIED` atteste
+  que la **cible est correctement écrite**, **jamais** qu'elle est implémentée
 - **Nature :** **DOCUMENTAIRE et PRODUIT.** Une **seule** exception de code est
   autorisée et bornée : l'extension des **gardes `X5`** aux cinq preuves
   désormais canoniques de `TASK-0020` — §2.1
@@ -244,6 +246,7 @@ supprimé ni renommé dans `src-tauri/target/`.**
 | 2026-09-02 | `IN_PROGRESS` | Gardes `X5` étendues d'abord, puis travail documentaire |
 | 2026-09-02 | `IMPLEMENTED` | Cinq `DEC`, correction `P02-R1`, huit fonctions, séquence proposée. **En attente de contrôle indépendant** |
 | 2026-09-02 | `IMPLEMENTED` — inchangée | [`ACTION-0033`](../reviews/ACTION-0033-independent-control.md) : **`CHANGES_REQUIRED`** sur `HEAD` `68211c8`. **Fond accepté en entier**; **une** réserve documentaire **`X7`**, **`OPEN`** — collision entre le `X2` historique de `TASK-0016` et le nom de la révision de `P-02`. Correction exécutée : `X2` → **`P02-R1`**, 22 occurrences, 12 fichiers, **substance inchangée**. **`X7` non fermée par l'exécuteur**; **`VERIFIED` interdit avant re-contrôle** |
+| 2026-09-02 | `VERIFIED` | [`ACTION-0034`](../reviews/ACTION-0034-independent-recontrol.md) : re-contrôle indépendant ciblé de `X7` **réussi** sur `HEAD` `10cf54e`. **`X7` `CLOSED`**, **`ACTION-0033` `CLOSED`**. Les **sept** points du périmètre gelé sont **TENUS**. Verdict **rendu par l'orchestrateur**, **enregistré** par l'exécuteur. **Aucune cible de `DEC-0019` à `DEC-0023` n'est prouvée**; **`P-02` n'est pas satisfaite**; **`R8` entière** |
 
 ## Documents liés
 
@@ -257,3 +260,5 @@ supprimé ni renommé dans `src-tauri/target/`.**
 - [REQUIREMENTS_BASELINE.md](../product/REQUIREMENTS_BASELINE.md)
 - [`TASK-0020`](TASK-0020-interbrain-relations.md),
   [`ACTION-0032`](../reviews/ACTION-0032-independent-control.md)
+- [`ACTION-0033`](../reviews/ACTION-0033-independent-control.md),
+  [`ACTION-0034`](../reviews/ACTION-0034-independent-recontrol.md)

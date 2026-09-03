@@ -4,8 +4,17 @@
 - **Branche active :** **`build/v0.2-a5-interbrain-relations`**, créée depuis
   le tip **contrôlé** `8d1e27151f53d082551e05b00816100cb790542b` de
   `build/v0.2-a4-composed-view`
-- **Dernière tâche vérifiée :** **`TASK-0020`, `VERIFIED`** le 2026-09-02, sur
-  **contrôle indépendant**
+- **Dernière tâche vérifiée :** **`TASK-0021`, `VERIFIED`** le 2026-09-02, sur
+  **re-contrôle indépendant ciblé**
+  [`ACTION-0034`](../reviews/ACTION-0034-independent-recontrol.md) —
+  **`CLOSED`**, `HEAD` contrôlé
+  **`10cf54e31276edeb00bd99a5586578791d7b5bc2`**, `main` intacte `91bbe90f`.
+  **`X7` `CLOSED`**, **`ACTION-0033` `CLOSED`**. Verdict **rendu par
+  l'orchestrateur**, **enregistré** par l'exécuteur. **Livrable DOCUMENTAIRE :
+  `VERIFIED` atteste que la CIBLE est correctement écrite, jamais qu'elle est
+  implémentée**
+- **Dernière tâche de code vérifiée :** **`TASK-0020`, `VERIFIED`** le
+  2026-09-02, sur **contrôle indépendant**
   [`ACTION-0032`](../reviews/ACTION-0032-independent-control.md) — **`CLOSED`**,
   `HEAD` contrôlé **`9a7206a1e246258259096b1679f19ac5b53005d7`**, `main`
   intacte `91bbe90f`. Verdict **rendu par l'orchestrateur**, **enregistré** par
@@ -17,21 +26,22 @@
   autrefois manquée de `L12` étape 7 a été **corrigée et `L12` rejoué en
   entier** avant ce verdict. `TASK-0018` est `VERIFIED` depuis le 2026-09-01,
   `TASK-0017` depuis le 2026-09-01, `TASK-0016` depuis le 2026-08-31
-- **Tâche livrée, NON vérifiée :** **`TASK-0021`, `IMPLEMENTED`** le
-  2026-09-02 — **réalignement produit**, livrable **documentaire**.
-  **L'exécuteur ne s'est pas attribué `VERIFIED`**
-- **Son contrôle indépendant a eu lieu, avec UNE réserve :**
+- **Tâche livrée, NON vérifiée :** **aucune**
+- **Son contrôle indépendant s'est déroulé en DEUX temps, et il est clos :**
   [`ACTION-0033`](../reviews/ACTION-0033-independent-control.md),
-  **`CHANGES_REQUIRED`** sur `HEAD` `68211c8`. **Le FOND est accepté en
-  entier**; **aucune** de ses cibles n'est considérée implémentée. La réserve
-  **`X7`** est **documentaire** : `X2` désignait **déjà** la réserve technique
-  de `TASK-0016` (`ACTION-0026`, `CLOSED`), et `TASK-0021` avait réutilisé le
-  même nom pour la correction de `P-02` — **deux sens simultanés**, refusés.
-  **La correction de `P-02` s'appelle désormais `P02-R1`**, sur **22**
-  occurrences dans **12** fichiers; **le `X2` de `TASK-0016` n'a pas bougé**;
-  **la substance de `P-02` n'a pas changé**. **`X7` reste `OPEN`** : seul le
-  contrôleur indépendant peut la fermer. **`VERIFIED` interdit avant
-  re-contrôle**
+  **`CHANGES_REQUIRED`** sur `HEAD` `68211c8`, puis **`CLOSED`**. **Le FOND
+  avait été accepté en entier**; **aucune** de ses cibles n'est considérée
+  implémentée. La réserve **`X7`** était **documentaire** : `X2` désignait
+  **déjà** la réserve technique de `TASK-0016` (`ACTION-0026`, `CLOSED`), et
+  `TASK-0021` avait réutilisé le même nom pour la correction de `P-02` —
+  **deux sens simultanés**, refusés. **La correction de `P-02` s'appelle
+  désormais `P02-R1`**, sur **22** occurrences dans **12** fichiers; **le `X2`
+  de `TASK-0016` n'a pas bougé** et reste **`CLOSED`**; **la substance de
+  `P-02` n'a pas changé**. **`X7` a été fermée** par
+  [`ACTION-0034`](../reviews/ACTION-0034-independent-recontrol.md) sur `HEAD`
+  `10cf54e` — **les sept points du périmètre gelé sont TENUS**, la collision
+  documentaire est **éliminée**. **Aucune réserve n'est ouverte : `X1` à `X7`
+  sont toutes `CLOSED`**
 - **Ce que `TASK-0021` a livré :** cinq fiches `DEC-0019` à `DEC-0023`; la
   **correction normative `P02-R1`** de `P-02`, dont l'ancienne formulation est
   **conservée et visible**; **huit fonctions** `F-042` à `F-049`, matrice
@@ -318,6 +328,7 @@ aucune réécriture d'historique, aucune suppression de branche.
 | 7 | **Réserves `V1`–`V4`, `W1`–`W4`, `R2`–`R9`** | Toutes en vigueur; `R1` levée depuis `ACTION-0023` |
 | 8 | **`B0`, `B3` inter-volume, `B4` question 3** | Inchangés. Le cache fautif est **conservé**; la question 3 se ferme **avant** l'identité persistante et l'état vu/non vu |
 | 9 | **`P-21`** | Interface **en français seulement**; bilinguisme intégral et audit WCAG restent à faire |
+| 10 | **Aucune réserve `X` ouverte** | `X1` à `X7` sont **toutes `CLOSED`**. `X7` a été fermée par [`ACTION-0034`](../reviews/ACTION-0034-independent-recontrol.md) le 2026-09-02 |
 
 ## Sessions : trois procédures partagées
 
@@ -332,18 +343,22 @@ avant de contrôler GitHub, ce qui permet au rapport terminal de rester court.
 
 ## Prochaine action unique
 
-**Réalignement produit post-`TASK-0020` : formaliser, AVANT tout nouveau
-code**, la topographie finale à cartes/nœuds reliés, la correction explicite du
-contrat `P-02`, le moteur déterministe de relations automatiques sans IA, le
-workflow humain de confirmation/rejet des suggestions, l'IA comme couche
-optionnelle `BYOK` jamais requise par le noyau, et la préparation architecture
-mono-utilisateur / multi-utilisateur / permissions héritées de la source.
-Détail dans [NEXT_ACTION.md](NEXT_ACTION.md).
+**Le réalignement produit est FIGÉ et `VERIFIED`.** `TASK-0021` est
+`VERIFIED`, `X7` et `ACTION-0033` sont `CLOSED`, **aucune réserve n'est
+ouverte**, aucune tâche n'est `IN_PROGRESS` ni `IMPLEMENTED` en attente.
 
-**Aucune nouvelle `TASK` d'implémentation n'est créée à ce stade**; le prochain
-prompt de l'orchestrateur décidera précisément les `DEC`, exigences et tâches à
-créer. **La tâche de réalignement devra commencer par protéger les preuves
-`TASK-0020`, désormais `VERIFIED`.**
+**Première tranche d'implémentation de la cible post-réalignement :
+`TASK-0022` — layout topographique hiérarchique à nœuds/cartes et connexions
+explicites**, sous
+[`DEC-0020`](../decisions/DEC-0020-topographic-node-graph.md) et **`P02-R1`**.
+Elle devra **remplacer la représentation principale imbriquée par une vraie
+topographie à nœuds reliés**, **sans supprimer les capacités `VERIFIED`
+existantes**. Détail dans [NEXT_ACTION.md](NEXT_ACTION.md).
+
+**`TASK-0022` n'est ni créée ni exécutée à ce stade.** Le **prochain prompt de
+l'orchestrateur** définira son architecture, ses fixtures, ses critères gelés,
+sa compatibilité multi-cerveaux, ses relations intra et inter-cerveaux, son
+`pan`/`zoom`, son clavier, ses labels et ses tests réels `WebView2`.
 
 ## Commandes sûres
 

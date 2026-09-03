@@ -3023,3 +3023,56 @@ sa correction**. **`TASK-0021` n'est PAS `VERIFIED`.** **`R8` entière**;
 **`P-21`** demeurent; **`P-04`** reste **PARTIELLE**; **`P-02` n'est pas
 satisfaite**; **`B0`** n'est pas corrigé. **`V1`–`V4`, `W1`–`W4`, `R2`–`R9`**
 restent en vigueur.
+
+
+## `ACTION-0034` — re-contrôle indépendant ciblé de `X7` : `CLOSED`, `TASK-0021` `VERIFIED` (2026-09-02)
+
+- **Fiche :**
+  [`ACTION-0034`](../reviews/ACTION-0034-independent-recontrol.md)
+- **Contrôleur :** **orchestrateur technique indépendant**, instance
+  **distincte** de l'exécuteur. **Le verdict est enregistré, non rendu, par
+  l'exécuteur.**
+- **`HEAD` contrôlé :** `10cf54e31276edeb00bd99a5586578791d7b5bc2`
+- **Verdict :** **`CLOSED`** — **`X7` `CLOSED`**, **`ACTION-0033` `CLOSED`**,
+  **`TASK-0021` `VERIFIED`**
+- **`main` :** `91bbe90f0f99026c28cd345784d4f579a0016db2`, **intacte**
+
+### AF.1 Motif retenu — la collision documentaire est éliminée
+
+Les **sept** points que
+[`NEXT_ACTION`](NEXT_ACTION.md) avait gelés comme périmètre du re-contrôle
+sont **TENUS**. **Aucun autre point n'a été rouvert.**
+
+| # | Point re-contrôlé | Constat |
+|---|---|---|
+| 1 | La révision normative de `P-02` s'appelle `P02-R1` | **TENU** |
+| 2 | Aucune référence à cette révision n'utilise encore `X2` | **TENU** |
+| 3 | Le `X2` historique de `TASK-0016` reste `X2`, **`CLOSED`** | **TENU** |
+| 4 | `P-02` inchangée sur le fond — **huit** contrôles identiques | **TENU** |
+| 5 | `DEC-0019` à `DEC-0023` inchangées sur le fond | **TENU** |
+| 6 | Matrice `F-001`–`F-049`, **49** uniques, `MVP` **41**, `ULTÉRIEUR` **3**, `DIFFÉRÉ` **5** | **TENU** |
+| 7 | Aucune preuve historique, aucun code produit, aucune garde `X5` modifiés; `main` intacte | **TENU** |
+
+### AF.2 Ce que ce `VERIFIED` atteste — et ce qu'il n'atteste pas
+
+**`TASK-0021` est un livrable DOCUMENTAIRE.** `VERIFIED` atteste que la
+**cible est correctement écrite** et que sa nomenclature est **non ambiguë**.
+
+**Il n'atteste AUCUNE implémentation.** **Aucune** cible de `DEC-0019` à
+`DEC-0023` n'est prouvée : ce sont des **cibles à falsifier**. **`P-02` n'est
+pas satisfaite**, sous sa formulation corrigée **`P02-R1`**; le contrat reste à
+**22** exigences.
+
+### AF.3 Non testé, volontairement
+
+**Aucun `WebView2`**, **aucun `H9`**, **aucun test produit**, **aucun build**,
+**aucun rejeu** de `M12`, `J12` ou `L12`. Le re-contrôle porte sur des
+**documents publiés**, à `HEAD` `10cf54e`, et **rien n'a été exécuté**.
+
+### AF.4 Ce que cette entrée ne lève pas
+
+**`R8` entière.** **`I-E` complète** hors périmètre, **`cek1`** repli déclaré;
+**`P-19`**, **`P-21`** demeurent; **`P-04`** reste **PARTIELLE**; **`B0`**
+n'est pas corrigé. **`V1`–`V4`, `W1`–`W4`, `R2`–`R9`** restent en vigueur.
+Aucune autorisation de **fusion vers `main`**, de `PR`, de **release**,
+d'**étiquette**, de `force push` ni de réécriture d'historique.

@@ -1,4 +1,4 @@
-# ACTION-0033 — Contrôle indépendant de TASK-0021 : CHANGES_REQUIRED, réserve X7
+# ACTION-0033 — Contrôle indépendant de TASK-0021 : CHANGES_REQUIRED, réserve X7 — CLOSED par ACTION-0034
 
 - **Date :** 2026-09-02
 - **Objet :** **contrôle indépendant** de `TASK-0021` — réalignement produit,
@@ -10,10 +10,13 @@
   et l'exécuteur ne s'attribue rien.**
 - **`HEAD` contrôlé :** **`68211c83c2390a250d6b9a42679202ee14782977`**, tip de
   `build/v0.2-a5-interbrain-relations` au moment du contrôle
-- **Verdict :** **`CHANGES_REQUIRED`** — `ACTION-0033` **ouverte**, réserve
-  **`X7`** **`OPEN`**
-- **`TASK-0021` :** reste **`IMPLEMENTED`**. **`VERIFIED` est interdit avant
-  re-contrôle indépendant ciblé de `X7`.**
+- **Verdict initial :** **`CHANGES_REQUIRED`** le 2026-09-02, réserve **`X7`**
+  **`OPEN`**
+- **État final :** **`CLOSED`** le 2026-09-02 — réserve **`X7`** **`CLOSED`**
+  par le re-contrôle indépendant ciblé
+  [`ACTION-0034`](ACTION-0034-independent-recontrol.md), sur `HEAD` `10cf54e`
+- **`TASK-0021` :** **`VERIFIED`** — attribué par `ACTION-0034`, **pas** par
+  l'exécuteur
 
 ## 1. Le verdict, tel qu'il a été rendu
 
@@ -123,11 +126,14 @@ produit, aucun build. La correction est **strictement documentaire**.
 
 ## 6. Ce que cette fiche ne fait pas
 
-- **Elle ne ferme PAS `X7`.** `X7` reste **`OPEN`** jusqu'au **re-contrôle
-  indépendant ciblé**. L'exécuteur enregistre la correction; **il ne se
-  prononce pas sur elle**.
-- **Elle n'attribue PAS `VERIFIED` à `TASK-0021`**, qui reste
-  **`IMPLEMENTED`**.
+- **Elle ne ferme PAS `X7`.** `X7` est restée **`OPEN`** jusqu'au
+  **re-contrôle indépendant ciblé** — c'est
+  [`ACTION-0034`](ACTION-0034-independent-recontrol.md) qui l'a fermée, le
+  2026-09-02. L'exécuteur a enregistré la correction; **il ne s'est pas
+  prononcé sur elle**.
+- **Elle n'attribue PAS `VERIFIED` à `TASK-0021`.** Ce `VERIFIED` a été
+  attribué ensuite par
+  [`ACTION-0034`](ACTION-0034-independent-recontrol.md).
 - Elle ne lève **aucune** limite déclarée en `TASK-0021` : aucune cible de
   `DEC-0019` à `DEC-0023` n'est prouvée; `R8` **entière**; `P-02` **n'est pas
   satisfaite**; `P-19`, `P-21` demeurent; `P-04` reste **PARTIELLE**; `B0`
@@ -138,9 +144,13 @@ produit, aucun build. La correction est **strictement documentaire**.
 
 ## 7. Suite
 
-**Re-contrôle indépendant ciblé de `X7` / `TASK-0021`.** Il porte sur la
+**Re-contrôle indépendant ciblé de `X7` / `TASK-0021`.** Il portait sur la
 **seule** question ouverte : la nomenclature est-elle désormais non ambiguë, et
 la substance est-elle restée intacte.
+
+**Exécuté et réussi :** [`ACTION-0034`](ACTION-0034-independent-recontrol.md),
+**`CLOSED`** le 2026-09-02 sur `HEAD` `10cf54e`. **`X7` `CLOSED`**,
+**`ACTION-0033` `CLOSED`**, **`TASK-0021` `VERIFIED`**.
 
 ## Historique
 
@@ -148,3 +158,4 @@ la substance est-elle restée intacte.
 |---|---|---|
 | 2026-09-02 | `CHANGES_REQUIRED` | Fond de `TASK-0021` **accepté**; réserve `X7` **`OPEN`** — collision entre le `X2` historique de `TASK-0016` et le nom donné à la révision de `P-02`. `HEAD` contrôlé `68211c8` |
 | 2026-09-02 | correction exécutée | `X2` → `P02-R1` sur les **22** occurrences de la révision de `P-02`, dans **12** fichiers. **`X7` NON fermée par l'exécuteur** |
+| 2026-09-02 | `CLOSED` | Réserve `X7` **fermée** par le re-contrôle indépendant ciblé [`ACTION-0034`](ACTION-0034-independent-recontrol.md), sur `HEAD` `10cf54e`. `ACTION-0033` **close**; `TASK-0021` **`VERIFIED`** |
