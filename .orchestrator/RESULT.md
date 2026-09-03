@@ -3,7 +3,7 @@ AGENT: CLAUDE
 RESULT: DONE
 BRANCH: build/v0.2-a5-interbrain-relations
 BASE_HEAD: 68211c83c2390a250d6b9a42679202ee14782977
-FINAL_HEAD: (voir dernier commit poussé — renseigné ci-dessous)
+FINAL_HEAD: f814c3b9acb1d0b45c36b8fefac628eae5a3554c
 TASK_STATE: TASK-0021 = IMPLEMENTED (inchangée). ACTION-0033 = CHANGES_REQUIRED.
             X7 = OPEN. VERIFIED interdit avant re-contrôle indépendant.
 
