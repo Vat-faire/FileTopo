@@ -509,3 +509,27 @@ au moment de presser.
 **N'implémente aucune détection automatique entre cerveaux**, aucune
 heuristique, aucun glisser-déposer, aucun éditeur manuel de relations. **Ne
 fusionne jamais deux cerveaux.**
+
+## X8 — une preuve se dérive, elle ne se recopie pas
+
+`M12.28` affirmait « j'écris sous ma propre tâche » en comparant le nom qu'il
+venait d'écrire à un préfixe `TASK-0020-` **écrit à la main**, et annonçait le
+nombre de preuves protégées par un **littéral**. Les deux étaient vrais quand
+ils ont été écrits. La migration des noms sous `TASK-0022` a rendu le premier
+faux, et deux extensions de `X5` ont rendu le second périmé — sans que rien
+n'échoue, parce qu'une affirmation recopiée ne peut pas se contredire.
+
+**Ne réécris jamais un constat que le produit peut calculer.** L'identité de
+tâche se lit dans le nom d'artefact — `artifactTaskId()` — et la tâche
+propriétaire se **découvre** en analysant toutes les destinations —
+`runtimeWriteOwnership()`. Le nombre de noms protégés est la **longueur** de
+`PROTECTED_RUN_ARTIFACTS`, jamais un chiffre. La source canonique reste la
+garde Rust `PROTECTED_RUN_ARTIFACTS: [&str; 19]` de
+`src-tauri/src/map/commands.rs` — celle qui refuse réellement l'écriture; un
+test lit ce source et échoue si le miroir TypeScript diverge.
+
+**Corollaire pour la tranche suivante :** ne « répare » pas ce genre de défaut
+en remplaçant `TASK-0022` par `TASK-0023`. Le remplacement littéral reconduit
+la panne d'un cran. Un test de garde interdit désormais, dans toute source
+d'écriture, `startsWith("TASK-00xx-")` et tout compte de noms protégés écrit en
+chiffres ou en lettres.

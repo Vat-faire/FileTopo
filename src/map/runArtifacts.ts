@@ -160,3 +160,83 @@ export const RUNTIME_RUN_ARTIFACTS = [
  * own names; the guard test fails if a historical destination returns.
  */
 export const SEALED_RUNTIME_DESTINATIONS = [] as const;
+
+/**
+ * The task an artefact name declares as its owner, or `null` when the name
+ * carries no task identity at all.
+ *
+ * **Reserve `X8` of `ACTION-0035`.** The `M12` scenario used to decide who
+ * owned the file it had just written by testing a hard-coded `TASK-0020-`
+ * prefix — a literal that survived the migration of the artefact names and
+ * turned the evidence into a falsehood the moment the runtime started writing
+ * under `TASK-0022`. A comparison of *parsed* identities cannot rot that way:
+ * it says nothing about which task is current, so the next slice inherits a
+ * scenario that is still telling the truth.
+ */
+export function artifactTaskId(name: string): string | null {
+  return /^(TASK-\d{4})-/.exec(name)?.[1] ?? null;
+}
+
+/** What {@link runtimeWriteOwnership} establishes, every field derived. */
+export interface RuntimeWriteOwnership {
+  /** The single task every runtime destination belongs to, or `null`. */
+  owningTaskId: string | null;
+  /** How many names this runtime spells as a destination. */
+  runtimeDestinationCount: number;
+  /** The distinct task identities those names carry, sorted. */
+  taskIdsWritten: readonly string[];
+  /** How many names the write gate protects — the `X5` set, counted. */
+  protectedArtifactCount: number;
+  /** The distinct tasks that own protected evidence, sorted. */
+  protectedTaskIds: readonly string[];
+  /** Runtime destinations that are protected evidence. Expected empty. */
+  protectedDestinations: readonly string[];
+  /** True when this runtime can only ever write under its own task. */
+  writesUnderItsOwnTaskOnly: boolean;
+}
+
+/**
+ * Reads the write ownership of this runtime off the two lists themselves.
+ *
+ * Nothing here is asserted: the owning task is *discovered* by parsing every
+ * destination, the protected count is the length of the protected list, and
+ * the verdict is the conjunction of three facts that a stale name would
+ * break — a second task identity among the destinations, a destination with no
+ * task identity, or a destination the gate protects.
+ *
+ * `PROTECTED_RUN_ARTIFACTS` mirrors the Rust gate in
+ * `src-tauri/src/map/commands.rs`; `runArtifacts.test.ts` fails if the two ever
+ * disagree, so the count published from here is the count the gate enforces
+ * rather than a number written down twice.
+ */
+export function runtimeWriteOwnership(): RuntimeWriteOwnership {
+  const destinations = RUNTIME_RUN_ARTIFACTS as readonly string[];
+  const protectedNames = PROTECTED_RUN_ARTIFACTS as readonly string[];
+  const isTaskId = (value: string | null): value is string => value !== null;
+
+  const parsed = destinations.map(artifactTaskId);
+  const anonymousDestinations = parsed.filter((id) => id === null).length;
+  const taskIdsWritten = [...new Set(parsed.filter(isTaskId))].sort();
+  const owningTaskId =
+    anonymousDestinations === 0 && taskIdsWritten.length === 1 ? taskIdsWritten[0] : null;
+
+  const protectedTaskIds = [
+    ...new Set(protectedNames.map(artifactTaskId).filter(isTaskId)),
+  ].sort();
+  const protectedDestinations = destinations.filter((name) =>
+    protectedNames.includes(name),
+  );
+
+  return {
+    owningTaskId,
+    runtimeDestinationCount: destinations.length,
+    taskIdsWritten,
+    protectedArtifactCount: protectedNames.length,
+    protectedTaskIds,
+    protectedDestinations,
+    writesUnderItsOwnTaskOnly:
+      owningTaskId !== null &&
+      !protectedTaskIds.includes(owningTaskId) &&
+      protectedDestinations.length === 0,
+  };
+}

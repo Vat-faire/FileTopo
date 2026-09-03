@@ -4,9 +4,9 @@
   "nature": "criterion evidence",
   "replacesCanonicalEvidence": false,
   "pass": 1,
-  "capturedAtIso": "2026-09-03T04:54:01.500Z",
+  "capturedAtIso": "2026-09-03T21:35:45.189Z",
   "host": {
-    "sandboxRoot": "<dépôt>/.filetopo-sandbox/variants/task0022-m12-20260903005349-eb4823",
+    "sandboxRoot": "<dépôt>/.filetopo-sandbox/variants/task0022-m12-20260903173531-65e5a8",
     "appVersion": "0.1.0-alpha.1",
     "sqliteVersion": "3.53.2",
     "webviewVersion": "152.0.4191.53",
@@ -155,7 +155,7 @@
       "programmaticClickDispatches": 0,
       "noProgrammaticActivationUsed": true,
       "observedChange": true,
-      "waitedMs": 1180
+      "waitedMs": 958
     },
     "step8_landedInGamma": {
       "activeDescendant": "brain-gamma-map-node-9",

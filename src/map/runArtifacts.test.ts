@@ -43,11 +43,18 @@ import {
   PROTECTED_RUN_ARTIFACTS,
   RUNTIME_RUN_ARTIFACTS,
   SEALED_RUNTIME_DESTINATIONS,
+  artifactTaskId,
   k12Artifact,
   l12Artifact,
   m12Artifact,
   n15Artifact,
+  runtimeWriteOwnership,
 } from "./runArtifacts";
+// The Rust write gate itself, as text: `PROTECTED_RUN_ARTIFACTS` in
+// `commands.rs` is what actually refuses a write, and the TypeScript list
+// below is only its mirror. Read through `?raw` for the same reason as the
+// scenario sources — no `node:fs`, no new dependency.
+import rustGateSource from "../../src-tauri/src/map/commands.rs?raw";
 
 /** Every source file of this runtime that may write a run artefact. */
 const WRITING_SOURCES: ReadonlyArray<readonly [string, string]> = [
@@ -288,6 +295,154 @@ describe("X5 — the runtime never writes over an earlier task's canonical evide
           `${path}: artefact name not taken from runArtifacts.ts — ${argument}`,
         ).toBe(true);
       }
+    }
+  });
+});
+
+/**
+ * Reserve `X8` of `ACTION-0035` — the `M12` evidence must derive its verdict,
+ * never restate it.
+ *
+ * The published `TASK-0022` `M12` pass 2 claimed `writesUnderItsOwnTaskOnly:
+ * false` and « 14 noms proteges ». Neither was true of the product: the
+ * scenario had been migrated to write under `TASK-0022` but its step 28 still
+ * compared the file it had just written against a literal `TASK-0020-` prefix,
+ * and still counted a protected list that had grown to nineteen names two
+ * verifications earlier. A harness defect, not a model defect — and one that
+ * would have come back at `TASK-0023` if it had been repaired by swapping one
+ * literal for the next.
+ *
+ * These tests hold the repair: the identity comes from the names themselves,
+ * the count comes from the list the Rust gate enforces, and no writing source
+ * is allowed to spell either of them out again.
+ */
+describe("X8 — M12 derives who owns what it writes, and how many names are protected", () => {
+  /** The protected list as the Rust write gate actually declares it. */
+  const rustGate = (): { declaredLength: number; names: readonly string[] } => {
+    const block =
+      /pub const PROTECTED_RUN_ARTIFACTS:\s*\[&str;\s*(\d+)\]\s*=\s*\[([\s\S]*?)\];/.exec(
+        rustGateSource,
+      );
+    if (block === null) throw new Error("PROTECTED_RUN_ARTIFACTS not found in commands.rs");
+    return {
+      declaredLength: Number(block[1]),
+      names: [...block[2].matchAll(/"([^"]+)"/g)].map((match) => match[1]),
+    };
+  };
+
+  it("the TypeScript protected list mirrors the Rust write gate exactly", () => {
+    // The canonical source of `X5` is the gate that refuses the write. Any
+    // count published from TypeScript is only trustworthy because this holds.
+    const gate = rustGate();
+    expect(gate.names).toStrictEqual([...PROTECTED_RUN_ARTIFACTS]);
+    expect(gate.declaredLength).toBe(gate.names.length);
+    expect(PROTECTED_RUN_ARTIFACTS).toHaveLength(gate.declaredLength);
+  });
+
+  it("no historical protected name was dropped by this repair", () => {
+    // Named one by one on purpose: a set comparison against a list this same
+    // change could have shortened would prove nothing.
+    for (const name of [
+      "TASK-0016-H1-H7-verification.json",
+      "TASK-0016-H9-webview2.json",
+      "TASK-0017-J11-isolation.json",
+      "TASK-0017-J12-webview2.json",
+      "TASK-0018-K11-readonly-and-isolation.json",
+      "TASK-0018-K12-webview2-pass1.json",
+      "TASK-0018-K12-webview2-pass2.json",
+      "TASK-0018-J12-relations-regression-webview2.json",
+      "TASK-0019-J12-relations-regression-webview2.json",
+      "TASK-0019-K11-readonly-regression-webview2.json",
+      "TASK-0019-K12-foundation-regression-webview2-pass1.json",
+      "TASK-0019-K12-foundation-regression-webview2-pass2.json",
+      "TASK-0019-L12-composed-view-webview2-pass1.json",
+      "TASK-0019-L12-composed-view-webview2-pass2.json",
+      "TASK-0020-M12-interbrain-relations-webview2-pass1.json",
+      "TASK-0020-M12-interbrain-relations-webview2-pass2.json",
+      "TASK-0020-J12-intrabrain-regression-webview2.json",
+      "TASK-0020-L12-composed-regression-webview2-pass1.json",
+      "TASK-0020-L12-composed-regression-webview2-pass2.json",
+    ]) {
+      expect(PROTECTED_RUN_ARTIFACTS as readonly string[]).toContain(name);
+      expect(rustGate().names).toContain(name);
+    }
+  });
+
+  it("artifactTaskId reads the owner off the name, and tells two owners apart", () => {
+    // The discrimination the repair rests on. If this returned the same thing
+    // for both, the derived verdict below would be worth nothing.
+    expect(artifactTaskId("TASK-0020-M12-interbrain-relations-webview2-pass2.json")).toBe(
+      "TASK-0020",
+    );
+    expect(artifactTaskId(m12Artifact(2, "written"))).toBe("TASK-0022");
+    expect(artifactTaskId(m12Artifact(2, "written"))).not.toBe(
+      artifactTaskId("TASK-0020-M12-interbrain-relations-webview2-pass2.json"),
+    );
+    expect(artifactTaskId("no-task-here.json")).toBeNull();
+  });
+
+  it("the M12 artefact belongs to the task the runtime writes under", () => {
+    const ownership = runtimeWriteOwnership();
+    const written = m12Artifact(2, "written");
+    expect(ownership.owningTaskId).not.toBeNull();
+    expect(artifactTaskId(written)).toBe(ownership.owningTaskId);
+    expect(ownership.taskIdsWritten).toStrictEqual([ownership.owningTaskId]);
+    // The defect verbatim: this is the field that was published `false`.
+    expect(ownership.writesUnderItsOwnTaskOnly).toBe(true);
+  });
+
+  it("the M12 artefact is not protected evidence, and no destination is", () => {
+    const ownership = runtimeWriteOwnership();
+    expect(PROTECTED_RUN_ARTIFACTS as readonly string[]).not.toContain(
+      m12Artifact(2, "written"),
+    );
+    expect(PROTECTED_RUN_ARTIFACTS as readonly string[]).not.toContain(
+      m12Artifact(1, "written"),
+    );
+    expect(ownership.protectedDestinations).toStrictEqual([]);
+    expect(ownership.runtimeDestinationCount).toBe(RUNTIME_RUN_ARTIFACTS.length);
+  });
+
+  it("the count M12 publishes is the count the gate enforces", () => {
+    // Nineteen today. The assertion is not the number: it is that the number
+    // published and the number enforced are the same object, so the next
+    // extension of `X5` moves both at once.
+    const ownership = runtimeWriteOwnership();
+    expect(ownership.protectedArtifactCount).toBe(rustGate().declaredLength);
+    expect(ownership.protectedArtifactCount).toBe(19);
+    expect(ownership.protectedTaskIds).toStrictEqual([
+      "TASK-0016",
+      "TASK-0017",
+      "TASK-0018",
+      "TASK-0019",
+      "TASK-0020",
+    ]);
+    expect(ownership.protectedTaskIds).not.toContain(ownership.owningTaskId);
+  });
+
+  it("a stale owner among the destinations would break the verdict", () => {
+    // Not a tautology check: it shows the conjunction actually discriminates.
+    // A destination left under a verified task's name flips every clause the
+    // published verdict is made of.
+    const stale = "TASK-0020-M12-interbrain-relations-webview2-pass2.json";
+    expect(artifactTaskId(stale)).not.toBe(runtimeWriteOwnership().owningTaskId);
+    expect(PROTECTED_RUN_ARTIFACTS as readonly string[]).toContain(stale);
+    expect(RUNTIME_RUN_ARTIFACTS as readonly string[]).not.toContain(stale);
+  });
+
+  it("no writing source hard-codes a task prefix or a protected-name count", () => {
+    // The exact shape of the defect, forbidden at the source. With the code as
+    // it stood, `crossScenario.ts` failed all three of these.
+    for (const [path, source] of WRITING_SOURCES) {
+      expect(source, `${path} tests a hard-coded task prefix`).not.toMatch(
+        /startsWith\(\s*["'`]TASK-\d{4}-/,
+      );
+      expect(source, `${path} states a protected-name count`).not.toMatch(
+        /\d+\s+noms proteges/,
+      );
+      expect(source, `${path} spells a protected-name count in words`).not.toMatch(
+        /\b(fourteen|quatorze|nineteen|dix-neuf)\b/i,
+      );
     }
   });
 });

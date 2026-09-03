@@ -34,7 +34,7 @@ import {
 } from "./compositionDriver";
 import { domNodeId, type ComposedView } from "./composedView";
 import { pressRealKey, waitUntil, type ScenarioLog } from "./realInput";
-import { m12Artifact } from "./runArtifacts";
+import { artifactTaskId, m12Artifact, runtimeWriteOwnership } from "./runArtifacts";
 import type {
   BrainNodeRef,
   CrossRelationsOverview,
@@ -806,6 +806,15 @@ async function secondPass(
     ),
   }));
 
+  // Step 28's material, derived once from `runArtifacts.ts` — the module that
+  // spells the destinations and mirrors the Rust write gate. Reserve `X8`: no
+  // task name and no protected-name count is written down here.
+  const ownership = runtimeWriteOwnership();
+  const writtenArtefact = m12Artifact(2, "written");
+  const writtenArtefactTaskId = artifactTaskId(writtenArtefact);
+  const artefactBelongsToOwningTask =
+    writtenArtefactTaskId !== null && writtenArtefactTaskId === ownership.owningTaskId;
+
   return Object.assign(evidence, {
     steps: "M12.24 a M12.28 — apres une fermeture et un redemarrage reels",
     compositionReady: ready,
@@ -862,13 +871,29 @@ async function secondPass(
     },
 
     // 28 — no historical evidence was modified. The runtime cannot: the write
-    // gate refuses the fourteen protected names before touching the disk, and
-    // the only names this process may write are TASK-0020's own.
+    // gate refuses every protected name before touching the disk, and the only
+    // names this process spells as destinations are its own task's.
+    //
+    // Both facts are *read off* `runArtifacts.ts` rather than restated here —
+    // reserve `X8`. The previous version compared the artefact it had just
+    // written against a hard-coded task prefix, and stated the size of the
+    // protected list as a literal. The destinations had since migrated to
+    // another task and the list had grown twice, so the step published a false
+    // verdict and a stale count. Nothing below names a task or a number.
     step28_historicalEvidenceUntouched: {
-      artefactWritten: m12Artifact(2, "written"),
-      writesUnderItsOwnTaskOnly: m12Artifact(2, "written").startsWith("TASK-0020-"),
-      protectedNamesNeverWritten:
-        "map_write_run_artifact refuse les 14 noms proteges avant tout acces disque",
+      artefactWritten: writtenArtefact,
+      artefactTaskId: writtenArtefactTaskId,
+      runtimeOwningTaskId: ownership.owningTaskId,
+      artefactBelongsToOwningTask: artefactBelongsToOwningTask,
+      runtimeDestinationCount: ownership.runtimeDestinationCount,
+      taskIdsWritten: ownership.taskIdsWritten,
+      writesUnderItsOwnTaskOnly:
+        ownership.writesUnderItsOwnTaskOnly && artefactBelongsToOwningTask,
+      protectedArtifactCount: ownership.protectedArtifactCount,
+      protectedTaskIds: ownership.protectedTaskIds,
+      protectedDestinations: ownership.protectedDestinations,
+      noProtectedDestination: ownership.protectedDestinations.length === 0,
+      protectedNamesNeverWritten: `map_write_run_artifact refuse les ${ownership.protectedArtifactCount} noms proteges avant tout acces disque`,
     },
   });
 }

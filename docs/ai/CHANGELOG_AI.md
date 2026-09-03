@@ -3075,3 +3075,30 @@ clavier, ses labels et ses tests réels `WebView2` seront définis par le
 - B0 observé puis contourné avec `CARGO_INCREMENTAL=0`, non corrigé. Aucune
   dépendance, donnée réelle, opération sur `main`, PR, release ou suppression
   de preuve historique.
+
+## 2026-09-03 — ACTION-0035 : correction X8, TASK-0022 toujours IMPLEMENTED
+
+- `ACTION-0035` enregistrée `CHANGES_REQUIRED` dans
+  `docs/reviews/ACTION-0035-independent-control.md`; fond de `TASK-0022`
+  accepté, réserve unique `X8` `OPEN`.
+- `X8` : `M12.28` publiait `writesUnderItsOwnTaskOnly: false` et « 14 noms
+  proteges » à cause d'un préfixe `TASK-0020-` codé en dur et d'un compte
+  périmé — migration incomplète du harnais de preuve, pas du modèle interbrain.
+- `src/map/runArtifacts.ts` : ajout de `artifactTaskId()` et
+  `runtimeWriteOwnership()`, qui **découvrent** la tâche propriétaire depuis
+  les noms de destination et dérivent le compte protégé de la longueur de la
+  liste. Aucune constante indépendante, aucun nom protégé modifié.
+- `src/map/crossScenario.ts` : `M12.28` consomme ces valeurs dérivées;
+  commentaire et chaîne obsolètes corrigés. Les autres mentions historiques de
+  `TASK-0020` sont conservées — elles nomment l'origine du critère.
+- `src/map/runArtifacts.test.ts` : bloc `X8`, huit tests, dont un qui échoue
+  sur le code contrôlé `f6f0214` et un contrôle de parité avec la garde Rust
+  canonique `PROTECTED_RUN_ARTIFACTS: [&str; 19]`.
+- `M12` rejoué en entier dans le vrai hôte avec un variant neuf
+  `task0022-m12-20260903173531-65e5a8`; ancien variant conservé, rien supprimé.
+  `step28` publie désormais `writesUnderItsOwnTaskOnly: true` et
+  `protectedArtifactCount: 19`.
+- Validations : 196 tests TypeScript, `pnpm check`, build Tauri debug. 19
+  preuves protégées identiques par `sha256`. `main` intacte.
+- `TASK-0022` reste `IMPLEMENTED`, `X8` reste `OPEN`, `ACTION-0035` reste
+  `CHANGES_REQUIRED`. L'exécuteur ne s'attribue pas `VERIFIED`.

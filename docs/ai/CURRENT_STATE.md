@@ -1,5 +1,41 @@
 # État courant
 
+## Mise à jour ACTION-0035 — 2026-09-03
+
+- **Verdict indépendant enregistré :** `ACTION-0035` = **`CHANGES_REQUIRED`**,
+  `HEAD` contrôlé `f6f02143585251eb403c7546b2ed78eb111e9fd6`. Le fond de
+  `TASK-0022` est **accepté** — gel antérieur au code, `DEC-0024`,
+  `layered-tree-cards-v1`, schéma `3`, v2 → v3, `N1`–`N12`, `N14`, `N15`,
+  cartes `240 × 64`, hiérarchie, quatre fixtures, navigation,
+  pan/zoom/fit/reset, relations intra, multibrain, interbrain, ancres
+  bord-à-bord, lecture seule, `B0` déclaré, `F-007`/`F-008`/`F-016`, `main`
+  intacte — **sous une seule réserve**.
+- **Réserve unique `X8`, `OPEN` :** l'artefact `M12` passe 2 publiait
+  `writesUnderItsOwnTaskOnly: false` et « 14 noms proteges » alors que le
+  runtime écrit sous `TASK-0022` et que `X5` protège **19** noms. Cause :
+  préfixe `TASK-0020-` codé en dur dans `M12.28`. **Défaut du harnais de
+  preuve, pas du modèle interbrain.**
+- **Correction livrée, structurelle :** l'identité de tâche est **dérivée** du
+  nom d'artefact et de l'ensemble des destinations
+  (`artifactTaskId`, `runtimeWriteOwnership`); le compte protégé est la
+  **longueur** de la liste, dont un test contrôle la parité avec la garde Rust
+  canonique `[&str; 19]`. Aucune constante indépendante, aucun nom protégé
+  touché, aucun remplacement littéral qui casserait à `TASK-0023`.
+- **Garde :** huit tests `X8`, dont un qui **échoue** sur le code contrôlé.
+- **Rejeu réel :** `M12` passes 1 et 2 dans le vrai hôte, **variant neuf**
+  `task0022-m12-20260903173531-65e5a8`, ancien variant conservé. `step28`
+  publie `writesUnderItsOwnTaskOnly: true` et `protectedArtifactCount: 19`.
+  Écart avec le rejeu accepté : 1 feuille en passe 1 (gigue), 11 en passe 2,
+  toutes dans `step28`.
+- **Preuves :** 196 tests TypeScript, `pnpm check`, build Tauri debug; 19
+  preuves protégées identiques par `sha256`; `main` toujours
+  `91bbe90f0f99026c28cd345784d4f579a0016db2`.
+- **Statuts inchangés :** `TASK-0022` **`IMPLEMENTED`**, `X8` **`OPEN`**,
+  `ACTION-0035` **`CHANGES_REQUIRED`**. L'exécuteur ne s'attribue pas
+  `VERIFIED`.
+- **Action unique suivante :** **re-contrôle indépendant ciblé `X8` /
+  `TASK-0022`**.
+
 ## Mise à jour TASK-0022 — 2026-09-03
 
 - **Tâche livrée, NON vérifiée :** `TASK-0022`, **`IMPLEMENTED`** sur

@@ -3120,3 +3120,32 @@ zéro extrémité non résolue et zéro artefact dans les racines analysées.
 **B0 observé :** ICE incrémental `rustc 1.98.0`; succès avec
 `CARGO_INCREMENTAL=0`. B0 n'est pas corrigé. **Non testé volontairement :**
 H9 et seuils de performance; `F-042`; données réelles/picker; release.
+
+## ACTION-0035 — correction X8 et rejeu M12 — 2026-09-03
+
+Périmètre : la **seule** réserve `X8` de `ACTION-0035`. Ni le layout, ni le
+schéma `3`, ni `DEC-0024`, ni `N1` à `N15`, ni une fixture n'ont été touchés.
+
+| Contrôle | Résultat | Preuve |
+|---|---|---|
+| Garde `X8` — aucune source d'écriture ne code en dur un préfixe de tâche ni un compte protégé | **PASS** | `src/map/runArtifacts.test.ts`; **échoue** sur `crossScenario.ts` restauré depuis `f6f0214` |
+| Parité liste protégée TypeScript ↔ garde Rust canonique | **PASS** | noms, ordre et longueur déclarée `[&str; 19]` identiques |
+| 19 noms historiques protégés, nommés un à un, aucun retiré | **PASS** | `runArtifacts.test.ts` bloc `X8` |
+| `artifactTaskId` distingue `TASK-0020` de `TASK-0022` | **PASS** | test non tautologique |
+| Artefact `M12` appartient à la tâche propriétaire et n'est pas protégé | **PASS** | `runtimeWriteOwnership()` dérivé |
+| `pnpm check` | **PASS** | `tsc --noEmit` |
+| `pnpm test` | **PASS** | **196** tests TypeScript (188 → 196) |
+| Build Tauri debug `--no-bundle` | **PASS** | `CARGO_INCREMENTAL=0`, aucun clean |
+| `M12` passe 1, hôte réel | **PASS** | variant neuf `task0022-m12-20260903173531-65e5a8`, WebView2 `152.0.4191.53` |
+| `M12` passe 2, après fermeture et redémarrage réels | **PASS** | même variant, second processus |
+| `writesUnderItsOwnTaskOnly` **dérivé** | **`true`** | `step28`, non écrit en dur |
+| `protectedArtifactCount` | **19** | longueur de la liste, jamais une constante |
+| Aucune affirmation « 14 protected names » | **PASS** | absente des deux artefacts et du produit |
+| Critères §8 non régressés | **PASS** | passe 1 : **1** feuille différente (`step7…waitedMs` 1180 → 958, gigue); passe 2 : **11**, toutes dans `step28` |
+| 19 preuves protégées inchangées | **PASS** | empreintes `sha256` identiques avant/après |
+| `main` intacte | **PASS** | `91bbe90f0f99026c28cd345784d4f579a0016db2` |
+
+**Non testé volontairement**, hors périmètre de `X8` : `N15`, `J12`, `K11`,
+`L12`, `H9`, la suite Rust — aucun source Rust modifié — et tout rejeu non
+nécessaire. **B0** inchangé : contourné par `CARGO_INCREMENTAL=0`, non corrigé.
+Aucune nouvelle dépendance.

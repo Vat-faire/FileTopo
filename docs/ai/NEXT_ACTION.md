@@ -1,15 +1,22 @@
 # Action suivante
 
-## Contrôle indépendant de TASK-0022
+## Re-contrôle indépendant ciblé de X8 / TASK-0022
 
-Contrôler indépendamment `TASK-0022` sur la branche
-`build/v0.2-a6-topographic-node-graph`, à partir du commit substantif publié.
+Re-contrôler indépendamment la **seule** réserve `X8` de
+[`ACTION-0035`](../reviews/ACTION-0035-independent-control.md), sur la branche
+`build/v0.2-a6-topographic-node-graph`, au commit de correction publié.
 
-Vérifier sur preuves le gel `289cf9b` antérieur au code, N1 à N15, les huit
-artefacts `TASK-0022-*`, l'intégrité des 19 preuves X5, le schéma carte 3,
-`layered-tree-cards-v1`, P02-R1, `F-007`/`F-008`/`F-016`, les régressions
-TASK-0016 à TASK-0020, la lecture seule et `main` intacte.
+Périmètre du re-contrôle, et rien d'autre : la correction est **structurelle**
+et non un remplacement littéral — l'identité de tâche est dérivée du nom
+d'artefact et de l'ensemble des destinations, non codée en dur; le compte des
+preuves protégées est dérivé de la liste, dont la parité avec la garde Rust
+canonique est testée; le test de garde échoue bien sur le code contrôlé
+`f6f0214`; le rejeu réel `M12` passes 1 et 2 publie
+`writesUnderItsOwnTaskOnly: true` et `protectedArtifactCount: 19` sans
+affirmation « 14 protected names »; aucun critère de `M12` n'a régressé; les
+19 preuves protégées et `main` sont intactes.
 
-Le contrôleur indépendant décide seul si `TASK-0022` peut passer de
-`IMPLEMENTED` à `VERIFIED`. Ne pas créer `TASK-0023` et ne pas lancer la
-tranche suivante pendant ce contrôle.
+Le contrôleur indépendant décide seul si `X8` peut passer de `OPEN` à `CLOSED`,
+et si `TASK-0022` peut passer de `IMPLEMENTED` à `VERIFIED`. Ne pas rouvrir le
+layout, le schéma 3, `DEC-0024`, `N1` à `N15` ni les fixtures, déjà acceptés.
+Ne pas créer `TASK-0023` pendant ce re-contrôle.

@@ -462,6 +462,7 @@ indépendant. Aucune `TASK-0023` n'est créée.
 | 2026-09-03 | `APPROVED` | Périmètre, architecture, N1–N15, validations, limites et hors-scope intégralement écrits |
 | 2026-09-03 | `IN_PROGRESS` | Gel prêt à être commité et poussé avant la première modification de code produit |
 | 2026-09-03 | `IMPLEMENTED` | Layout v3, cartes et arêtes hiérarchiques, ancres bord-à-bord, navigation et régressions livrés; N15 et rejeux WebView2 passés; `VERIFIED` réservé au contrôle indépendant |
+| 2026-09-03 | `IMPLEMENTED` | `ACTION-0035` `CHANGES_REQUIRED` : fond accepté, réserve unique `X8` `OPEN` — défaut de migration du harnais de preuve `M12`, corrigé et rejoué; statut inchangé, re-contrôle ciblé requis |
 
 ## 21. Résultat et preuves d'exécution
 
@@ -494,3 +495,42 @@ indépendant. Aucune `TASK-0023` n'est créée.
 Limites inchangées : `F-042` non implémentée; `R8` non levée; `P-19` maintenue;
 aucun `H9`, aucune nouvelle dépendance, aucune donnée réelle, aucun picker,
 aucune modification de `main`.
+
+## 22. ACTION-0035 — contrôle indépendant, CHANGES_REQUIRED, réserve X8
+
+`ACTION-0035` a contrôlé `TASK-0022` au `HEAD`
+`f6f02143585251eb403c7546b2ed78eb111e9fd6` et a rendu **`CHANGES_REQUIRED`** :
+tout le fond est **accepté** — gel `289cf9b` antérieur au code, `DEC-0024`,
+`layered-tree-cards-v1`, schéma `3`, reconstruction v2 → v3, `N1` à `N12`,
+`N14`, `N15`, cartes `240 × 64`, hiérarchie explicite, quatre fixtures,
+navigation, pan/zoom/fit/reset, relations intra, multibrain, relations
+inter-cerveaux, ancres bord-à-bord, lecture seule, `B0` déclaré,
+`F-007`/`F-008`/`F-016` `IMPLEMENTED`, `main` intacte — **sous une seule
+réserve**.
+
+**`X8` — `M12`/`N13` evidence migration defect, `OPEN`.** L'artefact `M12`
+passe 2 publiait `writesUnderItsOwnTaskOnly: false` et « 14 noms proteges »
+alors que le runtime écrit sous `TASK-0022` et que la garde `X5` protège **19**
+noms. Cause : `src/map/crossScenario.ts` `M12.28` testait un préfixe
+`TASK-0020-` **codé en dur** et annonçait un compte périmé. **Défaut du
+harnais de preuve, pas du modèle interbrain.**
+
+**Correction livrée sous ce `CHANGES_REQUIRED`**, dans le seul périmètre nommé :
+l'identité de tâche est **dérivée** du nom d'artefact et de l'ensemble complet
+des destinations — `artifactTaskId` et `runtimeWriteOwnership` dans
+`src/map/runArtifacts.ts` — et le compte protégé est la **longueur** de la
+liste, dont un test vérifie la parité avec la garde Rust canonique
+`PROTECTED_RUN_ARTIFACTS: [&str; 19]` de `src-tauri/src/map/commands.rs`.
+Aucune constante indépendante n'a été ajoutée, aucun des 19 noms n'a été
+touché. Huit tests de garde `X8`, dont un qui **échoue sur le code contrôlé**.
+
+`M12` a été rejoué **en entier**, passes 1 et 2, dans le vrai hôte, avec un
+**variant neuf** `task0022-m12-20260903173531-65e5a8`; l'ancien variant est
+conservé. Écart avec le rejeu accepté : **une** feuille en passe 1
+(`step7_followByKey/waitedMs`, gigue) et **onze** en passe 2, **toutes** dans
+`step28`. Le reste est identique bit à bit. Empreintes `sha256` des **19**
+preuves protégées identiques avant/après.
+
+`TASK-0022` **reste `IMPLEMENTED`**. `X8` **reste `OPEN`**. `ACTION-0035`
+**reste `CHANGES_REQUIRED`**. L'action suivante unique est le **re-contrôle
+indépendant ciblé `X8`**.
