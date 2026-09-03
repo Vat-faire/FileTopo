@@ -1,0 +1,163 @@
+{
+  "task": "TASK-0023",
+  "criterion": "EC15",
+  "pass": 2,
+  "startedAt": "2026-09-03T23:12:45.892Z",
+  "realHost": true,
+  "host": {
+    "appVersion": "0.1.0-alpha.1",
+    "tauriVersion": "2.11.5",
+    "webviewVersion": "152.0.4191.62",
+    "platform": "windows"
+  },
+  "pass2": {
+    "sandboxVariant": "<dépôt>/.filetopo-sandbox/variants/task0023-ec15-20260903191229-de2479",
+    "realRestart": true,
+    "persistedBefore": {
+      "alpha": {
+        "brainId": "brain-alpha",
+        "storePath": "brains/brain-alpha/signals/content.sqlite",
+        "schemaVersion": 1,
+        "signalEngineVersion": "sha256-v1",
+        "currentGenerationId": "e04acd3c-7f71-4749-a703-4fd11e33e38a",
+        "currentGenerationObservedAt": 1788477154356,
+        "sourceFingerprint": "fnv1a64:ef9f76877d165fff",
+        "observationCount": 8,
+        "hashedCount": 8,
+        "unreadableCount": 0,
+        "unstableCount": 0,
+        "unsupportedCount": 0
+      },
+      "gamma": {
+        "brainId": "brain-gamma",
+        "storePath": "brains/brain-gamma/signals/content.sqlite",
+        "schemaVersion": 1,
+        "signalEngineVersion": "sha256-v1",
+        "currentGenerationId": "6a8d8420-6953-4644-b65e-ec71342f6ddc",
+        "currentGenerationObservedAt": 1788477161423,
+        "sourceFingerprint": "fnv1a64:ef9f76877d165fff",
+        "observationCount": 8,
+        "hashedCount": 8,
+        "unreadableCount": 0,
+        "unstableCount": 0,
+        "unsupportedCount": 0
+      }
+    },
+    "staleUi": {
+      "selection": {
+        "keyRequested": "{RIGHT}",
+        "keydownIsTrusted": true,
+        "activationIsTrusted": null,
+        "programmaticClickCalls": 0,
+        "programmaticClickDispatches": 0,
+        "focusReached": true,
+        "observedChange": true
+      },
+      "text": "Observations de contenuDernière observation enregistréeSHA-256 observé5cec5fde90215c5d5c6139cfed94dba5cd07250da93d84a367b372eb8e6f843bObservé le3 sept. 2026, 19 h 12Génératione04acd3c-7f71-4749-a703-4fd11e33e38aCette observation ne crée aucune relation.",
+      "honest": true
+    },
+    "previousGenerationId": "e04acd3c-7f71-4749-a703-4fd11e33e38a",
+    "campaign": {
+      "brainId": "brain-alpha",
+      "storePath": "brains/brain-alpha/signals/content.sqlite",
+      "schemaVersion": 1,
+      "signalEngineVersion": "sha256-v1",
+      "generationId": "66813b1e-c93b-4782-9178-95ed4890b34b",
+      "observedAt": 1788477168992,
+      "sourceFingerprintBefore": "fnv1a64:ef9f76877d165fff",
+      "sourceFingerprintAfter": "fnv1a64:ef9f76877d165fff",
+      "sourceStable": true,
+      "indexedFileCount": 8,
+      "hashedCount": 8,
+      "unreadableCount": 0,
+      "unstableCount": 0,
+      "unsupportedCount": 0,
+      "filesOpenedForHash": 8,
+      "bytesRead": 1424,
+      "digestsComputed": 8,
+      "hashAlgorithm": "sha256-v1",
+      "readOnlyConfirmed": true,
+      "durationMs": 15.1106,
+      "interaction": {
+        "keyRequested": "{ENTER}",
+        "keydownIsTrusted": true,
+        "activationIsTrusted": true,
+        "programmaticClickCalls": 0,
+        "programmaticClickDispatches": 0,
+        "focusReached": true,
+        "observedChange": true
+      }
+    },
+    "currentGenerationId": "66813b1e-c93b-4782-9178-95ed4890b34b",
+    "sameDigestAfterRehash": true,
+    "byteRereadProof": {
+      "filesOpenedForHash": 8,
+      "bytesRead": 1424,
+      "digestsComputed": 8,
+      "hashedCount": 8
+    },
+    "relationsBefore": {
+      "intra": {
+        "deterministicCount": 8,
+        "approvedCount": 4,
+        "pendingSuggestionCount": 4,
+        "deterministicDigest": "fnv1a64:f2dc56476a45221f"
+      },
+      "cross": {
+        "deterministicCount": 6,
+        "approvedCount": 0,
+        "pendingSuggestionCount": 4,
+        "deterministicDigest": "fnv1a64:3020af7489aab581"
+      }
+    },
+    "relationsAfter": {
+      "intra": {
+        "deterministicCount": 8,
+        "approvedCount": 4,
+        "pendingSuggestionCount": 4,
+        "deterministicDigest": "fnv1a64:f2dc56476a45221f"
+      },
+      "cross": {
+        "deterministicCount": 6,
+        "approvedCount": 0,
+        "pendingSuggestionCount": 4,
+        "deterministicDigest": "fnv1a64:3020af7489aab581"
+      }
+    },
+    "relationStoresUnchanged": true,
+    "sourceBefore": {
+      "brainId": "brain-alpha",
+      "fixtureId": "quasi-empty",
+      "fingerprint": "fnv1a64:ef9f76877d165fff",
+      "filetopoArtifacts": [],
+      "observedEntries": 11
+    },
+    "sourceAfter": {
+      "brainId": "brain-alpha",
+      "fixtureId": "quasi-empty",
+      "fingerprint": "fnv1a64:ef9f76877d165fff",
+      "filetopoArtifacts": [],
+      "observedEntries": 11
+    },
+    "runtimeOwnership": {
+      "owningTaskId": "TASK-0023",
+      "runtimeDestinationCount": 23,
+      "taskIdsWritten": [
+        "TASK-0023"
+      ],
+      "protectedArtifactCount": 27,
+      "protectedTaskIds": [
+        "TASK-0016",
+        "TASK-0017",
+        "TASK-0018",
+        "TASK-0019",
+        "TASK-0020",
+        "TASK-0022"
+      ],
+      "protectedDestinations": [],
+      "writesUnderItsOwnTaskOnly": true
+    },
+    "protectedArtifacts": 27
+  },
+  "finishedAt": "2026-09-03T23:12:49.157Z"
+}

@@ -1,5 +1,44 @@
 # HANDOFF — passage de relais
 
+## Relais actuel — TASK-0023 IMPLEMENTED, 2026-09-03
+
+`TASK-0023` est livrée sur `build/v0.2-a7-exact-content-observations`, mais
+n'est pas `VERIFIED`. Le gel `711071c` précède tout code produit et EC1–EC15
+sont restés immuables.
+
+Le backend calcule SHA-256 avec RustCrypto `sha2 0.11.0` par blocs bornés,
+persiste seulement la dernière génération atomique dans un store schéma 1 par
+cerveau et refuse les chemins non relatifs, traversals et sorties par
+symlink/reparse. Taille+mtime ne servent jamais à réutiliser un digest. Une
+mutation pendant lecture invalide le digest; un changement global de source
+empêche la nouvelle génération de devenir courante.
+
+Alpha et Gamma lisent la fixture synthétique commune dans deux stores
+distincts. Le même chemin porte le même digest mais deux `BrainNodeRef`. Le
+rebuild map conserve store/génération/digest. Le hashing ne modifie aucun
+store, compte ou graphe relationnel. Aucun contenu, extrait, chemin absolu,
+identifiant physique Windows, relation, suggestion ou provenance n'est stocké.
+
+Validation : 171 tests Rust, 208 tests TypeScript, `pnpm check`, `pnpm build`
+et Tauri debug `--no-bundle` passés. EC15 passe 1 et passe 2 ont utilisé deux
+processus WebView2 `152.0.4191.62`, fermés réellement, sur la même variante
+fraîche. Le second processus a affiché « Dernière observation enregistrée »
+puis ouvert 8 fichiers, relu 1 424 octets et recalculé 8 digests. Les deux
+preuves `TASK-0023-EC15-*` sont publiées mais non protégées.
+
+X5 reste exactement à 27 noms dans Rust, TypeScript et PowerShell, sans
+modification des preuves historiques. Les destinations courantes appartiennent
+toutes à `TASK-0023`, aucune n'est protégée.
+
+Limites : `F-043`, `F-044`, `F-045` et `F-046` restent `PROPOSED`; aucune
+règle `same-hash`, relation, suggestion ni IA. L'identité physique persistante
+de `F-046` reste non implémentée, `DEC-0013/F` toujours bloquante. R8 et B0
+sont inchangés; `CARGO_INCREMENTAL=0` a été employé sans clean.
+
+**Prochaine action unique : contrôle indépendant de `TASK-0023`.** Contrôler
+EC1–EC15 et les deux preuves, puis attribuer seul ou non `VERIFIED`. Ne pas
+créer `TASK-0024` dans ce contrôle.
+
 ## Relais actuel — TASK-0022 VERIFIED, 2026-09-03
 
 Le verdict rendu par l'orchestrateur technique indépendant est enregistré dans

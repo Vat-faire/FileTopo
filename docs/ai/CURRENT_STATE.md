@@ -1,5 +1,31 @@
 # État courant
 
+## Mise à jour TASK-0023 — 2026-09-03
+
+- **Tâche livrée, NON vérifiée :** `TASK-0023` = **`IMPLEMENTED`** sur
+  `build/v0.2-a7-exact-content-observations`; contrôle indépendant requis.
+- **Fondation exacte :** SHA-256 `sha256-v1` via `sha2 0.11.0`, lecture en
+  blocs de 64 KiB, store SQLite schéma 1 par cerveau sous
+  `brains/<brain_id>/signals/content.sqlite`, génération datée et atomique.
+- **Fraîcheur honnête :** chaque campagne relit les octets; taille+mtime ne
+  réaffirment jamais un vieux digest. Après redémarrage, l'UI dit « Dernière
+  observation enregistrée » jusqu'à une nouvelle campagne.
+- **Frontière tenue :** aucune relation, suggestion, provenance, fusion de
+  nœud, identité physique Windows, contenu ou chemin absolu persisté. Même
+  SHA-256 signifie seulement « contenu binaire identique observé ».
+- **Validation :** 171 tests Rust, 208 tests TypeScript, check/build/Tauri
+  debug passés. EC15 deux vrais processus WebView2 `152.0.4191.62`, même
+  variante fraîche; passe 2 = 8 fichiers ouverts, 1 424 octets relus, 8
+  digests recalculés.
+- **X5 :** 27 preuves protégées inchangées; runtime entièrement migré vers
+  `TASK-0023`, `protectedDestinations = []`; seules les deux preuves EC15 ont
+  été ajoutées, sans les protéger avant contrôle.
+- **Fonctions :** `F-043`, `F-044`, `F-045`, `F-046` restent `PROPOSED`.
+  `F-046` possède désormais sa fondation de contenu exact, mais l'identité
+  physique persistante reste non implémentée et bloquée par `DEC-0013/F`.
+- **Action unique suivante :** contrôle indépendant de `TASK-0023`. Aucune
+  `TASK-0024` n'est créée.
+
 ## Mise à jour ACTION-0036 — 2026-09-03
 
 - **Verdict indépendant enregistré, non rendu par Codex :** sur le `HEAD`

@@ -1,6 +1,8 @@
 # Action suivante
 
-## Retour à l'orchestrateur
+## Contrôle indépendant de TASK-0023
 
-Définir la prochaine tranche technique après la vérification de `TASK-0022`.
-Ne pas créer `TASK-0023` avant cette décision.
+Contrôler indépendamment `TASK-0023`, son commit substantif, EC1–EC15, les deux
+preuves WebView2 et l'intégrité des 27 preuves X5. L'exécuteur a laissé la
+tâche `IMPLEMENTED`, jamais `VERIFIED`; ne créer aucune `TASK-0024` pendant ce
+contrôle.

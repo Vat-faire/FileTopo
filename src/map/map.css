@@ -1119,6 +1119,42 @@ button:disabled {
   padding: 0 6px;
 }
 
+.content-observations {
+  border-top: 1px solid var(--line);
+  margin-top: 12px;
+  padding-top: 2px;
+}
+
+.content-observations__digest {
+  display: block;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  user-select: all;
+  font-size: 11px;
+}
+
+.content-observations__last,
+.content-observations__boundary,
+.content-report {
+  font-size: 11px;
+  line-height: 1.45;
+}
+
+.content-observations__last {
+  font-weight: 650;
+}
+
+.content-observations__boundary {
+  border-left: 3px solid var(--accent);
+  padding-left: 8px;
+}
+
+.content-report {
+  display: block;
+  padding: 4px 8px;
+  color: var(--muted);
+}
+
 .cross-relations__hint {
   margin: 0;
   font-size: 11px;

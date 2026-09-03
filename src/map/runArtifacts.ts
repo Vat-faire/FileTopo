@@ -28,6 +28,10 @@
  * K12 and every `-abandon` variant remain outside the protected set because
  * they are not canonical `TASK-0022` evidence.
  *
+ * `TASK-0023` migrates every current destination once more. The protected
+ * runtime intersection is empty again until independent control decides
+ * whether its two EC15 proofs become canonical.
+ *
  * Every name lives here so there is one spelling of each and a guard test can
  * hold the whole surface at once — see `runArtifacts.test.ts`.
  */
@@ -81,9 +85,9 @@ export const PROTECTED_RUN_ARTIFACTS = [
  * exists so that pressing the button can never write over anything.
  */
 export const H9_REGRESSION_ARTIFACT =
-  "TASK-0022-H9-composed-runtime-regression-webview2.json";
+  "TASK-0023-H9-composed-runtime-regression-webview2.json";
 export const H9_REGRESSION_ABANDON_ARTIFACT =
-  "TASK-0022-H9-composed-runtime-regression-webview2-abandon.json";
+  "TASK-0023-H9-composed-runtime-regression-webview2-abandon.json";
 
 /**
  * The **intra-brain** relations scenario of `TASK-0017`/`J12`, on `brain-alpha`.
@@ -94,12 +98,12 @@ export const H9_REGRESSION_ABANDON_ARTIFACT =
  * first.
  */
 export const J12_REGRESSION_ARTIFACT =
-  "TASK-0022-J12-intrabrain-relations-regression-webview2.json";
+  "TASK-0023-J12-intrabrain-relations-regression-webview2.json";
 export const J12_REGRESSION_ABANDON_ARTIFACT =
-  "TASK-0022-J12-intrabrain-relations-regression-webview2-abandon.json";
+  "TASK-0023-J12-intrabrain-relations-regression-webview2-abandon.json";
 
 /** `L11` — read-only and isolation, replayed on the composed runtime. */
-export const K11_ARTIFACT = "TASK-0022-K11-readonly-isolation-regression-webview2.json";
+export const K11_ARTIFACT = "TASK-0023-K11-readonly-isolation-regression-webview2.json";
 
 /**
  * `K12` of `TASK-0018`, replayed against the composition bar.
@@ -109,7 +113,7 @@ export const K11_ARTIFACT = "TASK-0022-K11-readonly-isolation-regression-webview
  */
 export function k12Artifact(pass: number, outcome: "written" | "abandoned"): string {
   const suffix = outcome === "abandoned" ? "-abandon" : "";
-  return `TASK-0022-K12-foundation-regression-webview2-pass${pass}${suffix}.json`;
+  return `TASK-0023-K12-foundation-regression-webview2-pass${pass}${suffix}.json`;
 }
 
 /**
@@ -120,30 +124,32 @@ export function k12Artifact(pass: number, outcome: "written" | "abandoned"): str
  */
 export function l12Artifact(pass: number, outcome: "written" | "abandoned"): string {
   const suffix = outcome === "abandoned" ? "-abandon" : "";
-  return `TASK-0022-L12-composed-view-regression-webview2-pass${pass}${suffix}.json`;
+  return `TASK-0023-L12-composed-view-regression-webview2-pass${pass}${suffix}.json`;
 }
 
 /** `M12` — the twenty-eight steps of inter-brain relations, in the real host. */
 export function m12Artifact(pass: number, outcome: "written" | "abandoned"): string {
   const suffix = outcome === "abandoned" ? "-abandon" : "";
-  return `TASK-0022-M12-interbrain-relations-regression-webview2-pass${pass}${suffix}.json`;
+  return `TASK-0023-M12-interbrain-relations-regression-webview2-pass${pass}${suffix}.json`;
 }
 
 /** `N15` — the topographic node graph in the real Tauri/WebView2 host. */
 export function n15Artifact(pass: number, outcome: "written" | "abandoned"): string {
   const suffix = outcome === "abandoned" ? "-abandon" : "";
-  return `TASK-0022-N15-topographic-node-graph-webview2-pass${pass}${suffix}.json`;
+  return `TASK-0023-N15-topographic-node-graph-webview2-pass${pass}${suffix}.json`;
+}
+
+/** `EC15` — exact content observations in the real Tauri/WebView2 host. */
+export function ec15Artifact(pass: number): string {
+  return `TASK-0023-EC15-exact-content-observations-webview2-pass${pass}.json`;
 }
 
 /**
  * Every name this runtime **spells as a destination**. The guard test
  * enumerates it.
  *
- * Since `ACTION-0036` this is no longer the same set as « every name this
- * runtime may write »: eight of these are now protected evidence, and the gate
- * refuses them. {@link SEALED_RUNTIME_DESTINATIONS} is that intersection, and
- * the guard test asserts it is *exactly* those eight — neither a ninth
- * destination silently sealed, nor one of the eight silently unsealed.
+ * Every current entry belongs to `TASK-0023`; ownership and the protected
+ * intersection are derived from the lists below.
  */
 export const RUNTIME_RUN_ARTIFACTS = [
   H9_REGRESSION_ARTIFACT,
@@ -167,24 +173,15 @@ export const RUNTIME_RUN_ARTIFACTS = [
   n15Artifact(1, "abandoned"),
   n15Artifact(2, "written"),
   n15Artifact(2, "abandoned"),
+  ec15Artifact(1),
+  ec15Artifact(2),
 ] as const;
 
 /**
- * Exact protected/runtime intersection. Since `ACTION-0036`, it is exactly
- * the eight canonical `TASK-0022` proofs: this checkout still spells their
- * destinations, and the write gate now refuses them. H9, K12 and abandonment
- * variants remain writable.
+ * Exact protected/runtime intersection. Empty while `TASK-0023` is only
+ * `IMPLEMENTED`; EC15 is not protected before independent control.
  */
-export const SEALED_RUNTIME_DESTINATIONS = [
-  J12_REGRESSION_ARTIFACT,
-  K11_ARTIFACT,
-  l12Artifact(1, "written"),
-  l12Artifact(2, "written"),
-  m12Artifact(1, "written"),
-  m12Artifact(2, "written"),
-  n15Artifact(1, "written"),
-  n15Artifact(2, "written"),
-] as const;
+export const SEALED_RUNTIME_DESTINATIONS = [] as const;
 
 /**
  * The task an artefact name declares as its owner, or `null` when the name

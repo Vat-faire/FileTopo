@@ -111,6 +111,18 @@ impl SandboxPaths {
             .join("relations.sqlite")
     }
 
+    /// Reconstructible, dated facts observed from one brain's source.
+    ///
+    /// Kept outside `map/` so rebuilding the index cannot erase the last
+    /// observation, and outside `relations/` because a digest is a fact rather
+    /// than a relationship. The path is namespaced by `brain_id`, never by the
+    /// shared fixture.
+    pub fn brain_content_signals_database(&self, brain_id: &str) -> PathBuf {
+        self.brain_root(brain_id)
+            .join("signals")
+            .join("content.sqlite")
+    }
+
     /// The **common** store of inter-brain relations — `TASK-0020` §4.1.
     ///
     /// A relation `A → B` belongs to the **link**, not to either end. Putting
@@ -323,9 +335,20 @@ mod tests {
         let gamma_index = paths.brain_map_database("brain-gamma");
         let alpha_relations = paths.brain_relations_database("brain-alpha");
         let gamma_relations = paths.brain_relations_database("brain-gamma");
+        let alpha_content = paths.brain_content_signals_database("brain-alpha");
+        let gamma_content = paths.brain_content_signals_database("brain-gamma");
 
         assert_ne!(alpha_index, gamma_index);
         assert_ne!(alpha_relations, gamma_relations);
+        assert_ne!(alpha_content, gamma_content);
+        assert_eq!(
+            paths.relative_name(&alpha_content),
+            "brains/brain-alpha/signals/content.sqlite"
+        );
+        assert_eq!(
+            paths.relative_name(&gamma_content),
+            "brains/brain-gamma/signals/content.sqlite"
+        );
         assert!(!alpha_index.starts_with(paths.brain_root("brain-gamma")));
         assert!(!gamma_index.starts_with(paths.brain_root("brain-alpha")));
         assert!(!alpha_relations.starts_with(paths.brain_root("brain-gamma")));

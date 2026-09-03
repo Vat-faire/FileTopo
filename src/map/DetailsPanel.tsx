@@ -1,4 +1,6 @@
 import type { MapNode, NodeDetail } from "./types";
+import ContentObservationsPanel from "./ContentObservationsPanel";
+import type { ContentObservation, ContentObservationSummary } from "./types";
 
 /**
  * The details panel — `P-12`, and the parent/children reach of `P-03`.
@@ -14,6 +16,11 @@ interface DetailsPanelProps {
   onSelect: (nodeId: number) => void;
   locale: "fr" | "en";
   strings: PanelStrings;
+  contentObservation?: ContentObservation | null;
+  contentSummary?: ContentObservationSummary | null;
+  identicalContentMemberCount?: number;
+  contentLoading?: boolean;
+  contentObservedThisSession?: boolean;
 }
 
 export interface PanelStrings {
@@ -59,6 +66,11 @@ export default function DetailsPanel({
   onSelect,
   locale,
   strings,
+  contentObservation = null,
+  contentSummary = null,
+  identicalContentMemberCount = 0,
+  contentLoading = false,
+  contentObservedThisSession = false,
 }: DetailsPanelProps) {
   if (loading) {
     return (
@@ -134,6 +146,17 @@ export default function DetailsPanel({
           ))}
         </ul>
       )}
+
+      {node.kind === "file" ? (
+        <ContentObservationsPanel
+          observation={contentObservation}
+          summary={contentSummary}
+          identicalMemberCount={identicalContentMemberCount}
+          loading={contentLoading}
+          observedThisSession={contentObservedThisSession}
+          locale={locale}
+        />
+      ) : null}
     </section>
   );
 }

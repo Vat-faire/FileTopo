@@ -39,6 +39,7 @@ import { runComposedScenario as runComposed } from "./composedScenario";
 import { runCrossScenario as runCross } from "./crossScenario";
 import { runRelationScenario as runScenario } from "./relationScenario";
 import { runTopographicScenario as runTopographic } from "./topographicScenario";
+import { runContentScenario as runContent } from "./contentScenario";
 import {
   H9_REGRESSION_ABANDON_ARTIFACT,
   H9_REGRESSION_ARTIFACT,
@@ -71,6 +72,9 @@ import type {
   MapSelfCheck,
   MapSnapshot,
   CrossRelationsOverview,
+  ContentObservation,
+  ContentObservationReport,
+  ContentObservationSummary,
   CrossRelationsSelfCheck,
   NodeCrossRelations,
   NodeDetail,
@@ -215,6 +219,14 @@ export default function MapApp() {
   const [selected, setSelected] = useState<BrainNodeRef | null>(null);
   const [detail, setDetail] = useState<NodeDetail | null>(null);
   const [detailLoading, setDetailLoading] = useState(false);
+  const [contentObservation, setContentObservation] = useState<ContentObservation | null>(null);
+  const [contentSummary, setContentSummary] = useState<ContentObservationSummary | null>(null);
+  const [identicalContentMemberCount, setIdenticalContentMemberCount] = useState(0);
+  const [contentLoading, setContentLoading] = useState(false);
+  const [contentCampaignRunning, setContentCampaignRunning] = useState(false);
+  const [contentReport, setContentReport] = useState<ContentObservationReport | null>(null);
+  const [contentRevision, setContentRevision] = useState(0);
+  const [contentObservedBrains, setContentObservedBrains] = useState<ReadonlySet<string>>(new Set());
   const [selfCheck, setSelfCheck] = useState<MapSelfCheck | null>(null);
   const [viewport, setViewport] = useState<Viewport>({ width: 1, height: 1 });
   const [view, setView] = useState<View>({ scale: 1, tx: 0, ty: 0 });
@@ -270,6 +282,7 @@ export default function MapApp() {
   const runComposedScenarioRef = useRef<(() => Promise<void>) | null>(null);
   const runCrossScenarioRef = useRef<(() => Promise<void>) | null>(null);
   const runTopographicScenarioRef = useRef<(() => Promise<void>) | null>(null);
+  const runContentScenarioRef = useRef<(() => Promise<void>) | null>(null);
 
   const order = useMemo(() => catalogueOrder(catalog?.brains ?? []), [catalog]);
 
@@ -405,6 +418,12 @@ export default function MapApp() {
       autoStarted.current = true;
       hostLog("info", "démarrage automatique du scénario J12");
       void runRelationScenarioRef.current?.();
+      return;
+    }
+    if (host.autoContentPass === 1 || host.autoContentPass === 2) {
+      autoStarted.current = true;
+      hostLog("info", `démarrage automatique du scénario EC15, passe ${host.autoContentPass}`);
+      void runContentScenarioRef.current?.();
       return;
     }
     if (host.autoTopographicPass === 1 || host.autoTopographicPass === 2) {
@@ -796,6 +815,76 @@ export default function MapApp() {
     };
   }, [selected]);
 
+  // Content facts are read from the selected brain's own signals store. The
+  // query is deliberately separate from relation loading: equal digests never
+  // enter either relation overview.
+  useEffect(() => {
+    if (
+      !selected ||
+      !detail ||
+      detail.node.id !== selected.nodeId ||
+      detail.node.kind !== "file"
+    ) {
+      setContentObservation(null);
+      setContentSummary(null);
+      setIdenticalContentMemberCount(0);
+      setContentLoading(false);
+      return;
+    }
+    let live = true;
+    setContentLoading(true);
+    Promise.all([
+      invoke<ContentObservationSummary>("map_content_summary", { brainId: selected.brainId }),
+      invoke<ContentObservation | null>("map_content_observation_for_path", {
+        brainId: selected.brainId,
+        relativePath: detail.node.relativePath,
+      }),
+    ])
+      .then(async ([summary, observation]) => {
+        if (!live) return;
+        setContentSummary(summary);
+        setContentObservation(observation);
+        if (observation?.observationStatus === "HASHED" && observation.hashHex) {
+          const members = await invoke<ContentObservation[]>("map_content_identical_members", {
+            brainId: selected.brainId,
+            hash: observation.hashHex,
+          });
+          if (live) setIdenticalContentMemberCount(members.length);
+        } else {
+          setIdenticalContentMemberCount(0);
+        }
+      })
+      .catch((error) => {
+        if (!live) return;
+        hostLog("error", `observation de contenu indisponible: ${String(error)}`);
+        setContentObservation(null);
+        setIdenticalContentMemberCount(0);
+      })
+      .finally(() => live && setContentLoading(false));
+    return () => {
+      live = false;
+    };
+  }, [contentRevision, detail, selected]);
+
+  const observeFocusedContent = useCallback(async () => {
+    const brainId = composedRef.current?.focusedBrainId;
+    if (!brainId) return;
+    setContentCampaignRunning(true);
+    try {
+      const report = await invoke<ContentObservationReport>("map_content_observe", { brainId });
+      setContentReport(report);
+      setContentObservedBrains((current) => new Set([...current, brainId]));
+      setContentRevision((current) => current + 1);
+      setStatus(
+        `${report.hashedCount}/${report.indexedFileCount} fichiers observés · ${report.generationId}`,
+      );
+    } catch (error) {
+      setStatus(`Observation de contenu impossible : ${String(error)}`);
+    } finally {
+      setContentCampaignRunning(false);
+    }
+  }, []);
+
   // The panel reads the relations of the selection from the store, on every
   // change of selection and after every approval. The loaded brain is in the
   // dependency list on purpose: an approval replaces its overview, and that is
@@ -1094,7 +1183,7 @@ export default function MapApp() {
         name: K11_ARTIFACT,
         contents: JSON.stringify(
           {
-            task: "TASK-0022",
+          task: "TASK-0023",
             criteria: ["L11", "L2", "K11", "K3", "H1", "H2", "H3", "H5", "H6", "H7", "H8", "H10", "H11"],
             sourceCriterion: "TASK-0018/K11",
             nature: "regression / compatibility replay",
@@ -1194,7 +1283,7 @@ export default function MapApp() {
       }
 
       const artifact = {
-        task: "TASK-0022",
+        task: "TASK-0023",
         sourceCriterion: "TASK-0016/H9",
         nature: "regression / compatibility replay",
         doesNotReplace:
@@ -1229,7 +1318,7 @@ export default function MapApp() {
           name: H9_REGRESSION_ABANDON_ARTIFACT,
           contents: JSON.stringify(
             {
-              task: "TASK-0022",
+              task: "TASK-0023",
               sourceCriterion: "TASK-0016/H9",
               nature: "regression / compatibility replay",
               doesNotReplace:
@@ -1355,6 +1444,24 @@ export default function MapApp() {
   }, [host, onRemoveBrain, selectNode, showOnly]);
 
   runTopographicScenarioRef.current = runTopographicScenario;
+
+  const runContentScenario = useCallback(() => {
+    const pass = host?.autoContentPass === 2 ? 2 : 1;
+    return runContent(
+      {
+        invoke: (command, args) => invoke(command, args),
+        host,
+        showOnly,
+        select: selectNode,
+        readComposition: () => composedRef.current,
+        setStatus,
+        log: hostLog,
+      },
+      pass,
+    );
+  }, [host, selectNode, showOnly]);
+
+  runContentScenarioRef.current = runContentScenario;
 
   const selectedNode: MapNode | null =
     selected && selectedBrain ? selectedBrain.hierarchy.byId.get(selected.nodeId) ?? null : null;
@@ -1680,7 +1787,30 @@ export default function MapApp() {
             >
               {t.selectRoot}
             </button>
+            <button
+              type="button"
+              data-testid="observe-content"
+              disabled={!focusedBrain || contentCampaignRunning}
+              onClick={() => void observeFocusedContent()}
+            >
+              {contentCampaignRunning ? "Observation…" : "Observer le contenu"}
+            </button>
           </div>
+
+          {contentReport ? (
+            <output
+              className="content-report"
+              data-testid="content-report"
+              data-brain-id={contentReport.brainId}
+              data-generation-id={contentReport.generationId}
+              data-files-opened={contentReport.filesOpenedForHash}
+              data-bytes-read={contentReport.bytesRead}
+              data-digests-computed={contentReport.digestsComputed}
+              data-report={JSON.stringify(contentReport)}
+            >
+              {contentReport.hashedCount}/{contentReport.indexedFileCount} · {contentReport.hashAlgorithm}
+            </output>
+          ) : null}
 
           {renderedBrains.length > 0 && composed ? (
             <MapView
@@ -1718,6 +1848,13 @@ export default function MapApp() {
             onSelect={selectInSelectedBrain}
             locale="fr"
             strings={t.panel}
+            contentObservation={contentObservation}
+            contentSummary={contentSummary}
+            identicalContentMemberCount={identicalContentMemberCount}
+            contentLoading={contentLoading}
+            contentObservedThisSession={
+              selected ? contentObservedBrains.has(selected.brainId) : false
+            }
           />
 
           <RelationsPanel

@@ -3185,3 +3185,48 @@ preuves M12 publiées ne sont pas modifiées.
 **Non rejoué, conformément au périmètre :** N15, J12, K11, L12, M12 et H9.
 Aucun test complet, `pnpm check`, build ou Tauri n'était demandé; aucune
 nouvelle dépendance, aucun clean, aucune suppression de `target`.
+
+---
+
+## AI. TASK-0023 — observations exactes de contenu
+
+**Date :** 2026-09-03. **État exécutant :** `IMPLEMENTED`, jamais
+`VERIFIED`. **Gel :** `711071c`, poussé avant le code produit.
+
+| Contrôle | Résultat | Preuve |
+|---|---|---|
+| EC1 moteur | **PASS** | RustCrypto `sha2 0.11.0`, `sha256-v1`, buffer 64 KiB, aucune crypto maison |
+| EC2 exactitude | **PASS** | vecteurs vide, `abc`, binaire multi-chunks |
+| EC3–EC5 égalité | **PASS** | mêmes octets/deux chemins et fichiers vides égaux; même taille/octets différents distincts |
+| EC6 store | **PASS** | schéma SQLite 1, CHECK SQL, génération atomique, chemin `brains/<brain_id>/signals/content.sqlite` |
+| EC7 isolation | **PASS** | Alpha/Gamma : deux stores, même chemin/digest, deux `BrainNodeRef` |
+| EC8 lecture seule | **PASS** | fingerprints avant/après identiques; zéro artefact dans la source |
+| EC9 relations | **PASS** | digest octet du store inchangé autour du hashing; comptes/digests et arêtes UI inchangés |
+| EC10 rebuild | **PASS** | génération/digest/store survivent, chemin toujours résolu |
+| EC11 fraîcheur | **PASS** | nouvelle génération, fichier rouvert et digest recalculé malgré métadonnées de nœud inchangées |
+| EC12 instabilité | **PASS** | mutation synchronisée; `UNSTABLE_DURING_READ`, aucun digest publié; campagne globale refusée |
+| EC13 atomicité | **PASS** | échec avant commit conserve intégralement la génération précédente |
+| EC14 X5 | **PASS** | 27 noms identiques dans trois gardes; preuves historiques inchangées; runtime `TASK-0023`, intersection vide |
+| Suite Rust complète | **PASS** | `CARGO_INCREMENTAL=0 cargo test` — **171/171** |
+| Suite TypeScript complète | **PASS** | `pnpm test` — **208/208** |
+| Typecheck et build | **PASS** | `pnpm check`; `pnpm build` |
+| Tauri debug | **PASS** | `pnpm tauri build --debug --no-bundle`, WebView2 réel disponible |
+| EC15 passe 1 | **PASS** | vrai processus; 8 FILE hashés, 3 dossiers exclus, stores Alpha/Gamma distincts, interactions fiables, rebuild persistant |
+| EC15 passe 2 | **PASS** | nouveau processus/même variant; UI stale honnête; 8 ouvertures, 1 424 octets relus, 8 digests recalculés |
+
+Artefacts :
+`TASK-0023-EC15-exact-content-observations-webview2-pass1.json` et
+`TASK-0023-EC15-exact-content-observations-webview2-pass2.json`, WebView2
+`152.0.4191.62`. Ils ne sont pas ajoutés à X5 avant contrôle indépendant.
+
+Le lockfile ajoute exactement `sha2 0.11.0` et cinq transitives nécessaires :
+`digest 0.11.3`, `block-buffer 0.12.1`, `crypto-common 0.2.2`,
+`hybrid-array 0.4.14`, `cpufeatures 0.3.1`; aucune dépendance existante n'est
+mise à jour. `windows-sys` n'est pas ajouté comme dépendance de production.
+
+**Non testé / limites :** aucune donnée réelle, identité physique Windows,
+hydratation B4, watcher, moteur F-043, règle `same-hash`, suggestion, IA, H9
+ou seuil de volumétrie. Les scénarios N15/J12/K11/L12/M12 n'ont pas été
+rejoués, car leurs structures n'ont reçu que la migration de destination; les
+suites complètes couvrent leurs gardes. `DEC-0013/F`, R8 et B0 restent
+ouverts; B0 contourné par `CARGO_INCREMENTAL=0`, sans clean.

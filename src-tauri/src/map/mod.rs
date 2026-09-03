@@ -18,6 +18,7 @@
 
 pub mod brains;
 pub mod commands;
+pub mod content_signals;
 pub mod cross_commands;
 pub mod cross_relations;
 pub mod fixtures;
@@ -87,6 +88,8 @@ pub enum MapError {
     NotBuilt(String),
     #[error("map_artifact_rejected: {0}")]
     ArtifactRejected(String),
+    #[error("content_observation_failed: {0}")]
+    ContentObservation(String),
 }
 
 impl From<MapError> for String {

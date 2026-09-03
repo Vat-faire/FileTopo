@@ -1,6 +1,6 @@
 <#
 .SYNOPSIS
-    Runs the two passes of the L12 COMPOSED-VIEW REGRESSION (TASK-0022) against
+    Runs the two passes of the L12 COMPOSED-VIEW REGRESSION (TASK-0023) against
     the real host, with a real
     close and a real restart between them.
 
@@ -134,8 +134,8 @@ function Invoke-Pass {
 
     $log = Join-Path $LogDirectory "filetopo-task0022-l12-$variant-pass$Pass.log"
 
-    $artifact = Join-Path $runs "TASK-0022-L12-composed-view-regression-webview2-pass$Pass.json"
-    $abandoned = Join-Path $runs "TASK-0022-L12-composed-view-regression-webview2-pass$Pass-abandon.json"
+    $artifact = Join-Path $runs "TASK-0023-L12-composed-view-regression-webview2-pass$Pass.json"
+    $abandoned = Join-Path $runs "TASK-0023-L12-composed-view-regression-webview2-pass$Pass-abandon.json"
     foreach ($stale in @($artifact, $abandoned)) {
         # Only this script's own previous output for THIS pass, and only so a
         # stale file cannot be mistaken for a fresh result.

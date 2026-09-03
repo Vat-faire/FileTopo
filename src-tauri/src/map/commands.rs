@@ -120,6 +120,9 @@ pub struct HostInfo {
     /// `N15` — `0` none, `1` the full interaction pass, `2` the persisted
     /// state observed only after a real process restart.
     pub auto_topographic_pass: u8,
+    /// `EC15` — `0` none, `1` observes both brains and rebuilds Alpha,
+    /// `2` proves persistence and a byte-for-byte re-read after restart.
+    pub auto_content_pass: u8,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]

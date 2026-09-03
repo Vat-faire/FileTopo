@@ -679,7 +679,7 @@ export async function runTopographicScenario(
 ): Promise<void> {
   const { invoke, host, setStatus, log } = deps;
   const evidence: Record<string, unknown> = {
-    task: "TASK-0022",
+          task: "TASK-0023",
     criterion: "N15",
     pass,
     startedAt: new Date().toISOString(),

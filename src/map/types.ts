@@ -161,6 +161,67 @@ export interface HostInfo {
   autoCrossPass: number;
   /** `N15` — `0` none, `1` interaction pass, `2` post-restart pass. */
   autoTopographicPass: number;
+  /** `EC15` — `0` none, `1` observation pass, `2` persisted restart pass. */
+  autoContentPass: number;
+}
+
+/* --- TASK-0023 — observations cryptographiques exactes ------------------ */
+
+export type ContentObservationStatus =
+  | "HASHED"
+  | "UNREADABLE"
+  | "UNSTABLE_DURING_READ"
+  | "UNSUPPORTED";
+
+export interface ContentObservation {
+  relativePath: string;
+  sizeBytes: number;
+  modifiedUnixMs: number | null;
+  observationStatus: ContentObservationStatus;
+  hashAlgorithm: "sha256-v1" | null;
+  hashHex: string | null;
+  observedAtUnixMs: number;
+  generationId: string;
+  diagnostic: string | null;
+}
+
+export interface ContentObservationSummary {
+  brainId: string;
+  /** Relative to the sandbox, never a personal absolute path. */
+  storePath: string;
+  schemaVersion: number;
+  signalEngineVersion: "sha256-v1";
+  currentGenerationId: string | null;
+  currentGenerationObservedAt: number | null;
+  sourceFingerprint: string | null;
+  observationCount: number;
+  hashedCount: number;
+  unreadableCount: number;
+  unstableCount: number;
+  unsupportedCount: number;
+}
+
+export interface ContentObservationReport {
+  brainId: string;
+  storePath: string;
+  schemaVersion: number;
+  signalEngineVersion: "sha256-v1";
+  generationId: string;
+  observedAt: number;
+  sourceFingerprintBefore: string;
+  sourceFingerprintAfter: string;
+  sourceStable: boolean;
+  indexedFileCount: number;
+  hashedCount: number;
+  unreadableCount: number;
+  unstableCount: number;
+  unsupportedCount: number;
+  bytesRead: number;
+  hashAlgorithm: "sha256-v1";
+  readOnlyConfirmed: boolean;
+  filesOpenedForHash: number;
+  digestsComputed: number;
+  durationMs: number;
 }
 
 export interface FixtureIntegrity {

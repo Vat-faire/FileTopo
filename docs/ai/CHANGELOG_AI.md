@@ -3126,3 +3126,33 @@ clavier, ses labels et ses tests réels `WebView2` seront définis par le
   `91bbe90f0f99026c28cd345784d4f579a0016db2`.
 - Action unique suivante : retour à l'orchestrateur pour définir la prochaine
   tranche. `TASK-0023` n'est pas créée.
+
+## 2026-09-03 — TASK-0023 IMPLEMENTED
+
+- Auto-initialisation contrôlée sur `cf51d631`, branche
+  `build/v0.2-a7-exact-content-observations`; gel `TASK-0023`/`DEC-0025`
+  poussé en `711071c` avant le code produit.
+- Ajout minimal de RustCrypto `sha2 0.11.0` et de cinq transitives au lockfile,
+  sans mise à jour opportuniste ni `windows-sys` de production.
+- Nouveau store `brains/<brain_id>/signals/content.sqlite`, schéma 1 : dernière
+  génération datée, remplacement transactionnel, chemins relatifs et quatre
+  statuts sans faux digest.
+- SHA-256 streaming par blocs de 64 KiB sur les seuls nœuds FILE indexés;
+  containment, symlinks/reparse, métadonnées avant/après et fingerprint global
+  avant/après contrôlés. Chaque campagne relit les octets, sans cache de
+  confiance taille+mtime.
+- API Tauri séparée des relations; UI FR/EN « Observations de contenu », digest
+  complet, date/génération, occurrences intra-cerveau et formulation de
+  dernière observation après redémarrage.
+- Aucun contenu, chemin absolu, identifiant physique, relation, suggestion,
+  provenance ou nouvelle arête. Alpha/Gamma restent séparés; map rebuild et
+  stores relationnels restent intacts.
+- Migration des destinations runtime H9/J12/K11/K12/L12/M12/N15 sous
+  `TASK-0023-*`; X5 reste à 27, intersection runtime/protection vide.
+- Validations : 171 tests Rust, 208 TypeScript, check/build/Tauri debug; EC15
+  deux processus WebView2 `152.0.4191.62`, même variante fraîche, deux preuves
+  seulement. Au second passage : 8 fichiers ouverts, 1 424 octets relus, 8
+  digests recalculés.
+- `TASK-0023` devient `IMPLEMENTED`, jamais `VERIFIED` par Codex. `F-043` à
+  `F-046` restent `PROPOSED`; `DEC-0013/F` bloque toujours l'identité physique
+  persistante. Prochaine action : contrôle indépendant de `TASK-0023`.

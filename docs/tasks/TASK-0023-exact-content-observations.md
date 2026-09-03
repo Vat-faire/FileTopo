@@ -3,7 +3,7 @@
 - **Date :** 2026-09-03
 - **Branche :** `build/v0.2-a7-exact-content-observations`
 - **Base contrôlée :** `cf51d631517956ffb3b0f72ac821eca95c1d3a3b`
-- **Statut courant :** `IN_PROGRESS`
+- **Statut courant :** `IMPLEMENTED` — contrôle indépendant requis
 - **Agent d'exécution :** Codex
 - **GO :** prompt technique explicite `TASK-0023` du 2026-09-03
 - **Décision :** [`DEC-0025`](../decisions/DEC-0025-exact-content-observation-boundary.md)
@@ -358,6 +358,7 @@ ou le lockfile incontrôlé, si une action destructive ou une modification de
 | 2026-09-03 | `PROPOSED` | Fiche créée depuis le prompt technique autoritatif, avant toute ligne de code |
 | 2026-09-03 | `APPROVED` | Périmètre, décision, EC1–EC15, validations, limites et hors-scope intégralement écrits |
 | 2026-09-03 | `IN_PROGRESS` | Gel prêt à être commité et poussé avant la première modification de code produit |
+| 2026-09-03 | `IMPLEMENTED` | EC1–EC15 passés; deux processus WebView2 réels; aucun statut `VERIFIED` attribué par l'exécuteur |
 
 ## 18. État final attendu
 
@@ -366,3 +367,26 @@ Si et seulement si EC1–EC15 passent, `TASK-0023` devient `IMPLEMENTED`, jamais
 `TASK-0023`. L'orchestrateur décidera ensuite de la prochaine tranche; aucune
 `TASK-0024` n'est créée ici.
 
+## 19. Résultat d'exécution
+
+Le gel `711071c` a été poussé avant tout code produit. L'implémentation fournit
+`sha256-v1` par `sha2 0.11.0`, un buffer streaming borné à 64 KiB, le schéma
+SQLite 1 par cerveau, la bascule transactionnelle de génération, les statuts
+de lecture, les compteurs de rehash, les commandes Tauri et la section UI
+FR/EN. Aucun contenu, chemin absolu, identifiant physique, relation,
+suggestion ou provenance n'est persisté dans le store de signaux.
+
+Validations exécutées : 171 tests Rust, 208 tests TypeScript, `pnpm check`,
+`pnpm build`, Tauri debug `--no-bundle`, puis EC15 pass1/pass2 dans WebView2
+`152.0.4191.62` sur une même variante fraîche. La passe 2 ouvre 8 fichiers,
+relit 1 424 octets et recalcule 8 digests malgré la génération persistée.
+
+Les deux seules nouvelles preuves sont les artefacts EC15 prévus. Les 27
+preuves X5 restent bit-for-bit inchangées et non remplacées;
+`runtimeWriteOwnership()` publie `TASK-0023`, aucune destination protégée et
+`writesUnderItsOwnTaskOnly = true`.
+
+`F-043`, `F-044`, `F-045` et `F-046` restent `PROPOSED`. La fondation de
+contenu exact de `F-046` existe désormais, mais l'identité physique persistante
+reste non implémentée et bloquée par `DEC-0013/F`. La tâche attend un contrôle
+indépendant et ne se déclare pas `VERIFIED`.

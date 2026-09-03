@@ -1,7 +1,7 @@
 <#
 .SYNOPSIS
     Replays the J12 INTRA-BRAIN relations scenario against the real host, once,
-    with a real keystroke — the regression TASK-0022 owes.
+    with a real keystroke — the current TASK-0023 regression destination.
 
 .DESCRIPTION
     J12 is a criterion of TASK-0017: the relations panel of ONE brain, its
@@ -9,10 +9,10 @@
     TASK-0020 touches that panel — a second one now sits beside it — so J12 is
     replayed to show the first was not disturbed.
 
-    The criterion is TASK-0017's; the artefact belongs to TASK-0022, and its
+    The criterion is TASK-0017's; the artefact belongs to TASK-0023, and its
     name says so:
 
-        TASK-0022-J12-intrabrain-relations-regression-webview2.json
+        TASK-0023-J12-intrabrain-relations-regression-webview2.json
 
     TASK-0017's own J12 evidence, and TASK-0019's replay of it, are BOTH
     protected: this script deletes only its own previous output, and the guard
@@ -66,8 +66,8 @@ $variant = 'task0022-j12-{0}-{1}' -f (Get-Date -Format 'yyyyMMddHHmmss'),
 
 $log = Join-Path $LogDirectory "filetopo-task0022-j12-$variant.log"
 
-$artifact = Join-Path $runs 'TASK-0022-J12-intrabrain-relations-regression-webview2.json'
-$abandoned = Join-Path $runs 'TASK-0022-J12-intrabrain-relations-regression-webview2-abandon.json'
+$artifact = Join-Path $runs 'TASK-0023-J12-intrabrain-relations-regression-webview2.json'
+$abandoned = Join-Path $runs 'TASK-0023-J12-intrabrain-relations-regression-webview2-abandon.json'
 foreach ($stale in @($artifact, $abandoned)) {
     Assert-NotProtectedRunArtifact -Path $stale
     if (Test-Path -LiteralPath $stale) { Remove-Item -LiteralPath $stale -Force }

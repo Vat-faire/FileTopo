@@ -661,6 +661,72 @@ fn map_self_check(
     map::commands::self_check(&paths, &brain).map_err(String::from)
 }
 
+/// Starts one explicit content-observation campaign for the indexed FILE
+/// nodes of one brain. The worker reads bytes only; it never writes below the
+/// analysed root and never opens a relation store.
+#[tauri::command]
+async fn map_content_observe(
+    app: tauri::AppHandle,
+    brain_id: String,
+) -> Result<map::content_signals::ContentObservationReport, String> {
+    let (paths, brain) = resolve_brain(&app, &brain_id)?;
+    tauri::async_runtime::spawn_blocking(move || {
+        map::content_signals::observe_content(&paths, &brain).map_err(String::from)
+    })
+    .await
+    .map_err(|_| "content_observation_worker_failed".to_string())?
+}
+
+#[tauri::command]
+fn map_content_summary(
+    app: tauri::AppHandle,
+    brain_id: String,
+) -> Result<map::content_signals::ContentObservationSummary, String> {
+    let (paths, brain) = resolve_brain(&app, &brain_id)?;
+    map::content_signals::content_observation_summary(&paths, &brain).map_err(String::from)
+}
+
+#[tauri::command]
+fn map_content_observation_for_path(
+    app: tauri::AppHandle,
+    brain_id: String,
+    relative_path: String,
+) -> Result<Option<map::content_signals::ContentObservation>, String> {
+    let (paths, brain) = resolve_brain(&app, &brain_id)?;
+    map::content_signals::content_observation_for_path(&paths, &brain, &relative_path)
+        .map_err(String::from)
+}
+
+#[tauri::command]
+fn map_content_identical_members(
+    app: tauri::AppHandle,
+    brain_id: String,
+    hash: String,
+) -> Result<Vec<map::content_signals::ContentObservation>, String> {
+    let (paths, brain) = resolve_brain(&app, &brain_id)?;
+    map::content_signals::identical_content_members(&paths, &brain, &hash)
+        .map_err(String::from)
+}
+
+#[tauri::command]
+fn map_content_diagnostics(
+    app: tauri::AppHandle,
+    brain_id: String,
+) -> Result<Vec<map::content_signals::ContentObservation>, String> {
+    let (paths, brain) = resolve_brain(&app, &brain_id)?;
+    map::content_signals::content_observation_diagnostics(&paths, &brain)
+        .map_err(String::from)
+}
+
+#[tauri::command]
+fn map_content_observations(
+    app: tauri::AppHandle,
+    brain_id: String,
+) -> Result<Vec<map::content_signals::ContentObservation>, String> {
+    let (paths, brain) = resolve_brain(&app, &brain_id)?;
+    map::content_signals::content_observations(&paths, &brain).map_err(String::from)
+}
+
 /// `H8` — the engine actually rendering, read from the host.
 ///
 /// `tauri::webview_version()` reports the WebView2 runtime on Windows. It is
@@ -702,6 +768,11 @@ fn map_host_info(app: tauri::AppHandle) -> map::commands::HostInfo {
             .filter(|pass| *pass == 1 || *pass == 2)
             .unwrap_or(0),
         auto_topographic_pass: std::env::var("FILETOPO_AUTO_TOPOGRAPHIC")
+            .ok()
+            .and_then(|value| value.parse::<u8>().ok())
+            .filter(|pass| *pass == 1 || *pass == 2)
+            .unwrap_or(0),
+        auto_content_pass: std::env::var("FILETOPO_AUTO_CONTENT")
             .ok()
             .and_then(|value| value.parse::<u8>().ok())
             .filter(|pass| *pass == 1 || *pass == 2)
@@ -891,6 +962,7 @@ pub fn run() {
                     "FILETOPO_AUTO_COMPOSED",
                     "FILETOPO_AUTO_CROSS",
                     "FILETOPO_AUTO_TOPOGRAPHIC",
+                    "FILETOPO_AUTO_CONTENT",
                 ]
                     .iter()
                     .any(|name| {
@@ -914,6 +986,12 @@ pub fn run() {
             map_node_detail,
             map_integrity,
             map_self_check,
+            map_content_observe,
+            map_content_summary,
+            map_content_observation_for_path,
+            map_content_identical_members,
+            map_content_diagnostics,
+            map_content_observations,
             map_relations_open,
             map_relations_for_node,
             map_relations_approve,
@@ -1020,6 +1098,26 @@ mod integration_tests {
             );
         }
         assert!(exposed.iter().all(|name| name.starts_with("map_")));
+    }
+
+    #[test]
+    fn exact_content_commands_are_exposed_without_a_relation_command() {
+        let exposed = registered_commands();
+        for required in [
+            "map_content_observe",
+            "map_content_summary",
+            "map_content_observation_for_path",
+            "map_content_identical_members",
+            "map_content_diagnostics",
+            "map_content_observations",
+        ] {
+            assert!(
+                exposed.iter().any(|name| name == required),
+                "TASK-0023 needs `{required}` reachable from the WebView"
+            );
+        }
+        assert!(!exposed.iter().any(|name| name.contains("same_hash_relation")));
+        assert!(!exposed.iter().any(|name| name.contains("content_suggestion")));
     }
 
     /// The dialogue plugin is what makes a real folder picker possible at all.

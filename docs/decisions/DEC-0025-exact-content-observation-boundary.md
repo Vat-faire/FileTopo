@@ -1,7 +1,7 @@
 # DEC-0025 — Frontière des observations exactes de contenu
 
 - **Date :** 2026-09-03
-- **Statut :** `APPROVED`
+- **Statut :** `IMPLEMENTED` — contrôle indépendant requis
 - **Phase :** étape A — fondation observable du futur moteur déterministe
 - **Décideur :** orchestrateur technique, par le GO explicite `TASK-0023` du
   2026-09-03, sous la direction produit enregistrée par `DEC-0021`
@@ -54,7 +54,7 @@ Audit préalable au code produit, consulté le 2026-09-03 :
 Résolution transitive normale attendue avec le registre crates.io actuel :
 
 - `digest 0.11.3`, `block-buffer 0.12.1`, `crypto-common 0.2.2`,
-  `hybrid-array 0.4.8` et `cpufeatures 0.3.0`, tous `MIT OR Apache-2.0`;
+  `hybrid-array 0.4.14` et `cpufeatures 0.3.1`, tous `MIT OR Apache-2.0`;
 - `cfg-if 1.0.4`, `libc 0.2.189` et `typenum 1.20.1` sont déjà présents dans
   le lockfile et restent réutilisables;
 - aucune feature facultative `blobby`, `const-oid`, `ctutils`, `getrandom`,
@@ -63,9 +63,10 @@ Résolution transitive normale attendue avec le registre crates.io actuel :
   de `0.11.0` peut donc faire coexister deux versions sans mettre à jour le
   consommateur historique.
 
-Après résolution Cargo, le diff de `Cargo.lock` doit confirmer exactement ce
-graphe ou la tâche s'arrête. Aucun autre paquet ne peut être mis à jour par
-opportunité.
+La résolution Cargo réelle a confirmé exactement ces six nouveaux paquets :
+`sha2 0.11.0` et les cinq transitives listées ci-dessus. Aucun paquet existant
+n'a été mis à jour; `cfg-if`, `libc` et `typenum` sont réutilisés. Aucun autre
+paquet ne peut être mis à jour par opportunité.
 
 Sources primaires :
 
@@ -184,3 +185,13 @@ de preuve. La décision reste `APPROVED` jusqu'au résultat de la tâche, puis n
 pourra être dite `IMPLEMENTED` que si cette frontière est effectivement tenue.
 `VERIFIED` appartient à un contrôle indépendant.
 
+## Résultat d'implémentation — 2026-09-03
+
+`TASK-0023` implémente cette frontière sans l'élargir : dépendance exacte et
+lockfile minimal, hashing streaming, génération atomique, store par cerveau,
+fraîcheur honnête, statuts sans faux digest, UI et preuves EC15. Les critères
+gelés sont passés; la décision n'est pas `VERIFIED` avant contrôle indépendant.
+
+`DEC-0013/F` demeure bloquante pour toute identité physique persistante. Aucun
+`VolumeSerialNumber`, `FileId`, `windows-sys`, état relationnel ou contenu
+source n'a été ajouté par cette implémentation.
