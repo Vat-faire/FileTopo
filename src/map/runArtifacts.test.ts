@@ -15,6 +15,13 @@
  * protected list, and the `TASK-0020` runtime writes under `TASK-0020`. The
  * rule did not change; the list it applies to grew twice, and that growth is
  * what the tests below hold.
+ *
+ * **`ACTION-0032` made `TASK-0020` `VERIFIED`**, and the list grew a third
+ * time. This extension seals five of the runtime's *own* destinations, so the
+ * old blanket claim « no runtime destination is a protected artefact » is now
+ * false — and replacing it with nothing would be how a guard quietly stops
+ * guarding. It is replaced by an exact one: the intersection of the two lists
+ * is `SEALED_RUNTIME_DESTINATIONS`, no more and no less.
  */
 
 import { describe, expect, it } from "vitest";
@@ -34,6 +41,7 @@ import {
   K11_ARTIFACT,
   PROTECTED_RUN_ARTIFACTS,
   RUNTIME_RUN_ARTIFACTS,
+  SEALED_RUNTIME_DESTINATIONS,
   k12Artifact,
   l12Artifact,
   m12Artifact,
@@ -49,8 +57,37 @@ const WRITING_SOURCES: ReadonlyArray<readonly [string, string]> = [
 ];
 
 describe("X5 — the runtime never writes over an earlier task's canonical evidence", () => {
-  it("no runtime destination is a protected artefact", () => {
-    for (const name of RUNTIME_RUN_ARTIFACTS) {
+  it("the only protected runtime destinations are the five ACTION-0032 sealed", () => {
+    // The strong form of what used to be « none of them is protected ». Both
+    // directions are asserted, because each catches a different accident: a
+    // destination sealed without anybody noticing, and a sealed name quietly
+    // dropped back out of the protected list.
+    const sealed = SEALED_RUNTIME_DESTINATIONS as readonly string[];
+    const collisions = (RUNTIME_RUN_ARTIFACTS as readonly string[]).filter((name) =>
+      (PROTECTED_RUN_ARTIFACTS as readonly string[]).includes(name),
+    );
+    expect([...collisions].sort()).toStrictEqual([...sealed].sort());
+    for (const name of sealed) {
+      expect(RUNTIME_RUN_ARTIFACTS as readonly string[]).toContain(name);
+      expect(PROTECTED_RUN_ARTIFACTS as readonly string[]).toContain(name);
+    }
+  });
+
+  it("an abandonment variant is never sealed — it is evidence of nothing", () => {
+    // The distinction the seal rests on: a pass that was abandoned published
+    // no proof, so its file is not canonical and stays writable.
+    for (const name of [
+      J12_REGRESSION_ABANDON_ARTIFACT,
+      l12Artifact(1, "abandoned"),
+      l12Artifact(2, "abandoned"),
+      m12Artifact(1, "abandoned"),
+      m12Artifact(2, "abandoned"),
+      H9_REGRESSION_ARTIFACT,
+      H9_REGRESSION_ABANDON_ARTIFACT,
+      K11_ARTIFACT,
+      k12Artifact(1, "written"),
+      k12Artifact(2, "written"),
+    ]) {
       expect(PROTECTED_RUN_ARTIFACTS as readonly string[]).not.toContain(name);
     }
   });
@@ -82,7 +119,24 @@ describe("X5 — the runtime never writes over an earlier task's canonical evide
     ]) {
       expect(PROTECTED_RUN_ARTIFACTS as readonly string[]).toContain(name);
     }
-    expect(PROTECTED_RUN_ARTIFACTS).toHaveLength(14);
+  });
+
+  it("TASK-0020's own five proofs became protected when it was verified", () => {
+    // `ACTION-0032`. Two are the `M12` campaign's own WebView2 passes; three
+    // are regression replays. Unlike the two previous extensions, these five
+    // are still spelled as destinations by the runtime in this checkout — the
+    // gate refuses them, and that refusal is the intended end state, not a
+    // defect waiting to be fixed.
+    for (const name of [
+      "TASK-0020-M12-interbrain-relations-webview2-pass1.json",
+      "TASK-0020-M12-interbrain-relations-webview2-pass2.json",
+      "TASK-0020-J12-intrabrain-regression-webview2.json",
+      "TASK-0020-L12-composed-regression-webview2-pass1.json",
+      "TASK-0020-L12-composed-regression-webview2-pass2.json",
+    ]) {
+      expect(PROTECTED_RUN_ARTIFACTS as readonly string[]).toContain(name);
+    }
+    expect(PROTECTED_RUN_ARTIFACTS).toHaveLength(19);
   });
 
   it("the migrated scenarios write under TASK-0020, named as regressions", () => {

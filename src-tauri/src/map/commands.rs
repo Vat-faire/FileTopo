@@ -521,7 +521,17 @@ pub fn self_check(paths: &SandboxPaths, brain: &BrainRecord) -> Result<MapSelfCh
 /// controlled. `TASK-0020` therefore writes **nothing** under a `TASK-0019`
 /// name: its own regressions are published under `TASK-0020-` names, and this
 /// gate is what makes that a refusal rather than a convention.
-pub const PROTECTED_RUN_ARTIFACTS: [&str; 14] = [
+///
+/// **`TASK-0020` is `VERIFIED` since `ACTION-0032`**, so its **five** proofs
+/// join in turn and the list goes from fourteen names to nineteen. The
+/// consequence is deliberate and worth stating plainly: the scenarios still
+/// compiled into this runtime spell those five names as their destination, so
+/// pressing those buttons now yields a **refusal** instead of a write. That is
+/// the gate working, not a regression. `TASK-0020` is finished and controlled;
+/// no legitimate execution needs to write those files again, and the next
+/// slice republishes its replays under **its own** task name, exactly as
+/// `TASK-0020` did for `TASK-0019`.
+pub const PROTECTED_RUN_ARTIFACTS: [&str; 19] = [
     "TASK-0016-H1-H7-verification.json",
     "TASK-0016-H9-webview2.json",
     "TASK-0017-J11-isolation.json",
@@ -536,6 +546,11 @@ pub const PROTECTED_RUN_ARTIFACTS: [&str; 14] = [
     "TASK-0019-K12-foundation-regression-webview2-pass2.json",
     "TASK-0019-L12-composed-view-webview2-pass1.json",
     "TASK-0019-L12-composed-view-webview2-pass2.json",
+    "TASK-0020-M12-interbrain-relations-webview2-pass1.json",
+    "TASK-0020-M12-interbrain-relations-webview2-pass2.json",
+    "TASK-0020-J12-intrabrain-regression-webview2.json",
+    "TASK-0020-L12-composed-regression-webview2-pass1.json",
+    "TASK-0020-L12-composed-regression-webview2-pass2.json",
 ];
 
 /// Writes a measurement artefact into `docs/performance/runs/` of this
@@ -618,22 +633,26 @@ mod tests {
         }
     }
 
-    /// The names the current runtime actually writes are **not** protected
-    /// ones, and say which task they belong to.
+    /// The runtime destinations that are **not** canonical evidence stay
+    /// writable, and still say which task they belong to.
     ///
-    /// `TASK-0020` writes under `TASK-0020`, full stop. The six artefacts this
-    /// runtime wrote under `TASK-0019` a slice ago are now the canonical
-    /// evidence of a `VERIFIED` task, and the loop below asserts both halves:
-    /// the new names are free, and the old ones are refused.
+    /// This test used to assert that *all* the `TASK-0020` destinations were
+    /// free. Five of them no longer are — `ACTION-0032` made `TASK-0020`
+    /// `VERIFIED` — so what remains free is exactly the set below: the
+    /// abandonment variants, which are not evidence of anything, and the
+    /// replays `TASK-0020` never had to publish.
     #[test]
-    fn the_migrated_scenarios_write_under_task_0020() {
+    fn the_runtime_destinations_that_are_not_evidence_stay_writable() {
         for name in [
-            "TASK-0020-J12-intrabrain-regression-webview2.json",
             "TASK-0020-J12-intrabrain-regression-webview2-abandon.json",
-            "TASK-0020-L12-composed-regression-webview2-pass1.json",
-            "TASK-0020-L12-composed-regression-webview2-pass2.json",
-            "TASK-0020-M12-interbrain-relations-webview2-pass1.json",
-            "TASK-0020-M12-interbrain-relations-webview2-pass2.json",
+            "TASK-0020-L12-composed-regression-webview2-pass1-abandon.json",
+            "TASK-0020-L12-composed-regression-webview2-pass2-abandon.json",
+            "TASK-0020-M12-interbrain-relations-webview2-pass1-abandon.json",
+            "TASK-0020-M12-interbrain-relations-webview2-pass2-abandon.json",
+            "TASK-0020-K11-readonly-regression-webview2.json",
+            "TASK-0020-K12-foundation-regression-webview2-pass1.json",
+            "TASK-0020-K12-foundation-regression-webview2-pass2.json",
+            "TASK-0020-H9-composed-runtime-regression-webview2.json",
         ] {
             assert!(
                 !PROTECTED_RUN_ARTIFACTS.contains(&name),
@@ -641,6 +660,41 @@ mod tests {
             );
             assert!(name.starts_with("TASK-0020-"), "{name} names no task");
             assert!(name.len() <= 120, "{name} is longer than the guard allows");
+        }
+    }
+
+    /// Reserve `X5`, extended a third time: the **five** proofs `TASK-0020`
+    /// published became untouchable the moment `ACTION-0032` made it
+    /// `VERIFIED`.
+    ///
+    /// Two of these five are the `M12` campaign's own two passes, and three
+    /// are regression replays. Stating it separately matters because this is
+    /// the first extension whose names are **still spelled as destinations**
+    /// by the runtime that ships in this checkout: `crossScenario`,
+    /// `relationScenario` and `composedScenario` will ask for them, and this
+    /// gate answers no. The refusal is the point. A slice that genuinely needs
+    /// to replay one of these scenarios renames its output under its own task,
+    /// which is what every previous slice did.
+    #[test]
+    fn task_0020s_own_evidence_became_protected_when_it_was_verified() {
+        for name in [
+            "TASK-0020-M12-interbrain-relations-webview2-pass1.json",
+            "TASK-0020-M12-interbrain-relations-webview2-pass2.json",
+            "TASK-0020-J12-intrabrain-regression-webview2.json",
+            "TASK-0020-L12-composed-regression-webview2-pass1.json",
+            "TASK-0020-L12-composed-regression-webview2-pass2.json",
+        ] {
+            assert!(
+                PROTECTED_RUN_ARTIFACTS.contains(&name),
+                "{name} is a VERIFIED task's evidence and is not protected"
+            );
+            assert!(
+                matches!(
+                    write_run_artifact(name, "{}"),
+                    Err(MapError::ArtifactRejected(_))
+                ),
+                "{name} was accepted as a destination"
+            );
         }
     }
 

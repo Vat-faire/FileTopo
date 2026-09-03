@@ -24,8 +24,11 @@
       * TASK-0019 — verified by ACTION-0031, SIX proofs, four of which are
         themselves regression replays. Being a replay does not make evidence
         less canonical once the task that published it has been controlled.
+      * TASK-0020 — verified by ACTION-0032, FIVE proofs: the M12 campaign's
+        two WebView2 passes, the J12 intra-brain regression, and the two passes
+        of the L12 composed regression.
 
-    Fourteen names. Nothing here deletes, renames or moves anything: this file
+    Nineteen names. Nothing here deletes, renames or moves anything: this file
     only refuses.
 #>
 
@@ -43,11 +46,16 @@ $script:ProtectedRunArtifacts = @(
     'TASK-0019-K12-foundation-regression-webview2-pass1.json',
     'TASK-0019-K12-foundation-regression-webview2-pass2.json',
     'TASK-0019-L12-composed-view-webview2-pass1.json',
-    'TASK-0019-L12-composed-view-webview2-pass2.json'
+    'TASK-0019-L12-composed-view-webview2-pass2.json',
+    'TASK-0020-M12-interbrain-relations-webview2-pass1.json',
+    'TASK-0020-M12-interbrain-relations-webview2-pass2.json',
+    'TASK-0020-J12-intrabrain-regression-webview2.json',
+    'TASK-0020-L12-composed-regression-webview2-pass1.json',
+    'TASK-0020-L12-composed-regression-webview2-pass2.json'
 )
 
 function Get-ProtectedRunArtifact {
-    <# The fourteen names, for a caller that wants to report them. #>
+    <# The nineteen names, for a caller that wants to report them. #>
     return $script:ProtectedRunArtifacts
 }
 

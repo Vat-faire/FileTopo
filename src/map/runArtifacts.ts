@@ -1,7 +1,7 @@
 /**
  * The names this runtime is allowed to write under `docs/performance/runs/`.
  *
- * **Reserve `X5` of `ACTION-0028`, `CLOSED` and extended twice.**
+ * **Reserve `X5` of `ACTION-0028`, `CLOSED` and extended three times.**
  * `map_write_run_artifact` writes by replacement, so a scenario that keeps an
  * older task's file name silently overwrites that task's published evidence
  * the next time somebody presses the button.
@@ -19,6 +19,18 @@
  * written for would have to be rewritten at every verification; this one is
  * applied the moment a task becomes `VERIFIED`.
  *
+ * **`TASK-0020` is `VERIFIED` since `ACTION-0032`**, and its five proofs join
+ * in turn. This extension differs from the previous two in one respect worth
+ * naming rather than hiding: the runtime shipped in this checkout still spells
+ * those five names as destinations, so five of its own destinations are now
+ * **sealed** — the Rust gate answers with a refusal instead of writing, and
+ * the PowerShell guard refuses to delete a stale copy before a pass. Those
+ * scenarios are therefore no longer runnable **under these names**, which is
+ * correct: `TASK-0020` is controlled and finished, and a slice that needs to
+ * replay one of them republishes it under its own task name, exactly as
+ * `TASK-0020` did for `TASK-0019`. {@link SEALED_RUNTIME_DESTINATIONS} names
+ * the five so the state is asserted rather than discovered.
+ *
  * Every name lives here so there is one spelling of each and a guard test can
  * hold the whole surface at once — see `runArtifacts.test.ts`.
  */
@@ -29,8 +41,9 @@
  * runtime.
  *
  * Four names come from `TASK-0016` and `TASK-0017`, four from `TASK-0018`
- * (added by `ACTION-0029`), and the last six are `TASK-0019`'s, added when
- * `ACTION-0031` made it `VERIFIED`.
+ * (added by `ACTION-0029`), six are `TASK-0019`'s, added when `ACTION-0031`
+ * made it `VERIFIED`, and the last five are `TASK-0020`'s, added when
+ * `ACTION-0032` made it `VERIFIED`.
  */
 export const PROTECTED_RUN_ARTIFACTS = [
   "TASK-0016-H1-H7-verification.json",
@@ -47,6 +60,11 @@ export const PROTECTED_RUN_ARTIFACTS = [
   "TASK-0019-K12-foundation-regression-webview2-pass2.json",
   "TASK-0019-L12-composed-view-webview2-pass1.json",
   "TASK-0019-L12-composed-view-webview2-pass2.json",
+  "TASK-0020-M12-interbrain-relations-webview2-pass1.json",
+  "TASK-0020-M12-interbrain-relations-webview2-pass2.json",
+  "TASK-0020-J12-intrabrain-regression-webview2.json",
+  "TASK-0020-L12-composed-regression-webview2-pass1.json",
+  "TASK-0020-L12-composed-regression-webview2-pass2.json",
 ] as const;
 
 /**
@@ -105,7 +123,16 @@ export function m12Artifact(pass: number, outcome: "written" | "abandoned"): str
   return `TASK-0020-M12-interbrain-relations-webview2-pass${pass}${suffix}.json`;
 }
 
-/** Every name this runtime may write. The guard test enumerates it. */
+/**
+ * Every name this runtime **spells as a destination**. The guard test
+ * enumerates it.
+ *
+ * Since `ACTION-0032` this is no longer the same set as « every name this
+ * runtime may write »: five of these are now protected evidence, and the gate
+ * refuses them. {@link SEALED_RUNTIME_DESTINATIONS} is that intersection, and
+ * the guard test asserts it is *exactly* those five — neither a sixth
+ * destination silently sealed, nor one of the five silently unsealed.
+ */
 export const RUNTIME_RUN_ARTIFACTS = [
   H9_REGRESSION_ARTIFACT,
   H9_REGRESSION_ABANDON_ARTIFACT,
@@ -124,4 +151,24 @@ export const RUNTIME_RUN_ARTIFACTS = [
   m12Artifact(1, "abandoned"),
   m12Artifact(2, "written"),
   m12Artifact(2, "abandoned"),
+] as const;
+
+/**
+ * The five runtime destinations that `ACTION-0032` sealed.
+ *
+ * They are `TASK-0020`'s own canonical evidence, and the scenarios that
+ * produced them still name them. Writing one now fails at the Rust gate, and
+ * deleting a stale copy fails in `scripts/protected-run-artifacts.ps1`. This
+ * constant exists so that the state is **declared and tested** rather than
+ * discovered by somebody pressing a button and reading an error.
+ *
+ * Nothing here is a to-do: the next slice does not "unseal" these. It names
+ * its own replays after itself, and this list keeps growing.
+ */
+export const SEALED_RUNTIME_DESTINATIONS = [
+  m12Artifact(1, "written"),
+  m12Artifact(2, "written"),
+  J12_REGRESSION_ARTIFACT,
+  l12Artifact(1, "written"),
+  l12Artifact(2, "written"),
 ] as const;
