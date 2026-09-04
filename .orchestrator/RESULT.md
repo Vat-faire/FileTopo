@@ -2,7 +2,7 @@ TASK_ID: TASK-0023 — correction X9
 AGENT: CLAUDE
 RESULT: DONE
 BRANCH: build/v0.2-a7-exact-content-observations
-FINAL_HEAD: <a-remplir>
+FINAL_HEAD: ca90b2aa162dae7f97d2c87f3a177b55c097941d
 
 SUMMARY:
 - `ACTION-0037` enregistré : verdict indépendant `CHANGES_REQUIRED`, `TASK-0023` `IMPLEMENTED`, réserve unique `X9` `OPEN`. Claude enregistre, ne rend pas le verdict.
@@ -19,7 +19,7 @@ VALIDATIONS:
 IMPORTANT_FILES:
 - `src-tauri/src/map/content_signals.rs`; `src-tauri/src/map/fixtures.rs` (commentaire seul); `src/map/contentScenario.ts`; `scripts/task0023-ec15-run-real-host.ps1` (préfixe de variante `x9`); `docs/reviews/ACTION-0037-independent-control.md`; `docs/tasks/TASK-0023-exact-content-observations.md`; `docs/decisions/DEC-0025-exact-content-observation-boundary.md`; deux preuves `docs/performance/runs/TASK-0023-EC15-*`.
 
-COMMIT: <a-remplir>
+COMMIT: ca90b2aa162dae7f97d2c87f3a177b55c097941d
 PUSHED: yes
 
 LIMITS_OR_BLOCKERS:
