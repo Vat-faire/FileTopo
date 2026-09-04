@@ -3206,3 +3206,52 @@ Les quatre tests `#[cfg(unix)]` ne sont pas compilés sur cet hôte Windows, et
 la création de symlink Windows a été refusée faute de privilège : la preuve
 exécutée du non-suivi de lien est la jonction `mklink /J`. Aucun rejeu de
 `J12`, `K11`, `K12`, `L12`, `M12`, `N15` ni `H9`. `DEC-0013/F` reste bloquante.
+
+---
+
+## 2026-09-04 — ACTION-0038 — Correction ciblée X10
+
+**Agent :** exécuteur Codex
+**Statut à l'issue :** `X9 = CLOSED`, `ACTION-0038 = CHANGES_REQUIRED`,
+`TASK-0023 = IMPLEMENTED`, `X10 = OPEN`. Aucun `VERIFIED` attribué par
+l'exécuteur.
+
+### Fait
+
+- Enregistrement du verdict externe `ACTION-0038`, sans le rendre : X9 fermé,
+  réserve unique X10 sur les races entre validation de pathname et
+  ouverture/parcours.
+- Audit de Rust `1.98.0`, de `std::os::windows::fs::OpenOptionsExt`, des
+  sémantiques `CreateFile` et du graphe Cargo. Conclusion : std suffit pour la
+  chaîne Windows; aucune dépendance ajoutée.
+- Ajout de `open_path_no_follow` et `open_confined_regular_file` : ouverture
+  sans suivi du composant final reparse, décision sur le handle réel, racine et
+  composants intermédiaires épinglés sans partage écriture/suppression, lecture
+  du même handle.
+- Migration de `sha256-tree-v1` vers la même ouverture sûre : classification
+  depuis le handle, fichiers streamés depuis ce handle et répertoires épinglés
+  pendant `read_dir` et récursion.
+- Trois tests TOCTOU synchronisés et sans sommeil : remplacement fichier,
+  remplacement répertoire par vraie jonction et refus de renommage d'un
+  composant intermédiaire déjà épinglé.
+- Rejeu EC15 dans deux vrais processus WebView2 sur la variante fraîche
+  `task0023-ec15-x10-20260904153755-5a40e1`; seules les deux preuves EC15 non
+  protégées sont réécrites.
+
+### Validé
+
+`content_signals` **29/29**; Rust **181/181**; TypeScript **208/208**;
+`pnpm check`; `pnpm build`; Tauri debug `--no-bundle`; EC15 passes 1 et 2,
+WebView2 `152.0.4191.62`. X5 reste exactement à 27; `main` reste
+`91bbe90f0f99026c28cd345784d4f579a0016db2`.
+
+### Non testé / limites
+
+Le repli non-Windows n'est pas déclaré race-safe et n'a pas été compilé ou
+exécuté. `cargo fmt --check` reste rouge sur le formatage historique global;
+aucun reformatage global n'a été fait. `DEC-0013/F` reste bloquante. Aucun
+rejeu J12/K11/K12/L12/M12/N15/H9, aucune donnée réelle, dépendance, identité
+persistée, suppression `target`, clean ni action sur `main`.
+
+**Action unique suivante :** re-contrôle indépendant ciblé `X10` /
+`TASK-0023`.

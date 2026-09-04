@@ -1,5 +1,49 @@
 # HANDOFF — passage de relais
 
+## Relais actuel — ACTION-0038, correction X10, 2026-09-04
+
+Le verdict externe est enregistré dans
+[`ACTION-0038`](../reviews/ACTION-0038-independent-recontrol.md), sans être
+rendu par Codex : `X9 = CLOSED`, `ACTION-0038 = CHANGES_REQUIRED`,
+`TASK-0023 = IMPLEMENTED`, `X10 = OPEN`. Aucun autre point accepté n'est
+rouvert.
+
+Sur Windows, `open_confined_regular_file` épingle la racine puis chaque
+composant intermédiaire par un handle ouvert avec
+`FILE_FLAG_OPEN_REPARSE_POINT | FILE_FLAG_BACKUP_SEMANTICS`. La classification
+porte sur `File::metadata()` du handle réel; les répertoires refusent les
+partages écriture et suppression jusqu'à la fin de la lecture. Le fichier
+final refuse le partage suppression, est classé depuis son handle, puis ce
+même `File` alimente SHA-256. `sha256-tree-v1` utilise la même primitive bas
+niveau : un répertoire reste épinglé pendant `read_dir` et toute sa récursion.
+
+L'audit préalable a confirmé que Rust `1.98.0` fournit les primitives requises
+dans `std::os::windows::fs::OpenOptionsExt`. Aucune dépendance n'est ajoutée;
+`Cargo.toml` et `Cargo.lock` restent inchangés. Aucune metadata d'identité de
+handle n'est persistée.
+
+Trois tests TOCTOU synchronisés passent réellement : fichier remplacé par un
+reparse sortant avant l'ouverture sûre, répertoire remplacé par une jonction
+sortante avant le parcours, et composant `a` de `root/a/b/file` impossible à
+renommer après épinglage. Aucun test n'utilise de sommeil et aucun octet
+extérieur n'est lu.
+
+Validation : `content_signals` 29/29, Rust 181/181, TypeScript 208/208,
+`pnpm check`, `pnpm build`, Tauri debug `--no-bundle`. EC15 passe 1/2 dans deux
+processus WebView2 `152.0.4191.62`, variante fraîche
+`task0023-ec15-x10-20260904153755-5a40e1` : 8 fichiers, 1 424 octets, 8
+digests, redémarrage réel, stale UI honnête, Alpha/Gamma et relations
+inchangés. X5 reste exactement 27; seules les deux preuves EC15 non protégées
+sont réécrites.
+
+Limites : le repli non-Windows n'est pas revendiqué race-safe et n'a pas été
+compilé/exécuté; `DEC-0013/F` reste bloquante. `cargo fmt --check` reste rouge
+sur le formatage historique global avec rustfmt 1.98; aucun reformatage global
+n'a été appliqué.
+
+**Prochaine action unique : re-contrôle indépendant ciblé `X10` /
+`TASK-0023`.** `X10` reste `OPEN` et Codex ne s'attribue pas `VERIFIED`.
+
 ## Relais actuel — ACTION-0037, correction X9, 2026-09-04
 
 Le verdict indépendant est enregistré dans

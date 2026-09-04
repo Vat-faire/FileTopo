@@ -2,7 +2,7 @@
   "task": "TASK-0023",
   "criterion": "EC15",
   "pass": 1,
-  "startedAt": "2026-09-04T18:53:58.791Z",
+  "startedAt": "2026-09-04T19:37:59.932Z",
   "realHost": true,
   "host": {
     "appVersion": "0.1.0-alpha.1",
@@ -11,7 +11,7 @@
     "platform": "windows"
   },
   "pass1": {
-    "sandboxVariant": "<dépôt>/.filetopo-sandbox/variants/task0023-ec15-x9-20260904145356-6ebb99",
+    "sandboxVariant": "<dépôt>/.filetopo-sandbox/variants/task0023-ec15-x10-20260904153755-5a40e1",
     "freshByDriver": true,
     "alphaInitial": {
       "activeBrainId": "brain-alpha",
@@ -30,13 +30,13 @@
       "nodeCeiling": 5000,
       "depthCeiling": 40,
       "rebuilt": true,
-      "scanMs": 0.7339,
-      "layoutMs": 0.016900000000000002,
-      "indexMs": 16.0644,
-      "totalMs": 19.941899999999997,
+      "scanMs": 0.6629999999999999,
+      "layoutMs": 0.0168,
+      "indexMs": 12.147,
+      "totalMs": 15.874099999999999,
       "layoutInvocations": 1,
-      "fingerprintBefore": "fnv1a64:8f080dc3a443344b",
-      "fingerprintAfter": "fnv1a64:8f080dc3a443344b",
+      "fingerprintBefore": "fnv1a64:49c1dc90802e32a4",
+      "fingerprintAfter": "fnv1a64:49c1dc90802e32a4",
       "readOnlyConfirmed": true,
       "reconstructibleDigest": "fnv1a64:400fab2df3081fc0",
       "nonReconstructible": [
@@ -56,13 +56,13 @@
       "nodeCeiling": 5000,
       "depthCeiling": 40,
       "rebuilt": false,
-      "scanMs": 0.7024,
-      "layoutMs": 0.0153,
-      "indexMs": 3.8046,
-      "totalMs": 13.310799999999999,
+      "scanMs": 0.7011,
+      "layoutMs": 0.0158,
+      "indexMs": 4.092700000000001,
+      "totalMs": 13.8603,
       "layoutInvocations": 1,
-      "fingerprintBefore": "fnv1a64:8f080dc3a443344b",
-      "fingerprintAfter": "fnv1a64:8f080dc3a443344b",
+      "fingerprintBefore": "fnv1a64:49c1dc90802e32a4",
+      "fingerprintAfter": "fnv1a64:49c1dc90802e32a4",
       "readOnlyConfirmed": true,
       "reconstructibleDigest": "fnv1a64:400fab2df3081fc0",
       "nonReconstructible": [
@@ -81,10 +81,10 @@
       "storePath": "brains/brain-alpha/signals/content.sqlite",
       "schemaVersion": 1,
       "signalEngineVersion": "sha256-v1",
-      "generationId": "959cf573-53bd-4ada-aab1-ffd1fdd730fd",
-      "observedAt": 1788548040423,
-      "sourceFingerprintBefore": "sha256-tree-v1:85f73748779dbd8d00cc5ac0e972fb27a8f7cc268d2b8332ed9549c7c6ea29de",
-      "sourceFingerprintAfter": "sha256-tree-v1:85f73748779dbd8d00cc5ac0e972fb27a8f7cc268d2b8332ed9549c7c6ea29de",
+      "generationId": "3e0d1f46-51bb-4f0f-8872-52fed3b72449",
+      "observedAt": 1788550681479,
+      "sourceFingerprintBefore": "sha256-tree-v1:b9d4f20b4194ff5dc2712d81f3f8ffd09c53ccb678fc21a7214a032da328cf14",
+      "sourceFingerprintAfter": "sha256-tree-v1:b9d4f20b4194ff5dc2712d81f3f8ffd09c53ccb678fc21a7214a032da328cf14",
       "sourceStable": true,
       "indexedFileCount": 8,
       "hashedCount": 8,
@@ -96,7 +96,7 @@
       "digestsComputed": 8,
       "hashAlgorithm": "sha256-v1",
       "readOnlyConfirmed": true,
-      "durationMs": 20.197699999999998,
+      "durationMs": 15.738900000000001,
       "interaction": {
         "keyRequested": "{ENTER}",
         "keydownIsTrusted": true,
@@ -112,10 +112,10 @@
       "storePath": "brains/brain-gamma/signals/content.sqlite",
       "schemaVersion": 1,
       "signalEngineVersion": "sha256-v1",
-      "generationId": "32de2e46-7a3f-42ee-afd3-489d784ad4ea",
-      "observedAt": 1788548047280,
-      "sourceFingerprintBefore": "sha256-tree-v1:85f73748779dbd8d00cc5ac0e972fb27a8f7cc268d2b8332ed9549c7c6ea29de",
-      "sourceFingerprintAfter": "sha256-tree-v1:85f73748779dbd8d00cc5ac0e972fb27a8f7cc268d2b8332ed9549c7c6ea29de",
+      "generationId": "2804aea4-48e8-474a-9985-a1bb01e1d2d3",
+      "observedAt": 1788550688549,
+      "sourceFingerprintBefore": "sha256-tree-v1:b9d4f20b4194ff5dc2712d81f3f8ffd09c53ccb678fc21a7214a032da328cf14",
+      "sourceFingerprintAfter": "sha256-tree-v1:b9d4f20b4194ff5dc2712d81f3f8ffd09c53ccb678fc21a7214a032da328cf14",
       "sourceStable": true,
       "indexedFileCount": 8,
       "hashedCount": 8,
@@ -127,7 +127,7 @@
       "digestsComputed": 8,
       "hashAlgorithm": "sha256-v1",
       "readOnlyConfirmed": true,
-      "durationMs": 15.4011,
+      "durationMs": 16.8471,
       "interaction": {
         "keyRequested": "{ENTER}",
         "keydownIsTrusted": true,
@@ -168,7 +168,7 @@
       "sameRelativePath": "dossier-a/note-1.txt",
       "sameDigest": true,
       "uiDigest": "5cec5fde90215c5d5c6139cfed94dba5cd07250da93d84a367b372eb8e6f843b",
-      "uiText": "Observations de contenuSHA-256 observé5cec5fde90215c5d5c6139cfed94dba5cd07250da93d84a367b372eb8e6f843bObservé le4 sept. 2026, 14 h 54Génération959cf573-53bd-4ada-aab1-ffd1fdd730fdCette observation ne crée aucune relation."
+      "uiText": "Observations de contenuSHA-256 observé5cec5fde90215c5d5c6139cfed94dba5cd07250da93d84a367b372eb8e6f843bObservé le4 sept. 2026, 15 h 38Génération3e0d1f46-51bb-4f0f-8872-52fed3b72449Cette observation ne crée aucune relation."
     },
     "addGamma": {
       "open": {
@@ -266,8 +266,8 @@
     },
     "zeroNewEdges": true,
     "rebuild": {
-      "generationBefore": "959cf573-53bd-4ada-aab1-ffd1fdd730fd",
-      "generationAfter": "959cf573-53bd-4ada-aab1-ffd1fdd730fd",
+      "generationBefore": "3e0d1f46-51bb-4f0f-8872-52fed3b72449",
+      "generationAfter": "3e0d1f46-51bb-4f0f-8872-52fed3b72449",
       "digestBefore": "5cec5fde90215c5d5c6139cfed94dba5cd07250da93d84a367b372eb8e6f843b",
       "digestAfter": "5cec5fde90215c5d5c6139cfed94dba5cd07250da93d84a367b372eb8e6f843b",
       "persisted": true
@@ -276,14 +276,14 @@
       "before": {
         "brainId": "brain-alpha",
         "fixtureId": "quasi-empty",
-        "fingerprint": "fnv1a64:8f080dc3a443344b",
+        "fingerprint": "fnv1a64:49c1dc90802e32a4",
         "filetopoArtifacts": [],
         "observedEntries": 11
       },
       "after": {
         "brainId": "brain-alpha",
         "fixtureId": "quasi-empty",
-        "fingerprint": "fnv1a64:8f080dc3a443344b",
+        "fingerprint": "fnv1a64:49c1dc90802e32a4",
         "filetopoArtifacts": [],
         "observedEntries": 11
       }
@@ -308,5 +308,5 @@
     },
     "protectedArtifacts": 27
   },
-  "finishedAt": "2026-09-04T18:54:08.725Z"
+  "finishedAt": "2026-09-04T19:38:09.981Z"
 }

@@ -1,5 +1,43 @@
 # État courant
 
+## Mise à jour ACTION-0038 — correction ciblée X10 — 2026-09-04
+
+- **Verdict externe enregistré, non rendu par Codex :** `X9 = CLOSED`,
+  `ACTION-0038 = CHANGES_REQUIRED`, `TASK-0023 = IMPLEMENTED`, `X10 = OPEN`,
+  sur le HEAD contrôlé `d017c781` et le commit substantif X9 `ca90b2a`.
+  Aucun autre point accepté de `TASK-0023` n'est rouvert.
+- **Correction Windows :** `open_confined_regular_file` ouvre la racine et
+  chaque répertoire intermédiaire sans suivre le composant final reparse,
+  décide sur la metadata du handle réellement ouvert et conserve tous les
+  handles d'ancêtres sans partage écriture/suppression. Le fichier final est
+  classé puis lu depuis le même handle, sans réouverture par pathname.
+- **Fingerprint :** `sha256-tree-v1` partage la primitive d'ouverture. Chaque
+  entrée est classée depuis son handle; les répertoires restent épinglés
+  pendant `read_dir` et la récursion. Le remplacement concurrent par
+  symlink/jonction/reparse ne conduit jamais à la cible extérieure.
+- **Audit dépendances :** Rust `1.98.0`; `OpenOptionsExt`, `File::metadata` et
+  les flags Win32 documentés suffisent. Aucune dépendance, aucun changement de
+  `Cargo.toml`/`Cargo.lock`, aucune identité physique persistée.
+- **Tests X10 :** remplacement synchronisé fichier → symlink ou jonction,
+  répertoire → vraie jonction, et tentative de remplacement d'un composant
+  intermédiaire épinglé; zéro octet extérieur lu.
+- **Validation :** `content_signals` **29/29**, Rust **181/181**, TypeScript
+  **208/208**, `pnpm check`, `pnpm build`, Tauri debug `--no-bundle`. EC15 en
+  deux processus WebView2 `152.0.4191.62`, variante fraîche
+  `task0023-ec15-x10-20260904153755-5a40e1` : 8 fichiers, 1 424 octets, 8
+  digests, Alpha/Gamma, relations et UI stale conformes.
+- **X5 :** exactement 27, preuves historiques inchangées,
+  `protectedDestinations = []`, `writesUnderItsOwnTaskOnly = true`; seules les
+  deux preuves EC15 non protégées sont réécrites. `main` reste intacte.
+- **Limite honnête :** le repli non-Windows conserve le non-suivi statique
+  historique mais n'est pas revendiqué race-safe et n'a pas été exécuté ici.
+  `DEC-0013/F` demeure bloquante.
+- **État final exécuteur :** `X9 = CLOSED`, `X10 = OPEN`, `TASK-0023 =
+  IMPLEMENTED`, `ACTION-0038 = CHANGES_REQUIRED`; aucun `VERIFIED`
+  auto-attribué.
+- **Action unique suivante :** re-contrôle indépendant ciblé `X10` /
+  `TASK-0023`.
+
 ## Mise à jour ACTION-0037 — correction ciblée X9 — 2026-09-04
 
 - **Verdict indépendant enregistré, non rendu par l'exécuteur :** sur le HEAD

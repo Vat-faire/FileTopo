@@ -3293,3 +3293,40 @@ n'est rouvert.
   n'a été fait.
 - L'exécuteur de la correction **ne clôt pas `X9`** et ne s'attribue pas
   `VERIFIED`.
+
+---
+
+## AK. ACTION-0038 — re-contrôle X9 et correction ciblée X10
+
+**Date :** 2026-09-04. **Verdict externe enregistré, non rendu par Codex :**
+`X9 = CLOSED`, `ACTION-0038 = CHANGES_REQUIRED`, `TASK-0023 = IMPLEMENTED`,
+`X10 = OPEN`. HEAD contrôlé `d017c781`; commit substantif X9 `ca90b2a`.
+
+| Contrôle | Résultat | Preuve |
+|---|---|---|
+| Audit `std` Windows | **PASS** | Rust 1.98.0; `OpenOptionsExt::{custom_flags,share_mode}`, `File::metadata`; aucune nouvelle dépendance |
+| Objet réellement ouvert | **PASS** | `open_path_no_follow` utilise `FILE_FLAG_OPEN_REPARSE_POINT`; classification depuis la metadata du handle |
+| Composant final | **PASS** | `open_confined_regular_file` retourne le `File` autorisé; SHA-256 lit ce même handle sans rouvrir le pathname |
+| Composants intermédiaires | **PASS** | racine et répertoires conservés ouverts; partage `WRITE`/`DELETE` refusé; tentative réelle de renommage de `a` refusée |
+| Parcours directory | **PASS** | répertoire ouvert/classé depuis handle et gardé vivant pendant `read_dir` et récursion |
+| Race fichier | **PASS** | remplacement synchronisé par symlink fichier si disponible, sinon vraie jonction; `UNSUPPORTED`, 0 ouverture de hash, 0 octet, 0 digest |
+| Race répertoire | **PASS** | répertoire remplacé de façon synchronisée par vraie jonction hors racine; seuls 6 octets intérieurs lus; mutation extérieure sans effet |
+| Tests content_signals | **PASS** | `CARGO_INCREMENTAL=0 cargo test content_signals --lib` — **29/29** |
+| Suite Rust complète | **PASS** | `CARGO_INCREMENTAL=0 cargo test` — **181/181** |
+| Suite TypeScript complète | **PASS** | `pnpm test` — **208/208** |
+| Typecheck et build | **PASS** | `pnpm check`; `pnpm build` |
+| Tauri debug | **PASS** | `CARGO_INCREMENTAL=0 pnpm tauri build --debug --no-bundle` |
+| EC15 passe 1 | **PASS** | vrai WebView2 `152.0.4191.62`; variante fraîche `task0023-ec15-x10-20260904153755-5a40e1`; 8 fichiers, Alpha/Gamma, relations intactes |
+| EC15 passe 2 | **PASS** | nouveau processus/même variante; stale UI honnête; 8 ouvertures, 1 424 octets, 8 digests |
+| X5 | **PASS** | exactement 27 noms/27 uniques; preuves historiques inchangées; `protectedDestinations = []`; `writesUnderItsOwnTaskOnly = true` |
+| `main` | **INCHANGÉE** | `91bbe90f0f99026c28cd345784d4f579a0016db2` |
+
+**Non testé / limites :** le repli `#[cfg(not(windows))]` conserve le
+non-suivi statique historique, mais il n'est pas déclaré race-safe et n'a pas
+été compilé ni exécuté. `cargo fmt --check` signale le formatage historique
+global avec rustfmt 1.98; aucun reformatage global n'a été appliqué.
+`DEC-0013/F` demeure bloquante. Aucun `J12`, `K11`, `K12`, `L12`, `M12`,
+`N15` ou `H9` rejoué; aucune dépendance, donnée réelle, identité persistée,
+suppression `target`, clean ou action sur `main`.
+
+L'exécuteur ne ferme pas `X10` et ne s'attribue pas `VERIFIED`.

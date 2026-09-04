@@ -21,7 +21,7 @@ $null = New-Item -ItemType Directory -Path $LogDirectory -Force
 
 $runs = Join-Path $repository 'docs/performance/runs'
 $watcher = Join-Path $PSScriptRoot 'j12-send-real-key.ps1'
-$variant = 'task0023-ec15-x9-{0}-{1}' -f (Get-Date -Format 'yyyyMMddHHmmss'),
+$variant = 'task0023-ec15-x10-{0}-{1}' -f (Get-Date -Format 'yyyyMMddHHmmss'),
                                        ([guid]::NewGuid().ToString('N').Substring(0, 6))
 . (Join-Path $PSScriptRoot 'protected-run-artifacts.ps1')
 

@@ -15,7 +15,9 @@ use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 use std::fmt::Write as _;
 use std::fs::{self, File, Metadata};
-use std::io::Read;
+#[cfg(windows)]
+use std::fs::OpenOptions;
+use std::io::{self, Read};
 use std::path::{Component, Path, PathBuf};
 use std::time::{SystemTime, UNIX_EPOCH};
 use uuid::Uuid;
@@ -113,6 +115,12 @@ pub struct ContentObservationReport {
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 enum ObservationEvent {
+    BeforeConfinedFileOpen {
+        relative_path: String,
+    },
+    DirectoryPinned {
+        relative_path: String,
+    },
     AfterChunk {
         relative_path: String,
         bytes_read: u64,
@@ -445,11 +453,30 @@ fn fingerprint_source_tree(
     root: &Path,
     observer: &mut dyn FnMut(usize),
 ) -> Result<String, MapError> {
+    fingerprint_source_tree_with_hook(root, observer, &mut |_, _| Ok(()))
+}
+
+fn fingerprint_source_tree_with_hook(
+    root: &Path,
+    observer: &mut dyn FnMut(usize),
+    before_entry_open: &mut dyn FnMut(&str, u8) -> Result<(), MapError>,
+) -> Result<String, MapError> {
     let mut hasher = Sha256::new();
     hasher.update(SOURCE_FINGERPRINT_VERSION.as_bytes());
     hasher.update([0]);
     let mut buffer = vec![0_u8; HASH_BUFFER_BYTES];
-    visit_source_tree(root, root, &mut hasher, &mut buffer, observer)?;
+    let root_guard = open_confined_directory(root)?.ok_or_else(|| {
+        MapError::FixtureMismatch("source root is not a regular directory".into())
+    })?;
+    visit_source_tree(
+        root,
+        root,
+        &root_guard,
+        &mut hasher,
+        &mut buffer,
+        observer,
+        before_entry_open,
+    )?;
     Ok(format!(
         "{SOURCE_FINGERPRINT_VERSION}:{}",
         hex_lower(&hasher.finalize())
@@ -459,9 +486,11 @@ fn fingerprint_source_tree(
 fn visit_source_tree(
     base: &Path,
     current: &Path,
+    _current_guard: &File,
     hasher: &mut Sha256,
     buffer: &mut [u8],
     observer: &mut dyn FnMut(usize),
+    before_entry_open: &mut dyn FnMut(&str, u8) -> Result<(), MapError>,
 ) -> Result<(), MapError> {
     let mut entries = fs::read_dir(current)?.collect::<Result<Vec<_>, _>>()?;
     entries.sort_by_key(|entry| entry.file_name());
@@ -472,9 +501,14 @@ fn visit_source_tree(
             .map_err(|_| MapError::FixtureMismatch("path escaped the source root".into()))?
             .to_string_lossy()
             .replace('\\', "/");
-        // `symlink_metadata` describes the entry itself, never its target.
-        let metadata = fs::symlink_metadata(&path)?;
-        let marker = tree_marker(&metadata);
+        // This observation exists only for the deterministic TOCTOU seam. It
+        // never authorizes a read: the decision below uses metadata queried
+        // from the handle that was actually opened.
+        let initially_observed = entry.metadata()?;
+        before_entry_open(&relative, tree_marker(&initially_observed))?;
+        let mut opened = open_confined_tree_entry(&path)?;
+        let marker = tree_marker(&opened.metadata);
+        let metadata = &opened.metadata;
         hasher.update(relative.as_bytes());
         hasher.update([0, marker]);
         hasher.update(metadata.len().to_le_bytes());
@@ -486,8 +520,26 @@ fn visit_source_tree(
             None => hasher.update([0]),
         }
         match marker {
-            TREE_MARKER_FILE => stream_file_into(&path, hasher, buffer, observer)?,
-            TREE_MARKER_DIRECTORY => visit_source_tree(base, &path, hasher, buffer, observer)?,
+            TREE_MARKER_FILE => {
+                let file = opened.file.as_mut().ok_or_else(|| {
+                    MapError::FixtureMismatch("regular file was not opened".into())
+                })?;
+                stream_open_file_into(file, hasher, buffer, observer)?;
+            }
+            TREE_MARKER_DIRECTORY => {
+                let directory_guard = opened.file.as_ref().ok_or_else(|| {
+                    MapError::FixtureMismatch("directory was not opened".into())
+                })?;
+                visit_source_tree(
+                    base,
+                    &path,
+                    directory_guard,
+                    hasher,
+                    buffer,
+                    observer,
+                    before_entry_open,
+                )?;
+            }
             // A link or an uninterpretable entry stops here: no open, no read,
             // no descent, no canonicalisation of a target.
             _ => {}
@@ -497,13 +549,12 @@ fn visit_source_tree(
     Ok(())
 }
 
-fn stream_file_into(
-    path: &Path,
+fn stream_open_file_into(
+    file: &mut File,
     hasher: &mut Sha256,
     buffer: &mut [u8],
     observer: &mut dyn FnMut(usize),
 ) -> Result<(), MapError> {
-    let mut file = File::open(path)?;
     loop {
         let read = file.read(buffer)?;
         if read == 0 {
@@ -513,6 +564,139 @@ fn stream_file_into(
         hasher.update(&buffer[..read]);
     }
     Ok(())
+}
+
+struct OpenedTreeEntry {
+    file: Option<File>,
+    metadata: Metadata,
+}
+
+struct OpenedRegularFile {
+    file: File,
+    metadata: Metadata,
+    // The handles are semantically significant: on Windows they keep every
+    // directory component non-replaceable until the returned file is done.
+    _directory_guards: Vec<File>,
+}
+
+#[cfg(windows)]
+const WINDOWS_FILE_SHARE_READ: u32 = 0x0000_0001;
+#[cfg(windows)]
+const WINDOWS_FILE_SHARE_WRITE: u32 = 0x0000_0002;
+#[cfg(windows)]
+const WINDOWS_FILE_FLAG_OPEN_REPARSE_POINT: u32 = 0x0020_0000;
+#[cfg(windows)]
+const WINDOWS_FILE_FLAG_BACKUP_SEMANTICS: u32 = 0x0200_0000;
+
+/// Open one pathname component without following a final Windows reparse
+/// point, then obtain metadata from that exact handle. Omitting
+/// `FILE_SHARE_DELETE` pins the directory entry against rename/replacement.
+#[cfg(windows)]
+fn open_path_no_follow(path: &Path, allow_concurrent_write: bool) -> io::Result<OpenedTreeEntry> {
+    use std::os::windows::fs::OpenOptionsExt;
+
+    let share_mode = WINDOWS_FILE_SHARE_READ
+        | if allow_concurrent_write {
+            WINDOWS_FILE_SHARE_WRITE
+        } else {
+            0
+        };
+    let file = OpenOptions::new()
+        .read(true)
+        .share_mode(share_mode)
+        .custom_flags(
+            WINDOWS_FILE_FLAG_OPEN_REPARSE_POINT | WINDOWS_FILE_FLAG_BACKUP_SEMANTICS,
+        )
+        .open(path)?;
+    let metadata = file.metadata()?;
+    Ok(OpenedTreeEntry {
+        file: Some(file),
+        metadata,
+    })
+}
+
+#[cfg(not(windows))]
+fn open_path_no_follow(path: &Path, _allow_concurrent_write: bool) -> io::Result<OpenedTreeEntry> {
+    let metadata = fs::symlink_metadata(path)?;
+    if metadata.file_type().is_symlink() {
+        return Ok(OpenedTreeEntry {
+            file: None,
+            metadata,
+        });
+    }
+    let file = File::open(path)?;
+    let metadata = file.metadata()?;
+    Ok(OpenedTreeEntry {
+        file: Some(file),
+        metadata,
+    })
+}
+
+fn open_confined_tree_entry(path: &Path) -> io::Result<OpenedTreeEntry> {
+    // Tree reads deny concurrent write and delete/rename while the handle is
+    // alive. A directory can therefore still be enumerated through its path:
+    // that pathname cannot become a junction between validation and read_dir.
+    open_path_no_follow(path, false)
+}
+
+fn open_confined_directory(path: &Path) -> io::Result<Option<File>> {
+    let opened = open_confined_tree_entry(path)?;
+    if tree_marker(&opened.metadata) != TREE_MARKER_DIRECTORY {
+        return Ok(None);
+    }
+    Ok(opened.file)
+}
+
+fn open_confined_regular_file(
+    root: &Path,
+    relative_path: &Path,
+    hook: &mut dyn FnMut(&ObservationEvent) -> Result<(), MapError>,
+) -> Result<Option<OpenedRegularFile>, MapError> {
+    let mut directory_guards = Vec::new();
+    let root_guard = match open_confined_directory(root)? {
+        Some(guard) => guard,
+        None => return Ok(None),
+    };
+    directory_guards.push(root_guard);
+
+    let mut candidate = root.to_path_buf();
+    let mut components = relative_path.components().peekable();
+    while let Some(component) = components.next() {
+        let Component::Normal(name) = component else {
+            return Ok(None);
+        };
+        candidate.push(name);
+        if components.peek().is_some() {
+            let guard = match open_confined_directory(&candidate)? {
+                Some(guard) => guard,
+                None => return Ok(None),
+            };
+            hook(&ObservationEvent::DirectoryPinned {
+                relative_path: candidate
+                    .strip_prefix(root)
+                    .unwrap_or(&candidate)
+                    .to_string_lossy()
+                    .replace('\\', "/"),
+            })?;
+            directory_guards.push(guard);
+        }
+    }
+
+    hook(&ObservationEvent::BeforeConfinedFileOpen {
+        relative_path: relative_path.to_string_lossy().replace('\\', "/"),
+    })?;
+    let opened = open_path_no_follow(&candidate, true)?;
+    if tree_marker(&opened.metadata) != TREE_MARKER_FILE {
+        return Ok(None);
+    }
+    let Some(file) = opened.file else {
+        return Ok(None);
+    };
+    Ok(Some(OpenedRegularFile {
+        file,
+        metadata: opened.metadata,
+        _directory_guards: directory_guards,
+    }))
 }
 
 fn tree_marker(metadata: &Metadata) -> u8 {
@@ -653,8 +837,17 @@ fn observe_file(
         ));
     }
 
-    let before = match fs::symlink_metadata(&candidate) {
-        Ok(metadata) => metadata,
+    let mut opened = match open_confined_regular_file(root, &relative_path, hook) {
+        Ok(Some(opened)) => opened,
+        Ok(None) => {
+            return Ok(non_hashed(
+                node,
+                observed_at,
+                generation_id,
+                ObservationStatus::Unsupported,
+                "not_supported_regular_file",
+            ));
+        }
         Err(_) => {
             return Ok(non_hashed(
                 node,
@@ -665,62 +858,8 @@ fn observe_file(
             ));
         }
     };
-    if before.file_type().is_symlink() || metadata_is_reparse_point(&before) || !before.is_file() {
-        return Ok(non_hashed(
-            node,
-            observed_at,
-            generation_id,
-            ObservationStatus::Unsupported,
-            "not_supported_regular_file",
-        ));
-    }
-
-    let canonical_root = match root.canonicalize() {
-        Ok(path) => path,
-        Err(_) => {
-            return Ok(non_hashed(
-                node,
-                observed_at,
-                generation_id,
-                ObservationStatus::Unreadable,
-                "root_unavailable",
-            ));
-        }
-    };
-    let canonical_candidate = match candidate.canonicalize() {
-        Ok(path) => path,
-        Err(_) => {
-            return Ok(non_hashed(
-                node,
-                observed_at,
-                generation_id,
-                ObservationStatus::Unreadable,
-                "target_unavailable",
-            ));
-        }
-    };
-    if !canonical_candidate.starts_with(&canonical_root) {
-        return Ok(non_hashed(
-            node,
-            observed_at,
-            generation_id,
-            ObservationStatus::Unsupported,
-            "canonical_path_outside_root",
-        ));
-    }
-
-    let mut file = match File::open(&candidate) {
-        Ok(file) => file,
-        Err(_) => {
-            return Ok(non_hashed(
-                node,
-                observed_at,
-                generation_id,
-                ObservationStatus::Unreadable,
-                "open_failed",
-            ));
-        }
-    };
+    let before = opened.metadata.clone();
+    let file = &mut opened.file;
     counters.files_opened_for_hash += 1;
     let mut hasher = Sha256::new();
     let mut buffer = [0_u8; HASH_BUFFER_BYTES];
@@ -952,6 +1091,20 @@ mod tests {
     use super::*;
     use crate::map::layout::Rect;
     use std::collections::BTreeMap;
+
+    #[cfg(windows)]
+    fn create_junction(junction: &Path, target: &Path) -> io::Result<()> {
+        let output = std::process::Command::new("cmd")
+            .args(["/c", "mklink", "/J"])
+            .arg(junction)
+            .arg(target)
+            .output()?;
+        if output.status.success() {
+            Ok(())
+        } else {
+            Err(io::Error::other("mklink /J failed"))
+        }
+    }
 
     fn file_node(id: i64, path: &str, size: u64) -> MapNode {
         MapNode {
@@ -1974,6 +2127,144 @@ mod tests {
         // Remove the link itself, never the tree it points at.
         fs::remove_dir(&junction).expect("remove junction");
         assert!(outside.join("first.bin").exists());
+    }
+
+    // --- X10: opened-object confinement ---------------------------------
+
+    #[cfg(windows)]
+    #[test]
+    fn file_replacement_after_validation_never_hashes_outside_bytes() {
+        use std::os::windows::fs::symlink_file;
+
+        let temp = tempfile::tempdir().expect("temp");
+        let root = temp.path().join("source");
+        fs::create_dir_all(&root).expect("root");
+        let victim = root.join("victim.bin");
+        fs::write(&victim, b"inside").expect("inside file");
+        let outside_file = temp.path().join("outside.bin");
+        fs::write(&outside_file, b"OUTSIDE-SECRET").expect("outside file");
+        let outside_directory = temp.path().join("outside-directory");
+        fs::create_dir_all(&outside_directory).expect("outside directory");
+        fs::write(outside_directory.join("secret.bin"), b"OUTSIDE-SECRET")
+            .expect("outside secret");
+
+        let mut replaced = false;
+        let mut hook = |event: &ObservationEvent| {
+            if !replaced
+                && matches!(
+                    event,
+                    ObservationEvent::BeforeConfinedFileOpen { relative_path }
+                        if relative_path == "victim.bin"
+                )
+            {
+                fs::remove_file(&victim)?;
+                if symlink_file(&outside_file, &victim).is_err() {
+                    // A directory junction is an unprivileged reparse point
+                    // and deterministically exercises the same final-component
+                    // no-follow decision when file symlinks are unavailable.
+                    create_junction(&victim, &outside_directory)?;
+                }
+                replaced = true;
+            }
+            Ok(())
+        };
+        let mut counters = CampaignCounters::default();
+        let observation = observe_file(
+            &root,
+            &file_node(2, "victim.bin", 6),
+            now_ms(),
+            "generation",
+            &mut counters,
+            &mut hook,
+        )
+        .expect("observation");
+
+        assert!(replaced, "the synchronized replacement did not run");
+        assert_eq!(observation.observation_status, ObservationStatus::Unsupported);
+        assert!(observation.hash_hex.is_none());
+        assert_eq!(counters.files_opened_for_hash, 0);
+        assert_eq!(counters.bytes_read, 0);
+        assert_eq!(counters.digests_computed, 0);
+    }
+
+    #[cfg(windows)]
+    #[test]
+    fn directory_replacement_after_listing_never_traverses_the_junction() {
+        let temp = tempfile::tempdir().expect("temp");
+        let root = temp.path().join("source");
+        fs::create_dir_all(root.join("swap")).expect("root");
+        fs::write(root.join("inside.bin"), b"inside").expect("inside");
+        let outside = temp.path().join("outside");
+        fs::create_dir_all(&outside).expect("outside");
+        fs::write(outside.join("secret.bin"), b"OUTSIDE-SECRET").expect("outside secret");
+
+        let mut replaced = false;
+        let mut bytes_read = 0_usize;
+        let first = fingerprint_source_tree_with_hook(
+            &root,
+            &mut |read| bytes_read += read,
+            &mut |relative, initially_observed_marker| {
+                if !replaced
+                    && relative == "swap"
+                    && initially_observed_marker == TREE_MARKER_DIRECTORY
+                {
+                    fs::remove_dir(root.join("swap"))?;
+                    create_junction(&root.join("swap"), &outside)?;
+                    replaced = true;
+                }
+                Ok(())
+            },
+        )
+        .expect("fingerprint");
+
+        assert!(replaced, "the synchronized replacement did not run");
+        assert_eq!(bytes_read, b"inside".len());
+        fs::write(outside.join("second-secret.bin"), b"more outside")
+            .expect("mutate outside");
+        assert_eq!(
+            first,
+            content_source_fingerprint(&root).expect("fingerprint after outside mutation")
+        );
+    }
+
+    #[cfg(windows)]
+    #[test]
+    fn intermediate_directories_remain_pinned_until_the_open_file_is_read() {
+        let temp = tempfile::tempdir().expect("temp");
+        let root = temp.path().join("source");
+        fs::create_dir_all(root.join("a/b")).expect("tree");
+        fs::write(root.join("a/b/file.bin"), b"inside").expect("inside");
+        let mut replacement_was_refused = false;
+        let mut attempted = false;
+        let mut hook = |event: &ObservationEvent| {
+            if !attempted
+                && matches!(
+                    event,
+                    ObservationEvent::DirectoryPinned { relative_path }
+                        if relative_path == "a"
+                )
+            {
+                attempted = true;
+                replacement_was_refused =
+                    fs::rename(root.join("a"), root.join("moved-a")).is_err();
+            }
+            Ok(())
+        };
+        let mut counters = CampaignCounters::default();
+        let observation = observe_file(
+            &root,
+            &file_node(2, "a/b/file.bin", 6),
+            now_ms(),
+            "generation",
+            &mut counters,
+            &mut hook,
+        )
+        .expect("observation");
+
+        assert!(attempted);
+        assert!(replacement_was_refused);
+        assert_eq!(observation.observation_status, ObservationStatus::Hashed);
+        assert_eq!(counters.bytes_read, 6);
     }
 
     #[cfg(unix)]

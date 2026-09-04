@@ -216,3 +216,24 @@ garde son rôle historique pour les fixtures gelées et les preuves antérieures
 Aucune dépendance n'est ajoutée; `DEC-0013/F` reste bloquante.
 
 `DEC-0025` demeure `IMPLEMENTED` : le contrôle indépendant reste requis.
+
+## Correction d'implémentation X10 — 2026-09-04
+
+La décision normative reste inchangée. Sur Windows, la containment n'est plus
+un contrôle de pathname suivi d'une ouverture séparée. La racine et chaque
+composant intermédiaire sont ouverts sans suivre le composant final reparse,
+classés depuis la metadata du handle réellement ouvert et gardés ouverts sans
+partage écriture/suppression jusqu'à la fin de la lecture. Le fichier final est
+lui aussi ouvert sans suivi, classé depuis ce même handle puis lu depuis ce
+handle, sans réouverture par pathname. `sha256-tree-v1` applique la même règle;
+un répertoire reste épinglé pendant `read_dir` et toute sa récursion.
+
+Cette correction utilise uniquement `std::os::windows::fs::OpenOptionsExt` et
+les valeurs Win32 documentées. Aucune dépendance, identité physique persistée,
+colonne ou schéma n'est ajouté. Les metadata de handles sont temporaires.
+`DEC-0013/F` demeure bloquante.
+
+Le repli non-Windows conserve le comportement statique précédent mais n'est
+pas déclaré race-safe et n'a pas été exécuté dans cette correction Windows.
+`DEC-0025` reste `IMPLEMENTED`; `X10` reste `OPEN` jusqu'au re-contrôle
+indépendant.

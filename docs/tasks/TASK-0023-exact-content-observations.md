@@ -360,6 +360,7 @@ ou le lockfile incontrôlé, si une action destructive ou une modification de
 | 2026-09-03 | `IN_PROGRESS` | Gel prêt à être commité et poussé avant la première modification de code produit |
 | 2026-09-03 | `IMPLEMENTED` | EC1–EC15 passés; deux processus WebView2 réels; aucun statut `VERIFIED` attribué par l'exécuteur |
 | 2026-09-04 | `IMPLEMENTED` | `ACTION-0037` = `CHANGES_REQUIRED`, réserve unique `X9`; correction ciblée livrée, `X9` laissée `OPEN` par l'exécuteur |
+| 2026-09-04 | `IMPLEMENTED` | `ACTION-0038` = `CHANGES_REQUIRED`; verdict externe `X9 = CLOSED`, réserve unique `X10 = OPEN`; correction ciblée livrée sans auto-clôture ni `VERIFIED` |
 
 ## 18. État final attendu
 
@@ -450,3 +451,98 @@ reste exactement **27**.
 `OPEN`, `ACTION-0037` reste `CHANGES_REQUIRED`. L'exécuteur ne clôt pas sa
 propre réserve et ne s'attribue pas `VERIFIED`. Action unique suivante :
 re-contrôle indépendant ciblé `X9`.
+
+## 21. Correction ciblée `X10` — 2026-09-04
+
+[`ACTION-0038`](../reviews/ACTION-0038-independent-recontrol.md) enregistre le
+verdict externe suivant, sans que Codex le rende : `X9 = CLOSED`,
+`ACTION-0038 = CHANGES_REQUIRED`, `TASK-0023 = IMPLEMENTED`, `X10 = OPEN`.
+Aucun élément déjà accepté de la tâche n'est rouvert.
+
+### Audit technique avant code
+
+L'hôte contrôlé utilise Rust `1.98.0` (`x86_64-pc-windows-msvc`).
+`std::os::windows::fs::OpenOptionsExt` expose directement `share_mode` et
+`custom_flags`, transmis à `CreateFile`; `File::metadata()` interroge l'objet
+désigné par le handle ouvert. Les constantes Win32 documentées utilisées sont
+`FILE_FLAG_OPEN_REPARSE_POINT` (`0x00200000`),
+`FILE_FLAG_BACKUP_SEMANTICS` (`0x02000000`), `FILE_SHARE_READ` (`0x1`) et
+`FILE_SHARE_WRITE` (`0x2`). `std::fs::read_dir` reste une opération par
+pathname (`FindFirstFileEx` sous Windows), donc elle n'est sûre ici que si le
+pathname du répertoire demeure épinglé pendant son appel.
+
+Sources primaires consultées :
+
+- Rust `OpenOptionsExt` :
+  `https://doc.rust-lang.org/std/os/windows/fs/trait.OpenOptionsExt.html`;
+- Rust `File::metadata` :
+  `https://doc.rust-lang.org/std/fs/struct.File.html#method.metadata`;
+- Rust `read_dir` : `https://doc.rust-lang.org/std/fs/fn.read_dir.html`;
+- Microsoft `CreateFileW` :
+  `https://learn.microsoft.com/en-us/windows/win32/api/fileapi/nf-fileapi-createfilew`.
+
+Le lockfile contient déjà plusieurs versions transitives de `windows-sys`,
+dont `0.61.2`, mais aucune n'est une dépendance directe utilisable par
+FileTopo. L'audit conclut qu'aucune API supplémentaire n'est nécessaire pour
+la chaîne Windows visée; ni `Cargo.toml` ni `Cargo.lock` ne changent.
+
+### Garantie structurelle Windows livrée
+
+La primitive centrale `open_confined_regular_file` reconstruit le chemin
+relatif validé composant par composant. La racine et chaque répertoire
+intermédiaire sont ouverts avec `FILE_FLAG_OPEN_REPARSE_POINT` et
+`FILE_FLAG_BACKUP_SEMANTICS`; la décision « répertoire normal » porte sur la
+metadata du handle réellement ouvert. Ces handles restent vivants jusqu'à la
+fin de la lecture et n'accordent ni partage `WRITE` ni partage `DELETE` : leur
+entrée ne peut donc être transformée, renommée ou remplacée pendant la
+résolution restante.
+
+Le composant final est ouvert une seule fois avec
+`FILE_FLAG_OPEN_REPARSE_POINT`, puis classé avec la metadata de ce même handle.
+Seul un fichier régulier non-reparse est lu, et le moteur SHA-256 lit ce handle
+exact sans rouvrir le pathname. Le partage `WRITE` du fichier final reste
+autorisé pour conserver la détection `UNSTABLE_DURING_READ`; le partage
+`DELETE` reste refusé afin d'empêcher le remplacement de son entrée.
+
+`sha256-tree-v1` utilise la même primitive bas niveau d'ouverture sans suivi.
+Chaque entrée réellement ouverte est classée depuis son handle. Un fichier est
+streamé depuis ce handle; un répertoire demeure ouvert, non partageable en
+écriture/suppression, pendant le `read_dir(path)` et toute sa récursion. Le
+`symlink_metadata → File::open/read_dir` autoritatif et le
+`canonicalize → File::open` ont disparu du chemin Windows de production.
+
+### Preuves TOCTOU déterministes
+
+Trois tests synchronisés, sans sommeil, tournent réellement sur Windows :
+
+- après validation initiale d'un fichier, son entrée est remplacée par un
+  symlink fichier si le privilège existe, sinon par une vraie jonction; le
+  résultat est `UNSUPPORTED`, avec zéro fichier ouvert pour hash, zéro octet lu
+  et zéro digest;
+- après l'observation initiale d'un répertoire par l'énumération, celui-ci est
+  remplacé par une vraie jonction hors racine; seuls les six octets du fichier
+  intérieur sont lus et une mutation extérieure ne change pas le fingerprint;
+- après épinglage de `a` dans `root/a/b/file`, une tentative réelle de
+  renommage est refusée par Windows; le fichier intérieur est lu depuis le
+  handle autorisé.
+
+La garantie X10 est une garantie du chemin Windows supporté et exécuté. Le
+repli `#[cfg(not(windows))]` conserve le non-suivi statique historique mais
+n'est pas revendiqué race-safe; il n'a pas été compilé ni exécuté sur cet hôte.
+Aucune identité physique n'est persistée : les metadata de handles ne vivent
+que le temps de l'ouverture/lecture et ne sont écrites dans aucun store.
+
+### Validation et état
+
+`content_signals` passe `29/29`; la suite Rust passe `181/181`; la suite
+TypeScript passe `208/208`; `pnpm check`, `pnpm build` et Tauri debug
+`--no-bundle` passent. `EC15` a été rejouée dans deux processus WebView2 réels
+sur la variante fraîche `task0023-ec15-x10-20260904153755-5a40e1` : 8 fichiers,
+1 424 octets et 8 digests; Alpha/Gamma, redémarrage réel, UI stale honnête,
+relations inchangées et `sha256-tree-v1` stable. `X5` reste exactement à 27,
+`protectedDestinations = []` et `writesUnderItsOwnTaskOnly = true`.
+
+État final de l'exécuteur : `X9 = CLOSED`, `X10 = OPEN`, `TASK-0023 =
+IMPLEMENTED`, `ACTION-0038 = CHANGES_REQUIRED`. Codex ne ferme pas `X10` et ne
+s'attribue pas `VERIFIED`. Action unique suivante : re-contrôle indépendant
+ciblé `X10` / `TASK-0023`.
