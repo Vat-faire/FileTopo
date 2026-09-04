@@ -1,5 +1,52 @@
 # HANDOFF — passage de relais
 
+## Relais actuel — ACTION-0039, TASK-0023 VERIFIED, 2026-09-04
+
+Le verdict indépendant est enregistré dans
+[`ACTION-0039`](../reviews/ACTION-0039-independent-recontrol.md), sans être
+rendu par Claude : `X9 = CLOSED`, `X10 = CLOSED`, `ACTION-0038 = CLOSED`,
+`ACTION-0039 = CLOSED`, `TASK-0023` **`VERIFIED`**, sur le HEAD re-contrôlé
+`adba6568` et le commit substantif `X10` `9e9fb37a`. Aucune réserve ne reste
+ouverte.
+
+`X5` est passée de **27** à **29** preuves protégées. Les deux ajoutées sont
+les seules preuves canoniques de `TASK-0023` :
+`TASK-0023-EC15-exact-content-observations-webview2-pass1.json` et
+`…-pass2.json`. Les 27 antérieures conservent exactement le même ordre, et les
+trois gardes canoniques — `src-tauri/src/map/commands.rs`,
+`src/map/runArtifacts.ts`, `scripts/protected-run-artifacts.ps1` — portent la
+même liste. Aucun autre artefact de la tranche n'est scellé : ses replays `H9`,
+`J12`, `K11`, `K12`, `L12`, `M12`, `N15` et toutes les variantes `-abandon`
+restent écrivables.
+
+**Ce qu'il faut savoir avant de reprendre le code.** Le runtime livré dans ce
+checkout écrit encore sous `TASK-0023`, donc ses deux destinations `EC15` sont
+maintenant refusées par `write_run_artifact` :
+`protectedArtifactCount = 29`, `protectedDestinations` = les deux `EC15`,
+`writesUnderItsOwnTaskOnly = false`. **C'est l'état normal d'une tranche
+vérifiée**, exactement ce qui est arrivé à `TASK-0020`, et
+`SEALED_RUNTIME_DESTINATIONS` le publie. Ne pas « réparer » cela en renommant
+d'avance le runtime : la prochaine tranche migre ses destinations sous son
+propre nom de tâche **avant** tout nouveau rejeu, comme chaque tranche
+précédente l'a fait.
+
+Cette action était gouvernance et scellement seulement : rien de
+`content_signals.rs`, SHA-256, `sha256-tree-v1`, SQLite, layout, relations,
+fixtures, JSON `EC15`, `Cargo.toml` ou `Cargo.lock` n'a été touché, et aucune
+campagne n'a été rejouée. Validations : Rust **184/184**, TypeScript
+**211/211**, `pnpm check`, `pnpm build`; aucune preuve modifiée; `main` reste
+`91bbe90f`.
+
+**Limites transmises :** la garantie race-safe `X10` est prouvée **sur
+Windows** et le repli non-Windows n'est pas revendiqué race-safe;
+`DEC-0013/F` demeure bloquante pour l'identité physique persistante, donc
+`F-046` reste `PROPOSED` bien que sa fondation de contenu exact soit désormais
+vérifiée.
+
+**Relais :** retour à l'orchestrateur technique pour définir la prochaine
+tranche. Aucune `TASK-0024` n'est créée; aucun travail de code n'est ouvert
+avant ce GO.
+
 ## Relais actuel — ACTION-0038, correction X10, 2026-09-04
 
 Le verdict externe est enregistré dans

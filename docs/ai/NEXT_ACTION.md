@@ -1,14 +1,19 @@
 # Action suivante
 
-## Re-contrôle indépendant ciblé X10 de TASK-0023
+## Retour à l'orchestrateur pour définir la prochaine tranche
 
-Re-contrôler indépendamment la **seule** réserve `X10` d'`ACTION-0038` sur le
-commit substantif de correction de `build/v0.2-a7-exact-content-observations` :
-ouverture sans suivi du composant final reparse, décision sur la metadata du
-handle réellement ouvert, maintien des handles de racine et de répertoires
-intermédiaires sans partage écriture/suppression, lecture du même handle,
-parcours `read_dir` seulement pendant l'épinglage, trois tests TOCTOU
-synchronisés, EC15 régénérée et intégrité des 27 preuves X5. Ne rouvrir aucun
-autre élément accepté de `TASK-0023`; `X9` est `CLOSED`, mais `TASK-0023` reste
-`IMPLEMENTED`, `ACTION-0038` reste `CHANGES_REQUIRED` et `X10` reste `OPEN`
-tant que ce re-contrôle n'a pas conclu. Ne créer aucune `TASK-0024`.
+`TASK-0023` est **`VERIFIED`** depuis `ACTION-0039` : `X9` et `X10` sont
+`CLOSED`, `ACTION-0038` et `ACTION-0039` sont `CLOSED`, aucune réserve ne reste
+ouverte, et les deux preuves canoniques `EC15` sont scellées dans `X5`, qui
+passe de 27 à 29 noms dans les trois gardes. Aucune tâche n'est `IN_PROGRESS`
+ni `IMPLEMENTED` en attente de contrôle.
+
+Rendre la main à l'orchestrateur technique pour qu'il **définisse la prochaine
+tranche**. **Ne créer aucune `TASK-0024`** et n'ouvrir aucun travail de code
+avant ce GO.
+
+Deux éléments à porter dans cette décision, sans les traiter ici : le runtime
+de ce checkout écrit encore sous `TASK-0023`, donc la prochaine tranche
+**migrera ses destinations avant tout nouveau rejeu**; et `DEC-0013/F` demeure
+bloquante pour l'identité physique persistante, de sorte que `F-046` reste
+`PROPOSED` malgré une fondation de contenu exact désormais vérifiée.

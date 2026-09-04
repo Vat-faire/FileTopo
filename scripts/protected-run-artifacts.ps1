@@ -30,8 +30,14 @@
       * TASK-0022 — verified by ACTION-0036, EIGHT proofs: J12, K11, the two
         L12 passes, the two M12 passes and the two N15 passes. H9, K12 and
         every -abandon variant remain noncanonical and are not protected.
+      * TASK-0023 — verified by ACTION-0039, TWO proofs: the EC15 pass1 and
+        pass2 of the exact content observations, run in the real WebView2
+        host. The narrowest extension so far, deliberately: TASK-0023 migrated
+        seven scenarios and wrote artefacts for several of them, but it was
+        controlled on EC15 alone, so its H9, J12, K11, K12, L12, M12 and N15
+        replays and every -abandon variant stay unprotected.
 
-    Twenty-seven names. Nothing here deletes, renames or moves anything: this file
+    Twenty-nine names. Nothing here deletes, renames or moves anything: this file
     only refuses.
 #>
 
@@ -62,11 +68,13 @@ $script:ProtectedRunArtifacts = @(
     'TASK-0022-M12-interbrain-relations-regression-webview2-pass1.json',
     'TASK-0022-M12-interbrain-relations-regression-webview2-pass2.json',
     'TASK-0022-N15-topographic-node-graph-webview2-pass1.json',
-    'TASK-0022-N15-topographic-node-graph-webview2-pass2.json'
+    'TASK-0022-N15-topographic-node-graph-webview2-pass2.json',
+    'TASK-0023-EC15-exact-content-observations-webview2-pass1.json',
+    'TASK-0023-EC15-exact-content-observations-webview2-pass2.json'
 )
 
 function Get-ProtectedRunArtifact {
-    <# The twenty-seven names, for a caller that wants to report them. #>
+    <# The twenty-nine names, for a caller that wants to report them. #>
     return $script:ProtectedRunArtifacts
 }
 

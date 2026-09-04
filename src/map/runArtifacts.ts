@@ -28,9 +28,19 @@
  * K12 and every `-abandon` variant remain outside the protected set because
  * they are not canonical `TASK-0022` evidence.
  *
- * `TASK-0023` migrates every current destination once more. The protected
- * runtime intersection is empty again until independent control decides
- * whether its two EC15 proofs become canonical.
+ * **`TASK-0023` is `VERIFIED` since `ACTION-0039`**, and exactly its two
+ * `EC15` proofs join in turn — the narrowest extension so far. `TASK-0023`
+ * migrated every destination below and wrote artefacts for several of them,
+ * but it was controlled on `EC15` alone, so `EC15` alone is canonical. Its
+ * H9, J12, K11, K12, L12, M12 and N15 replays, and every `-abandon` variant,
+ * stay outside the protected set.
+ *
+ * The protected/runtime intersection is therefore **no longer empty**: this
+ * checkout still spells the two `EC15` names as its destination, so replaying
+ * the content scenario now yields a refusal. That is the seal working, and it
+ * is the expected end state of a verified slice — see
+ * {@link SEALED_RUNTIME_DESTINATIONS}. The next slice migrates the destination
+ * under its own task name before it replays anything.
  *
  * Every name lives here so there is one spelling of each and a guard test can
  * hold the whole surface at once — see `runArtifacts.test.ts`.
@@ -44,8 +54,13 @@
  * Four names come from `TASK-0016` and `TASK-0017`, four from `TASK-0018`
  * (added by `ACTION-0029`), six are `TASK-0019`'s, added when `ACTION-0031`
  * made it `VERIFIED`, five are `TASK-0020`'s, added when `ACTION-0032` made it
- * `VERIFIED`, and the last eight are `TASK-0022`'s, added when `ACTION-0036`
- * made it `VERIFIED`.
+ * `VERIFIED`, eight are `TASK-0022`'s, added when `ACTION-0036` made it
+ * `VERIFIED`, and the last two are `TASK-0023`'s `EC15` passes, added when
+ * `ACTION-0039` made it `VERIFIED`.
+ *
+ * Twenty-nine names. The order is append-only: the twenty-seven that were
+ * there before this extension are still there, in the same order, and the two
+ * new ones follow them.
  */
 export const PROTECTED_RUN_ARTIFACTS = [
   "TASK-0016-H1-H7-verification.json",
@@ -75,6 +90,8 @@ export const PROTECTED_RUN_ARTIFACTS = [
   "TASK-0022-M12-interbrain-relations-regression-webview2-pass2.json",
   "TASK-0022-N15-topographic-node-graph-webview2-pass1.json",
   "TASK-0022-N15-topographic-node-graph-webview2-pass2.json",
+  "TASK-0023-EC15-exact-content-observations-webview2-pass1.json",
+  "TASK-0023-EC15-exact-content-observations-webview2-pass2.json",
 ] as const;
 
 /**
@@ -178,10 +195,24 @@ export const RUNTIME_RUN_ARTIFACTS = [
 ] as const;
 
 /**
- * Exact protected/runtime intersection. Empty while `TASK-0023` is only
- * `IMPLEMENTED`; EC15 is not protected before independent control.
+ * Exact protected/runtime intersection — the destinations this runtime still
+ * spells that the write gate now refuses.
+ *
+ * Empty while `TASK-0023` was only `IMPLEMENTED`. `ACTION-0039` made the task
+ * `VERIFIED` and sealed its two `EC15` proofs, so the intersection is now
+ * exactly those two names: the content scenario compiled into this checkout
+ * asks for them, and `map_write_run_artifact` answers no.
+ *
+ * **This is the intended end state of a verified slice, not a defect.** The
+ * same thing happened to `TASK-0020` and it was not repaired by renaming the
+ * runtime ahead of its next task; the next slice migrates the destination
+ * under its own task name before it replays anything. Until then the seal is
+ * what stands between a button press and two published proofs.
  */
-export const SEALED_RUNTIME_DESTINATIONS = [] as const;
+export const SEALED_RUNTIME_DESTINATIONS = [
+  "TASK-0023-EC15-exact-content-observations-webview2-pass1.json",
+  "TASK-0023-EC15-exact-content-observations-webview2-pass2.json",
+] as const;
 
 /**
  * The task an artefact name declares as its owner, or `null` when the name
@@ -211,9 +242,23 @@ export interface RuntimeWriteOwnership {
   protectedArtifactCount: number;
   /** The distinct tasks that own protected evidence, sorted. */
   protectedTaskIds: readonly string[];
-  /** Runtime destinations that are protected evidence. Expected empty. */
+  /**
+   * Runtime destinations that are protected evidence.
+   *
+   * Empty while the owning task awaits control. Since `ACTION-0039` sealed
+   * `TASK-0023`, it is exactly the two `EC15` names — see
+   * {@link SEALED_RUNTIME_DESTINATIONS}.
+   */
   protectedDestinations: readonly string[];
-  /** True only while every destination belongs to one unprotected task and none is sealed. */
+  /**
+   * True only while every destination belongs to one unprotected task and none
+   * is sealed.
+   *
+   * **`false` since `ACTION-0039`**, and truthfully so: this runtime still
+   * spells two names its own verification has sealed. The field reports the
+   * state of the checkout, so it is allowed to say the checkout is past its
+   * slice — it is not a health check to be kept green.
+   */
   writesUnderItsOwnTaskOnly: boolean;
 }
 

@@ -21,9 +21,22 @@
  * intersection empty until the current task itself became verified.
  *
  * **`ACTION-0036` made `TASK-0022` `VERIFIED`**. Exactly its eight canonical
- * proofs are now sealed; H9, K12 and every abandonment variant remain
- * noncanonical and unprotected. The three executable guards must carry the
- * same twenty-seven names in the same order.
+ * proofs are sealed; H9, K12 and every abandonment variant remain noncanonical
+ * and unprotected.
+ *
+ * **`ACTION-0039` made `TASK-0023` `VERIFIED`**, and the list grew a fifth
+ * time — by exactly two names, the `EC15` passes it was controlled on. Every
+ * other artefact `TASK-0023` wrote stays unprotected, because a verification
+ * seals the evidence it ruled on and not everything the slice happened to
+ * produce.
+ *
+ * That extension also closes the intersection question the other way round:
+ * this checkout still writes `EC15`, so for the first time since `TASK-0020`
+ * the runtime spells a sealed name, `writesUnderItsOwnTaskOnly` is `false`,
+ * and the tests below assert that state rather than treating it as a failure.
+ *
+ * The three executable guards — Rust, TypeScript, PowerShell — must carry the
+ * same twenty-nine names in the same order.
  */
 
 import { describe, expect, it } from "vitest";
@@ -121,14 +134,56 @@ const TASK_0022_NONCANONICAL = [
   "TASK-0022-N15-topographic-node-graph-webview2-pass2-abandon.json",
 ] as const;
 
+/** The two proofs `ACTION-0039` sealed — and the whole of what it sealed. */
+const TASK_0023_CANONICAL_EVIDENCE = [
+  "TASK-0023-EC15-exact-content-observations-webview2-pass1.json",
+  "TASK-0023-EC15-exact-content-observations-webview2-pass2.json",
+] as const;
+
+/**
+ * Everything else `TASK-0023` spells as a destination.
+ *
+ * Enumerated by hand rather than derived from `RUNTIME_RUN_ARTIFACTS` minus
+ * the sealed pair: a derived list would agree with any seal, however wide,
+ * and the claim under test is precisely that the seal did not widen.
+ */
+const TASK_0023_NONCANONICAL = [
+  "TASK-0023-H9-composed-runtime-regression-webview2.json",
+  "TASK-0023-H9-composed-runtime-regression-webview2-abandon.json",
+  "TASK-0023-J12-intrabrain-relations-regression-webview2.json",
+  "TASK-0023-J12-intrabrain-relations-regression-webview2-abandon.json",
+  "TASK-0023-K11-readonly-isolation-regression-webview2.json",
+  "TASK-0023-K12-foundation-regression-webview2-pass1.json",
+  "TASK-0023-K12-foundation-regression-webview2-pass1-abandon.json",
+  "TASK-0023-K12-foundation-regression-webview2-pass2.json",
+  "TASK-0023-K12-foundation-regression-webview2-pass2-abandon.json",
+  "TASK-0023-L12-composed-view-regression-webview2-pass1.json",
+  "TASK-0023-L12-composed-view-regression-webview2-pass1-abandon.json",
+  "TASK-0023-L12-composed-view-regression-webview2-pass2.json",
+  "TASK-0023-L12-composed-view-regression-webview2-pass2-abandon.json",
+  "TASK-0023-M12-interbrain-relations-regression-webview2-pass1.json",
+  "TASK-0023-M12-interbrain-relations-regression-webview2-pass1-abandon.json",
+  "TASK-0023-M12-interbrain-relations-regression-webview2-pass2.json",
+  "TASK-0023-M12-interbrain-relations-regression-webview2-pass2-abandon.json",
+  "TASK-0023-N15-topographic-node-graph-webview2-pass1.json",
+  "TASK-0023-N15-topographic-node-graph-webview2-pass1-abandon.json",
+  "TASK-0023-N15-topographic-node-graph-webview2-pass2.json",
+  "TASK-0023-N15-topographic-node-graph-webview2-pass2-abandon.json",
+] as const;
+
 describe("X5 — the runtime never writes over canonical evidence", () => {
-  it("TASK-0023 has no protected runtime destination", () => {
+  it("the sealed runtime destinations are exactly TASK-0023's two EC15 passes", () => {
+    // Was « no protected runtime destination » while `TASK-0023` awaited
+    // control. `ACTION-0039` sealed it, so this checkout now spells two names
+    // its own write gate refuses, and `SEALED_RUNTIME_DESTINATIONS` must say
+    // so rather than stay empty out of habit.
     const sealed = SEALED_RUNTIME_DESTINATIONS as readonly string[];
     const collisions = (RUNTIME_RUN_ARTIFACTS as readonly string[]).filter((name) =>
       (PROTECTED_RUN_ARTIFACTS as readonly string[]).includes(name),
     );
-    expect(sealed).toStrictEqual([]);
-    expect(collisions).toStrictEqual([]);
+    expect(sealed).toStrictEqual([...TASK_0023_CANONICAL_EVIDENCE]);
+    expect(collisions).toStrictEqual([...TASK_0023_CANONICAL_EVIDENCE]);
+    expect(collisions).toStrictEqual(sealed);
   });
 
   it("H9, K12 and abandonment variants stay noncanonical and unprotected", () => {
@@ -137,12 +192,20 @@ describe("X5 — the runtime never writes over canonical evidence", () => {
     }
   });
 
-  it("the protected set is exactly the unchanged nineteen plus TASK-0022's eight", () => {
+  it("the protected set is the unchanged twenty-seven plus TASK-0023's two", () => {
     expect(PROTECTED_RUN_ARTIFACTS).toStrictEqual([
       ...ORIGINAL_19_PROTECTED,
       ...TASK_0022_CANONICAL_EVIDENCE,
+      ...TASK_0023_CANONICAL_EVIDENCE,
     ]);
-    expect(PROTECTED_RUN_ARTIFACTS).toHaveLength(27);
+    expect(PROTECTED_RUN_ARTIFACTS).toHaveLength(29);
+    // Append-only: the twenty-seven that were sealed before `ACTION-0039` are
+    // still there, in the same order, and nothing was silently deduplicated.
+    expect(PROTECTED_RUN_ARTIFACTS.slice(0, 27)).toStrictEqual([
+      ...ORIGINAL_19_PROTECTED,
+      ...TASK_0022_CANONICAL_EVIDENCE,
+    ]);
+    expect(new Set(PROTECTED_RUN_ARTIFACTS).size).toBe(29);
   });
 
   it("TASK-0018's own four proofs became protected when it was verified", () => {
@@ -265,15 +328,29 @@ describe("X5 — the runtime never writes over canonical evidence", () => {
     );
   });
 
-  it("EC15 owns exactly the two unprotected TASK-0023 canonical candidates", () => {
-    expect(ec15Artifact(1)).toBe(
-      "TASK-0023-EC15-exact-content-observations-webview2-pass1.json",
+  it("TASK-0023's two EC15 proofs became protected when it was verified", () => {
+    // `ACTION-0039`. The names the content scenario builds are the names the
+    // gate now refuses — asserted through `ec15Artifact` rather than against a
+    // literal, so a renamed destination cannot quietly escape the seal.
+    expect(ec15Artifact(1)).toBe(TASK_0023_CANONICAL_EVIDENCE[0]);
+    expect(ec15Artifact(2)).toBe(TASK_0023_CANONICAL_EVIDENCE[1]);
+    for (const name of TASK_0023_CANONICAL_EVIDENCE) {
+      expect(PROTECTED_RUN_ARTIFACTS as readonly string[]).toContain(name);
+      expect(RUNTIME_RUN_ARTIFACTS as readonly string[]).toContain(name);
+    }
+  });
+
+  it("no other TASK-0023 destination was sealed by that verification", () => {
+    // The seal covers what `TASK-0023` was controlled on, not everything it
+    // wrote. Its migrated replays stay writable so the next slice can rename
+    // them under its own task, and an abandoned run is evidence of nothing.
+    for (const name of TASK_0023_NONCANONICAL) {
+      expect(PROTECTED_RUN_ARTIFACTS as readonly string[]).not.toContain(name);
+    }
+    const sealedTask0023 = (PROTECTED_RUN_ARTIFACTS as readonly string[]).filter(
+      (name) => artifactTaskId(name) === "TASK-0023",
     );
-    expect(ec15Artifact(2)).toBe(
-      "TASK-0023-EC15-exact-content-observations-webview2-pass2.json",
-    );
-    expect(PROTECTED_RUN_ARTIFACTS as readonly string[]).not.toContain(ec15Artifact(1));
-    expect(PROTECTED_RUN_ARTIFACTS as readonly string[]).not.toContain(ec15Artifact(2));
+    expect(sealedTask0023).toStrictEqual([...TASK_0023_CANONICAL_EVIDENCE]);
   });
 
   it("every runtime destination belongs to TASK-0023", () => {
@@ -409,7 +486,7 @@ describe("X8 — M12 derives who owns what it writes, and how many names are pro
     expect(powershellGate()).toStrictEqual(gate.names);
     expect(gate.declaredLength).toBe(gate.names.length);
     expect(PROTECTED_RUN_ARTIFACTS).toHaveLength(gate.declaredLength);
-    expect(gate.declaredLength).toBe(27);
+    expect(gate.declaredLength).toBe(29);
   });
 
   it("no historical protected name was dropped by this repair", () => {
@@ -422,16 +499,37 @@ describe("X8 — M12 derives who owns what it writes, and how many names are pro
     }
   });
 
-  it("the eight newly protected names are exactly TASK-0022's canonical proofs", () => {
-    expect(PROTECTED_RUN_ARTIFACTS.slice(19)).toStrictEqual([
+  it("TASK-0022's eight sealed names stay where ACTION-0036 put them", () => {
+    // Positional, in all three guards: an extension that appended correctly
+    // but shifted an earlier block would still be a corrupted seal.
+    expect(PROTECTED_RUN_ARTIFACTS.slice(19, 27)).toStrictEqual([
       ...TASK_0022_CANONICAL_EVIDENCE,
     ]);
-    expect(rustGate().names.slice(19)).toStrictEqual([
+    expect(rustGate().names.slice(19, 27)).toStrictEqual([
       ...TASK_0022_CANONICAL_EVIDENCE,
     ]);
-    expect(powershellGate().slice(19)).toStrictEqual([
+    expect(powershellGate().slice(19, 27)).toStrictEqual([
       ...TASK_0022_CANONICAL_EVIDENCE,
     ]);
+  });
+
+  it("the two newly protected names are exactly TASK-0023's EC15 proofs", () => {
+    // `ACTION-0039`, in all three guards, at the end of each list. Two names,
+    // not three and not the whole of what `TASK-0023` wrote.
+    expect(PROTECTED_RUN_ARTIFACTS.slice(27)).toStrictEqual([
+      ...TASK_0023_CANONICAL_EVIDENCE,
+    ]);
+    expect(rustGate().names.slice(27)).toStrictEqual([...TASK_0023_CANONICAL_EVIDENCE]);
+    expect(powershellGate().slice(27)).toStrictEqual([...TASK_0023_CANONICAL_EVIDENCE]);
+    for (const gate of [
+      PROTECTED_RUN_ARTIFACTS as readonly string[],
+      rustGate().names,
+      powershellGate(),
+    ]) {
+      expect(gate.filter((name) => artifactTaskId(name) === "TASK-0023")).toStrictEqual([
+        ...TASK_0023_CANONICAL_EVIDENCE,
+      ]);
+    }
   });
 
   it("artifactTaskId reads the owner off the name, and tells two owners apart", () => {
@@ -448,30 +546,58 @@ describe("X8 — M12 derives who owns what it writes, and how many names are pro
   });
 
   it("the M12 artefact still derives the sole task identity of the runtime", () => {
+    // The identity claim is unchanged by the seal: every destination this
+    // runtime spells still belongs to `TASK-0023`, and nothing here restates
+    // that from a literal.
     const ownership = runtimeWriteOwnership();
     const written = m12Artifact(2, "written");
     expect(ownership.owningTaskId).not.toBeNull();
     expect(artifactTaskId(written)).toBe(ownership.owningTaskId);
     expect(ownership.taskIdsWritten).toStrictEqual([ownership.owningTaskId]);
-    expect(ownership.writesUnderItsOwnTaskOnly).toBe(true);
   });
 
-  it("the protected runtime destinations are empty while TASK-0023 awaits control", () => {
+  it("the runtime no longer writes under an unsealed task, and says so", () => {
+    // `writesUnderItsOwnTaskOnly` was `true` while `TASK-0023` awaited
+    // control. `ACTION-0039` sealed its own two destinations, so the honest
+    // answer is now `false`, and the reason is exactly one of the three
+    // clauses — the owning task is itself protected and two of its
+    // destinations are sealed — not a stale or anonymous name.
+    const ownership = runtimeWriteOwnership();
+    expect(ownership.writesUnderItsOwnTaskOnly).toBe(false);
+    expect(ownership.owningTaskId).toBe("TASK-0023");
+    expect(ownership.taskIdsWritten).toStrictEqual(["TASK-0023"]);
+    expect(ownership.protectedTaskIds).toContain("TASK-0023");
+    expect(ownership.protectedDestinations).toStrictEqual([
+      ...TASK_0023_CANONICAL_EVIDENCE,
+    ]);
+  });
+
+  it("the protected runtime destinations are the two EC15 passes and nothing else", () => {
     const ownership = runtimeWriteOwnership();
     expect(PROTECTED_RUN_ARTIFACTS as readonly string[]).toContain(
       TASK_0022_CANONICAL_EVIDENCE[5],
     );
-    expect(ownership.protectedDestinations).toStrictEqual([]);
+    expect(ownership.protectedDestinations).toStrictEqual([
+      ...TASK_0023_CANONICAL_EVIDENCE,
+    ]);
+    expect(ownership.protectedDestinations).toStrictEqual([
+      ...SEALED_RUNTIME_DESTINATIONS,
+    ]);
     expect(ownership.runtimeDestinationCount).toBe(RUNTIME_RUN_ARTIFACTS.length);
+    // Every other destination stays writable: the seal did not spread to the
+    // replays this slice migrated.
+    for (const name of TASK_0023_NONCANONICAL) {
+      expect(ownership.protectedDestinations).not.toContain(name);
+    }
   });
 
   it("the count M12 publishes is the count the gate enforces", () => {
-    // Twenty-seven today. The assertion is not only the number: it is that the number
-    // published and the number enforced are the same object, so the next
-    // extension of `X5` moves both at once.
+    // Twenty-nine today. The assertion is not only the number: it is that the
+    // number published and the number enforced are the same object, so the
+    // next extension of `X5` moves both at once.
     const ownership = runtimeWriteOwnership();
     expect(ownership.protectedArtifactCount).toBe(rustGate().declaredLength);
-    expect(ownership.protectedArtifactCount).toBe(27);
+    expect(ownership.protectedArtifactCount).toBe(29);
     expect(ownership.protectedTaskIds).toStrictEqual([
       "TASK-0016",
       "TASK-0017",
@@ -479,8 +605,13 @@ describe("X8 — M12 derives who owns what it writes, and how many names are pro
       "TASK-0019",
       "TASK-0020",
       "TASK-0022",
+      "TASK-0023",
     ]);
-    expect(ownership.protectedTaskIds).not.toContain(ownership.owningTaskId);
+    // `TASK-0023` now owns protected evidence *and* is the runtime's owner.
+    // The old assertion that the two never coincide belonged to a slice that
+    // had not been verified yet; keeping it would have forced the seal to stay
+    // wrong to keep a test green.
+    expect(ownership.protectedTaskIds).toContain(ownership.owningTaskId);
   });
 
   it("a stale owner among the destinations would break the verdict", () => {

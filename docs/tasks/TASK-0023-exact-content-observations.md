@@ -3,7 +3,9 @@
 - **Date :** 2026-09-03
 - **Branche :** `build/v0.2-a7-exact-content-observations`
 - **Base contrôlée :** `cf51d631517956ffb3b0f72ac821eca95c1d3a3b`
-- **Statut courant :** `IMPLEMENTED` — contrôle indépendant requis
+- **Statut courant :** `VERIFIED` — clos par
+  [`ACTION-0039`](../reviews/ACTION-0039-independent-recontrol.md) le 2026-09-04,
+  sur le HEAD re-contrôlé `adba6568`
 - **Agent d'exécution :** Codex
 - **GO :** prompt technique explicite `TASK-0023` du 2026-09-03
 - **Décision :** [`DEC-0025`](../decisions/DEC-0025-exact-content-observation-boundary.md)
@@ -361,6 +363,7 @@ ou le lockfile incontrôlé, si une action destructive ou une modification de
 | 2026-09-03 | `IMPLEMENTED` | EC1–EC15 passés; deux processus WebView2 réels; aucun statut `VERIFIED` attribué par l'exécuteur |
 | 2026-09-04 | `IMPLEMENTED` | `ACTION-0037` = `CHANGES_REQUIRED`, réserve unique `X9`; correction ciblée livrée, `X9` laissée `OPEN` par l'exécuteur |
 | 2026-09-04 | `IMPLEMENTED` | `ACTION-0038` = `CHANGES_REQUIRED`; verdict externe `X9 = CLOSED`, réserve unique `X10 = OPEN`; correction ciblée livrée sans auto-clôture ni `VERIFIED` |
+| 2026-09-04 | `VERIFIED` | `ACTION-0039` enregistre le verdict indépendant : `X10 = CLOSED`, `ACTION-0038 = CLOSED`, `ACTION-0039 = CLOSED`. Aucune réserve ouverte. Les deux preuves `EC15` rejoignent `X5`, qui passe de 27 à 29 |
 
 ## 18. État final attendu
 
@@ -546,3 +549,40 @@ relations inchangées et `sha256-tree-v1` stable. `X5` reste exactement à 27,
 IMPLEMENTED`, `ACTION-0038 = CHANGES_REQUIRED`. Codex ne ferme pas `X10` et ne
 s'attribue pas `VERIFIED`. Action unique suivante : re-contrôle indépendant
 ciblé `X10` / `TASK-0023`.
+
+## 20. Clôture — ACTION-0039
+
+**Verdict indépendant enregistré, non rendu par l'exécuteur.** Sur le HEAD
+re-contrôlé `adba65683562436b1313ef6449bee2c1edb8abec` et le commit substantif
+`X10` `9e9fb37ac8129e32d439a7d0a7b3759523858739`, l'orchestrateur technique
+indépendant a rendu `X10 = CLOSED`, `ACTION-0038 = CLOSED`,
+`ACTION-0039 = CLOSED` et `TASK-0023` **`VERIFIED`**. Le détail des motifs est
+enregistré dans
+[`ACTION-0039`](../reviews/ACTION-0039-independent-recontrol.md).
+
+**Preuves canoniques scellées.** `TASK-0023` possède exactement **deux**
+preuves canoniques, celles sur lesquelles le contrôle s'est prononcé :
+`TASK-0023-EC15-exact-content-observations-webview2-pass1.json` et
+`…-pass2.json`. Elles rejoignent `X5`, qui passe de **27** à **29** noms dans
+les trois gardes canoniques — Rust, TypeScript et PowerShell — les 27
+antérieurs conservant exactement le même ordre. Aucun autre artefact produit
+par cette tranche ne devient canonique : les replays `H9`, `J12`, `K11`, `K12`,
+`L12`, `M12`, `N15` et toutes les variantes `-abandon` restent hors du
+scellement.
+
+**Conséquence assumée sur le runtime.** Le runtime livré dans ce checkout
+écrit encore sous `TASK-0023`, donc ses deux destinations `EC15` sont
+désormais **protégées** : `protectedArtifactCount = 29`,
+`protectedDestinations` = les deux `EC15`, `writesUnderItsOwnTaskOnly =
+false`. C'est l'état normal d'une tranche `VERIFIED`, déjà rencontré à
+`TASK-0020`; ce n'est pas un défaut, et il n'est pas « réparé » en renommant
+d'avance le runtime. La prochaine tranche migrera les destinations avant tout
+nouveau rejeu.
+
+**Limites conservées.** La garantie race-safe `X10` est prouvée **sur
+Windows**; le repli non-Windows n'est pas revendiqué race-safe. `DEC-0013/F`
+demeure bloquante pour l'identité physique persistante : `TASK-0023` fonde
+l'observation de **contenu exact**, pas l'identité « même objet physique ».
+
+**Action unique suivante :** retour à l'orchestrateur pour définir la prochaine
+tranche. Aucune `TASK-0024` n'est créée.

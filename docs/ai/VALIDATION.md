@@ -3330,3 +3330,43 @@ global avec rustfmt 1.98; aucun reformatage global n'a été appliqué.
 suppression `target`, clean ou action sur `main`.
 
 L'exécuteur ne ferme pas `X10` et ne s'attribue pas `VERIFIED`.
+
+---
+
+## AL. ACTION-0039 — re-contrôle X10 enregistré, TASK-0023 VERIFIED et X5 étendue à 29
+
+**Verdict indépendant enregistré, non rendu par l'exécuteur :** `X9 = CLOSED`,
+`X10 = CLOSED`, `ACTION-0038 = CLOSED`, `ACTION-0039 = CLOSED`, `TASK-0023`
+**`VERIFIED`**. HEAD re-contrôlé `adba6568`; commit substantif `X10`
+`9e9fb37a`. Détail dans
+[`ACTION-0039`](../reviews/ACTION-0039-independent-recontrol.md).
+
+Cette action est **gouvernance et scellement seulement**. Aucun rejeu `EC15`,
+`J12`, `K11`, `K12`, `L12`, `M12`, `N15` ni `H9`. Aucune modification de
+`content_signals.rs`, de SHA-256, de `sha256-tree-v1`, de SQLite, du layout,
+des relations, des fixtures, des JSON `EC15`, de `Cargo.toml` ni de
+`Cargo.lock`.
+
+| Contrôle | Résultat | Preuve |
+|---|---|---|
+| X5 — cardinal | **PASS** | `PROTECTED_RUN_ARTIFACTS` déclare et contient **29** noms, **29** uniques, dans les trois gardes |
+| X5 — les 27 antérieurs | **PASS** | `PROTECTED_RUN_ARTIFACTS[..27]` égal, positionnellement, aux 27 noms d'avant, dans le même ordre (Rust `the_seal_is_the_unchanged_twenty_seven_followed_by_task_0023s_two`; TS « the protected set is the unchanged twenty-seven plus TASK-0023's two ») |
+| X5 — les 2 ajoutés | **PASS** | `[27..]` = exactement les deux `EC15` de `TASK-0023`, dans les trois gardes (TS « the two newly protected names are exactly TASK-0023's EC15 proofs ») |
+| X5 — refus en écriture | **PASS** | `write_run_artifact` renvoie `ArtifactRejected` sur les deux `EC15` (Rust `task_0023s_two_ec15_proofs_are_protected_after_verification`) |
+| X5 — pas d'élargissement | **PASS** | les 21 autres destinations `TASK-0023` (H9/J12/K11/K12/L12/M12/N15 et `-abandon`) restent non protégées; le filtre des noms `TASK-0023` du scellement rend exactement les deux `EC15` |
+| X8 — parité des trois gardes | **PASS** | Rust, TypeScript et PowerShell comparés **liste contre liste** par lecture des sources : même contenu, même ordre, `declaredLength = 29` |
+| État dérivé du runtime | **PASS** | `protectedArtifactCount = 29`; `protectedDestinations` = les deux `EC15`; `writesUnderItsOwnTaskOnly = false` — état attendu et assumé après `VERIFIED` |
+| `SEALED_RUNTIME_DESTINATIONS` | **PASS** | miroir mis à jour : exactement les deux `EC15`, égal à l'intersection dérivée |
+| Suite Rust complète | **PASS** | `cargo test` — **184/184** (181 + 3 tests de scellement) |
+| Suite TypeScript complète | **PASS** | `pnpm test` — **211/211** (208 + 3 tests de scellement); `runArtifacts.test.ts` **30/30** |
+| Typecheck et build | **PASS** | `pnpm check`; `pnpm build` |
+| Preuves non modifiées | **PASS** | `git status --short docs/performance/runs/` vide pendant toute la fermeture |
+| `main` | **INCHANGÉE** | `91bbe90f0f99026c28cd345784d4f579a0016db2` |
+
+**Non testé / limites :** la garantie race-safe `X10` est prouvée **sur
+Windows**; le repli `#[cfg(not(windows))]` n'est pas revendiqué race-safe et
+n'a pas été compilé ni exécuté. Tauri debug `--no-bundle` n'a pas été rejoué
+ici : cette fermeture ne touche aucun code produit Rust hors de la constante
+`X5` et de ses tests. `cargo fmt --check` reste rouge sur le formatage
+historique global; aucun reformatage global. `DEC-0013/F` demeure bloquante
+pour l'identité physique persistante.

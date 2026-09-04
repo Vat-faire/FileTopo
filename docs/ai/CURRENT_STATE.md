@@ -1,5 +1,52 @@
 # État courant
 
+## Mise à jour ACTION-0039 — TASK-0023 VERIFIED et scellement X5 — 2026-09-04
+
+- **Verdict indépendant enregistré, non rendu par Claude :** `X9 = CLOSED`,
+  `X10 = CLOSED`, `ACTION-0038 = CLOSED`, `ACTION-0039 = CLOSED`, `TASK-0023`
+  **`VERIFIED`**, sur le HEAD re-contrôlé `adba6568` et le commit substantif
+  `X10` `9e9fb37a`. Aucune réserve ne reste ouverte sur `TASK-0023`. Détail
+  dans [`ACTION-0039`](../reviews/ACTION-0039-independent-recontrol.md).
+- **Motifs `X10` :** ouverture Windows `FILE_FLAG_OPEN_REPARSE_POINT`,
+  classification sur la metadata du handle réellement ouvert, composant final
+  jamais rouvert par pathname pour le hash, racine et composants intermédiaires
+  épinglés, `FILE_SHARE_DELETE` omis, répertoires gardés ouverts pendant
+  `read_dir` et la récursion, remplacements fichier → reparse et
+  répertoire → jonction réelle testés, renommage d'un composant intermédiaire
+  épinglé réellement refusé, zéro octet extérieur lu, `sha256-tree-v1`
+  conservant `X9`, `EC15` réelle réussie, aucune nouvelle dépendance, `main`
+  intacte.
+- **Scellement `X5` : 27 → 29.** Les deux preuves canoniques de `TASK-0023` —
+  `EC15` `pass1` et `pass2` — rejoignent la réserve dans les trois gardes
+  canoniques (Rust, TypeScript, PowerShell). Les 27 antérieurs gardent
+  exactement le même ordre; les deux `EC15` suivent. **Aucune autre preuve
+  `TASK-0023` ne devient canonique** : les replays `H9`, `J12`, `K11`, `K12`,
+  `L12`, `M12`, `N15` et toutes les variantes `-abandon` restent hors du
+  scellement.
+- **État dérivé du runtime, assumé :** `protectedArtifactCount = 29`,
+  `protectedDestinations` = les deux `EC15`, `writesUnderItsOwnTaskOnly =
+  false`. Le runtime de ce checkout écrit encore sous `TASK-0023`, donc ses
+  deux destinations `EC15` sont volontairement protégées. **C'est normal après
+  `VERIFIED`** — déjà vu à `TASK-0020` — et ce n'est pas corrigé en renommant
+  d'avance le runtime. La prochaine tranche migrera les destinations avant tout
+  nouveau rejeu. `SEALED_RUNTIME_DESTINATIONS` publie cette intersection.
+- **Validation :** Rust **184/184**, TypeScript **211/211** dont
+  `runArtifacts.test.ts` **30/30**, `pnpm check`, `pnpm build`. Aucune preuve
+  modifiée pendant la fermeture (`git status` vide sur
+  `docs/performance/runs/`). `main` reste `91bbe90f`.
+- **Portée :** gouvernance et scellement seulement. Aucune modification de
+  `content_signals.rs`, SHA-256, `sha256-tree-v1`, SQLite, layout, relations,
+  fixtures, JSON `EC15`, `Cargo.toml` ni `Cargo.lock`. Aucun rejeu `EC15`,
+  `J12`, `K11`, `K12`, `L12`, `M12`, `N15`, `H9`.
+- **Produit :** `F-046` reste `PROPOSED`; seule sa **fondation de contenu
+  exact** est désormais `VERIFIED` par `TASK-0023`. La partie « même objet
+  physique » reste absente et `DEC-0013/F` demeure bloquante. `F-043`, `F-044`
+  et `F-045` restent `PROPOSED`.
+- **Limite conservée :** la garantie race-safe `X10` est prouvée **sur
+  Windows**; le repli non-Windows n'est pas revendiqué race-safe.
+- **Action unique suivante :** retour à l'orchestrateur pour définir la
+  prochaine tranche. Aucune `TASK-0024` n'est créée.
+
 ## Mise à jour ACTION-0038 — correction ciblée X10 — 2026-09-04
 
 - **Verdict externe enregistré, non rendu par Codex :** `X9 = CLOSED`,

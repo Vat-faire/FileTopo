@@ -3255,3 +3255,65 @@ persistée, suppression `target`, clean ni action sur `main`.
 
 **Action unique suivante :** re-contrôle indépendant ciblé `X10` /
 `TASK-0023`.
+
+---
+
+## 2026-09-04 — ACTION-0039 — Verdict indépendant X10, TASK-0023 VERIFIED, scellement X5 27 → 29
+
+**Agent :** exécuteur Claude Code
+**Statut à l'issue :** `TASK-0023` = **`VERIFIED`**; `ACTION-0038` = `CLOSED`;
+`ACTION-0039` = `CLOSED`; `X9` et `X10` = `CLOSED`
+
+### Fait
+
+- Création de `docs/reviews/ACTION-0039-independent-recontrol.md`, qui
+  **enregistre** le verdict rendu par l'orchestrateur technique indépendant sur
+  le HEAD re-contrôlé `adba6568` et le commit substantif `X10` `9e9fb37a` :
+  `X9 = CLOSED`, `X10 = CLOSED`, `ACTION-0038 = CLOSED`,
+  `ACTION-0039 = CLOSED`, `TASK-0023 = VERIFIED`. **Claude ne rend pas ce
+  verdict** et ne clôt aucune réserve de sa propre autorité.
+- Motifs de clôture `X10` consignés factuellement : ouverture Windows avec
+  `FILE_FLAG_OPEN_REPARSE_POINT`, classification sur la metadata du handle
+  réellement ouvert, composant final jamais rouvert par pathname pour le hash,
+  racine et composants intermédiaires épinglés, `FILE_SHARE_DELETE` omis,
+  répertoires gardés ouverts pendant `read_dir` et la récursion, trois tests
+  TOCTOU synchronisés, zéro octet extérieur lu, `sha256-tree-v1` conservant
+  `X9`, `EC15` réelle réussie, aucune nouvelle dépendance, `main` intacte.
+- Scellement `X5` : les **deux** preuves canoniques `EC15` de `TASK-0023`
+  rejoignent la réserve, qui passe de **27** à **29** noms dans les trois
+  gardes canoniques — Rust `PROTECTED_RUN_ARTIFACTS`, TypeScript
+  `PROTECTED_RUN_ARTIFACTS`, PowerShell `$script:ProtectedRunArtifacts`. Les 27
+  antérieurs conservent exactement le même ordre; les deux `EC15` sont
+  ajoutées à la suite. Aucune autre preuve `TASK-0023` ne devient canonique.
+- `SEALED_RUNTIME_DESTINATIONS` passe de la liste vide aux deux `EC15` : le
+  runtime de ce checkout écrit encore sous `TASK-0023`, donc ses deux
+  destinations sont désormais refusées par le portail d'écriture. État assumé
+  d'une tranche `VERIFIED`, non « corrigé » par un renommage anticipé.
+- Tests de garde `X5`/`X8` étendus des deux côtés : cardinal 29, immutabilité
+  positionnelle des 27, ajout exact des 2, refus effectif en écriture,
+  non-élargissement aux 21 autres destinations `TASK-0023`, et parité des trois
+  gardes vérifiée liste contre liste.
+- Documentation : `ACTION-0038` marquée close et renvoyant à `ACTION-0039`;
+  `TASK-0023` passée à `VERIFIED` avec sa section de clôture; `FEATURE_MATRIX`
+  précisant que la fondation de contenu exact de `F-046` est désormais
+  `VERIFIED`, `F-046` restant `PROPOSED`.
+
+### Validé
+
+Rust **184/184**; TypeScript **211/211** dont `runArtifacts.test.ts` **30/30**;
+`pnpm check`; `pnpm build`. `git status --short docs/performance/runs/` reste
+vide : aucune preuve n'a été modifiée pendant la fermeture. `main` reste
+`91bbe90f0f99026c28cd345784d4f579a0016db2`.
+
+### Non testé / limites
+
+Aucun rejeu `EC15`, `J12`, `K11`, `K12`, `L12`, `M12`, `N15` ni `H9` — la
+fermeture est gouvernance et scellement seulement. Tauri debug `--no-bundle`
+non rejoué : aucun code produit hors la constante `X5` et ses tests n'est
+touché. La garantie race-safe `X10` est prouvée **sur Windows**; le repli
+non-Windows n'est pas revendiqué race-safe. `cargo fmt --check` reste rouge sur
+le formatage historique global. `DEC-0013/F` demeure bloquante pour l'identité
+physique persistante. `F-043`, `F-044`, `F-045` et `F-046` restent `PROPOSED`.
+
+**Action unique suivante :** retour à l'orchestrateur pour définir la prochaine
+tranche. Aucune `TASK-0024` créée.

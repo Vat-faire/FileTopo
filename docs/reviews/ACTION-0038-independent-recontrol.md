@@ -1,4 +1,12 @@
-# ACTION-0038 — Re-contrôle indépendant ciblé X9 : CHANGES_REQUIRED
+# ACTION-0038 — Re-contrôle indépendant ciblé X9 : CHANGES_REQUIRED, puis CLOSED
+
+> **Clôturée par [`ACTION-0039`](ACTION-0039-independent-recontrol.md) le
+> 2026-09-04.** La réserve `X10` posée ci-dessous a été corrigée par le commit
+> `9e9fb37a` et close par le re-contrôle indépendant enregistré dans
+> `ACTION-0039`, sur le HEAD `adba6568`. `ACTION-0038` est donc **`CLOSED`** et
+> `TASK-0023` est **`VERIFIED`**. Le verdict `CHANGES_REQUIRED` enregistré
+> ci-dessous reste le verdict rendu **à sa date**, sur `d017c781`; il n'est pas
+> réécrit.
 
 - **Date :** 2026-09-04
 - **Objet :** enregistrement du re-contrôle indépendant ciblé `X9` de
@@ -60,6 +68,23 @@ lire ni de parcourir une cible hors racine.
 
 ## 5. État et action suivante
 
-`X9` est `CLOSED`; `ACTION-0038` reste `CHANGES_REQUIRED`, `TASK-0023` reste
-`IMPLEMENTED` et `X10` reste `OPEN`. L'action suivante est la correction
-ciblée `X10`, suivie d'un re-contrôle indépendant distinct.
+**À la date de ce contrôle :** `X9` est `CLOSED`; `ACTION-0038` reste
+`CHANGES_REQUIRED`, `TASK-0023` reste `IMPLEMENTED` et `X10` reste `OPEN`.
+L'action suivante est la correction ciblée `X10`, suivie d'un re-contrôle
+indépendant distinct.
+
+## 6. Suite effective
+
+La correction `X10` a été livrée par le commit `9e9fb37a` : ouverture Windows
+avec `FILE_FLAG_OPEN_REPARSE_POINT`, décision prise sur la metadata du handle
+réellement ouvert, épinglage de la racine et des composants intermédiaires
+sans `FILE_SHARE_DELETE`, et lecture du même handle sans réouverture par
+pathname — ce qui répond structurellement à l'exigence du §4 plutôt que par
+une revérification de pathname.
+
+Le re-contrôle indépendant de cette correction est enregistré dans
+[`ACTION-0039`](ACTION-0039-independent-recontrol.md), sur le HEAD
+`adba6568`. Il clôt `X10`, clôt `ACTION-0038` et `ACTION-0039`, et prononce
+`TASK-0023` **`VERIFIED`**, avec la limite conservée que la garantie race-safe
+est prouvée **sur Windows** et que le repli non-Windows n'est pas revendiqué
+race-safe.
