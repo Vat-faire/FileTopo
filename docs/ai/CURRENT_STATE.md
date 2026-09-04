@@ -1,5 +1,47 @@
 # État courant
 
+## Mise à jour ACTION-0037 — correction ciblée X9 — 2026-09-04
+
+- **Verdict indépendant enregistré, non rendu par l'exécuteur :** sur le HEAD
+  contrôlé `12b3c87`, l'orchestrateur technique indépendant a rendu
+  `ACTION-0037` **`CHANGES_REQUIRED`**, `TASK-0023` **`IMPLEMENTED`** et la
+  réserve `X9` **`OPEN`**. Le fond de `TASK-0023` est accepté; seul le
+  fingerprint global de campagne était en cause.
+- **X9 :** ce fingerprint appelait encore `fixtures::fingerprint(root)`, qui
+  suit un symlink fichier par `fs::read` — donc peut lire hors de la racine —
+  et accumule tous les contenus dans un `Vec<u8>`, donc n'est pas à mémoire
+  bornée.
+- **Correction livrée :** nouvelle primitive
+  `content_signals::content_source_fingerprint`, publiée
+  `sha256-tree-v1:<64 hex minuscules>` : SHA-256 d'arbre déterministe, lu en
+  streaming par un unique tampon borné de 64 KiB, qui marque tout symlink,
+  jonction ou reparse point comme **lien** sans jamais ouvrir, lire, parcourir
+  ni canonicaliser sa cible. Un type d'entrée non interprétable est traité
+  comme non traversable. `observe_root_with_hook` publie désormais
+  `sourceFingerprintBefore`/`After` par ce seul moteur.
+- **Deux rôles distincts :** `sha256-tree-v1` est l'arbre source d'une
+  campagne; `sha256-v1` reste le digest du contenu d'un fichier.
+  `fixtures::fingerprint` (`fnv1a64:…`) est inchangée et garde son rôle
+  historique pour les fixtures gelées et les preuves `TASK-0016`..`TASK-0022`.
+- **Validation :** `cargo test` **178/178**, `pnpm test` **208/208**,
+  `pnpm check`, `pnpm build`, Tauri debug `--no-bundle`. EC15 régénérée en deux
+  vrais processus WebView2 `152.0.4191.62` sur la variante fraîche
+  `task0023-ec15-x9-20260904145356-6ebb99`; les deux preuves publient
+  `sourceFingerprintBefore == sourceFingerprintAfter == sha256-tree-v1:85f73748…`.
+- **X5 :** toujours exactement **27**, mêmes noms et même ordre dans les gardes
+  Rust, TypeScript et PowerShell; les 27 preuves protégées sont bit-for-bit
+  inchangées; `protectedDestinations = []`. Seules les deux preuves EC15 de
+  `TASK-0023`, non protégées, ont été réécrites.
+- **Non testé :** les quatre tests `#[cfg(unix)]` de non-suivi de lien ne sont
+  pas compilés sur cet hôte Windows, et la création de symlink Windows a été
+  refusée faute de privilège; la preuve exécutée du non-suivi est une
+  **jonction** `mklink /J`, plus deux tests déterministes de classification.
+- **État inchangé :** `TASK-0023` reste `IMPLEMENTED`, `X9` reste `OPEN`,
+  `ACTION-0037` reste `CHANGES_REQUIRED`. L'exécuteur ne clôt pas sa propre
+  réserve et ne s'attribue pas `VERIFIED`.
+- **Action unique suivante :** re-contrôle indépendant ciblé `X9` de
+  `TASK-0023`.
+
 ## Mise à jour TASK-0023 — 2026-09-03
 
 - **Tâche livrée, NON vérifiée :** `TASK-0023` = **`IMPLEMENTED`** sur

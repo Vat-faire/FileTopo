@@ -1,5 +1,54 @@
 # HANDOFF — passage de relais
 
+## Relais actuel — ACTION-0037, correction X9, 2026-09-04
+
+Le verdict indépendant est enregistré dans
+[`ACTION-0037`](../reviews/ACTION-0037-independent-control.md) : sur le HEAD
+`12b3c87`, `ACTION-0037` = `CHANGES_REQUIRED`, `TASK-0023` = `IMPLEMENTED`,
+`X9` = `OPEN`. Claude a enregistré ce verdict sans le rendre.
+
+`X9` visait le seul fingerprint global de campagne, resté sur
+`fixtures::fingerprint(root)` : suivi possible d'un symlink fichier par
+`fs::read`, donc lecture possible hors racine, et accumulation de tous les
+contenus dans un `Vec<u8>`, donc mémoire non bornée.
+
+La correction ajoute `content_signals::content_source_fingerprint`, publiée
+`sha256-tree-v1:<64 hex minuscules>`. Elle parcourt les entrées dans un ordre
+déterministe, n'utilise que `symlink_metadata`, marque tout symlink, jonction
+ou reparse point comme lien sans ouvrir, lire, parcourir ni canonicaliser sa
+cible, traite un type non interprétable comme non traversable, et alimente le
+hasher par un unique tampon réutilisé de 64 KiB. `observe_root_with_hook` ne
+publie plus que cette valeur pour `sourceFingerprintBefore`/`After`;
+l'invariant `SOURCE_CHANGED_DURING_OBSERVATION` est inchangé.
+
+`fixtures::fingerprint` n'est pas modifiée : elle garde son rôle historique de
+fingerprint des fixtures gelées et des preuves `TASK-0016`..`TASK-0022`, dont
+les valeurs `fnv1a64:…` restent reproductibles. Les deux rôles sont documentés
+côte à côte dans le code.
+
+Validation : `cargo test` **178/178**, `pnpm test` **208/208**, `pnpm check`,
+`pnpm build`, Tauri debug `--no-bundle`, puis EC15 passes 1 et 2 en deux vrais
+processus WebView2 `152.0.4191.62` sur la variante fraîche
+`task0023-ec15-x9-20260904145356-6ebb99`. Les deux preuves EC15 — les seules
+réécrites, non protégées — publient
+`sourceFingerprintBefore == sourceFingerprintAfter == sha256-tree-v1:85f73748…`
+et conservent 8 FILE hashés, 3 dossiers exclus, stores Alpha/Gamma distincts,
+zéro relation créée, rebuild persistant, UI honnête au redémarrage, 8
+ouvertures, 1 424 octets relus et 8 digests recalculés. X5 reste exactement à
+27, bit-for-bit.
+
+Limites : les quatre tests `#[cfg(unix)]` de non-suivi de lien ne sont pas
+compilés sur cet hôte Windows; la création de symlink Windows a été refusée
+faute de privilège, donc la preuve exécutée du non-suivi est une jonction
+`mklink /J`, complétée par deux tests déterministes de classification. La
+preuve de streaming est un compteur de lectures, pas un profileur.
+`DEC-0013/F` reste bloquante pour l'identité physique persistante; `R8` et
+`B0` inchangés, `B0` contourné par `CARGO_INCREMENTAL=0`, sans `clean`.
+
+**Prochaine action unique : re-contrôle indépendant ciblé `X9` de
+`TASK-0023`.** `TASK-0023` reste `IMPLEMENTED`, `X9` reste `OPEN`,
+`ACTION-0037` reste `CHANGES_REQUIRED`; aucune `TASK-0024` n'est créée.
+
 ## Relais actuel — TASK-0023 IMPLEMENTED, 2026-09-03
 
 `TASK-0023` est livrée sur `build/v0.2-a7-exact-content-observations`, mais

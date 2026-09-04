@@ -407,6 +407,136 @@ fn observation_from_row(row: &rusqlite::Row<'_>) -> rusqlite::Result<ContentObse
     })
 }
 
+/// Version tag of the campaign source fingerprint — `TASK-0023`, `X9`.
+///
+/// `sha256-tree-v1` is not `sha256-v1`. `sha256-v1` digests the bytes of one
+/// file; this one digests the observable shape of a whole source tree. Both
+/// use SHA-256, they answer different questions and are never interchangeable.
+pub const SOURCE_FINGERPRINT_VERSION: &str = "sha256-tree-v1";
+
+const TREE_MARKER_DIRECTORY: u8 = 1;
+const TREE_MARKER_FILE: u8 = 2;
+/// A symlink, junction or any other reparse point. Its presence is recorded,
+/// its target is never opened, read or entered.
+const TREE_MARKER_LINK: u8 = 3;
+/// An entry whose type cannot be interpreted. Treated as non traversable:
+/// confinement before exhaustiveness.
+const TREE_MARKER_OTHER: u8 = 4;
+const TREE_MARKER_END: u8 = 0xff;
+
+/// Fingerprint of the observable source tree, streaming and confined.
+///
+/// Three properties matter more than the value itself:
+///
+/// - a link never becomes a permission to leave the root: symlinks, junctions
+///   and reparse points are recorded as links, never followed and never
+///   descended into;
+/// - file bytes go through one bounded, reused buffer — never `fs::read`, so
+///   memory stays bounded by a buffer and not by the size of a brain;
+/// - only paths relative to `root` enter the digest, and the published value
+///   is a prefix plus lowercase hex.
+pub fn content_source_fingerprint(root: &Path) -> Result<String, MapError> {
+    fingerprint_source_tree(root, &mut |_| {})
+}
+
+/// Same engine, with a read observer so streaming can be proven by a test
+/// instead of asserted by a comment.
+fn fingerprint_source_tree(
+    root: &Path,
+    observer: &mut dyn FnMut(usize),
+) -> Result<String, MapError> {
+    let mut hasher = Sha256::new();
+    hasher.update(SOURCE_FINGERPRINT_VERSION.as_bytes());
+    hasher.update([0]);
+    let mut buffer = vec![0_u8; HASH_BUFFER_BYTES];
+    visit_source_tree(root, root, &mut hasher, &mut buffer, observer)?;
+    Ok(format!(
+        "{SOURCE_FINGERPRINT_VERSION}:{}",
+        hex_lower(&hasher.finalize())
+    ))
+}
+
+fn visit_source_tree(
+    base: &Path,
+    current: &Path,
+    hasher: &mut Sha256,
+    buffer: &mut [u8],
+    observer: &mut dyn FnMut(usize),
+) -> Result<(), MapError> {
+    let mut entries = fs::read_dir(current)?.collect::<Result<Vec<_>, _>>()?;
+    entries.sort_by_key(|entry| entry.file_name());
+    for entry in entries {
+        let path = entry.path();
+        let relative = path
+            .strip_prefix(base)
+            .map_err(|_| MapError::FixtureMismatch("path escaped the source root".into()))?
+            .to_string_lossy()
+            .replace('\\', "/");
+        // `symlink_metadata` describes the entry itself, never its target.
+        let metadata = fs::symlink_metadata(&path)?;
+        let marker = tree_marker(&metadata);
+        hasher.update(relative.as_bytes());
+        hasher.update([0, marker]);
+        hasher.update(metadata.len().to_le_bytes());
+        match modified_ms(&metadata) {
+            Some(modified) => {
+                hasher.update([1]);
+                hasher.update(modified.to_le_bytes());
+            }
+            None => hasher.update([0]),
+        }
+        match marker {
+            TREE_MARKER_FILE => stream_file_into(&path, hasher, buffer, observer)?,
+            TREE_MARKER_DIRECTORY => visit_source_tree(base, &path, hasher, buffer, observer)?,
+            // A link or an uninterpretable entry stops here: no open, no read,
+            // no descent, no canonicalisation of a target.
+            _ => {}
+        }
+        hasher.update([TREE_MARKER_END]);
+    }
+    Ok(())
+}
+
+fn stream_file_into(
+    path: &Path,
+    hasher: &mut Sha256,
+    buffer: &mut [u8],
+    observer: &mut dyn FnMut(usize),
+) -> Result<(), MapError> {
+    let mut file = File::open(path)?;
+    loop {
+        let read = file.read(buffer)?;
+        if read == 0 {
+            break;
+        }
+        observer(read);
+        hasher.update(&buffer[..read]);
+    }
+    Ok(())
+}
+
+fn tree_marker(metadata: &Metadata) -> u8 {
+    marker_of(
+        metadata.file_type().is_symlink() || metadata_is_reparse_point(metadata),
+        metadata.is_dir(),
+        metadata.is_file(),
+    )
+}
+
+/// Pure classification, so the confinement rule stays testable on a host with
+/// no privilege to create a link.
+fn marker_of(is_link: bool, is_dir: bool, is_file: bool) -> u8 {
+    if is_link {
+        TREE_MARKER_LINK
+    } else if is_dir {
+        TREE_MARKER_DIRECTORY
+    } else if is_file {
+        TREE_MARKER_FILE
+    } else {
+        TREE_MARKER_OTHER
+    }
+}
+
 pub fn observe_content(
     paths: &SandboxPaths,
     brain: &BrainRecord,
@@ -425,7 +555,7 @@ fn observe_root_with_hook(
     hook: &mut dyn FnMut(&ObservationEvent) -> Result<(), MapError>,
 ) -> Result<ContentObservationReport, MapError> {
     let started = std::time::Instant::now();
-    let source_fingerprint_before = fixtures::fingerprint(root)?;
+    let source_fingerprint_before = content_source_fingerprint(root)?;
     let generation_id = Uuid::new_v4().to_string();
     let observed_at = now_ms();
     let indexed = nodes
@@ -447,7 +577,7 @@ fn observe_root_with_hook(
     }
 
     hook(&ObservationEvent::BeforeFingerprintAfter)?;
-    let source_fingerprint_after = fixtures::fingerprint(root)?;
+    let source_fingerprint_after = content_source_fingerprint(root)?;
     if source_fingerprint_before != source_fingerprint_after {
         return Err(MapError::ContentObservation(
             "SOURCE_CHANGED_DURING_OBSERVATION".to_string(),
@@ -766,10 +896,19 @@ fn modified_ms(metadata: &Metadata) -> Option<i64> {
         .map(|duration| duration.as_millis().min(i64::MAX as u128) as i64)
 }
 
+/// `FILE_ATTRIBUTE_REPARSE_POINT`.
+#[cfg(windows)]
+const WINDOWS_REPARSE_POINT_ATTRIBUTE: u32 = 0x0000_0400;
+
+#[cfg(windows)]
+fn attributes_are_reparse_point(attributes: u32) -> bool {
+    attributes & WINDOWS_REPARSE_POINT_ATTRIBUTE != 0
+}
+
 #[cfg(windows)]
 fn metadata_is_reparse_point(metadata: &Metadata) -> bool {
     use std::os::windows::fs::MetadataExt;
-    metadata.file_attributes() & 0x0000_0400 != 0
+    attributes_are_reparse_point(metadata.file_attributes())
 }
 
 #[cfg(not(windows))]
@@ -1566,5 +1705,301 @@ mod tests {
             relations_before.deterministic_digest,
             relations_after.deterministic_digest
         );
+    }
+
+    // --- X9: campaign source fingerprint (`sha256-tree-v1`) ---------------
+
+    #[test]
+    fn the_campaign_publishes_the_confined_tree_fingerprint() {
+        let temp = tempfile::tempdir().expect("temp");
+        let root = temp.path().join("source");
+        fs::create_dir_all(root.join("nested")).expect("root");
+        fs::write(root.join("nested/file.bin"), b"payload").expect("file");
+        let paths = paths(&temp);
+        let report = run(
+            &paths,
+            "brain-test",
+            &root,
+            &[file_node(2, "nested/file.bin", 7)],
+        )
+        .expect("campaign");
+        assert!(report
+            .source_fingerprint_before
+            .starts_with("sha256-tree-v1:"));
+        assert_eq!(
+            report.source_fingerprint_before,
+            report.source_fingerprint_after
+        );
+        let digest = report
+            .source_fingerprint_before
+            .trim_start_matches("sha256-tree-v1:");
+        assert_eq!(digest.len(), 64);
+        assert!(digest
+            .bytes()
+            .all(|byte| byte.is_ascii_hexdigit() && !byte.is_ascii_uppercase()));
+        // The file digest engine keeps its own, different identity.
+        assert_eq!(report.hash_algorithm, "sha256-v1");
+        let summary = ContentSignalStore::open(&paths.brain_content_signals_database("brain-test"))
+            .expect("store")
+            .summary("brain-test", "relative".into())
+            .expect("summary");
+        assert_eq!(
+            summary.source_fingerprint.as_deref(),
+            Some(report.source_fingerprint_after.as_str())
+        );
+    }
+
+    #[test]
+    fn the_source_fingerprint_streams_files_in_bounded_chunks() {
+        let temp = tempfile::tempdir().expect("temp");
+        let root = temp.path().join("source");
+        fs::create_dir_all(&root).expect("root");
+        let payload = (0..(HASH_BUFFER_BYTES * 2 + 17))
+            .map(|index| (index % 251) as u8)
+            .collect::<Vec<_>>();
+        fs::write(root.join("big.bin"), &payload).expect("big");
+        let mut chunks = Vec::new();
+        let fingerprint =
+            fingerprint_source_tree(&root, &mut |read| chunks.push(read)).expect("fingerprint");
+        // A single `fs::read` of the whole file would show one unbounded read.
+        assert!(chunks.len() >= 3, "the engine stopped streaming: {chunks:?}");
+        assert!(chunks.iter().all(|read| *read <= HASH_BUFFER_BYTES));
+        assert_eq!(chunks.iter().sum::<usize>(), payload.len());
+        assert!(fingerprint.starts_with("sha256-tree-v1:"));
+    }
+
+    #[test]
+    fn the_source_fingerprint_is_deterministic_sensitive_and_path_independent() {
+        let temp = tempfile::tempdir().expect("temp");
+        let root = temp.path().join("source");
+        fs::create_dir_all(root.join("nested")).expect("root");
+        fs::write(root.join("nested/a.bin"), b"AAAA").expect("a");
+        let first = content_source_fingerprint(&root).expect("first");
+        assert_eq!(first, content_source_fingerprint(&root).expect("stable"));
+        fs::write(root.join("nested/a.bin"), b"BBBB").expect("same size mutation");
+        let mutated = content_source_fingerprint(&root).expect("mutated");
+        assert_ne!(first, mutated);
+        fs::write(root.join("nested/b.bin"), b"BBBB").expect("new entry");
+        assert_ne!(mutated, content_source_fingerprint(&root).expect("grown"));
+        // The value depends on the observable tree, not on where it lives.
+        let moved = temp.path().join("moved-elsewhere");
+        let before_move = content_source_fingerprint(&root).expect("before move");
+        fs::rename(&root, &moved).expect("rename");
+        assert_eq!(
+            before_move,
+            content_source_fingerprint(&moved).expect("moved")
+        );
+        assert!(!before_move.contains(&*temp.path().to_string_lossy()));
+    }
+
+    #[test]
+    fn a_reparse_point_is_a_link_even_when_it_looks_like_a_directory() {
+        assert_eq!(marker_of(true, true, false), TREE_MARKER_LINK);
+        assert_eq!(marker_of(true, false, true), TREE_MARKER_LINK);
+        assert_eq!(marker_of(false, true, false), TREE_MARKER_DIRECTORY);
+        assert_eq!(marker_of(false, false, true), TREE_MARKER_FILE);
+        assert_eq!(marker_of(false, false, false), TREE_MARKER_OTHER);
+    }
+
+    #[cfg(windows)]
+    #[test]
+    fn windows_reparse_attribute_detection_is_deterministic() {
+        // FILE_ATTRIBUTE_DIRECTORY, FILE_ATTRIBUTE_ARCHIVE, FILE_ATTRIBUTE_NORMAL.
+        assert!(!attributes_are_reparse_point(0x0000_0010));
+        assert!(!attributes_are_reparse_point(0x0000_0020));
+        assert!(!attributes_are_reparse_point(0x0000_0080));
+        assert!(attributes_are_reparse_point(WINDOWS_REPARSE_POINT_ATTRIBUTE));
+        // A junction is a directory *and* a reparse point.
+        assert!(attributes_are_reparse_point(
+            0x0000_0010 | WINDOWS_REPARSE_POINT_ATTRIBUTE
+        ));
+        let temp = tempfile::tempdir().expect("temp");
+        let root = temp.path().join("source");
+        fs::create_dir_all(root.join("nested")).expect("root");
+        fs::write(root.join("file.bin"), b"plain").expect("file");
+        assert!(!metadata_is_reparse_point(
+            &fs::symlink_metadata(root.join("file.bin")).expect("file metadata")
+        ));
+        assert!(!metadata_is_reparse_point(
+            &fs::symlink_metadata(root.join("nested")).expect("dir metadata")
+        ));
+        assert_eq!(
+            tree_marker(&fs::symlink_metadata(root.join("file.bin")).expect("file metadata")),
+            TREE_MARKER_FILE
+        );
+        assert_eq!(
+            tree_marker(&fs::symlink_metadata(root.join("nested")).expect("dir metadata")),
+            TREE_MARKER_DIRECTORY
+        );
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn the_source_fingerprint_never_reads_through_a_file_link_leaving_the_root() {
+        use std::os::unix::fs::symlink;
+        let temp = tempfile::tempdir().expect("temp");
+        let root = temp.path().join("source");
+        fs::create_dir_all(&root).expect("root");
+        fs::write(root.join("inside.bin"), b"inside").expect("inside");
+        let outside = temp.path().join("outside.bin");
+        fs::write(&outside, b"outside-v1").expect("outside");
+        symlink(&outside, root.join("link")).expect("symlink");
+
+        let first = content_source_fingerprint(&root).expect("with target");
+        // The historical fixture fingerprint read the target through the link.
+        fs::write(&outside, b"outside-v2").expect("mutate outside");
+        assert_eq!(
+            first,
+            content_source_fingerprint(&root).expect("target mutated"),
+            "the fingerprint followed a link out of the root"
+        );
+        // A dangling link stays fingerprintable: nothing is ever opened.
+        fs::remove_file(&outside).expect("remove outside");
+        assert_eq!(
+            first,
+            content_source_fingerprint(&root).expect("dangling link"),
+            "the fingerprint depended on a target outside the root"
+        );
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn the_source_fingerprint_never_descends_into_a_directory_link() {
+        use std::os::unix::fs::symlink;
+        let temp = tempfile::tempdir().expect("temp");
+        let root = temp.path().join("source");
+        fs::create_dir_all(&root).expect("root");
+        let outside = temp.path().join("outside");
+        fs::create_dir_all(&outside).expect("outside");
+        fs::write(outside.join("first.bin"), b"first").expect("first");
+        symlink(&outside, root.join("dirlink")).expect("symlink dir");
+
+        let first = content_source_fingerprint(&root).expect("with directory link");
+        fs::write(outside.join("second.bin"), b"second").expect("second");
+        assert_eq!(
+            first,
+            content_source_fingerprint(&root).expect("outside grown"),
+            "the fingerprint walked into a directory link"
+        );
+    }
+
+    #[cfg(windows)]
+    #[test]
+    fn the_source_fingerprint_never_follows_windows_links_when_creation_is_allowed() {
+        use std::os::windows::fs::{symlink_dir, symlink_file};
+        let temp = tempfile::tempdir().expect("temp");
+        let root = temp.path().join("source");
+        fs::create_dir_all(&root).expect("root");
+        fs::write(root.join("inside.bin"), b"inside").expect("inside");
+        let outside_file = temp.path().join("outside.bin");
+        fs::write(&outside_file, b"outside-v1").expect("outside file");
+        let outside_dir = temp.path().join("outside");
+        fs::create_dir_all(&outside_dir).expect("outside dir");
+        fs::write(outside_dir.join("first.bin"), b"first").expect("first");
+        // Creating a symlink needs a privilege this host may not grant; only
+        // the creation is skipped, the detection stays covered above.
+        if symlink_file(&outside_file, root.join("link")).is_err() {
+            return;
+        }
+        if symlink_dir(&outside_dir, root.join("dirlink")).is_err() {
+            return;
+        }
+
+        let first = content_source_fingerprint(&root).expect("with links");
+        fs::write(&outside_file, b"outside-v2").expect("mutate outside file");
+        fs::write(outside_dir.join("second.bin"), b"second").expect("grow outside dir");
+        assert_eq!(
+            first,
+            content_source_fingerprint(&root).expect("outside mutated"),
+            "the fingerprint followed a link out of the root"
+        );
+        fs::remove_file(&outside_file).expect("remove outside file");
+        assert!(
+            content_source_fingerprint(&root).is_ok(),
+            "dangling link refused"
+        );
+    }
+
+    /// A directory junction is a real reparse point that an ordinary Windows
+    /// account can create, so this proof runs without any privilege.
+    #[cfg(windows)]
+    #[test]
+    fn a_windows_junction_out_of_the_root_is_never_entered() {
+        let temp = tempfile::tempdir().expect("temp");
+        let root = temp.path().join("source");
+        fs::create_dir_all(&root).expect("root");
+        fs::write(root.join("inside.bin"), b"inside").expect("inside");
+        let outside = temp.path().join("outside");
+        fs::create_dir_all(&outside).expect("outside");
+        fs::write(outside.join("first.bin"), b"first").expect("first");
+        let junction = root.join("junction");
+        let created = std::process::Command::new("cmd")
+            .args(["/c", "mklink", "/J"])
+            .arg(&junction)
+            .arg(&outside)
+            .output();
+        let available = matches!(&created, Ok(output) if output.status.success());
+        if !available {
+            // Only the creation is skipped; classification stays covered by
+            // `windows_reparse_attribute_detection_is_deterministic`.
+            return;
+        }
+
+        let metadata = fs::symlink_metadata(&junction).expect("junction metadata");
+        assert!(metadata_is_reparse_point(&metadata));
+        assert_eq!(tree_marker(&metadata), TREE_MARKER_LINK);
+
+        let first = content_source_fingerprint(&root).expect("with junction");
+        fs::write(outside.join("second.bin"), b"second").expect("grow outside");
+        assert_eq!(
+            first,
+            content_source_fingerprint(&root).expect("outside grown"),
+            "the fingerprint walked through a junction out of the root"
+        );
+
+        let report = run(
+            &paths(&temp),
+            "brain-test",
+            &root,
+            &[
+                file_node(2, "inside.bin", 6),
+                file_node(3, "junction/first.bin", 5),
+            ],
+        )
+        .expect("campaign");
+        assert_eq!(report.hashed_count, 1);
+        assert_eq!(report.files_opened_for_hash, 1);
+        assert_eq!(report.unsupported_count + report.unreadable_count, 1);
+
+        // Remove the link itself, never the tree it points at.
+        fs::remove_dir(&junction).expect("remove junction");
+        assert!(outside.join("first.bin").exists());
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn a_campaign_survives_a_dangling_link_under_the_root() {
+        use std::os::unix::fs::symlink;
+        let temp = tempfile::tempdir().expect("temp");
+        let root = temp.path().join("source");
+        fs::create_dir_all(&root).expect("root");
+        fs::write(root.join("inside.bin"), b"inside").expect("inside");
+        let outside = temp.path().join("outside.bin");
+        fs::write(&outside, b"outside").expect("outside");
+        symlink(&outside, root.join("link")).expect("symlink");
+        fs::remove_file(&outside).expect("remove outside");
+
+        // The historical fixture fingerprint failed here: it tried to read the
+        // vanished target through the link.
+        let report = run(
+            &paths(&temp),
+            "brain-test",
+            &root,
+            &[file_node(2, "inside.bin", 6), file_node(3, "link", 0)],
+        )
+        .expect("campaign");
+        assert_eq!(report.hashed_count, 1);
+        assert_eq!(report.unsupported_count, 1);
+        assert_eq!(report.files_opened_for_hash, 1);
     }
 }

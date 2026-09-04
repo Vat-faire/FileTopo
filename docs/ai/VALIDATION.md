@@ -1,6 +1,6 @@
 # VALIDATION.md — État de vérification
 
-**Dernière mise à jour :** 2026-09-03
+**Dernière mise à jour :** 2026-09-04
 **Portée :** TASK-0001 (phase 0) — `VERIFIED` ; TASK-0002 (phase 1) —
 `VERIFIED` le 2026-08-25, sur preuves indépendantes de l'orchestrateur
 (section A.7) ; TASK-0010 (rebaseline et mémoire) — `VERIFIED` le 2026-08-31,
@@ -3230,3 +3230,66 @@ ou seuil de volumétrie. Les scénarios N15/J12/K11/L12/M12 n'ont pas été
 rejoués, car leurs structures n'ont reçu que la migration de destination; les
 suites complètes couvrent leurs gardes. `DEC-0013/F`, R8 et B0 restent
 ouverts; B0 contourné par `CARGO_INCREMENTAL=0`, sans clean.
+
+---
+
+## AJ. ACTION-0037 — contrôle indépendant de TASK-0023 et correction ciblée X9
+
+**Date :** 2026-09-04. **Verdict enregistré, non rendu par l'exécuteur :**
+`ACTION-0037` = `CHANGES_REQUIRED`, `TASK-0023` = `IMPLEMENTED`,
+`X9` = `OPEN`. HEAD contrôlé `12b3c87`.
+
+`X9` : le fingerprint **global de campagne** appelait encore
+`fixtures::fingerprint(root)`, qui suit un symlink fichier par `fs::read` — donc
+peut lire hors de la racine — et accumule tous les contenus dans un `Vec<u8>`,
+donc n'est pas à mémoire bornée. Aucun autre élément accepté de `TASK-0023`
+n'est rouvert.
+
+### AJ.1 Correction livrée
+
+| Contrôle | Résultat | Preuve |
+|---|---|---|
+| Nouvelle primitive dédiée | **PASS** | `content_signals::content_source_fingerprint`, publiée `sha256-tree-v1:<64 hex minuscules>`; `sha256-v1` reste le digest d'un fichier |
+| Campagne branchée | **PASS** | `observe_root_with_hook` n'utilise plus que la nouvelle primitive pour `sourceFingerprintBefore`/`After`; les usages de `map/commands.rs` sont inchangés |
+| Confinement structurel | **PASS** | `symlink_metadata` seul; symlink, jonction et reparse point sont marqués **lien**, jamais ouverts, lus, parcourus ni canonicalisés; type non interprétable = non traversable |
+| Jonction Windows réelle | **PASS** | `a_windows_junction_out_of_the_root_is_never_entered` : jonction `mklink /J` créée sans privilège, classée `TREE_MARKER_LINK`; l'agrandissement de la cible **hors racine** ne change pas l'empreinte; l'ancien moteur échouait ici en `Accès refusé` |
+| Détection reparse déterministe | **PASS** | `windows_reparse_attribute_detection_is_deterministic` sur `FILE_ATTRIBUTE_REPARSE_POINT`, et `a_reparse_point_is_a_link_even_when_it_looks_like_a_directory` sur la classification pure |
+| Mémoire bornée / streaming | **PASS** | `the_source_fingerprint_streams_files_in_bounded_chunks` : observateur de lectures sur un fichier de `2 × 64 KiB + 17`; ≥ 3 chunks, chacun ≤ 64 KiB, somme = taille; aucun `fs::read` de contenu |
+| Déterminisme et indépendance de chemin | **PASS** | même arbre → même valeur; mutation de même taille et entrée ajoutée → valeurs différentes; racine renommée → valeur identique; aucun chemin absolu publié |
+| Campagne | **PASS** | `the_campaign_publishes_the_confined_tree_fingerprint` : préfixe, 64 hex minuscules, `before == after`, valeur reprise par le store |
+| `SOURCE_CHANGED_DURING_OBSERVATION` | **PASS** | invariant EC12/EC13 inchangé : `source_change_before_final_fingerprint_refuses_the_generation` et `unstable_read_never_publishes_a_digest` passent |
+| Fingerprint historique | **PASS** | `fixtures::fingerprint` non modifiée; seul son commentaire documente les deux rôles; preuves `TASK-0016`..`TASK-0022` inchangées |
+| Suite Rust complète | **PASS** | `CARGO_INCREMENTAL=0 cargo test` — **178/178** (171 avant, +7 exécutés sur cet hôte) |
+| Suite TypeScript complète | **PASS** | `pnpm test` — **208/208** |
+| Typecheck et build | **PASS** | `pnpm check`; `pnpm build` |
+| Tauri debug | **PASS** | `pnpm tauri build --debug --no-bundle` |
+| EC15 passe 1 | **PASS** | vrai processus WebView2 `152.0.4191.62`; variante fraîche `task0023-ec15-x9-20260904145356-6ebb99`; 8 FILE, 3 dossiers non hashés, `sha256-v1`, stores Alpha/Gamma distincts, même digest par `relative_path`, aucune relation créée, rebuild persistant, `readOnlyConfirmed = true` |
+| EC15 passe 2 | **PASS** | nouveau processus réel, même variante; « Dernière observation enregistrée »; nouveau `generationId`; 8 ouvertures, 1 424 octets relus, 8 digests = `hashedCount`; relations inchangées |
+| Nouveau format dans les preuves | **PASS** | `sourceFingerprintBefore == sourceFingerprintAfter == sha256-tree-v1:85f73748…` dans les deux artefacts et dans `persistedBefore` |
+| X5 | **PASS** | 27 noms identiques et dans le même ordre dans les gardes Rust, TypeScript et PowerShell; les 27 preuves protégées bit-for-bit inchangées; `protectedDestinations = []`, `writesUnderItsOwnTaskOnly = true`, runtime `TASK-0023` |
+
+### AJ.2 Non testé et limites
+
+- Les quatre tests `#[cfg(unix)]` de non-suivi de lien — lien fichier vers
+  l'extérieur, lien fichier pendouillant, lien de répertoire, campagne sur lien
+  pendouillant — **ne sont pas compilés sur cet hôte Windows** : ils sont
+  écrits, jamais exécutés ici. Sur Windows, la création de `symlink_file` /
+  `symlink_dir` a été **refusée faute de privilège**, donc
+  `the_source_fingerprint_never_follows_windows_links_when_creation_is_allowed`
+  s'est arrêté avant sa preuve. La preuve réellement exécutée du non-suivi est
+  la **jonction** de `AJ.1`, plus les deux tests déterministes de
+  classification.
+- La preuve de streaming est comportementale (compteur de lectures), pas un
+  profileur mémoire; aucune dépendance n'a été ajoutée.
+- `J12`, `K11`, `K12`, `L12`, `M12`, `N15` et `H9` n'ont pas été rejoués :
+  leur code n'est pas touché par cette correction.
+- `DEC-0013/F` reste bloquante pour l'identité physique persistante; `R8` et
+  `B0` inchangés, `B0` contourné par `CARGO_INCREMENTAL=0`, sans `clean`.
+- `cargo fmt --check` et `cargo clippy -D warnings` signalent des écarts
+  **préexistants** sur `lib.rs`, `relations.rs`, `relation_commands.rs`,
+  `brains.rs`, `cross_relations.rs`, `store.rs`, `mod.rs` et `fixtures.rs` avec
+  la chaîne d'outils locale (rustfmt style 2024, clippy 1.98). **Aucun de ces
+  signalements ne porte sur le code ajouté ici**, et aucun reformatage global
+  n'a été fait.
+- L'exécuteur de la correction **ne clôt pas `X9`** et ne s'attribue pas
+  `VERIFIED`.

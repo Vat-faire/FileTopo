@@ -2,7 +2,7 @@
   "task": "TASK-0023",
   "criterion": "EC15",
   "pass": 1,
-  "startedAt": "2026-09-03T23:12:32.802Z",
+  "startedAt": "2026-09-04T18:53:58.791Z",
   "realHost": true,
   "host": {
     "appVersion": "0.1.0-alpha.1",
@@ -11,7 +11,7 @@
     "platform": "windows"
   },
   "pass1": {
-    "sandboxVariant": "<dépôt>/.filetopo-sandbox/variants/task0023-ec15-20260903191229-de2479",
+    "sandboxVariant": "<dépôt>/.filetopo-sandbox/variants/task0023-ec15-x9-20260904145356-6ebb99",
     "freshByDriver": true,
     "alphaInitial": {
       "activeBrainId": "brain-alpha",
@@ -30,13 +30,13 @@
       "nodeCeiling": 5000,
       "depthCeiling": 40,
       "rebuilt": true,
-      "scanMs": 0.6518999999999999,
-      "layoutMs": 0.0161,
-      "indexMs": 9.9802,
-      "totalMs": 13.779,
+      "scanMs": 0.7339,
+      "layoutMs": 0.016900000000000002,
+      "indexMs": 16.0644,
+      "totalMs": 19.941899999999997,
       "layoutInvocations": 1,
-      "fingerprintBefore": "fnv1a64:ef9f76877d165fff",
-      "fingerprintAfter": "fnv1a64:ef9f76877d165fff",
+      "fingerprintBefore": "fnv1a64:8f080dc3a443344b",
+      "fingerprintAfter": "fnv1a64:8f080dc3a443344b",
       "readOnlyConfirmed": true,
       "reconstructibleDigest": "fnv1a64:400fab2df3081fc0",
       "nonReconstructible": [
@@ -56,13 +56,13 @@
       "nodeCeiling": 5000,
       "depthCeiling": 40,
       "rebuilt": false,
-      "scanMs": 0.758,
-      "layoutMs": 0.0155,
-      "indexMs": 4.120900000000001,
-      "totalMs": 14.053899999999999,
+      "scanMs": 0.7024,
+      "layoutMs": 0.0153,
+      "indexMs": 3.8046,
+      "totalMs": 13.310799999999999,
       "layoutInvocations": 1,
-      "fingerprintBefore": "fnv1a64:ef9f76877d165fff",
-      "fingerprintAfter": "fnv1a64:ef9f76877d165fff",
+      "fingerprintBefore": "fnv1a64:8f080dc3a443344b",
+      "fingerprintAfter": "fnv1a64:8f080dc3a443344b",
       "readOnlyConfirmed": true,
       "reconstructibleDigest": "fnv1a64:400fab2df3081fc0",
       "nonReconstructible": [
@@ -81,10 +81,10 @@
       "storePath": "brains/brain-alpha/signals/content.sqlite",
       "schemaVersion": 1,
       "signalEngineVersion": "sha256-v1",
-      "generationId": "e04acd3c-7f71-4749-a703-4fd11e33e38a",
-      "observedAt": 1788477154356,
-      "sourceFingerprintBefore": "fnv1a64:ef9f76877d165fff",
-      "sourceFingerprintAfter": "fnv1a64:ef9f76877d165fff",
+      "generationId": "959cf573-53bd-4ada-aab1-ffd1fdd730fd",
+      "observedAt": 1788548040423,
+      "sourceFingerprintBefore": "sha256-tree-v1:85f73748779dbd8d00cc5ac0e972fb27a8f7cc268d2b8332ed9549c7c6ea29de",
+      "sourceFingerprintAfter": "sha256-tree-v1:85f73748779dbd8d00cc5ac0e972fb27a8f7cc268d2b8332ed9549c7c6ea29de",
       "sourceStable": true,
       "indexedFileCount": 8,
       "hashedCount": 8,
@@ -96,7 +96,7 @@
       "digestsComputed": 8,
       "hashAlgorithm": "sha256-v1",
       "readOnlyConfirmed": true,
-      "durationMs": 15.542200000000001,
+      "durationMs": 20.197699999999998,
       "interaction": {
         "keyRequested": "{ENTER}",
         "keydownIsTrusted": true,
@@ -112,10 +112,10 @@
       "storePath": "brains/brain-gamma/signals/content.sqlite",
       "schemaVersion": 1,
       "signalEngineVersion": "sha256-v1",
-      "generationId": "6a8d8420-6953-4644-b65e-ec71342f6ddc",
-      "observedAt": 1788477161423,
-      "sourceFingerprintBefore": "fnv1a64:ef9f76877d165fff",
-      "sourceFingerprintAfter": "fnv1a64:ef9f76877d165fff",
+      "generationId": "32de2e46-7a3f-42ee-afd3-489d784ad4ea",
+      "observedAt": 1788548047280,
+      "sourceFingerprintBefore": "sha256-tree-v1:85f73748779dbd8d00cc5ac0e972fb27a8f7cc268d2b8332ed9549c7c6ea29de",
+      "sourceFingerprintAfter": "sha256-tree-v1:85f73748779dbd8d00cc5ac0e972fb27a8f7cc268d2b8332ed9549c7c6ea29de",
       "sourceStable": true,
       "indexedFileCount": 8,
       "hashedCount": 8,
@@ -127,7 +127,7 @@
       "digestsComputed": 8,
       "hashAlgorithm": "sha256-v1",
       "readOnlyConfirmed": true,
-      "durationMs": 15.6088,
+      "durationMs": 15.4011,
       "interaction": {
         "keyRequested": "{ENTER}",
         "keydownIsTrusted": true,
@@ -168,7 +168,7 @@
       "sameRelativePath": "dossier-a/note-1.txt",
       "sameDigest": true,
       "uiDigest": "5cec5fde90215c5d5c6139cfed94dba5cd07250da93d84a367b372eb8e6f843b",
-      "uiText": "Observations de contenuSHA-256 observé5cec5fde90215c5d5c6139cfed94dba5cd07250da93d84a367b372eb8e6f843bObservé le3 sept. 2026, 19 h 12Génératione04acd3c-7f71-4749-a703-4fd11e33e38aCette observation ne crée aucune relation."
+      "uiText": "Observations de contenuSHA-256 observé5cec5fde90215c5d5c6139cfed94dba5cd07250da93d84a367b372eb8e6f843bObservé le4 sept. 2026, 14 h 54Génération959cf573-53bd-4ada-aab1-ffd1fdd730fdCette observation ne crée aucune relation."
     },
     "addGamma": {
       "open": {
@@ -266,8 +266,8 @@
     },
     "zeroNewEdges": true,
     "rebuild": {
-      "generationBefore": "e04acd3c-7f71-4749-a703-4fd11e33e38a",
-      "generationAfter": "e04acd3c-7f71-4749-a703-4fd11e33e38a",
+      "generationBefore": "959cf573-53bd-4ada-aab1-ffd1fdd730fd",
+      "generationAfter": "959cf573-53bd-4ada-aab1-ffd1fdd730fd",
       "digestBefore": "5cec5fde90215c5d5c6139cfed94dba5cd07250da93d84a367b372eb8e6f843b",
       "digestAfter": "5cec5fde90215c5d5c6139cfed94dba5cd07250da93d84a367b372eb8e6f843b",
       "persisted": true
@@ -276,14 +276,14 @@
       "before": {
         "brainId": "brain-alpha",
         "fixtureId": "quasi-empty",
-        "fingerprint": "fnv1a64:ef9f76877d165fff",
+        "fingerprint": "fnv1a64:8f080dc3a443344b",
         "filetopoArtifacts": [],
         "observedEntries": 11
       },
       "after": {
         "brainId": "brain-alpha",
         "fixtureId": "quasi-empty",
-        "fingerprint": "fnv1a64:ef9f76877d165fff",
+        "fingerprint": "fnv1a64:8f080dc3a443344b",
         "filetopoArtifacts": [],
         "observedEntries": 11
       }
@@ -308,5 +308,5 @@
     },
     "protectedArtifacts": 27
   },
-  "finishedAt": "2026-09-03T23:12:42.825Z"
+  "finishedAt": "2026-09-04T18:54:08.725Z"
 }

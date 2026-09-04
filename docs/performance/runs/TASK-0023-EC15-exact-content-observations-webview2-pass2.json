@@ -2,7 +2,7 @@
   "task": "TASK-0023",
   "criterion": "EC15",
   "pass": 2,
-  "startedAt": "2026-09-03T23:12:45.892Z",
+  "startedAt": "2026-09-04T18:54:11.672Z",
   "realHost": true,
   "host": {
     "appVersion": "0.1.0-alpha.1",
@@ -11,7 +11,7 @@
     "platform": "windows"
   },
   "pass2": {
-    "sandboxVariant": "<dépôt>/.filetopo-sandbox/variants/task0023-ec15-20260903191229-de2479",
+    "sandboxVariant": "<dépôt>/.filetopo-sandbox/variants/task0023-ec15-x9-20260904145356-6ebb99",
     "realRestart": true,
     "persistedBefore": {
       "alpha": {
@@ -19,9 +19,9 @@
         "storePath": "brains/brain-alpha/signals/content.sqlite",
         "schemaVersion": 1,
         "signalEngineVersion": "sha256-v1",
-        "currentGenerationId": "e04acd3c-7f71-4749-a703-4fd11e33e38a",
-        "currentGenerationObservedAt": 1788477154356,
-        "sourceFingerprint": "fnv1a64:ef9f76877d165fff",
+        "currentGenerationId": "959cf573-53bd-4ada-aab1-ffd1fdd730fd",
+        "currentGenerationObservedAt": 1788548040423,
+        "sourceFingerprint": "sha256-tree-v1:85f73748779dbd8d00cc5ac0e972fb27a8f7cc268d2b8332ed9549c7c6ea29de",
         "observationCount": 8,
         "hashedCount": 8,
         "unreadableCount": 0,
@@ -33,9 +33,9 @@
         "storePath": "brains/brain-gamma/signals/content.sqlite",
         "schemaVersion": 1,
         "signalEngineVersion": "sha256-v1",
-        "currentGenerationId": "6a8d8420-6953-4644-b65e-ec71342f6ddc",
-        "currentGenerationObservedAt": 1788477161423,
-        "sourceFingerprint": "fnv1a64:ef9f76877d165fff",
+        "currentGenerationId": "32de2e46-7a3f-42ee-afd3-489d784ad4ea",
+        "currentGenerationObservedAt": 1788548047280,
+        "sourceFingerprint": "sha256-tree-v1:85f73748779dbd8d00cc5ac0e972fb27a8f7cc268d2b8332ed9549c7c6ea29de",
         "observationCount": 8,
         "hashedCount": 8,
         "unreadableCount": 0,
@@ -53,19 +53,19 @@
         "focusReached": true,
         "observedChange": true
       },
-      "text": "Observations de contenuDernière observation enregistréeSHA-256 observé5cec5fde90215c5d5c6139cfed94dba5cd07250da93d84a367b372eb8e6f843bObservé le3 sept. 2026, 19 h 12Génératione04acd3c-7f71-4749-a703-4fd11e33e38aCette observation ne crée aucune relation.",
+      "text": "Observations de contenuDernière observation enregistréeSHA-256 observé5cec5fde90215c5d5c6139cfed94dba5cd07250da93d84a367b372eb8e6f843bObservé le4 sept. 2026, 14 h 54Génération959cf573-53bd-4ada-aab1-ffd1fdd730fdCette observation ne crée aucune relation.",
       "honest": true
     },
-    "previousGenerationId": "e04acd3c-7f71-4749-a703-4fd11e33e38a",
+    "previousGenerationId": "959cf573-53bd-4ada-aab1-ffd1fdd730fd",
     "campaign": {
       "brainId": "brain-alpha",
       "storePath": "brains/brain-alpha/signals/content.sqlite",
       "schemaVersion": 1,
       "signalEngineVersion": "sha256-v1",
-      "generationId": "66813b1e-c93b-4782-9178-95ed4890b34b",
-      "observedAt": 1788477168992,
-      "sourceFingerprintBefore": "fnv1a64:ef9f76877d165fff",
-      "sourceFingerprintAfter": "fnv1a64:ef9f76877d165fff",
+      "generationId": "0b8b9db5-6785-49eb-89ef-73086f1ddcd5",
+      "observedAt": 1788548054835,
+      "sourceFingerprintBefore": "sha256-tree-v1:85f73748779dbd8d00cc5ac0e972fb27a8f7cc268d2b8332ed9549c7c6ea29de",
+      "sourceFingerprintAfter": "sha256-tree-v1:85f73748779dbd8d00cc5ac0e972fb27a8f7cc268d2b8332ed9549c7c6ea29de",
       "sourceStable": true,
       "indexedFileCount": 8,
       "hashedCount": 8,
@@ -77,7 +77,7 @@
       "digestsComputed": 8,
       "hashAlgorithm": "sha256-v1",
       "readOnlyConfirmed": true,
-      "durationMs": 15.1106,
+      "durationMs": 11.1666,
       "interaction": {
         "keyRequested": "{ENTER}",
         "keydownIsTrusted": true,
@@ -88,7 +88,7 @@
         "observedChange": true
       }
     },
-    "currentGenerationId": "66813b1e-c93b-4782-9178-95ed4890b34b",
+    "currentGenerationId": "0b8b9db5-6785-49eb-89ef-73086f1ddcd5",
     "sameDigestAfterRehash": true,
     "byteRereadProof": {
       "filesOpenedForHash": 8,
@@ -128,14 +128,14 @@
     "sourceBefore": {
       "brainId": "brain-alpha",
       "fixtureId": "quasi-empty",
-      "fingerprint": "fnv1a64:ef9f76877d165fff",
+      "fingerprint": "fnv1a64:8f080dc3a443344b",
       "filetopoArtifacts": [],
       "observedEntries": 11
     },
     "sourceAfter": {
       "brainId": "brain-alpha",
       "fixtureId": "quasi-empty",
-      "fingerprint": "fnv1a64:ef9f76877d165fff",
+      "fingerprint": "fnv1a64:8f080dc3a443344b",
       "filetopoArtifacts": [],
       "observedEntries": 11
     },
@@ -159,5 +159,5 @@
     },
     "protectedArtifacts": 27
   },
-  "finishedAt": "2026-09-03T23:12:49.157Z"
+  "finishedAt": "2026-09-04T18:54:14.990Z"
 }

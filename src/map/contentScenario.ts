@@ -246,6 +246,12 @@ async function firstPass(deps: ContentScenarioDeps, evidence: Record<string, unk
     "observation HASHED ou chemin relatif invalide",
   );
   requireFact(alphaCampaign.report.sourceStable, "source Alpha instable");
+  requireFact(
+    /^sha256-tree-v1:[0-9a-f]{64}$/.test(alphaCampaign.report.sourceFingerprintBefore) &&
+      alphaCampaign.report.sourceFingerprintBefore ===
+        alphaCampaign.report.sourceFingerprintAfter,
+    "empreinte de source de campagne absente ou non confinée",
+  );
   requireFact(alphaCampaign.report.readOnlyConfirmed, "lecture seule Alpha non confirmée");
   requireFact(alphaIntegrityBefore.filetopoArtifacts.length === 0, "artefact sous source Alpha");
 

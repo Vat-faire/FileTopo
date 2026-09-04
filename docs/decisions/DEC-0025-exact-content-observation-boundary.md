@@ -195,3 +195,24 @@ gelés sont passés; la décision n'est pas `VERIFIED` avant contrôle indépend
 `DEC-0013/F` demeure bloquante pour toute identité physique persistante. Aucun
 `VolumeSerialNumber`, `FileId`, `windows-sys`, état relationnel ou contenu
 source n'a été ajouté par cette implémentation.
+
+## Correction d'implémentation X9 — 2026-09-04
+
+La décision normative est inchangée. Seule sa mise en œuvre est précisée : le
+fingerprint **global de campagne** lu avant et après une campagne n'est plus
+`fixtures::fingerprint`, mais `content_signals::content_source_fingerprint`,
+publié `sha256-tree-v1:<64 hex minuscules>`.
+
+Ce fingerprint est déterministe, lu en streaming par un tampon borné réutilisé,
+et **structurellement confiné** : un symlink, une jonction ou tout autre reparse
+point est enregistré comme lien, sans que sa cible soit jamais ouverte, lue,
+parcourue ni canonicalisée; un type d'entrée non interprétable est traité comme
+non traversable. Un lien ne devient donc jamais une permission de sortir de la
+racine analysée, et la mémoire reste bornée à l'échelle d'un cerveau.
+
+`sha256-tree-v1` (arbre source d'une campagne) et `sha256-v1` (contenu d'un
+fichier) demeurent deux rôles distincts. `fixtures::fingerprint` (`fnv1a64:…`)
+garde son rôle historique pour les fixtures gelées et les preuves antérieures.
+Aucune dépendance n'est ajoutée; `DEC-0013/F` reste bloquante.
+
+`DEC-0025` demeure `IMPLEMENTED` : le contrôle indépendant reste requis.

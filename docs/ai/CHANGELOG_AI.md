@@ -3156,3 +3156,53 @@ clavier, ses labels et ses tests réels `WebView2` seront définis par le
 - `TASK-0023` devient `IMPLEMENTED`, jamais `VERIFIED` par Codex. `F-043` à
   `F-046` restent `PROPOSED`; `DEC-0013/F` bloque toujours l'identité physique
   persistante. Prochaine action : contrôle indépendant de `TASK-0023`.
+
+---
+
+## 2026-09-04 — ACTION-0037 — Contrôle indépendant TASK-0023 et correction X9
+
+**Agent :** exécuteur Claude Code
+**Statut à l'issue :** `ACTION-0037` = `CHANGES_REQUIRED`, `TASK-0023` =
+`IMPLEMENTED`, `X9` = `OPEN`. Aucun `VERIFIED` attribué par l'exécuteur.
+
+### Fait
+
+- Enregistrement du verdict indépendant dans
+  `docs/reviews/ACTION-0037-independent-control.md`, sur le HEAD contrôlé
+  `12b3c87` : fond de `TASK-0023` accepté, réserve unique `X9` sur le
+  fingerprint global de campagne.
+- Ajout de `content_signals::content_source_fingerprint`, publié
+  `sha256-tree-v1:<64 hex>` : SHA-256 d'arbre, déterministe, streaming, mémoire
+  bornée par un unique tampon de 64 KiB réutilisé, et **incapable** de suivre
+  un symlink, une jonction ou un reparse point ou d'en parcourir la cible. Un
+  type d'entrée non interprétable est traité comme non traversable.
+- `observe_root_with_hook` publie désormais `sourceFingerprintBefore` et
+  `sourceFingerprintAfter` par ce seul moteur. L'invariant
+  `SOURCE_CHANGED_DURING_OBSERVATION` est inchangé.
+- `fixtures::fingerprint` (`fnv1a64:…`) reste inchangée dans son comportement :
+  seul son commentaire documente son rôle historique de fingerprint des
+  fixtures gelées, distinct du fingerprint de campagne.
+- Sept tests ajoutés : jonction Windows réelle non parcourue, détection
+  `FILE_ATTRIBUTE_REPARSE_POINT` déterministe, classification pure des liens,
+  streaming par compteur de chunks, déterminisme/sensibilité/indépendance de
+  chemin, campagne publiant le format confiné, plus quatre équivalents
+  `#[cfg(unix)]` non compilés sur cet hôte.
+- Régénération des deux seules preuves `TASK-0023-EC15-*` sur la variante
+  fraîche `task0023-ec15-x9-20260904145356-6ebb99`, moteur publié désormais `sha256-tree-v1`.
+- Ajout d'une garde EC15 dans `contentScenario.ts` : format et égalité du
+  fingerprint de campagne.
+
+### Validé
+
+`cargo test` **178/178**; `pnpm test` **208/208**; `pnpm check`; `pnpm build`;
+`pnpm tauri build --debug --no-bundle`; EC15 passes 1 et 2 en deux vrais
+processus WebView2 `152.0.4191.62`. X5 reste exactement à 27 noms dans les
+trois gardes, les 27 preuves protégées sont bit-for-bit inchangées et `main`
+n'est pas touchée.
+
+### Non testé
+
+Les quatre tests `#[cfg(unix)]` ne sont pas compilés sur cet hôte Windows, et
+la création de symlink Windows a été refusée faute de privilège : la preuve
+exécutée du non-suivi de lien est la jonction `mklink /J`. Aucun rejeu de
+`J12`, `K11`, `K12`, `L12`, `M12`, `N15` ni `H9`. `DEC-0013/F` reste bloquante.

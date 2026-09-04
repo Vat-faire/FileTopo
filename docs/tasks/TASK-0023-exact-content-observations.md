@@ -359,6 +359,7 @@ ou le lockfile incontrôlé, si une action destructive ou une modification de
 | 2026-09-03 | `APPROVED` | Périmètre, décision, EC1–EC15, validations, limites et hors-scope intégralement écrits |
 | 2026-09-03 | `IN_PROGRESS` | Gel prêt à être commité et poussé avant la première modification de code produit |
 | 2026-09-03 | `IMPLEMENTED` | EC1–EC15 passés; deux processus WebView2 réels; aucun statut `VERIFIED` attribué par l'exécuteur |
+| 2026-09-04 | `IMPLEMENTED` | `ACTION-0037` = `CHANGES_REQUIRED`, réserve unique `X9`; correction ciblée livrée, `X9` laissée `OPEN` par l'exécuteur |
 
 ## 18. État final attendu
 
@@ -390,3 +391,62 @@ preuves X5 restent bit-for-bit inchangées et non remplacées;
 contenu exact de `F-046` existe désormais, mais l'identité physique persistante
 reste non implémentée et bloquée par `DEC-0013/F`. La tâche attend un contrôle
 indépendant et ne se déclare pas `VERIFIED`.
+
+## 20. Correction ciblée `X9` — 2026-09-04
+
+Portée : **la seule réserve `X9`** de
+[`ACTION-0037`](../reviews/ACTION-0037-independent-control.md). Aucun autre
+élément accepté de `TASK-0023` n'est rouvert; `EC1`–`EC15`, les quatre fixtures
+gelées et les 27 preuves protégées restent intouchés.
+
+**Défaut corrigé.** Le fingerprint **global de campagne** appelait encore
+`fixtures::fingerprint(root)` : cette fonction suit un symlink fichier par
+`fs::read(path)`, donc peut lire hors de la racine analysée, et accumule tous
+les contenus dans un `Vec<u8>`, donc n'est pas à mémoire bornée à l'échelle
+d'un cerveau.
+
+**Nouvelle primitive.** `content_signals::content_source_fingerprint` publie
+`sha256-tree-v1:<64 hex minuscules>`. Pour chaque entrée sous la racine, elle
+mêle de façon déterministe le `relative_path` normalisé, le type d'entrée, la
+taille et l'horodatage de modification s'il existe. Un fichier régulier autorisé
+est lu **en streaming** par un unique tampon réutilisé de 64 KiB; un répertoire
+normal est parcouru dans un ordre déterministe; un symlink, une jonction ou
+tout autre reparse point est enregistré comme **lien** — sa cible n'est jamais
+ouverte, lue, parcourue ni canonicalisée — et un type d'entrée non
+interprétable est traité comme **non traversable**. `fs::read` de contenu et
+accumulation globale d'octets sont exclus par construction.
+
+**Deux rôles distincts, jamais confondus :** `sha256-tree-v1` est l'empreinte
+de l'arbre source d'une campagne; `sha256-v1` reste le digest du contenu d'un
+fichier. `fixtures::fingerprint` (`fnv1a64:…`) est **inchangée** et conserve son
+rôle historique pour les fixtures gelées et les preuves
+`TASK-0016`..`TASK-0022`; `X9` ne la rend pas générique.
+
+**Branchement.** Seuls les deux usages de `observe_root_with_hook` changent :
+`sourceFingerprintBefore` et `sourceFingerprintAfter` proviennent désormais de
+la nouvelle primitive. Le digest de fichier, le schéma `content.sqlite`, les
+relations, la map, le catalogue et l'identité sont inchangés. L'invariant
+`fingerprint before != fingerprint after` → `SOURCE_CHANGED_DURING_OBSERVATION`
+→ génération non commitée → génération courante intacte est conservé, et
+`EC12`/`EC13` passent.
+
+**Preuves ajoutées.** Jonction Windows réelle créée sans privilège par
+`mklink /J` : classée comme lien, et l'agrandissement de sa cible hors racine
+ne change pas l'empreinte — l'ancien moteur échouait sur ce même arbre en
+`Accès refusé`. Détection déterministe de `FILE_ATTRIBUTE_REPARSE_POINT` et
+classification pure des liens, indépendantes de tout privilège. Preuve de
+streaming par compteur de lectures sur un fichier de `2 × 64 KiB + 17` octets :
+au moins trois chunks, chacun borné, somme égale à la taille. Déterminisme,
+sensibilité et indépendance de chemin. Quatre équivalents `#[cfg(unix)]` sont
+écrits mais **non compilés sur cet hôte Windows**.
+
+**`EC15` rejouée.** Le moteur publié par `sourceFingerprintBefore`/`After`
+ayant changé, les deux seules preuves `TASK-0023-EC15-*` ont été régénérées sur
+la variante fraîche `task0023-ec15-x9-20260904145356-6ebb99`, identique pour
+les deux passes. Aucune preuve `TASK-0016`..`TASK-0022` n'est touchée. `X5`
+reste exactement **27**.
+
+**État après correction :** `TASK-0023` reste `IMPLEMENTED`, `X9` reste
+`OPEN`, `ACTION-0037` reste `CHANGES_REQUIRED`. L'exécuteur ne clôt pas sa
+propre réserve et ne s'attribue pas `VERIFIED`. Action unique suivante :
+re-contrôle indépendant ciblé `X9`.

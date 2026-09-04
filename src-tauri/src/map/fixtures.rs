@@ -405,11 +405,19 @@ pub fn observed_paths(root: &Path) -> Result<Vec<String>, MapError> {
     Ok(paths)
 }
 
-/// Fingerprint of the analysed tree: names, structure, sizes, contents and
-/// modification timestamps.
+/// Historical fixture fingerprint: names, structure, sizes, contents and
+/// modification timestamps of a synthetic fixture tree, as `fnv1a64:<hex>`.
 ///
 /// `H6` compares this value before and after a full session. Content is
 /// included because "read only" has to mean the bytes too, not just the shape.
+///
+/// Scope, frozen by `TASK-0023` / `X9`: this helper belongs to the frozen
+/// fixtures and to the proofs of `TASK-0016`..`TASK-0022`, whose recorded
+/// values it must keep reproducing. It is *not* a general purpose fingerprint:
+/// it reads whole files with `fs::read` and follows a file symlink, so it is
+/// neither memory bounded nor confined to the root. Content observation
+/// campaigns use `content_signals::content_source_fingerprint`
+/// (`sha256-tree-v1`) instead, which streams and never follows a link.
 pub fn fingerprint(root: &Path) -> Result<String, MapError> {
     fn visit(base: &Path, current: &Path, acc: &mut Vec<u8>) -> Result<(), MapError> {
         let mut entries = fs::read_dir(current)?.collect::<Result<Vec<_>, _>>()?;
