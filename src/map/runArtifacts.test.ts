@@ -47,6 +47,7 @@ import brainScenarioSource from "./brainScenario.ts?raw";
 import composedScenarioSource from "./composedScenario.ts?raw";
 import contentScenarioSource from "./contentScenario.ts?raw";
 import crossScenarioSource from "./crossScenario.ts?raw";
+import dreScenarioSource from "./dreScenario.ts?raw";
 import mapAppSource from "./MapApp.tsx?raw";
 import relationScenarioSource from "./relationScenario.ts?raw";
 import topographicScenarioSource from "./topographicScenario.ts?raw";
@@ -60,6 +61,7 @@ import {
   RUNTIME_RUN_ARTIFACTS,
   SEALED_RUNTIME_DESTINATIONS,
   artifactTaskId,
+  dr15Artifact,
   ec15Artifact,
   k12Artifact,
   l12Artifact,
@@ -83,6 +85,7 @@ const WRITING_SOURCES: ReadonlyArray<readonly [string, string]> = [
   ["src/map/crossScenario.ts", crossScenarioSource],
   ["src/map/topographicScenario.ts", topographicScenarioSource],
   ["src/map/contentScenario.ts", contentScenarioSource],
+  ["src/map/dreScenario.ts", dreScenarioSource],
 ];
 
 const ORIGINAL_19_PROTECTED = [
@@ -172,17 +175,13 @@ const TASK_0023_NONCANONICAL = [
 ] as const;
 
 describe("X5 — the runtime never writes over canonical evidence", () => {
-  it("the sealed runtime destinations are exactly TASK-0023's two EC15 passes", () => {
-    // Was « no protected runtime destination » while `TASK-0023` awaited
-    // control. `ACTION-0039` sealed it, so this checkout now spells two names
-    // its own write gate refuses, and `SEALED_RUNTIME_DESTINATIONS` must say
-    // so rather than stay empty out of habit.
+  it("the TASK-0024 migration leaves no sealed runtime destination", () => {
     const sealed = SEALED_RUNTIME_DESTINATIONS as readonly string[];
     const collisions = (RUNTIME_RUN_ARTIFACTS as readonly string[]).filter((name) =>
       (PROTECTED_RUN_ARTIFACTS as readonly string[]).includes(name),
     );
-    expect(sealed).toStrictEqual([...TASK_0023_CANONICAL_EVIDENCE]);
-    expect(collisions).toStrictEqual([...TASK_0023_CANONICAL_EVIDENCE]);
+    expect(sealed).toStrictEqual([]);
+    expect(collisions).toStrictEqual([]);
     expect(collisions).toStrictEqual(sealed);
   });
 
@@ -260,7 +259,7 @@ describe("X5 — the runtime never writes over canonical evidence", () => {
     }
   });
 
-  it("the migrated scenarios write under TASK-0023, named as regressions", () => {
+  it("the migrated scenarios write under TASK-0024, named as regressions", () => {
     for (const name of [
       H9_REGRESSION_ARTIFACT,
       H9_REGRESSION_ABANDON_ARTIFACT,
@@ -270,7 +269,7 @@ describe("X5 — the runtime never writes over canonical evidence", () => {
       k12Artifact(1, "written"),
       l12Artifact(1, "written"),
     ]) {
-      expect(name.startsWith("TASK-0023-")).toBe(true);
+      expect(name.startsWith("TASK-0024-")).toBe(true);
       expect(name).toContain("regression");
       expect(name.endsWith(".json")).toBe(true);
     }
@@ -278,65 +277,66 @@ describe("X5 — the runtime never writes over canonical evidence", () => {
 
   it("the migrated names are exactly the ones this slice froze", () => {
     expect(H9_REGRESSION_ARTIFACT).toBe(
-      "TASK-0023-H9-composed-runtime-regression-webview2.json",
+      "TASK-0024-H9-composed-runtime-regression-webview2.json",
     );
     expect(J12_REGRESSION_ARTIFACT).toBe(
-      "TASK-0023-J12-intrabrain-relations-regression-webview2.json",
+      "TASK-0024-J12-intrabrain-relations-regression-webview2.json",
     );
     expect(H9_REGRESSION_ABANDON_ARTIFACT).toBe(
-      "TASK-0023-H9-composed-runtime-regression-webview2-abandon.json",
+      "TASK-0024-H9-composed-runtime-regression-webview2-abandon.json",
     );
     expect(J12_REGRESSION_ABANDON_ARTIFACT).toBe(
-      "TASK-0023-J12-intrabrain-relations-regression-webview2-abandon.json",
+      "TASK-0024-J12-intrabrain-relations-regression-webview2-abandon.json",
     );
     expect(K11_ARTIFACT).toBe(
-      "TASK-0023-K11-readonly-isolation-regression-webview2.json",
+      "TASK-0024-K11-readonly-isolation-regression-webview2.json",
     );
     expect(k12Artifact(1, "written")).toBe(
-      "TASK-0023-K12-foundation-regression-webview2-pass1.json",
+      "TASK-0024-K12-foundation-regression-webview2-pass1.json",
     );
     expect(l12Artifact(1, "written")).toBe(
-      "TASK-0023-L12-composed-view-regression-webview2-pass1.json",
+      "TASK-0024-L12-composed-view-regression-webview2-pass1.json",
     );
     expect(l12Artifact(2, "written")).toBe(
-      "TASK-0023-L12-composed-view-regression-webview2-pass2.json",
+      "TASK-0024-L12-composed-view-regression-webview2-pass2.json",
     );
   });
 
-  it("M12 publishes its TASK-0023 regression evidence in two passes", () => {
+  it("M12 publishes its TASK-0024 regression evidence in two passes", () => {
     // `M12` is a criterion of this slice, not a replay of an earlier one, so
     // its name says `M12` and carries no `regression`.
     expect(m12Artifact(1, "written")).toBe(
-      "TASK-0023-M12-interbrain-relations-regression-webview2-pass1.json",
+      "TASK-0024-M12-interbrain-relations-regression-webview2-pass1.json",
     );
     expect(m12Artifact(2, "written")).toBe(
-      "TASK-0023-M12-interbrain-relations-regression-webview2-pass2.json",
+      "TASK-0024-M12-interbrain-relations-regression-webview2-pass2.json",
     );
     expect(m12Artifact(1, "abandoned")).toBe(
-      "TASK-0023-M12-interbrain-relations-regression-webview2-pass1-abandon.json",
+      "TASK-0024-M12-interbrain-relations-regression-webview2-pass1-abandon.json",
     );
     expect(m12Artifact(1, "written")).toContain("regression");
     expect(m12Artifact(1, "written")).not.toBe(m12Artifact(2, "written"));
   });
 
-  it("N15 publishes two distinct TASK-0023 passes", () => {
+  it("N15 publishes two distinct TASK-0024 passes", () => {
     expect(n15Artifact(1, "written")).toBe(
-      "TASK-0023-N15-topographic-node-graph-webview2-pass1.json",
+      "TASK-0024-N15-topographic-node-graph-webview2-pass1.json",
     );
     expect(n15Artifact(2, "written")).toBe(
-      "TASK-0023-N15-topographic-node-graph-webview2-pass2.json",
+      "TASK-0024-N15-topographic-node-graph-webview2-pass2.json",
     );
   });
 
-  it("TASK-0023's two EC15 proofs became protected when it was verified", () => {
-    // `ACTION-0039`. The names the content scenario builds are the names the
-    // gate now refuses — asserted through `ec15Artifact` rather than against a
-    // literal, so a renamed destination cannot quietly escape the seal.
-    expect(ec15Artifact(1)).toBe(TASK_0023_CANONICAL_EVIDENCE[0]);
-    expect(ec15Artifact(2)).toBe(TASK_0023_CANONICAL_EVIDENCE[1]);
+  it("TASK-0023's two EC15 proofs stay protected after migration", () => {
+    expect(ec15Artifact(1)).toBe(
+      "TASK-0024-EC15-exact-content-observations-webview2-pass1.json",
+    );
+    expect(ec15Artifact(2)).toBe(
+      "TASK-0024-EC15-exact-content-observations-webview2-pass2.json",
+    );
     for (const name of TASK_0023_CANONICAL_EVIDENCE) {
       expect(PROTECTED_RUN_ARTIFACTS as readonly string[]).toContain(name);
-      expect(RUNTIME_RUN_ARTIFACTS as readonly string[]).toContain(name);
+      expect(RUNTIME_RUN_ARTIFACTS as readonly string[]).not.toContain(name);
     }
   });
 
@@ -353,7 +353,7 @@ describe("X5 — the runtime never writes over canonical evidence", () => {
     expect(sealedTask0023).toStrictEqual([...TASK_0023_CANONICAL_EVIDENCE]);
   });
 
-  it("every runtime destination belongs to TASK-0023", () => {
+  it("every runtime destination belongs to TASK-0024", () => {
     for (const name of [
       ...RUNTIME_RUN_ARTIFACTS,
       K11_ARTIFACT,
@@ -361,7 +361,7 @@ describe("X5 — the runtime never writes over canonical evidence", () => {
       l12Artifact(2, "abandoned"),
       m12Artifact(2, "abandoned"),
     ]) {
-      expect(name.startsWith("TASK-0023-")).toBe(true);
+      expect(name.startsWith("TASK-0024-")).toBe(true);
     }
   });
 
@@ -413,7 +413,7 @@ describe("X5 — the runtime never writes over canonical evidence", () => {
       );
       expect(declarations.length, `${path} declares no task`).toBeGreaterThan(0);
       for (const declared of declarations) {
-        expect(declared, `${path} declares ${declared}`).toBe("TASK-0023");
+        expect(declared, `${path} declares ${declared}`).toBe("TASK-0024");
       }
     }
   });
@@ -425,7 +425,7 @@ describe("X5 — the runtime never writes over canonical evidence", () => {
       for (const call of calls) {
         const argument = call[1].trim();
         expect(
-          /^(H9_REGRESSION_ARTIFACT|H9_REGRESSION_ABANDON_ARTIFACT|J12_REGRESSION_ARTIFACT|J12_REGRESSION_ABANDON_ARTIFACT|K11_ARTIFACT|k12Artifact\(|l12Artifact\(|m12Artifact\(|n15Artifact\(|ec15Artifact\()/.test(
+          /^(H9_REGRESSION_ARTIFACT|H9_REGRESSION_ABANDON_ARTIFACT|J12_REGRESSION_ARTIFACT|J12_REGRESSION_ABANDON_ARTIFACT|K11_ARTIFACT|k12Artifact\(|l12Artifact\(|m12Artifact\(|n15Artifact\(|ec15Artifact\(|dr15Artifact\()/.test(
             argument,
           ),
           `${path}: artefact name not taken from runArtifacts.ts — ${argument}`,
@@ -538,7 +538,8 @@ describe("X8 — M12 derives who owns what it writes, and how many names are pro
     expect(artifactTaskId("TASK-0020-M12-interbrain-relations-webview2-pass2.json")).toBe(
       "TASK-0020",
     );
-    expect(artifactTaskId(m12Artifact(2, "written"))).toBe("TASK-0023");
+    expect(artifactTaskId(m12Artifact(2, "written"))).toBe("TASK-0024");
+    expect(artifactTaskId(dr15Artifact(2))).toBe("TASK-0024");
     expect(artifactTaskId(m12Artifact(2, "written"))).not.toBe(
       artifactTaskId("TASK-0020-M12-interbrain-relations-webview2-pass2.json"),
     );
@@ -547,7 +548,7 @@ describe("X8 — M12 derives who owns what it writes, and how many names are pro
 
   it("the M12 artefact still derives the sole task identity of the runtime", () => {
     // The identity claim is unchanged by the seal: every destination this
-    // runtime spells still belongs to `TASK-0023`, and nothing here restates
+    // runtime spells belongs to `TASK-0024`, and nothing here restates
     // that from a literal.
     const ownership = runtimeWriteOwnership();
     const written = m12Artifact(2, "written");
@@ -556,36 +557,27 @@ describe("X8 — M12 derives who owns what it writes, and how many names are pro
     expect(ownership.taskIdsWritten).toStrictEqual([ownership.owningTaskId]);
   });
 
-  it("the runtime no longer writes under an unsealed task, and says so", () => {
-    // `writesUnderItsOwnTaskOnly` was `true` while `TASK-0023` awaited
-    // control. `ACTION-0039` sealed its own two destinations, so the honest
-    // answer is now `false`, and the reason is exactly one of the three
-    // clauses — the owning task is itself protected and two of its
-    // destinations are sealed — not a stale or anonymous name.
+  it("the runtime writes only under the active unsealed task", () => {
     const ownership = runtimeWriteOwnership();
-    expect(ownership.writesUnderItsOwnTaskOnly).toBe(false);
-    expect(ownership.owningTaskId).toBe("TASK-0023");
-    expect(ownership.taskIdsWritten).toStrictEqual(["TASK-0023"]);
+    expect(ownership.writesUnderItsOwnTaskOnly).toBe(true);
+    expect(ownership.owningTaskId).toBe("TASK-0024");
+    expect(ownership.taskIdsWritten).toStrictEqual(["TASK-0024"]);
     expect(ownership.protectedTaskIds).toContain("TASK-0023");
-    expect(ownership.protectedDestinations).toStrictEqual([
-      ...TASK_0023_CANONICAL_EVIDENCE,
-    ]);
+    expect(ownership.protectedDestinations).toStrictEqual([]);
   });
 
-  it("the protected runtime destinations are the two EC15 passes and nothing else", () => {
+  it("the protected runtime destinations are empty after migration", () => {
     const ownership = runtimeWriteOwnership();
     expect(PROTECTED_RUN_ARTIFACTS as readonly string[]).toContain(
       TASK_0022_CANONICAL_EVIDENCE[5],
     );
-    expect(ownership.protectedDestinations).toStrictEqual([
-      ...TASK_0023_CANONICAL_EVIDENCE,
-    ]);
+    expect(ownership.protectedDestinations).toStrictEqual([]);
     expect(ownership.protectedDestinations).toStrictEqual([
       ...SEALED_RUNTIME_DESTINATIONS,
     ]);
     expect(ownership.runtimeDestinationCount).toBe(RUNTIME_RUN_ARTIFACTS.length);
-    // Every other destination stays writable: the seal did not spread to the
-    // replays this slice migrated.
+    // Historical TASK-0023 noncanonical names remain unprotected, but are no
+    // longer runtime destinations.
     for (const name of TASK_0023_NONCANONICAL) {
       expect(ownership.protectedDestinations).not.toContain(name);
     }
@@ -607,11 +599,7 @@ describe("X8 — M12 derives who owns what it writes, and how many names are pro
       "TASK-0022",
       "TASK-0023",
     ]);
-    // `TASK-0023` now owns protected evidence *and* is the runtime's owner.
-    // The old assertion that the two never coincide belonged to a slice that
-    // had not been verified yet; keeping it would have forced the seal to stay
-    // wrong to keep a test green.
-    expect(ownership.protectedTaskIds).toContain(ownership.owningTaskId);
+    expect(ownership.protectedTaskIds).not.toContain(ownership.owningTaskId);
   });
 
   it("a stale owner among the destinations would break the verdict", () => {

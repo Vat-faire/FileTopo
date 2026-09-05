@@ -1,6 +1,6 @@
 <#
 .SYNOPSIS
-    Runs the two passes of M12 (TASK-0023 regression — inter-brain relations) against the
+    Runs the two passes of M12 (TASK-0024 regression — inter-brain relations) against the
     real host, with a real close and a real restart between them.
 
 .DESCRIPTION
@@ -116,8 +116,8 @@ function Invoke-Pass {
 
     $log = Join-Path $LogDirectory "filetopo-task0022-m12-$variant-pass$Pass.log"
 
-    $artifact = Join-Path $runs "TASK-0023-M12-interbrain-relations-regression-webview2-pass$Pass.json"
-    $abandoned = Join-Path $runs "TASK-0023-M12-interbrain-relations-regression-webview2-pass$Pass-abandon.json"
+    $artifact = Join-Path $runs "TASK-0024-M12-interbrain-relations-regression-webview2-pass$Pass.json"
+    $abandoned = Join-Path $runs "TASK-0024-M12-interbrain-relations-regression-webview2-pass$Pass-abandon.json"
     foreach ($stale in @($artifact, $abandoned)) {
         Assert-NotProtectedRunArtifact -Path $stale
         if (Test-Path -LiteralPath $stale) { Remove-Item -LiteralPath $stale -Force }

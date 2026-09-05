@@ -25,6 +25,7 @@ pub mod fixtures;
 pub mod layout;
 pub mod relation_commands;
 pub mod relations;
+pub mod rule_engine;
 pub mod sandbox;
 pub mod store;
 
@@ -90,6 +91,8 @@ pub enum MapError {
     ArtifactRejected(String),
     #[error("content_observation_failed: {0}")]
     ContentObservation(String),
+    #[error("relation_engine_failed: {0}")]
+    RuleEngine(String),
 }
 
 impl From<MapError> for String {

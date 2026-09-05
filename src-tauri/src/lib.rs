@@ -727,6 +727,51 @@ fn map_content_observations(
     map::content_signals::content_observations(&paths, &brain).map_err(String::from)
 }
 
+#[tauri::command]
+fn map_relation_engine_status(
+    app: tauri::AppHandle,
+    brain_id: String,
+) -> Result<map::rule_engine::RelationEngineStatus, String> {
+    let (paths, brain) = resolve_brain(&app, &brain_id)?;
+    map::rule_engine::status(&paths, &brain).map_err(String::from)
+}
+
+#[tauri::command]
+async fn map_relation_engine_run(
+    app: tauri::AppHandle,
+    brain_id: String,
+) -> Result<map::rule_engine::RelationEngineReport, String> {
+    let (paths, brain) = resolve_brain(&app, &brain_id)?;
+    tauri::async_runtime::spawn_blocking(move || {
+        map::rule_engine::run(&paths, &brain).map_err(String::from)
+    })
+    .await
+    .map_err(|_| "relation_engine_worker_failed".to_string())?
+}
+
+/// Materializes and observes the repository-local synthetic source used only
+/// by the real TASK-0024/DR15 development proof. Release builds expose no such
+/// source and normal runs never call this command.
+#[tauri::command]
+async fn map_task0024_dr15_prepare(
+    app: tauri::AppHandle,
+) -> Result<map::content_signals::ContentObservationReport, String> {
+    #[cfg(not(debug_assertions))]
+    {
+        let _ = app;
+        return Err("TASK-0024 DR15 synthetic proof exists only in development builds".to_string());
+    }
+    #[cfg(debug_assertions)]
+    {
+    let (paths, brain) = resolve_brain(&app, map::rule_engine::TASK0024_DR15_BRAIN_ID)?;
+    tauri::async_runtime::spawn_blocking(move || {
+        map::rule_engine::prepare_task0024_dr15(&paths, &brain).map_err(String::from)
+    })
+    .await
+    .map_err(|_| "task0024_dr15_worker_failed".to_string())?
+    }
+}
+
 /// `H8` — the engine actually rendering, read from the host.
 ///
 /// `tauri::webview_version()` reports the WebView2 runtime on Windows. It is
@@ -773,6 +818,11 @@ fn map_host_info(app: tauri::AppHandle) -> map::commands::HostInfo {
             .filter(|pass| *pass == 1 || *pass == 2)
             .unwrap_or(0),
         auto_content_pass: std::env::var("FILETOPO_AUTO_CONTENT")
+            .ok()
+            .and_then(|value| value.parse::<u8>().ok())
+            .filter(|pass| *pass == 1 || *pass == 2)
+            .unwrap_or(0),
+        auto_dre_pass: std::env::var("FILETOPO_AUTO_DRE")
             .ok()
             .and_then(|value| value.parse::<u8>().ok())
             .filter(|pass| *pass == 1 || *pass == 2)
@@ -992,6 +1042,9 @@ pub fn run() {
             map_content_identical_members,
             map_content_diagnostics,
             map_content_observations,
+            map_relation_engine_status,
+            map_relation_engine_run,
+            map_task0024_dr15_prepare,
             map_relations_open,
             map_relations_for_node,
             map_relations_approve,
@@ -1118,6 +1171,17 @@ mod integration_tests {
         }
         assert!(!exposed.iter().any(|name| name.contains("same_hash_relation")));
         assert!(!exposed.iter().any(|name| name.contains("content_suggestion")));
+    }
+
+    #[test]
+    fn deterministic_relation_engine_commands_are_explicitly_exposed() {
+        let exposed = registered_commands();
+        for required in ["map_relation_engine_status", "map_relation_engine_run"] {
+            assert!(
+                exposed.iter().any(|name| name == required),
+                "TASK-0024 needs `{required}` reachable from the WebView"
+            );
+        }
     }
 
     /// The dialogue plugin is what makes a real folder picker possible at all.

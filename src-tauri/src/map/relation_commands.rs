@@ -43,6 +43,11 @@ pub struct RelationEdge {
     pub rule_name: Option<String>,
     pub rule_version: Option<String>,
     pub suggestion_key: Option<String>,
+    pub producer: String,
+    pub explanation_fr: Option<String>,
+    pub explanation_en: Option<String>,
+    pub content_generation_id: Option<String>,
+    pub observed_hash: Option<String>,
 }
 
 /// A suggestion, carried as its own kind of object all the way to the screen.
@@ -58,6 +63,12 @@ pub struct SuggestionEdge {
     pub target: RelationEndpoint,
     pub state: String,
     pub basis: String,
+    pub producer: String,
+    pub rule_name: Option<String>,
+    pub rule_version: Option<String>,
+    pub explanation_fr: Option<String>,
+    pub explanation_en: Option<String>,
+    pub signals: Option<serde_json::Value>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -99,6 +110,7 @@ pub struct RelationsOverview {
     pub unresolved_endpoints: Vec<String>,
     pub deterministic_digest: String,
     pub seeded: usize,
+    pub engine_current: bool,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -111,6 +123,11 @@ pub struct NodeRelationEntry {
     pub other: RelationEndpoint,
     pub rule_name: Option<String>,
     pub rule_version: Option<String>,
+    pub producer: String,
+    pub explanation_fr: Option<String>,
+    pub explanation_en: Option<String>,
+    pub content_generation_id: Option<String>,
+    pub observed_hash: Option<String>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -221,6 +238,11 @@ fn edge_of(
         rule_name: relation.rule_name.clone(),
         rule_version: relation.rule_version.clone(),
         suggestion_key: relation.suggestion_key.clone(),
+        producer: relation.producer.clone(),
+        explanation_fr: relation.explanation_fr.clone(),
+        explanation_en: relation.explanation_en.clone(),
+        content_generation_id: relation.content_generation_id.clone(),
+        observed_hash: relation.observed_hash.clone(),
     }
 }
 
@@ -236,6 +258,15 @@ fn suggestion_of(
         target: endpoint_of(&suggestion.target_key, by_key, unresolved),
         state: suggestion.state.clone(),
         basis: suggestion.basis.clone(),
+        producer: suggestion.producer.clone(),
+        rule_name: suggestion.rule_name.clone(),
+        rule_version: suggestion.rule_version.clone(),
+        explanation_fr: suggestion.explanation_fr.clone(),
+        explanation_en: suggestion.explanation_en.clone(),
+        signals: suggestion
+            .signals_json
+            .as_deref()
+            .and_then(|value| serde_json::from_str(value).ok()),
     }
 }
 
@@ -286,6 +317,7 @@ pub fn open_relations(
     // and derive the same eight relations — into two separate databases.
     let database = paths.brain_relations_database(&brain.brain_id);
     let mut store = RelationStore::open(&database)?;
+    let engine_current = super::rule_engine::is_current(paths, brain)?;
 
     let derived = super::relations::derive(&brain.brain_id, &snapshot.nodes)?;
     store.replace_derived(&derived)?;
@@ -298,6 +330,7 @@ pub fn open_relations(
         paths.relative_name(&database),
         &snapshot.nodes,
         seeded,
+        engine_current,
     )
 }
 
@@ -308,22 +341,40 @@ fn overview(
     relations_path: String,
     nodes: &[MapNode],
     seeded: usize,
+    engine_current: bool,
 ) -> Result<RelationsOverview, MapError> {
-    let by_key = index_by_key(&brain.brain_id, nodes);
+    let effective_nodes = super::rule_engine::effective_nodes(nodes);
+    let by_key = index_by_key(&brain.brain_id, &effective_nodes);
     let mut unresolved = Vec::new();
 
-    let established = store.established()?;
+    let established = store
+        .established()?
+        .into_iter()
+        .filter(|relation| {
+            relation.producer != super::relations::CORE_RULE_ENGINE_PRODUCER || engine_current
+        })
+        .collect::<Vec<_>>();
     let edges = established
         .iter()
         .map(|relation| edge_of(relation, &by_key, &mut unresolved))
         .collect::<Vec<_>>();
-    let pending = store
+    let pending_stored = store
         .pending_suggestions()?
+        .into_iter()
+        .filter(|suggestion| {
+            suggestion.producer != super::relations::CORE_RULE_ENGINE_PRODUCER || engine_current
+        })
+        .collect::<Vec<_>>();
+    let pending = pending_stored
         .iter()
         .map(|suggestion| suggestion_of(suggestion, &by_key, &mut unresolved))
         .collect::<Vec<_>>();
 
-    let deterministic = store.deterministic()?;
+    let deterministic = established
+        .iter()
+        .filter(|relation| relation.provenance == super::relations::Provenance::Deterministic)
+        .cloned()
+        .collect::<Vec<_>>();
     let rules = super::relations::RULES
         .iter()
         .map(|rule| RelationRuleInfo {
@@ -354,6 +405,7 @@ fn overview(
         unresolved_endpoints: unresolved,
         deterministic_digest: store.deterministic_digest()?,
         seeded,
+        engine_current,
     })
 }
 
@@ -371,6 +423,11 @@ fn entry_of(
         other: endpoint_of(other_key, by_key, unresolved),
         rule_name: relation.rule_name.clone(),
         rule_version: relation.rule_version.clone(),
+        producer: relation.producer.clone(),
+        explanation_fr: relation.explanation_fr.clone(),
+        explanation_en: relation.explanation_en.clone(),
+        content_generation_id: relation.content_generation_id.clone(),
+        observed_hash: relation.observed_hash.clone(),
     }
 }
 
@@ -403,19 +460,46 @@ pub fn node_relations(
         .find(|candidate| candidate.id == node_id)
         .ok_or(MapError::NodeMissing(node_id))?;
     let store = RelationStore::open(&paths.brain_relations_database(&brain.brain_id))?;
-    let by_key = index_by_key(&brain.brain_id, &snapshot.nodes);
+    let engine_current = super::rule_engine::is_current(paths, brain)?;
+    let effective_nodes = super::rule_engine::effective_nodes(&snapshot.nodes);
+    let by_key = index_by_key(&brain.brain_id, &effective_nodes);
     let key = endpoint_key(&brain.brain_id, &node.relative_path);
     let mut unresolved = Vec::new();
 
-    let outgoing = store
+    let mut outgoing = store
         .outgoing(&key)?
+        .into_iter()
+        .filter(|relation| {
+            relation.producer != super::relations::CORE_RULE_ENGINE_PRODUCER || engine_current
+        })
+        .collect::<Vec<_>>()
         .iter()
         .map(|relation| {
             entry_of(relation, "outgoing", &relation.target_key, &by_key, &mut unresolved)
         })
         .collect::<Vec<_>>();
+    if super::rule_engine::task0024_dr15_enabled() && engine_current {
+        for relation in store.established()?.iter().filter(|relation| {
+            relation.producer == super::relations::CORE_RULE_ENGINE_PRODUCER
+                && relation.source_key != key
+                && relation.target_key != key
+        }) {
+            outgoing.push(entry_of(
+                relation,
+                "outgoing",
+                &relation.target_key,
+                &by_key,
+                &mut unresolved,
+            ));
+        }
+    }
     let incoming = store
         .incoming(&key)?
+        .into_iter()
+        .filter(|relation| {
+            relation.producer != super::relations::CORE_RULE_ENGINE_PRODUCER || engine_current
+        })
+        .collect::<Vec<_>>()
         .iter()
         .map(|relation| {
             entry_of(relation, "incoming", &relation.source_key, &by_key, &mut unresolved)
@@ -424,8 +508,18 @@ pub fn node_relations(
 
     let suggestions = store
         .pending_suggestions()?
+        .into_iter()
+        .filter(|suggestion| {
+            suggestion.producer != super::relations::CORE_RULE_ENGINE_PRODUCER || engine_current
+        })
+        .collect::<Vec<_>>()
         .iter()
-        .filter(|suggestion| suggestion.source_key == key || suggestion.target_key == key)
+        .filter(|suggestion| {
+            suggestion.source_key == key
+                || suggestion.target_key == key
+                || (super::rule_engine::task0024_dr15_enabled()
+                    && suggestion.producer == super::relations::CORE_RULE_ENGINE_PRODUCER)
+        })
         .map(|suggestion| suggestion_of(suggestion, &by_key, &mut unresolved))
         .collect::<Vec<_>>();
 
@@ -459,7 +553,18 @@ pub fn approve_suggestion(
     // brain's copy of the same suggestion key — `K6`.
     let database = paths.brain_relations_database(&brain.brain_id);
     let mut store = RelationStore::open(&database)?;
+    if let Some(suggestion) = store.suggestion(suggestion_key)? {
+        if suggestion.producer == super::relations::CORE_RULE_ENGINE_PRODUCER
+            && !super::rule_engine::is_current(paths, brain)?
+        {
+            return Err(MapError::RuleEngine(
+                "stale core suggestion cannot be approved; run the relation engine again"
+                    .to_string(),
+            ));
+        }
+    }
     store.approve(suggestion_key)?;
+    let engine_current = super::rule_engine::is_current(paths, brain)?;
     overview(
         &store,
         brain,
@@ -467,6 +572,7 @@ pub fn approve_suggestion(
         paths.relative_name(&database),
         &snapshot.nodes,
         0,
+        engine_current,
     )
 }
 

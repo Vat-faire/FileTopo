@@ -3,7 +3,7 @@
 - **Date :** 2026-09-05
 - **Branche :** `build/v0.2-a8-deterministic-relation-engine`
 - **Base contrôlée :** `0608cbc1396c5bfc28e0cd666bc25eddf80345bb`
-- **Statut courant :** `IN_PROGRESS`
+- **Statut courant :** `IMPLEMENTED` — contrôle indépendant requis
 - **Transitions :** `PROPOSED → APPROVED → IN_PROGRESS`, par le GO technique explicite de `.orchestrator/NEXT_PROMPT.md`
 - **Agent d'exécution :** Codex
 - **Décision :** [`DEC-0026`](../decisions/DEC-0026-deterministic-rule-runtime.md)
@@ -204,3 +204,19 @@ L'exécuteur ne s'attribue jamais `VERIFIED`. `F-044`, `F-045` et `F-046`
 restent `PROPOSED`; `DEC-0013/F` reste bloquante. L'action suivante unique est
 le contrôle indépendant de `TASK-0024`.
 
+## 10. Clôture d'exécution — 2026-09-05
+
+Les critères gelés `DR1` à `DR15` passent. Le moteur `dre-v1`, son store
+versionné, ses deux règles `core.*`, l'API explicite, la fraîcheur et l'UI sont
+implémentés. Les suites complètes passent : Rust **197/197**, TypeScript
+**213/213**, `pnpm check`, `pnpm build` et Tauri debug `--no-bundle`.
+
+`DR15` passe dans deux vrais processus Tauri/WebView2 `152.0.4191.62` sur une
+même variante fraîche : activation clavier et approbation fiables, zéro clic
+programmatique, exactement deux arêtes pour trois contenus identiques, fichiers
+vides ignorés, suggestion `revision` sans score, persistance et idempotence.
+Le replay réel J12 passe sous `TASK-0024`. Les 29 preuves X5 sont inchangées,
+les destinations runtime protégées sont vides, et `main` reste `91bbe90f`.
+
+État final de l'exécuteur : **`IMPLEMENTED`**, jamais `VERIFIED`. Le prochain
+acte est un contrôle indépendant de `TASK-0024`.

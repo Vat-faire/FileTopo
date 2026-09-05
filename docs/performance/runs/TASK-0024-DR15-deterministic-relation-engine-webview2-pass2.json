@@ -1,0 +1,114 @@
+{
+  "task": "TASK-0024",
+  "criterion": "DR15",
+  "pass": 2,
+  "capturedAtIso": "2026-09-05T04:49:47.809Z",
+  "host": {
+    "sandboxRoot": "<dépôt>/.filetopo-sandbox/variants/task0024-dr15-20260905004937-8eed73",
+    "appVersion": "0.1.0-alpha.1",
+    "sqliteVersion": "3.53.2",
+    "webviewVersion": "152.0.4191.62",
+    "tauriVersion": "2.11.5",
+    "platform": "windows",
+    "nodeCeiling": 5000,
+    "depthCeiling": 40,
+    "cardWidth": 240,
+    "cardHeight": 64,
+    "layoutAlgorithm": "layered-tree-cards-v1",
+    "autoVerify": false,
+    "autoMeasure": false,
+    "autoRelations": false,
+    "autoBrainsPass": 0,
+    "autoComposedPass": 0,
+    "autoCrossPass": 0,
+    "autoTopographicPass": 0,
+    "autoContentPass": 0,
+    "autoDrePass": 2
+  },
+  "input": {
+    "brainId": "brain-alpha",
+    "source": "synthetic TASK-0024 proof fixture outside the four frozen fixtures",
+    "noRealData": true
+  },
+  "governance": {
+    "protectedArtifactCount": 29,
+    "protectedDestinations": [],
+    "writesUnderItsOwnTaskOnly": true,
+    "owningTaskId": "TASK-0024"
+  },
+  "evidence": {
+    "realProcessRestart": true,
+    "statusBefore": {
+      "brainId": "brain-alpha",
+      "engineVersion": "dre-v1",
+      "inputState": "CURRENT",
+      "mapDigest": "fnv1a64:400fab2df3081fc0",
+      "currentContentGenerationId": "f6b6d9df-fffb-4b08-b3c9-6cf0d5a077a5",
+      "lastRunId": "dre1-ceb33c2d66035f8d",
+      "lastRunUnixMs": 1788583783961,
+      "lastMapDigest": "fnv1a64:400fab2df3081fc0",
+      "lastContentGenerationId": "f6b6d9df-fffb-4b08-b3c9-6cf0d5a077a5"
+    },
+    "before": {
+      "deterministic": [
+        "ek1|brain-alpha|identiques/a.bin|ek1|brain-alpha|identiques/b.bin|content-identical|core.identical-content",
+        "ek1|brain-alpha|identiques/a.bin|ek1|brain-alpha|identiques/c.bin|content-identical|core.identical-content"
+      ],
+      "approved": [
+        "ek1|brain-alpha|dossier-a/note-3.txt|ek1|brain-alpha|racine-1.txt|reference",
+        "ek1|brain-alpha|dossier-b/note-1.txt|ek1|brain-alpha|dossier-a/note-3.txt|reference",
+        "ek1|brain-alpha|dossier-b/sous-dossier/note-2.txt|ek1|brain-alpha|dossier-a/note-1.txt|reference",
+        "ek1|brain-alpha|racine-2.txt|ek1|brain-alpha|dossier-b/sous-dossier/note-1.txt|revision",
+        "ek1|brain-alpha|revisions/rapport-4.pdf|ek1|brain-alpha|revisions/rapport-5.pdf|revision"
+      ],
+      "pending": [
+        "S-005",
+        "S-006",
+        "S-007",
+        "S-008"
+      ]
+    },
+    "rerun": {
+      "brainId": "brain-alpha",
+      "engineVersion": "dre-v1",
+      "runId": "dre1-4ff7a001891a980e",
+      "mapDigest": "fnv1a64:400fab2df3081fc0",
+      "contentGenerationId": "f6b6d9df-fffb-4b08-b3c9-6cf0d5a077a5",
+      "rulesEvaluated": [
+        "core.identical-content/v1",
+        "core.numbered-sibling-revision-candidate/v1"
+      ],
+      "rulesSkipped": [],
+      "deterministicRelationsProduced": 2,
+      "suggestionsProduced": 0,
+      "emptyContentGroupsSkipped": 1,
+      "establishedCollisionSuppressions": 4,
+      "approvedSuggestionPreservations": 1,
+      "sourceReadOnlyConfirmed": true,
+      "inputState": "CURRENT"
+    },
+    "after": {
+      "deterministic": [
+        "ek1|brain-alpha|identiques/a.bin|ek1|brain-alpha|identiques/b.bin|content-identical|core.identical-content",
+        "ek1|brain-alpha|identiques/a.bin|ek1|brain-alpha|identiques/c.bin|content-identical|core.identical-content"
+      ],
+      "approved": [
+        "ek1|brain-alpha|dossier-a/note-3.txt|ek1|brain-alpha|racine-1.txt|reference",
+        "ek1|brain-alpha|dossier-b/note-1.txt|ek1|brain-alpha|dossier-a/note-3.txt|reference",
+        "ek1|brain-alpha|dossier-b/sous-dossier/note-2.txt|ek1|brain-alpha|dossier-a/note-1.txt|reference",
+        "ek1|brain-alpha|racine-2.txt|ek1|brain-alpha|dossier-b/sous-dossier/note-1.txt|revision",
+        "ek1|brain-alpha|revisions/rapport-4.pdf|ek1|brain-alpha|revisions/rapport-5.pdf|revision"
+      ],
+      "pending": [
+        "S-005",
+        "S-006",
+        "S-007",
+        "S-008"
+      ]
+    },
+    "crossDigestBefore": "fnv1a64:3020af7489aab581",
+    "crossDigestAfter": "fnv1a64:3020af7489aab581",
+    "sourceReadOnly": true,
+    "processClosedByHarness": true
+  }
+}

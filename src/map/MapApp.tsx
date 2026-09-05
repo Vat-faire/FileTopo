@@ -40,6 +40,7 @@ import { runCrossScenario as runCross } from "./crossScenario";
 import { runRelationScenario as runScenario } from "./relationScenario";
 import { runTopographicScenario as runTopographic } from "./topographicScenario";
 import { runContentScenario as runContent } from "./contentScenario";
+import { runDreScenario as runDre } from "./dreScenario";
 import {
   H9_REGRESSION_ABANDON_ARTIFACT,
   H9_REGRESSION_ARTIFACT,
@@ -81,6 +82,8 @@ import type {
   NodeRelations,
   RelationsOverview,
   RelationsSelfCheck,
+  RelationEngineReport,
+  RelationEngineStatus,
 } from "./types";
 import { fitToBox, fitView, panBy, zoomAbout, type View, type Viewport } from "./viewState";
 
@@ -238,6 +241,11 @@ export default function MapApp() {
   const [relationsLoading, setRelationsLoading] = useState(false);
   const [approving, setApproving] = useState<string | null>(null);
   const [relationsCheck, setRelationsCheck] = useState<RelationsSelfCheck | null>(null);
+  const [relationEngineStatus, setRelationEngineStatus] =
+    useState<RelationEngineStatus | null>(null);
+  const [relationEngineReport, setRelationEngineReport] =
+    useState<RelationEngineReport | null>(null);
+  const [relationEngineRunning, setRelationEngineRunning] = useState(false);
   // `TASK-0020`. The COMMON store, read once for the whole catalogue — never
   // per brain, and never per composition: a relation exists whether or not
   // either of its brains is on screen.
@@ -283,6 +291,7 @@ export default function MapApp() {
   const runCrossScenarioRef = useRef<(() => Promise<void>) | null>(null);
   const runTopographicScenarioRef = useRef<(() => Promise<void>) | null>(null);
   const runContentScenarioRef = useRef<(() => Promise<void>) | null>(null);
+  const runDreScenarioRef = useRef<(() => Promise<void>) | null>(null);
 
   const order = useMemo(() => catalogueOrder(catalog?.brains ?? []), [catalog]);
 
@@ -408,6 +417,12 @@ export default function MapApp() {
   const autoStarted = useRef(false);
   useEffect(() => {
     if (autoStarted.current || fixtures.length === 0 || !host) return;
+    if (host.autoDrePass === 1 || host.autoDrePass === 2) {
+      autoStarted.current = true;
+      hostLog("info", `démarrage automatique du scénario DR15, passe ${host.autoDrePass}`);
+      void runDreScenarioRef.current?.();
+      return;
+    }
     if (host.autoVerify) {
       autoStarted.current = true;
       hostLog("info", "démarrage automatique de la vérification L11");
@@ -893,6 +908,51 @@ export default function MapApp() {
   const selectedBrain = selected ? loaded.get(selected.brainId) ?? null : null;
   const selectedOverview = selectedBrain?.relations ?? null;
   useEffect(() => {
+    const brainId = selected?.brainId ?? composed?.focusedBrainId;
+    if (!brainId) {
+      setRelationEngineStatus(null);
+      return;
+    }
+    let live = true;
+    invoke<RelationEngineStatus>("map_relation_engine_status", { brainId })
+      .then((next) => live && setRelationEngineStatus(next))
+      .catch((error) => {
+        if (live) hostLog("error", `statut du moteur indisponible: ${String(error)}`);
+      });
+    return () => {
+      live = false;
+    };
+  }, [composed?.focusedBrainId, contentRevision, selected?.brainId, selectedOverview?.engineCurrent]);
+
+  const analyzeRelations = useCallback(async () => {
+    const brainId = selectedRef.current?.brainId ?? composedRef.current?.focusedBrainId;
+    if (!brainId) return;
+    setRelationEngineRunning(true);
+    try {
+      const report = await invoke<RelationEngineReport>("map_relation_engine_run", { brainId });
+      const [engineStatus, overview] = await Promise.all([
+        invoke<RelationEngineStatus>("map_relation_engine_status", { brainId }),
+        invoke<RelationsOverview>("map_relations_open", { brainId }),
+      ]);
+      setRelationEngineReport(report);
+      setRelationEngineStatus(engineStatus);
+      setLoaded((current) => {
+        const brain = current.get(brainId);
+        if (!brain) return current;
+        const updated = new Map(current);
+        updated.set(brainId, { ...brain, relations: overview });
+        return updated;
+      });
+      setStatus(
+        `${report.engineVersion} : ${report.deterministicRelationsProduced} relation(s), ${report.suggestionsProduced} suggestion(s).`,
+      );
+    } catch (error) {
+      setStatus(`Analyse des relations impossible : ${String(error)}`);
+    } finally {
+      setRelationEngineRunning(false);
+    }
+  }, []);
+  useEffect(() => {
     if (!selected || !selectedOverview) {
       setNodeRelations(null);
       return;
@@ -1183,7 +1243,7 @@ export default function MapApp() {
         name: K11_ARTIFACT,
         contents: JSON.stringify(
           {
-          task: "TASK-0023",
+          task: "TASK-0024",
             criteria: ["L11", "L2", "K11", "K3", "H1", "H2", "H3", "H5", "H6", "H7", "H8", "H10", "H11"],
             sourceCriterion: "TASK-0018/K11",
             nature: "regression / compatibility replay",
@@ -1283,7 +1343,7 @@ export default function MapApp() {
       }
 
       const artifact = {
-        task: "TASK-0023",
+        task: "TASK-0024",
         sourceCriterion: "TASK-0016/H9",
         nature: "regression / compatibility replay",
         doesNotReplace:
@@ -1318,7 +1378,7 @@ export default function MapApp() {
           name: H9_REGRESSION_ABANDON_ARTIFACT,
           contents: JSON.stringify(
             {
-              task: "TASK-0023",
+              task: "TASK-0024",
               sourceCriterion: "TASK-0016/H9",
               nature: "regression / compatibility replay",
               doesNotReplace:
@@ -1462,6 +1522,21 @@ export default function MapApp() {
   }, [host, selectNode, showOnly]);
 
   runContentScenarioRef.current = runContentScenario;
+
+  const runDreScenario = useCallback(() => {
+    const pass = host?.autoDrePass === 2 ? 2 : 1;
+    return runDre({
+      invoke: (command, args) => invoke(command, args),
+      host,
+      showOnly,
+      select: selectNode,
+      setStatus,
+      log: hostLog,
+      pass,
+    });
+  }, [host, selectNode, showOnly]);
+
+  runDreScenarioRef.current = runDreScenario;
 
   const selectedNode: MapNode | null =
     selected && selectedBrain ? selectedBrain.hierarchy.byId.get(selected.nodeId) ?? null : null;
@@ -1864,6 +1939,10 @@ export default function MapApp() {
             onSelect={selectInSelectedBrain}
             onApprove={approveSuggestion}
             approving={approving}
+            engineStatus={relationEngineStatus}
+            engineReport={relationEngineReport}
+            engineRunning={relationEngineRunning}
+            onAnalyze={analyzeRelations}
           />
 
           <CrossRelationsPanel

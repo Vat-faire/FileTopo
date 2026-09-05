@@ -123,6 +123,9 @@ pub struct HostInfo {
     /// `EC15` — `0` none, `1` observes both brains and rebuilds Alpha,
     /// `2` proves persistence and a byte-for-byte re-read after restart.
     pub auto_content_pass: u8,
+    /// `DR15` — deterministic relation engine proof, two real processes on
+    /// one fresh TASK-0024 variant.
+    pub auto_dre_pass: u8,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]

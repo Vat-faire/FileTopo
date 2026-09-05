@@ -27,6 +27,13 @@ export const PROVENANCE_LABELS: Record<RelationProvenance, string> = {
 export const RELATION_TYPE_LABELS: Record<string, string> = {
   reference: "référence",
   revision: "révision de",
+  "content-identical": "contenu identique",
+};
+
+export const RELATION_TYPE_LABELS_EN: Record<string, string> = {
+  reference: "reference",
+  revision: "revision",
+  "content-identical": "identical content",
 };
 
 export function relationTypeLabel(relationType: string): string {

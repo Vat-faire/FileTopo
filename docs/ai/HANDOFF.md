@@ -1,5 +1,35 @@
 # HANDOFF — passage de relais
 
+## Relais actuel — TASK-0024 IMPLEMENTED, 2026-09-05
+
+`TASK-0024` est livrée **`IMPLEMENTED`**, jamais auto-attribuée `VERIFIED`, sur
+`build/v0.2-a8-deterministic-relation-engine`. `DEC-0026` et `F-043` sont
+`IMPLEMENTED — contrôle indépendant requis`.
+
+Le runtime `dre-v1` possède exactement deux règles `core.*`. La première
+établit `content-identical` seulement sur SHA-256 non vide de la génération
+courante et produit N-1 arêtes ancrées; la seconde laisse des frères numérotés
+consécutifs au statut de suggestion `revision`, avec explications FR/EN et
+signaux structurés sans score. Le store distingue structurellement les sorties
+core des lignes legacy, conserve `APPROVED`, réconcilie sans duplication et
+masque les sorties core devenues stale jusqu'au rerun.
+
+Validations exécutées : Rust **197/197**, TypeScript **213/213**, `pnpm check`,
+`pnpm build`, Tauri debug `--no-bundle`. DR15 passe dans deux vrais processus
+WebView2 `152.0.4191.62` sur une même variante fraîche, avec activation clavier
+et approbation fiables, zéro clic programmatique, persistance et idempotence.
+J12 réel passe sous `TASK-0024`.
+
+X5 reste exactement à **29** noms, inchangés dans les trois gardes. Toutes les
+destinations actives appartiennent à `TASK-0024`, aucune n'est protégée et les
+trois nouvelles preuves ne seront scellées qu'après vérification indépendante.
+`main` reste `91bbe90f`. Les quatre fixtures gelées sont inchangées; DR15
+emploie une source synthétique dédiée au scénario, hors de leur catalogue.
+
+**Relais unique :** contrôle indépendant de `TASK-0024`. Ne créer aucune
+`TASK-0025`. `F-044`, `F-045`, `F-046` restent `PROPOSED`; `DEC-0013/F`
+demeure bloquante.
+
 ## Relais actuel — ACTION-0039, TASK-0023 VERIFIED, 2026-09-04
 
 Le verdict indépendant est enregistré dans

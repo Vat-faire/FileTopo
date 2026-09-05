@@ -1,5 +1,36 @@
 # État courant
 
+## Mise à jour TASK-0024 — moteur déterministe `dre-v1` — 2026-09-05
+
+- **Tâche livrée, NON vérifiée :** `TASK-0024` = **`IMPLEMENTED`** sur
+  `build/v0.2-a8-deterministic-relation-engine`; contrôle indépendant requis.
+- **Runtime :** `dre-v1`, catalogue de deux règles `core.*` exactement.
+  `core.identical-content/v1` établit uniquement `content-identical` pour des
+  occurrences non vides au SHA-256 courant identique, en étoile N-1.
+  `core.numbered-sibling-revision-candidate/v1` ne produit qu'une suggestion
+  `revision`, explicable FR/EN et sans score.
+- **Stockage/fraîcheur :** schéma intra-relations 3, propriété structurelle du
+  producteur, clés stables namespacées par cerveau, snapshot map/génération de
+  contenu, états `NOT_RUN`/`CURRENT`/`STALE`, reconciliation idempotente. Les
+  lignes historiques et `APPROVED` ne sont ni supprimées ni réinterprétées.
+- **Interface :** action clavier « Analyser les relations » / « Analyze
+  relations », report, état de fraîcheur, règle/version/explications/signaux
+  visibles; suggestion distincte d'une relation établie.
+- **Validation :** Rust **197/197**, TypeScript **213/213**, `pnpm check`,
+  `pnpm build`, Tauri debug `--no-bundle`. DR15 passe dans deux vrais processus
+  WebView2 `152.0.4191.62` sur une même variante fraîche; J12 réel passe.
+- **DR15 :** deux arêtes pour trois contenus identiques, un groupe de fichiers
+  vides ignoré, une suggestion `revision` approuvée par interaction clavier
+  fiable, zéro clic programmatique, approbation et ensembles persistants après
+  redémarrage/rerun, store cross-brain inchangé, sources synthétiques read-only.
+- **Gouvernance :** toutes les destinations runtime sont migrées sous
+  `TASK-0024`; X5 reste exactement **29** preuves inchangées,
+  `protectedDestinations = []`, `writesUnderItsOwnTaskOnly = true`, propriétaire
+  `TASK-0024`. `main` reste `91bbe90f`.
+- **Produit :** `F-043 = IMPLEMENTED`, contrôle indépendant requis. `F-044`,
+  `F-045`, `F-046` restent `PROPOSED`; `DEC-0013/F` demeure bloquante.
+- **Action unique suivante :** contrôle indépendant de `TASK-0024`.
+
 ## Mise à jour ACTION-0039 — TASK-0023 VERIFIED et scellement X5 — 2026-09-04
 
 - **Verdict indépendant enregistré, non rendu par Claude :** `X9 = CLOSED`,

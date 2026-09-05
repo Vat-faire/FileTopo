@@ -1,4 +1,10 @@
-import type { NodeRelations, RelationProvenance, SuggestionEdge } from "./types";
+import type {
+  NodeRelations,
+  RelationEngineReport,
+  RelationEngineStatus,
+  RelationProvenance,
+  SuggestionEdge,
+} from "./types";
 import { PROVENANCE_LABELS, entryKey, groupByType, relationTypeLabel } from "./relations";
 
 /**
@@ -36,6 +42,10 @@ interface RelationsPanelProps {
   onSelect: (nodeId: number) => void;
   onApprove: (suggestionKey: string) => void;
   approving: string | null;
+  engineStatus?: RelationEngineStatus | null;
+  engineReport?: RelationEngineReport | null;
+  engineRunning?: boolean;
+  onAnalyze?: () => void;
 }
 
 /**
@@ -74,7 +84,7 @@ function SuggestionRow({
 }) {
   const busy = approving === suggestion.suggestionKey;
   return (
-    <li className="suggestion">
+    <li className="suggestion" data-suggestion-key={suggestion.suggestionKey}>
       <div className="suggestion__head">
         <span className="suggestion__tag">suggestion</span>
         <span className="suggestion__state">non établie</span>
@@ -85,11 +95,33 @@ function SuggestionRow({
         </span>
         <span className="suggestion__type">{relationTypeLabel(suggestion.relationType)}</span>
       </p>
-      <p className="suggestion__basis">Origine synthétique : {suggestion.basis}</p>
+      {suggestion.ruleName ? (
+        <div className="suggestion__explanation" data-testid="core-suggestion-explanation">
+          <p>
+            Règle : <code>{suggestion.ruleName}</code> version <code>{suggestion.ruleVersion}</code>
+          </p>
+          <p>Pourquoi : {suggestion.explanationFr}</p>
+          {suggestion.explanationEn ? <p lang="en">Why: {suggestion.explanationEn}</p> : null}
+          {suggestion.signals ? (
+            <dl className="suggestion__signals">
+              {Object.entries(suggestion.signals).map(([name, value]) => (
+                <div key={name}>
+                  <dt>{name}</dt>
+                  <dd>{String(value)}</dd>
+                </div>
+              ))}
+            </dl>
+          ) : null}
+        </div>
+      ) : (
+        <p className="suggestion__basis">Origine synthétique : {suggestion.basis}</p>
+      )}
       <div className="suggestion__actions">
         <button
           type="button"
           className="suggestion__approve"
+          data-testid="approve-core-suggestion"
+          data-suggestion-key={suggestion.suggestionKey}
           disabled={busy}
           onClick={() => onApprove(suggestion.suggestionKey)}
         >
@@ -160,9 +192,16 @@ function DirectionSection({
                     <ProvenanceBadge provenance={entry.provenance} />
                   </button>
                   {entry.provenance === "DETERMINISTIC" ? (
-                    <p className="relation__rule">
+                    <p className="relation__rule" data-testid="core-deterministic-relation">
                       Règle : <code>{entry.ruleName}</code> version{" "}
                       <code>{entry.ruleVersion}</code>
+                      {entry.explanationFr ? <> · {entry.explanationFr}</> : null}
+                      {entry.observedHash ? (
+                        <>
+                          {" "}SHA-256 identique <code>{entry.observedHash}</code>, génération{" "}
+                          <code>{entry.contentGenerationId}</code>. Contenu binaire identique observé.
+                        </>
+                      ) : null}
                     </p>
                   ) : (
                     <p className="relation__rule relation__rule--approved">
@@ -186,6 +225,10 @@ export default function RelationsPanel({
   onSelect,
   onApprove,
   approving,
+  engineStatus = null,
+  engineReport = null,
+  engineRunning = false,
+  onAnalyze,
 }: RelationsPanelProps) {
   if (!inScope) {
     return (
@@ -218,6 +261,37 @@ export default function RelationsPanel({
   return (
     <section className="relations" aria-label="Relations internes au cerveau">
       <h2 className="relations__title">Relations internes au cerveau</h2>
+      <section className="relations__engine" aria-label="Moteur déterministe de relations">
+        <h3 className="relations__subtitle">Analyse déterministe</h3>
+        <button
+          type="button"
+          className="relations__analyze"
+          data-testid="analyze-relations"
+          disabled={engineRunning || !onAnalyze}
+          onClick={onAnalyze}
+        >
+          {engineRunning ? "Analyse…" : "Analyser les relations"}
+        </button>
+        <span className="sr-only" lang="en">Analyze relations</span>
+        <p data-testid="relation-engine-state">
+          {engineStatus?.inputState === "CURRENT"
+            ? "Analyse à jour"
+            : engineStatus?.inputState === "STALE"
+              ? "Analyse des relations à actualiser"
+              : "Analyse des relations non exécutée"}
+        </p>
+        {engineReport ? (
+          <p
+            data-testid="relation-engine-summary"
+            data-report={JSON.stringify(engineReport)}
+          >
+            Dernier run <code>{engineReport.engineVersion}</code> :{" "}
+            {engineReport.deterministicRelationsProduced} relation(s) déterministe(s),{" "}
+            {engineReport.suggestionsProduced} suggestion(s). Règles évaluées :{" "}
+            {engineReport.rulesEvaluated.join(", ") || "aucune"}.
+          </p>
+        ) : null}
+      </section>
       <p className="relations__totals" data-testid="relation-totals">
         {relations.outgoingCount} sortante(s) · {relations.incomingCount} entrante(s) ·{" "}
         {relations.suggestions.length} suggestion(s) <strong>non comptée(s)</strong>

@@ -3317,3 +3317,49 @@ physique persistante. `F-043`, `F-044`, `F-045` et `F-046` restent `PROPOSED`.
 
 **Action unique suivante :** retour à l'orchestrateur pour définir la prochaine
 tranche. Aucune `TASK-0024` créée.
+
+---
+
+## 2026-09-05 — TASK-0024 — Deterministic Relation Engine v1
+
+**Agent :** exécuteur Codex
+**Statut à l'issue :** `IMPLEMENTED` — contrôle indépendant requis
+
+### Fait
+
+- Gel préalable de `TASK-0024` et `DEC-0026`, puis commit/push avant tout code
+  produit.
+- Ajout du runtime intra-cerveau `dre-v1` et de deux règles `core.*`
+  exactement : vérité `content-identical` sur SHA-256 non vide courant en N-1,
+  et suggestion `revision` pour frères numérotés consécutifs.
+- Migration du store intra-relations au schéma 3 : producteur structurel,
+  explications/signaux, snapshot de fraîcheur, reconciliation idempotente,
+  préservation legacy/approbations et suppression des collisions.
+- Ajout des commandes explicites run/status, de l'action UI accessible, des
+  états stale/current et de l'affichage FR/EN règle/version/explication/signaux
+  sans score.
+- Migration de toutes les destinations runtime `TASK-0023` vers `TASK-0024`
+  avant le premier replay, sans changer les 29 noms X5.
+- Ajout d'un mécanisme DR15 de développement synthétique, hors des quatre
+  fixtures gelées, puis publication des deux preuves réelles WebView2.
+- Replay réel J12 publié sous `TASK-0024`.
+
+### Validé
+
+Rust **197/197**; TypeScript **213/213**; `pnpm check`; `pnpm build`; Tauri
+debug `--no-bundle`. DR15 pass1/pass2 dans deux processus WebView2
+`152.0.4191.62`, même variante fraîche : activation/analyse et approbation
+fiables, zéro clic programmatique, N-1 exact, fichiers vides sautés, suggestion
+sans score, persistance/idempotence et cross-store inchangé. J12 réel passe.
+X5 reste 29, `protectedDestinations=[]`, runtime propriétaire `TASK-0024`;
+`main` reste `91bbe90f`.
+
+### Non testé / limites
+
+K11/K12/L12/M12/N15/H9 non rejoués. Repli non-Windows X10 non revendiqué
+race-safe. `cargo fmt --check` reste rouge sur le formatage historique global;
+aucun reformatage global. `F-044`, `F-045`, `F-046` restent `PROPOSED` et
+`DEC-0013/F` demeure bloquante.
+
+**Action unique suivante :** contrôle indépendant de `TASK-0024`. Aucune
+`TASK-0025` créée.

@@ -1,6 +1,6 @@
 # VALIDATION.md — État de vérification
 
-**Dernière mise à jour :** 2026-09-04
+**Dernière mise à jour :** 2026-09-05
 **Portée :** TASK-0001 (phase 0) — `VERIFIED` ; TASK-0002 (phase 1) —
 `VERIFIED` le 2026-08-25, sur preuves indépendantes de l'orchestrateur
 (section A.7) ; TASK-0010 (rebaseline et mémoire) — `VERIFIED` le 2026-08-31,
@@ -3370,3 +3370,39 @@ ici : cette fermeture ne touche aucun code produit Rust hors de la constante
 `X5` et de ses tests. `cargo fmt --check` reste rouge sur le formatage
 historique global; aucun reformatage global. `DEC-0013/F` demeure bloquante
 pour l'identité physique persistante.
+
+---
+
+## AM. TASK-0024 — Deterministic Relation Engine v1
+
+**Date :** 2026-09-05. **État exécuteur : `IMPLEMENTED`, non `VERIFIED`.**
+
+| Contrôle | Résultat | Preuve |
+|---|---|---|
+| DR1 — catalogue | **PASS** | exactement `core.identical-content/v1` et `core.numbered-sibling-revision-candidate/v1`; tests Rust du catalogue |
+| DR2–DR4 — sens des règles | **PASS** | SHA-256 courant/non vide seulement, N-1 ancré; frères même parent/extension/préfixe et numéros consécutifs en suggestion seulement; contre-exemples Rust |
+| DR5–DR8 — store/reconciliation | **PASS** | schéma 3 migré, producteur structurel, clés stables, legacy et `APPROVED` préservés, collisions comptées, rerun idempotent |
+| DR9 — fraîcheur | **PASS** | snapshot map + génération contenu; `NOT_RUN`/`CURRENT`/`STALE`; sorties core stale filtrées et approbation stale refusée |
+| DR10–DR11 — isolation/rebuild | **PASS** | namespace par `brain_id`, store cross-brain inchangé dans DR15; tests rebuild/approbations historiques |
+| DR12 — J12 | **PASS** | vrai WebView2, `TASK-0024-J12-intrabrain-relations-regression-webview2.json`; invariants 8 déterministes, suggestions/approbation et input fiable |
+| DR13 — read-only/no AI | **PASS** | campagnes confinées synthétiques, fingerprints avant/après égaux, aucune dépendance/API/IA/LLM/OCR/RAG |
+| DR14 — X5 | **PASS** | 29 noms/29 uniques inchangés dans les trois gardes; `protectedDestinations=[]`; propriétaire `TASK-0024`; `main=91bbe90f` |
+| DR15 passe 1 | **PASS** | vrai WebView2 `152.0.4191.62`; variante fraîche; keydown/activation fiables; 2 relations `content-identical` pour 3 fichiers; vides sautés; 1 suggestion `revision` sans score; approbation puis rerun stable |
+| DR15 passe 2 | **PASS** | nouveau processus, même variante; état `CURRENT`, approbation et run retrouvés, ensembles identiques après rerun, cross-store inchangé |
+| Suite Rust complète | **PASS** | `cargo test` — **197/197** |
+| Suite TypeScript complète | **PASS** | `pnpm test` — **213/213** |
+| Typecheck/build | **PASS** | `pnpm check`; `pnpm build`; `pnpm tauri build --debug --no-bundle` |
+
+**Preuves canoniques nouvelles :**
+
+- `TASK-0024-DR15-deterministic-relation-engine-webview2-pass1.json`;
+- `TASK-0024-DR15-deterministic-relation-engine-webview2-pass2.json`;
+- `TASK-0024-J12-intrabrain-relations-regression-webview2.json`.
+
+**Non testé / limites :** aucun K11/K12/L12/M12/N15/H9 rejoué; aucun besoin
+fonctionnel ne l'imposait au-delà de J12. Le scénario DR15 est un mécanisme de
+développement explicitement TASK-0024 et sa source synthétique demeure hors
+des quatre fixtures gelées. Le repli non-Windows de X10 reste non revendiqué
+race-safe. `cargo fmt --check` reste rouge sur le formatage historique global;
+aucun reformatage global. `DEC-0013/F` demeure bloquante; `F-044` et `F-045`
+ne sont pas implémentées.

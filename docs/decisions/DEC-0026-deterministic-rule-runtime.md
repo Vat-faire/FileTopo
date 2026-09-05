@@ -1,7 +1,7 @@
 # DEC-0026 — Runtime du moteur déterministe de règles
 
 - **Date :** 2026-09-05
-- **Statut :** `APPROVED` — implémentation autorisée par `TASK-0024`
+- **Statut :** `IMPLEMENTED` — contrôle indépendant requis
 - **Phase :** étape A — première implémentation de `F-043`
 - **Décideur :** orchestrateur technique, par le GO explicite de `.orchestrator/NEXT_PROMPT.md`
 - **Rédacteur :** Codex, agent d'exécution
@@ -141,9 +141,10 @@ seule et tout état reste dans l'espace applicatif.
   historiques; la propriété est structurelle.
 - Ajouter un score, une provenance ou une identité physique : hors contrat.
 
-## Preuves attendues
+## Preuves d'implémentation
 
-Les critères immuables `DR1` à `DR15` de `TASK-0024` constituent le protocole
-de preuve. Cette décision restera `APPROVED` jusqu'à leur implémentation; elle
-ne deviendra ensuite que `IMPLEMENTED — contrôle indépendant requis`.
-
+Les critères immuables `DR1` à `DR15` de `TASK-0024` ont été exécutés. Suites
+Rust **197/197** et TypeScript **213/213**, check/build, Tauri debug, DR15
+WebView2 en deux processus et J12 réel passent. Les preuves canoniques sont
+les deux JSON `TASK-0024-DR15-*` et le JSON `TASK-0024-J12-*`. Cette décision
+est `IMPLEMENTED`; seul un contrôle indépendant peut la rendre `VERIFIED`.

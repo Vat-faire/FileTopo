@@ -4,7 +4,13 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import MapView from "./MapView";
 import RelationsPanel from "./RelationsPanel";
 import { buildHierarchy } from "./hierarchy";
-import { establishedNeighbours, relationKey, relationSegments } from "./relations";
+import {
+  establishedNeighbours,
+  relationKey,
+  relationSegments,
+  relationTypeLabel,
+  RELATION_TYPE_LABELS_EN,
+} from "./relations";
 import { composeTerritories } from "./territories";
 import type {
   BrainRecord,
@@ -526,5 +532,63 @@ describe("projection des relations", () => {
     const withOtherRowId: RelationEdge = { ...deterministic, id: 9999 };
     expect(relationKey(deterministic)).toBe(relationKey(withOtherRowId));
     expect(relationKey(deterministic)).not.toBe(relationKey(edge(2, 3, "APPROVED")));
+  });
+});
+
+describe("TASK-0024 — deterministic relation engine UI", () => {
+  const coreSuggestion: SuggestionEdge = {
+    suggestionKey: "dre1:synthetic",
+    relationType: "revision",
+    source: endpoint(2),
+    target: endpoint(3),
+    state: "pending",
+    basis: "dre-v1",
+    producer: "core-rule-engine",
+    ruleName: "core.numbered-sibling-revision-candidate",
+    ruleVersion: "v1",
+    explanationFr: "Suggestion créée à partir de faits observés.",
+    explanationEn: "Suggestion created from observed facts.",
+    signals: { sameParent: true, sourceNumber: 1, targetNumber: 2 },
+  };
+
+  it("publie les libellés bilingues exacts de content-identical", () => {
+    expect(relationTypeLabel("content-identical")).toBe("contenu identique");
+    expect(RELATION_TYPE_LABELS_EN["content-identical"]).toBe("identical content");
+  });
+
+  it("affiche fraîcheur, action clavier, règle et signaux sans score", () => {
+    const onAnalyze = vi.fn();
+    render(
+      <RelationsPanel
+        relations={{ ...nodeRelations, suggestions: [coreSuggestion] }}
+        loading={false}
+        inScope
+        onSelect={vi.fn()}
+        onApprove={vi.fn()}
+        approving={null}
+        engineStatus={{
+          brainId: "brain-alpha",
+          engineVersion: "dre-v1",
+          inputState: "STALE",
+          mapDigest: "map",
+          currentContentGenerationId: null,
+          lastRunId: null,
+          lastRunUnixMs: null,
+          lastMapDigest: null,
+          lastContentGenerationId: null,
+        }}
+        onAnalyze={onAnalyze}
+      />,
+    );
+    const action = screen.getByRole("button", { name: "Analyser les relations" });
+    action.focus();
+    fireEvent.click(action);
+    expect(onAnalyze).toHaveBeenCalledOnce();
+    expect(screen.getByText("Analyse des relations à actualiser")).toBeInTheDocument();
+    const explanation = screen.getByTestId("core-suggestion-explanation");
+    expect(explanation).toHaveTextContent("core.numbered-sibling-revision-candidate");
+    expect(explanation).toHaveTextContent("sameParent");
+    expect(explanation.textContent?.toLowerCase()).not.toContain("score");
+    expect(explanation.textContent?.toLowerCase()).not.toContain("confidence");
   });
 });

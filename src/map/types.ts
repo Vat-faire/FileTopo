@@ -163,6 +163,8 @@ export interface HostInfo {
   autoTopographicPass: number;
   /** `EC15` — `0` none, `1` observation pass, `2` persisted restart pass. */
   autoContentPass: number;
+  /** `DR15` — `0` none, `1` interaction pass, `2` persistence pass. */
+  autoDrePass: number;
 }
 
 /* --- TASK-0023 — observations cryptographiques exactes ------------------ */
@@ -276,6 +278,11 @@ export interface RelationEdge {
   ruleName: string | null;
   ruleVersion: string | null;
   suggestionKey: string | null;
+  producer?: string;
+  explanationFr?: string | null;
+  explanationEn?: string | null;
+  contentGenerationId?: string | null;
+  observedHash?: string | null;
 }
 
 /**
@@ -291,6 +298,12 @@ export interface SuggestionEdge {
   target: RelationEndpoint;
   state: "pending" | "approved";
   basis: string;
+  producer?: string;
+  ruleName?: string | null;
+  ruleVersion?: string | null;
+  explanationFr?: string | null;
+  explanationEn?: string | null;
+  signals?: Record<string, unknown> | null;
 }
 
 export interface RelationRuleInfo {
@@ -319,6 +332,7 @@ export interface RelationsOverview {
   unresolvedEndpoints: string[];
   deterministicDigest: string;
   seeded: number;
+  engineCurrent?: boolean;
 }
 
 export interface NodeRelationEntry {
@@ -328,6 +342,46 @@ export interface NodeRelationEntry {
   other: RelationEndpoint;
   ruleName: string | null;
   ruleVersion: string | null;
+  producer?: string;
+  explanationFr?: string | null;
+  explanationEn?: string | null;
+  contentGenerationId?: string | null;
+  observedHash?: string | null;
+}
+
+export interface SkippedRule {
+  ruleId: string;
+  version: string;
+  reason: string;
+}
+
+export interface RelationEngineReport {
+  brainId: string;
+  engineVersion: "dre-v1";
+  runId: string;
+  mapDigest: string;
+  contentGenerationId: string | null;
+  rulesEvaluated: string[];
+  rulesSkipped: SkippedRule[];
+  deterministicRelationsProduced: number;
+  suggestionsProduced: number;
+  emptyContentGroupsSkipped: number;
+  establishedCollisionSuppressions: number;
+  approvedSuggestionPreservations: number;
+  sourceReadOnlyConfirmed: boolean;
+  inputState: "CURRENT";
+}
+
+export interface RelationEngineStatus {
+  brainId: string;
+  engineVersion: "dre-v1";
+  inputState: "NOT_RUN" | "CURRENT" | "STALE";
+  mapDigest: string;
+  currentContentGenerationId: string | null;
+  lastRunId: string | null;
+  lastRunUnixMs: number | null;
+  lastMapDigest: string | null;
+  lastContentGenerationId: string | null;
 }
 
 export interface NodeRelations {

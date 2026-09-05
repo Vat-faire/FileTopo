@@ -134,10 +134,22 @@ technique `TASK-0023` ajoute la décision suivante, avant tout code produit :
 |---|---|---|
 | [DEC-0025](DEC-0025-exact-content-observation-boundary.md) | `IMPLEMENTED` — contrôle indépendant requis | SHA-256 `sha256-v1` via RustCrypto `sha2 0.11.0`, lecture streaming bornée, observation datée par génération atomique dans `brains/<brain_id>/signals/content.sqlite`, aucune confiance dans taille+mtime, aucune identité Windows persistante, relation ou suggestion |
 
-`TASK-0023` a implémenté cette frontière et attend un contrôle indépendant.
+`TASK-0023` a implémenté cette frontière et a ensuite été `VERIFIED` par
+`ACTION-0039`.
 `DEC-0025` ne ferme pas `DEC-0013/F` et ne rend aucune fonction complète de la
 matrice `IMPLEMENTED`; un même digest signifie seulement « contenu binaire
 identique observé ».
+
+**Mise à jour du 2026-09-05 — premier runtime déterministe.** Le GO technique
+`TASK-0024` ajoute et implémente la décision suivante :
+
+| Fiche | État | Ce qui est retenu |
+|---|---|---|
+| [DEC-0026](DEC-0026-deterministic-rule-runtime.md) | `IMPLEMENTED` — contrôle indépendant requis | Runtime `dre-v1` intra-cerveau, catalogue de deux règles `core.*` exactement, relation vraie `content-identical` sur SHA-256 non vide courant, suggestion explicable `revision` sur frères numérotés, fraîcheur map/contenu, propriété structurelle du producteur et reconciliation idempotente sans LLM |
+
+`DEC-0026` implémente `F-043` sans ouvrir la file complète `F-044`, la mémoire
+de rejet `F-045` ni l'identité physique `F-046`. `DEC-0013/F` demeure
+bloquante et un contrôle indépendant de `TASK-0024` est requis.
 
 ## Rôle
 

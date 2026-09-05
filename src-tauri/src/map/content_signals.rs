@@ -731,6 +731,19 @@ pub fn observe_content(
     observe_root_with_hook(paths, &brain.brain_id, &root, &nodes, &mut |_| Ok(()))
 }
 
+/// Development-proof hook for TASK-0024. The caller supplies an explicitly
+/// synthetic, repository-sandboxed root and its already-planned nodes. It uses
+/// the exact same confined, streaming SHA-256 campaign as the product command.
+#[cfg(debug_assertions)]
+pub(crate) fn observe_task0024_fixture(
+    paths: &SandboxPaths,
+    brain_id: &str,
+    root: &Path,
+    nodes: &[MapNode],
+) -> Result<ContentObservationReport, MapError> {
+    observe_root_with_hook(paths, brain_id, root, nodes, &mut |_| Ok(()))
+}
+
 fn observe_root_with_hook(
     paths: &SandboxPaths,
     brain_id: &str,
@@ -958,6 +971,30 @@ pub fn content_observation_summary(
     ContentSignalStore::open(&database)?.summary(&brain.brain_id, paths.relative_name(&database))
 }
 
+/// Reads only the freshness token needed by the relation-engine status. An
+/// absent content store means “no generation”; unlike `ContentSignalStore::open`
+/// this helper never creates or migrates anything.
+pub fn current_generation_id_if_present(
+    paths: &SandboxPaths,
+    brain: &BrainRecord,
+) -> Result<Option<String>, MapError> {
+    let database = paths.brain_content_signals_database(&brain.brain_id);
+    if !database.exists() {
+        return Ok(None);
+    }
+    let connection = Connection::open_with_flags(
+        database,
+        rusqlite::OpenFlags::SQLITE_OPEN_READ_ONLY,
+    )?;
+    Ok(connection
+        .query_row(
+            "SELECT value FROM metadata WHERE key='current_generation_id'",
+            [],
+            |row| row.get(0),
+        )
+        .optional()?)
+}
+
 pub fn content_observation_for_path(
     paths: &SandboxPaths,
     brain: &BrainRecord,
@@ -1091,6 +1128,20 @@ mod tests {
     use super::*;
     use crate::map::layout::Rect;
     use std::collections::BTreeMap;
+
+    #[test]
+    fn freshness_read_does_not_create_an_absent_content_store() {
+        let temp = tempfile::tempdir().expect("temp");
+        let paths = SandboxPaths::under(temp.path().to_path_buf());
+        let brain = BrainRecord::frozen_by_id("brain-alpha").expect("brain");
+        let database = paths.brain_content_signals_database(&brain.brain_id);
+        assert!(
+            current_generation_id_if_present(&paths, &brain)
+                .expect("read")
+                .is_none()
+        );
+        assert!(!database.exists());
+    }
 
     #[cfg(windows)]
     fn create_junction(junction: &Path, target: &Path) -> io::Result<()> {

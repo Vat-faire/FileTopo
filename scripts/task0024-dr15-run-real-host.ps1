@@ -1,4 +1,4 @@
-<# Runs EC15 in two real Tauri/WebView2 processes on one fresh synthetic variant. #>
+<# Runs DR15 in two real Tauri/WebView2 processes on one fresh synthetic variant. #>
 [CmdletBinding()]
 param(
     [string]$Executable,
@@ -11,18 +11,16 @@ $repository = Split-Path -Parent $PSScriptRoot
 if (-not $Executable) {
     $Executable = Join-Path $repository 'src-tauri/target/debug/filetopo.exe'
 }
-if (-not (Test-Path -LiteralPath $Executable)) {
-    throw "binaire introuvable: $Executable"
-}
+if (-not (Test-Path -LiteralPath $Executable)) { throw "binaire introuvable: $Executable" }
 if (-not $LogDirectory) {
-    $LogDirectory = Join-Path $repository '.filetopo-sandbox/task0023-logs'
+    $LogDirectory = Join-Path $repository '.filetopo-sandbox/task0024-logs'
 }
 $null = New-Item -ItemType Directory -Path $LogDirectory -Force
 
 $runs = Join-Path $repository 'docs/performance/runs'
 $watcher = Join-Path $PSScriptRoot 'j12-send-real-key.ps1'
-$variant = 'task0023-ec15-x10-{0}-{1}' -f (Get-Date -Format 'yyyyMMddHHmmss'),
-                                       ([guid]::NewGuid().ToString('N').Substring(0, 6))
+$variant = 'task0024-dr15-{0}-{1}' -f (Get-Date -Format 'yyyyMMddHHmmss'),
+                                      ([guid]::NewGuid().ToString('N').Substring(0, 6))
 . (Join-Path $PSScriptRoot 'protected-run-artifacts.ps1')
 
 $protectedHashes = @{}
@@ -42,24 +40,20 @@ function Wait-ForArtifact {
     return $false
 }
 
-function Invoke-EC15Pass {
+function Invoke-DR15Pass {
     param([int]$Pass)
-
-    $artifact = Join-Path $runs "TASK-0024-EC15-exact-content-observations-webview2-pass$Pass.json"
+    $artifact = Join-Path $runs "TASK-0024-DR15-deterministic-relation-engine-webview2-pass$Pass.json"
     Assert-NotProtectedRunArtifact -Path $artifact
     if (Test-Path -LiteralPath $artifact) {
         throw "preuve TASK-0024 deja presente; aucune suppression automatique: $artifact"
     }
-
-    $log = Join-Path $LogDirectory "filetopo-$variant-ec15-pass$Pass.log"
-    $env:FILETOPO_AUTO_CONTENT = "$Pass"
+    $log = Join-Path $LogDirectory "filetopo-$variant-dr15-pass$Pass.log"
+    $env:FILETOPO_AUTO_DRE = "$Pass"
     $application = Start-Process -FilePath $Executable -PassThru `
         -RedirectStandardOutput $log -RedirectStandardError "$log.err"
     $keys = Start-Process -FilePath 'pwsh' -PassThru -WindowStyle Hidden `
-        -ArgumentList @('-NoProfile', '-File', $watcher,
-                        '-LogPath', $log,
+        -ArgumentList @('-NoProfile', '-File', $watcher, '-LogPath', $log,
                         '-TimeoutSeconds', "$TimeoutSeconds")
-
     $produced = Wait-ForArtifact -Path $artifact -Seconds $TimeoutSeconds
     if (-not $application.HasExited) {
         $null = $application.CloseMainWindow()
@@ -68,35 +62,28 @@ function Invoke-EC15Pass {
         }
     }
     $application.WaitForExit()
-    if (-not $keys.HasExited) {
-        Stop-Process -Id $keys.Id -ErrorAction SilentlyContinue
-    }
-    Remove-Item Env:\FILETOPO_AUTO_CONTENT -ErrorAction SilentlyContinue
-
-    if (-not $produced) {
-        throw "EC15 passe $Pass sans artefact; journal: $log"
-    }
-    Write-Host "EC15 passe $Pass terminee; journal: $log"
+    if (-not $keys.HasExited) { Stop-Process -Id $keys.Id -ErrorAction SilentlyContinue }
+    Remove-Item Env:\FILETOPO_AUTO_DRE -ErrorAction SilentlyContinue
+    if (-not $produced) { throw "DR15 passe $Pass sans artefact; journal: $log" }
+    Write-Host "DR15 passe $Pass terminee; journal: $log"
 }
 
 $env:FILETOPO_SANDBOX_VARIANT = $variant
 try {
-    Write-Host "EC15 variante fraiche: <depot>/.filetopo-sandbox/variants/$variant"
-    Invoke-EC15Pass -Pass 1
+    Write-Host "DR15 variante fraiche: <depot>/.filetopo-sandbox/variants/$variant"
+    Invoke-DR15Pass -Pass 1
     Start-Sleep -Seconds 2
-    Invoke-EC15Pass -Pass 2
+    Invoke-DR15Pass -Pass 2
 }
 finally {
-    Remove-Item Env:\FILETOPO_AUTO_CONTENT -ErrorAction SilentlyContinue
+    Remove-Item Env:\FILETOPO_AUTO_DRE -ErrorAction SilentlyContinue
     Remove-Item Env:\FILETOPO_SANDBOX_VARIANT -ErrorAction SilentlyContinue
 }
 
 foreach ($name in $script:ProtectedRunArtifacts) {
     $path = Join-Path $runs $name
     $after = (git -C $repository hash-object -- $path).Trim()
-    if ($after -ne $protectedHashes[$name]) {
-        throw "preuve protegee modifiee: $name"
-    }
+    if ($after -ne $protectedHashes[$name]) { throw "preuve protegee modifiee: $name" }
 }
 
-Write-Output "EC15: deux processus reels fermes, meme variante $variant, X5 intact."
+Write-Output "DR15: deux processus reels fermes, meme variante $variant, X5 intact."

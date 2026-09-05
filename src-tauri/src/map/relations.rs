@@ -37,7 +37,8 @@ use thiserror::Error;
 /// * `2` — reserve **`X3`** of the independent control: an approved relation
 ///   is now **structurally** bound to the suggestion it represents. See
 ///   [`RelationStore::migrate_to_v2`].
-pub const RELATIONS_SCHEMA_VERSION: i64 = 2;
+/// * `3` — `TASK-0024`: producer ownership and explainability for `dre-v1`.
+pub const RELATIONS_SCHEMA_VERSION: i64 = 3;
 
 /// Version of the endpoint key scheme, carried **inside every key** and
 /// recorded in the store's metadata, so a later scheme is a migration rather
@@ -61,7 +62,10 @@ pub const RELATIONS_FIXTURE: &str = "quasi-empty";
 pub const MAX_DERIVED_RELATIONS: usize = 5_000;
 
 /// The two relation types frozen by `TASK-0017` §4.2.
-pub const RELATION_TYPES: [&str; 2] = ["reference", "revision"];
+pub const RELATION_TYPES: [&str; 3] = ["reference", "revision", "content-identical"];
+
+pub const LEGACY_PRODUCER: &str = "legacy-fixture";
+pub const CORE_RULE_ENGINE_PRODUCER: &str = "core-rule-engine";
 
 /// A documented, versioned derivation rule.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
@@ -182,6 +186,11 @@ pub struct StoredRelation {
     pub rule_version: Option<String>,
     pub suggestion_key: Option<String>,
     pub approved_unix_ms: Option<i64>,
+    pub producer: String,
+    pub explanation_fr: Option<String>,
+    pub explanation_en: Option<String>,
+    pub content_generation_id: Option<String>,
+    pub observed_hash: Option<String>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -199,6 +208,93 @@ pub struct StoredSuggestion {
     pub state: String,
     pub created_unix_ms: i64,
     pub decided_unix_ms: Option<i64>,
+    pub producer: String,
+    pub rule_name: Option<String>,
+    pub rule_version: Option<String>,
+    pub explanation_fr: Option<String>,
+    pub explanation_en: Option<String>,
+    pub signals_json: Option<String>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct EngineRelationWrite {
+    pub source_key: String,
+    pub target_key: String,
+    pub relation_type: String,
+    pub rule_name: String,
+    pub rule_version: String,
+    pub symmetric: bool,
+    pub explanation_fr: String,
+    pub explanation_en: String,
+    pub content_generation_id: Option<String>,
+    pub observed_hash: Option<String>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct EngineSuggestionWrite {
+    pub suggestion_key: String,
+    pub source_key: String,
+    pub target_key: String,
+    pub relation_type: String,
+    pub rule_name: String,
+    pub rule_version: String,
+    pub explanation_fr: String,
+    pub explanation_en: String,
+    pub signals_json: String,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Default)]
+pub struct EngineReconciliation {
+    pub deterministic_relations_produced: usize,
+    pub suggestions_produced: usize,
+    pub established_collision_suppressions: usize,
+    pub approved_suggestion_preservations: usize,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct EngineSnapshot {
+    pub run_id: String,
+    pub map_digest: String,
+    pub content_generation_id: Option<String>,
+    pub engine_version: String,
+    pub run_unix_ms: i64,
+}
+
+/// Side-effect-free status read: no directory, database or migration is
+/// created merely because the interface asks whether a prior run is current.
+pub fn engine_snapshot_if_present(path: &Path) -> Result<Option<EngineSnapshot>, MapError> {
+    if !path.exists() {
+        return Ok(None);
+    }
+    let connection = Connection::open_with_flags(
+        path,
+        rusqlite::OpenFlags::SQLITE_OPEN_READ_ONLY,
+    )?;
+    let read = |key: &str| -> Result<Option<String>, MapError> {
+        Ok(connection
+            .query_row(
+                "SELECT value FROM relation_meta WHERE key=?1",
+                [key],
+                |row| row.get(0),
+            )
+            .optional()?)
+    };
+    let Some(run_id) = read("dre.run_id")? else {
+        return Ok(None);
+    };
+    let map_digest = read("dre.map_digest")?.unwrap_or_default();
+    let engine_version = read("dre.engine_version")?.unwrap_or_default();
+    let run_unix_ms = read("dre.run_unix_ms")?
+        .and_then(|value| value.parse().ok())
+        .unwrap_or_default();
+    Ok(Some(EngineSnapshot {
+        run_id,
+        map_digest,
+        content_generation_id: read("dre.content_generation_id")?
+            .filter(|value| !value.is_empty()),
+        engine_version,
+        run_unix_ms,
+    }))
 }
 
 /// A relation a rule produced, before it is written.
@@ -493,6 +589,11 @@ impl RelationStore {
                  rule_name TEXT NOT NULL CHECK(length(rule_name) > 0),
                  rule_version TEXT NOT NULL CHECK(length(rule_version) > 0),
                  rule_symmetric INTEGER NOT NULL DEFAULT 0,
+                 producer TEXT NOT NULL DEFAULT 'legacy-fixture',
+                 explanation_fr TEXT,
+                 explanation_en TEXT,
+                 content_generation_id TEXT,
+                 observed_hash TEXT,
                  UNIQUE(source_key, target_key, relation_type)
              );
              CREATE TABLE IF NOT EXISTS relation_suggestions (
@@ -503,7 +604,13 @@ impl RelationStore {
                  basis TEXT NOT NULL,
                  state TEXT NOT NULL CHECK(state IN ('pending', 'approved')),
                  created_unix_ms INTEGER NOT NULL,
-                 decided_unix_ms INTEGER
+                 decided_unix_ms INTEGER,
+                 producer TEXT NOT NULL DEFAULT 'legacy-fixture',
+                 rule_name TEXT,
+                 rule_version TEXT,
+                 explanation_fr TEXT,
+                 explanation_en TEXT,
+                 signals_json TEXT
              );
              CREATE INDEX IF NOT EXISTS idx_deterministic_source
                  ON relations_deterministic(source_key);
@@ -519,10 +626,46 @@ impl RelationStore {
             self.migrate_to_v2()?;
         }
         self.connection.execute_batch(APPROVED_SCHEMA_V2)?;
+        if self.user_version()? > 0 && self.user_version()? < 3 {
+            self.migrate_to_v3()?;
+        }
         self.connection
             .execute_batch(&format!("PRAGMA user_version={RELATIONS_SCHEMA_VERSION};"))?;
         self.put_meta("schema_version", &RELATIONS_SCHEMA_VERSION.to_string())?;
         self.put_meta("endpoint_key_scheme", ENDPOINT_KEY_SCHEME)?;
+        Ok(())
+    }
+
+    fn migrate_to_v3(&self) -> Result<(), MapError> {
+        for (table, column, definition) in [
+            ("relations_deterministic", "producer", "TEXT NOT NULL DEFAULT 'legacy-fixture'"),
+            ("relations_deterministic", "explanation_fr", "TEXT"),
+            ("relations_deterministic", "explanation_en", "TEXT"),
+            ("relations_deterministic", "content_generation_id", "TEXT"),
+            ("relations_deterministic", "observed_hash", "TEXT"),
+            ("relation_suggestions", "producer", "TEXT NOT NULL DEFAULT 'legacy-fixture'"),
+            ("relation_suggestions", "rule_name", "TEXT"),
+            ("relation_suggestions", "rule_version", "TEXT"),
+            ("relation_suggestions", "explanation_fr", "TEXT"),
+            ("relation_suggestions", "explanation_en", "TEXT"),
+            ("relation_suggestions", "signals_json", "TEXT"),
+        ] {
+            let exists = {
+                let mut statement = self
+                    .connection
+                    .prepare(&format!("PRAGMA table_info({table})"))?;
+                statement
+                    .query_map([], |row| row.get::<_, String>(1))?
+                    .collect::<Result<Vec<_>, _>>()?
+                    .iter()
+                    .any(|name| name == column)
+            };
+            if !exists {
+                self.connection.execute_batch(&format!(
+                    "ALTER TABLE {table} ADD COLUMN {column} {definition};"
+                ))?;
+            }
+        }
         Ok(())
     }
 
@@ -658,9 +801,17 @@ impl RelationStore {
                 self.connection.execute(
                     "INSERT OR IGNORE INTO relations_deterministic
                          (source_key, target_key, relation_type, rule_name,
-                          rule_version, rule_symmetric)
-                     VALUES (?1, ?2, ?3, ?4, ?5, ?6)",
-                    params![source_key, target_key, relation_type, name, version, symmetric],
+                          rule_version, rule_symmetric, producer)
+                     VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)",
+                    params![
+                        source_key,
+                        target_key,
+                        relation_type,
+                        name,
+                        version,
+                        symmetric,
+                        LEGACY_PRODUCER
+                    ],
                 )?;
             }
             Provenance::Approved => {
@@ -735,13 +886,16 @@ impl RelationStore {
         }
 
         let transaction = self.connection.transaction()?;
-        transaction.execute("DELETE FROM relations_deterministic", [])?;
+        transaction.execute(
+            "DELETE FROM relations_deterministic WHERE producer = ?1",
+            [LEGACY_PRODUCER],
+        )?;
         {
             let mut insert = transaction.prepare(
                 "INSERT OR IGNORE INTO relations_deterministic
                      (source_key, target_key, relation_type, rule_name, rule_version,
-                      rule_symmetric)
-                 VALUES (?1, ?2, ?3, ?4, ?5, ?6)",
+                      rule_symmetric, producer)
+                 VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)",
             )?;
             for relation in derived {
                 insert.execute(params![
@@ -751,6 +905,7 @@ impl RelationStore {
                     relation.rule.name,
                     relation.rule.version,
                     relation.rule.symmetric,
+                    LEGACY_PRODUCER,
                 ])?;
             }
         }
@@ -844,7 +999,9 @@ impl RelationStore {
 
     pub fn deterministic(&self) -> Result<Vec<StoredRelation>, MapError> {
         let mut statement = self.connection.prepare(
-            "SELECT id, source_key, target_key, relation_type, rule_name, rule_version
+            "SELECT id, source_key, target_key, relation_type, rule_name, rule_version,
+                    producer, explanation_fr, explanation_en, content_generation_id,
+                    observed_hash
                FROM relations_deterministic
               ORDER BY source_key, target_key, relation_type",
         )?;
@@ -860,6 +1017,11 @@ impl RelationStore {
                     rule_version: Some(row.get(5)?),
                     suggestion_key: None,
                     approved_unix_ms: None,
+                    producer: row.get(6)?,
+                    explanation_fr: row.get(7)?,
+                    explanation_en: row.get(8)?,
+                    content_generation_id: row.get(9)?,
+                    observed_hash: row.get(10)?,
                 })
             })?
             .collect::<Result<Vec<_>, _>>()?)
@@ -883,6 +1045,11 @@ impl RelationStore {
                     rule_version: None,
                     suggestion_key: Some(row.get(4)?),
                     approved_unix_ms: Some(row.get(5)?),
+                    producer: "human-approval".to_string(),
+                    explanation_fr: None,
+                    explanation_en: None,
+                    content_generation_id: None,
+                    observed_hash: None,
                 })
             })?
             .collect::<Result<Vec<_>, _>>()?)
@@ -932,7 +1099,8 @@ impl RelationStore {
     pub fn suggestion(&self, key: &str) -> Result<Option<StoredSuggestion>, MapError> {
         let mut statement = self.connection.prepare(
             "SELECT suggestion_key, source_key, target_key, relation_type, basis,
-                    state, created_unix_ms, decided_unix_ms
+                    state, created_unix_ms, decided_unix_ms, producer, rule_name,
+                    rule_version, explanation_fr, explanation_en, signals_json
                FROM relation_suggestions WHERE suggestion_key = ?1",
         )?;
         Ok(statement
@@ -944,7 +1112,8 @@ impl RelationStore {
     pub fn suggestions(&self) -> Result<Vec<StoredSuggestion>, MapError> {
         let mut statement = self.connection.prepare(
             "SELECT suggestion_key, source_key, target_key, relation_type, basis,
-                    state, created_unix_ms, decided_unix_ms
+                    state, created_unix_ms, decided_unix_ms, producer, rule_name,
+                    rule_version, explanation_fr, explanation_en, signals_json
                FROM relation_suggestions ORDER BY suggestion_key",
         )?;
         Ok(statement
@@ -960,10 +1129,230 @@ impl RelationStore {
             .collect())
     }
 
+    #[cfg(test)]
+    pub fn engine_snapshot(&self) -> Result<Option<EngineSnapshot>, MapError> {
+        let Some(run_id) = self.meta("dre.run_id")? else {
+            return Ok(None);
+        };
+        Ok(Some(EngineSnapshot {
+            run_id,
+            map_digest: self.meta("dre.map_digest")?.unwrap_or_default(),
+            content_generation_id: self.meta("dre.content_generation_id")?,
+            engine_version: self.meta("dre.engine_version")?.unwrap_or_default(),
+            run_unix_ms: self
+                .meta("dre.run_unix_ms")?
+                .and_then(|value| value.parse().ok())
+                .unwrap_or_default(),
+        }))
+    }
+
+    #[cfg(test)]
+    pub fn meta(&self, key: &str) -> Result<Option<String>, MapError> {
+        Ok(self
+            .connection
+            .query_row(
+                "SELECT value FROM relation_meta WHERE key = ?1",
+                [key],
+                |row| row.get(0),
+            )
+            .optional()?)
+    }
+
+    pub fn reconcile_engine_outputs(
+        &mut self,
+        relations: &[EngineRelationWrite],
+        suggestions: &[EngineSuggestionWrite],
+        snapshot: &EngineSnapshot,
+    ) -> Result<EngineReconciliation, MapError> {
+        for relation in relations {
+            Self::validate_shape(
+                &relation.source_key,
+                &relation.target_key,
+                &relation.relation_type,
+            )?;
+        }
+        for suggestion in suggestions {
+            Self::validate_shape(
+                &suggestion.source_key,
+                &suggestion.target_key,
+                &suggestion.relation_type,
+            )?;
+        }
+
+        let approved_core = self
+            .suggestions()?
+            .into_iter()
+            .filter(|suggestion| {
+                suggestion.producer == CORE_RULE_ENGINE_PRODUCER
+                    && suggestion.state == "approved"
+            })
+            .map(|suggestion| suggestion.suggestion_key)
+            .collect::<std::collections::BTreeSet<_>>();
+        let old_pending = self
+            .suggestions()?
+            .into_iter()
+            .filter(|suggestion| {
+                suggestion.producer == CORE_RULE_ENGINE_PRODUCER
+                    && suggestion.state == "pending"
+            })
+            .map(|suggestion| suggestion.suggestion_key)
+            .collect::<std::collections::BTreeSet<_>>();
+        let mut occupied = self
+            .established()?
+            .into_iter()
+            .filter(|relation| relation.producer != CORE_RULE_ENGINE_PRODUCER)
+            .map(|relation| {
+                (
+                    relation.source_key,
+                    relation.target_key,
+                    relation.relation_type,
+                )
+            })
+            .collect::<std::collections::BTreeSet<_>>();
+        occupied.extend(relations.iter().map(|relation| {
+            (
+                relation.source_key.clone(),
+                relation.target_key.clone(),
+                relation.relation_type.clone(),
+            )
+        }));
+
+        let mut reconciliation = EngineReconciliation {
+            deterministic_relations_produced: relations.len(),
+            ..EngineReconciliation::default()
+        };
+        let mut accepted_suggestions = Vec::new();
+        for suggestion in suggestions {
+            if approved_core.contains(&suggestion.suggestion_key) {
+                reconciliation.approved_suggestion_preservations += 1;
+                continue;
+            }
+            let triple = (
+                suggestion.source_key.clone(),
+                suggestion.target_key.clone(),
+                suggestion.relation_type.clone(),
+            );
+            if occupied.contains(&triple) {
+                reconciliation.established_collision_suppressions += 1;
+                continue;
+            }
+            accepted_suggestions.push(suggestion);
+        }
+        reconciliation.suggestions_produced = accepted_suggestions.len();
+
+        let incoming_keys = accepted_suggestions
+            .iter()
+            .map(|suggestion| suggestion.suggestion_key.as_str())
+            .collect::<std::collections::BTreeSet<_>>();
+        let transaction = self.connection.transaction()?;
+        transaction.execute(
+            "DELETE FROM relations_deterministic WHERE producer = ?1",
+            [CORE_RULE_ENGINE_PRODUCER],
+        )?;
+        {
+            let mut insert = transaction.prepare(
+                "INSERT INTO relations_deterministic
+                     (source_key, target_key, relation_type, rule_name, rule_version,
+                      rule_symmetric, producer, explanation_fr, explanation_en,
+                      content_generation_id, observed_hash)
+                 VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11)",
+            )?;
+            for relation in relations {
+                insert.execute(params![
+                    relation.source_key,
+                    relation.target_key,
+                    relation.relation_type,
+                    relation.rule_name,
+                    relation.rule_version,
+                    relation.symmetric,
+                    CORE_RULE_ENGINE_PRODUCER,
+                    relation.explanation_fr,
+                    relation.explanation_en,
+                    relation.content_generation_id,
+                    relation.observed_hash,
+                ])?;
+            }
+        }
+        for stale in old_pending {
+            if !incoming_keys.contains(stale.as_str()) {
+                transaction.execute(
+                    "DELETE FROM relation_suggestions
+                      WHERE suggestion_key = ?1 AND producer = ?2 AND state = 'pending'",
+                    params![stale, CORE_RULE_ENGINE_PRODUCER],
+                )?;
+            }
+        }
+        {
+            let mut upsert = transaction.prepare(
+                "INSERT INTO relation_suggestions
+                     (suggestion_key, source_key, target_key, relation_type, basis,
+                      state, created_unix_ms, decided_unix_ms, producer, rule_name,
+                      rule_version, explanation_fr, explanation_en, signals_json)
+                 VALUES (?1, ?2, ?3, ?4, ?5, 'pending', ?6, NULL, ?7, ?8, ?9,
+                         ?10, ?11, ?12)
+                 ON CONFLICT(suggestion_key) DO UPDATE SET
+                     source_key = excluded.source_key,
+                     target_key = excluded.target_key,
+                     relation_type = excluded.relation_type,
+                     basis = excluded.basis,
+                     rule_name = excluded.rule_name,
+                     rule_version = excluded.rule_version,
+                     explanation_fr = excluded.explanation_fr,
+                     explanation_en = excluded.explanation_en,
+                     signals_json = excluded.signals_json
+                 WHERE relation_suggestions.state = 'pending'
+                   AND relation_suggestions.producer = excluded.producer",
+            )?;
+            for suggestion in accepted_suggestions {
+                upsert.execute(params![
+                    suggestion.suggestion_key,
+                    suggestion.source_key,
+                    suggestion.target_key,
+                    suggestion.relation_type,
+                    "dre-v1",
+                    now_ms(),
+                    CORE_RULE_ENGINE_PRODUCER,
+                    suggestion.rule_name,
+                    suggestion.rule_version,
+                    suggestion.explanation_fr,
+                    suggestion.explanation_en,
+                    suggestion.signals_json,
+                ])?;
+            }
+        }
+        let mut put_meta = transaction.prepare(
+            "INSERT INTO relation_meta (key, value) VALUES (?1, ?2)
+             ON CONFLICT(key) DO UPDATE SET value = excluded.value",
+        )?;
+        for (key, value) in [
+            ("dre.run_id", snapshot.run_id.as_str()),
+            ("dre.map_digest", snapshot.map_digest.as_str()),
+            ("dre.engine_version", snapshot.engine_version.as_str()),
+        ] {
+            put_meta.execute(params![key, value])?;
+        }
+        if let Some(generation) = snapshot.content_generation_id.as_deref() {
+            put_meta.execute(params!["dre.content_generation_id", generation])?;
+        } else {
+            transaction.execute(
+                "DELETE FROM relation_meta WHERE key = 'dre.content_generation_id'",
+                [],
+            )?;
+        }
+        put_meta.execute(params!["dre.run_unix_ms", snapshot.run_unix_ms.to_string()])?;
+        drop(put_meta);
+        transaction.commit()?;
+        Ok(reconciliation)
+    }
+
     /// Digest of the derived side only — what a replay must reproduce exactly.
     pub fn deterministic_digest(&self) -> Result<String, MapError> {
         let mut accumulator = Vec::new();
-        for relation in self.deterministic()? {
+        for relation in self
+            .deterministic()?
+            .into_iter()
+            .filter(|relation| relation.producer == LEGACY_PRODUCER)
+        {
             accumulator.extend_from_slice(relation.source_key.as_bytes());
             accumulator.push(0);
             accumulator.extend_from_slice(relation.target_key.as_bytes());
@@ -989,6 +1378,12 @@ fn suggestion_from_row(row: &rusqlite::Row<'_>) -> rusqlite::Result<StoredSugges
         state: row.get(5)?,
         created_unix_ms: row.get(6)?,
         decided_unix_ms: row.get(7)?,
+        producer: row.get(8)?,
+        rule_name: row.get(9)?,
+        rule_version: row.get(10)?,
+        explanation_fr: row.get(11)?,
+        explanation_en: row.get(12)?,
+        signals_json: row.get(13)?,
     })
 }
 
@@ -1318,6 +1713,14 @@ pub fn relative_path_of<'a>(brain_id: &str, key: &'a str) -> Option<&'a str> {
 mod tests {
     use super::*;
     use crate::map::layout::Rect;
+
+    #[test]
+    fn side_effect_free_snapshot_read_does_not_create_an_absent_store() {
+        let temp = tempfile::tempdir().expect("temp");
+        let path = temp.path().join("relations.sqlite");
+        assert!(engine_snapshot_if_present(&path).expect("read").is_none());
+        assert!(!path.exists());
+    }
 
     fn node(id: i64, relative_path: &str, kind: NodeKind) -> MapNode {
         let name = relative_path
@@ -1852,7 +2255,7 @@ mod tests {
         assert_eq!(approved.len(), 1, "the mismatched row must not survive");
         assert_eq!(approved[0].suggestion_key.as_deref(), Some("S-001"));
         assert_eq!(approved[0].target_key, key("dossier-b/note-1.txt"));
-        assert_eq!(store.user_version().expect("version"), 2);
+        assert_eq!(store.user_version().expect("version"), RELATIONS_SCHEMA_VERSION);
         assert_eq!(
             store
                 .connection
@@ -1878,14 +2281,14 @@ mod tests {
         );
     }
 
-    /// A store already at version 2 migrates nothing and loses nothing.
+    /// Reopening a current store migrates nothing and loses nothing.
     #[test]
-    fn reopening_a_version_2_store_is_a_no_operation() {
+    fn reopening_a_current_store_is_a_no_operation() {
         let store = seeded_store();
         let before = store.established().expect("read").len();
         store.initialize().expect("re-initialise");
         assert_eq!(store.established().expect("read").len(), before);
-        assert_eq!(store.user_version().expect("version"), 2);
+        assert_eq!(store.user_version().expect("version"), RELATIONS_SCHEMA_VERSION);
         assert!(
             store
                 .connection
