@@ -1,909 +1,291 @@
-# NEXT_PROMPT — TASK-0024
+# NEXT_PROMPT — TASK-0024 / correction X11
 
-**TARGET_AGENT:** CODEX  
+**TARGET_AGENT:** CLAUDE  
 **STATUS:** READY  
 **OWNER:** orchestrateur technique  
-**TASK:** `TASK-0024 — Deterministic Relation Engine v1`  
+**TASK:** `TASK-0024 — correction ciblée X11`  
 **MODE:** exécution autonome depuis le dépôt
 
-> Ce fichier est écrit par l'orchestrateur. L'exécuteur le lit et l'exécute; il ne le réécrit pas pour faciliter son résultat. Le prochain prompt remplacera ce fichier, l'historique Git conservant les précédents.
+> Ce fichier enregistre une correction demandée après contrôle indépendant. L'exécuteur l'applique; il ne transforme pas lui-même `X11` en `CLOSED` et ne s'attribue pas `VERIFIED`.
 
 ## /goal
 
-Construire le premier **moteur générique réel de règles déterministes et de suggestions explicables** de FileTopo, sans LLM, à partir des faits fiables déjà disponibles, tout en conservant la frontière stricte de `DEC-0021` :
+Fermer le défaut d'intégration qui empêche le nouveau moteur `dre-v1` d'être réellement utilisable sur **tous les cerveaux** de FileTopo. Ne rouvrir aucun autre élément accepté de `TASK-0024`.
 
-1. **fait observé** ≠ relation;
-2. **relation déterministe** = proposition vraie produite par une règle nommée/versionnée;
-3. **suggestion** = hypothèse explicable qui demande une décision humaine et n'est jamais une relation avant approbation.
-
-La tranche doit implémenter `F-043` sans implémenter `F-044` ni `F-045`.
+Le moteur backend est générique, mais l'ancienne couche de relations `TASK-0017` garde encore un verrou `RELATIONS_FIXTURE = quasi-empty`. Résultat actuel : `brain-beta` lit `deep`; `map_relations_open` est refusé, `LoadedBrain.relations` devient `null`, `RelationsPanel` retourne avant le bouton **Analyser les relations**, et `analyzeRelations()` ne peut pas terminer son refresh après `map_relation_engine_run`. Cela contredit l'objectif gelé « premier moteur générique réel » et l'action UI explicite de `TASK-0024` / `F-043`.
 
 ---
 
-# 0 — AUTO-INITIALISATION ET BASE
+## 0 — synchronisation obligatoire
 
-Appliquer :
+Appliquer les protocoles projet de début de session.
 
-- `.agents/skills/debut-session/SKILL.md`;
-- `.orchestrator/protocols/debut-session.md`.
+Avant toute modification :
 
-Vérifier Git réel avant toute modification.
+1. vérifier la branche locale `build/v0.2-a8-deterministic-relation-engine`;
+2. aucun fichier local ne doit être modifié;
+3. `git fetch origin`;
+4. fast-forward uniquement vers `origin/build/v0.2-a8-deterministic-relation-engine`;
+5. le HEAD obtenu doit être le commit d'orchestration qui remplace **ce** `.orchestrator/NEXT_PROMPT.md`;
+6. son parent direct doit être exactement `2e4c9842c4492d28cc4de54ccdec5d049f1b7e22`;
+7. `TASK-0024 = IMPLEMENTED`, jamais VERIFIED;
+8. X5 = 29;
+9. `main = 91bbe90f0f99026c28cd345784d4f579a0016db2`.
 
-État attendu :
-
-- dépôt `Vat-faire/FileTopo`;
-- branche courante : `build/v0.2-a7-exact-content-observations`;
-- le HEAD courant est le commit d'orchestration qui ajoute **ce** fichier `.orchestrator/NEXT_PROMPT.md`;
-- son parent direct doit être exactement :
-  `44b64824675c1b74528f5d75fd57ef27c664a091`;
-- `TASK-0023 = VERIFIED`;
-- `ACTION-0039 = CLOSED`;
-- `X9 = CLOSED`;
-- `X10 = CLOSED`;
-- X5 = exactement 29 preuves protégées;
-- aucune tâche `IN_PROGRESS`;
-- aucune tâche `IMPLEMENTED` en attente de contrôle;
-- `main = 91bbe90f0f99026c28cd345784d4f579a0016db2`;
-- arbre propre et upstream aligné, à l'exception attendue d'aucune modification locale.
-
-Si un de ces points diverge : **STOP**.
-
-Ne pas reset/rebase/clean pour masquer une divergence.
-
-Créer ensuite la branche :
-
-`build/v0.2-a8-deterministic-relation-engine`
-
-à partir du HEAD qui contient ce prompt.
+Si divergence, autre modification locale ou fast-forward impossible : STOP/BLOCKED.
 
 ---
 
-# 1 — LECTURE MINIMALE OBLIGATOIRE
+## 1 — enregistrer le verdict externe
 
-Lire avant de concevoir :
+Créer `docs/reviews/ACTION-0040-independent-control.md`.
 
-- `AGENTS.md`;
-- `docs/ai/CURRENT_STATE.md`;
-- `docs/ai/NEXT_ACTION.md`;
-- `docs/ai/HANDOFF.md`;
-- `docs/product/FEATURE_MATRIX.md` : `F-017`, `F-019`, `F-043`, `F-044`, `F-045`, `F-046`;
-- `DEC-0009`;
-- `DEC-0012`;
-- `DEC-0013`;
-- `DEC-0018`;
-- `DEC-0019`;
-- `DEC-0021`;
-- `DEC-0022`;
-- `DEC-0025`;
-- `TASK-0017`, `TASK-0020`, `TASK-0023` seulement pour les contrats/régressions utiles;
-- `src-tauri/src/map/relations.rs`;
-- `relation_commands.rs`;
-- `cross_relations.rs` / `cross_commands.rs` seulement pour éviter les régressions;
-- `content_signals.rs`;
-- `store.rs`, `sandbox.rs`;
-- `src/map/relations.ts`, `types.ts`, `MapView.tsx` et le panneau de relations;
-- `src/map/runArtifacts.ts` et gardes X5.
+Le document **ENREGISTRE** un verdict externe rendu par l'orchestrateur; Claude ne rend pas ce verdict.
 
-Important : le `derive()` historique de `TASK-0017` contient `homonymes/v1` et `suites-numerotees/v1`. Ces règles sont **des producteurs synthétiques historiques de preuve**, antérieurs à `DEC-0021`. Elles ne deviennent pas automatiquement les règles du nouveau moteur et ne doivent pas être présentées comme des vérités génériques.
+Enregistrer :
+
+- `TASK-0024 = IMPLEMENTED`;
+- `ACTION-0040 = CHANGES_REQUIRED`;
+- `X11 = OPEN`;
+- HEAD contrôlé avant correction : `2e4c9842c4492d28cc4de54ccdec5d049f1b7e22`;
+- commit substantif initial : `6a4a5432b90c65ce02e94e8977e0f4dabc5ac0a6`.
+
+Réserve X11 :
+
+> `dre-v1` est générique côté backend, mais l'interface et les lectures intra-relations restent bloquées par `ensure_in_scope()` / `RELATIONS_FIXTURE = quasi-empty`. `brain-beta` (`deep`) ne peut donc pas ouvrir le panneau générique, exécuter normalement l'analyse depuis l'interface, consulter ses sorties core ou approuver une suggestion core.
 
 ---
 
-# 2 — GEL AVANT CODE
+## 2 — frontière à préserver
 
-Vérifier que ces numéros sont libres :
+**Ne pas généraliser les anciennes règles synthétiques.**
 
-- `TASK-0024`;
-- `DEC-0026`.
+Les producteurs historiques :
 
-S'ils ne sont pas libres : **STOP**, ne pas choisir un autre numéro silencieusement.
+- `homonymes/v1`;
+- `suites-numerotees/v1`;
+- seeds `TASK-0017`;
+- self-check J1–J5/J10;
 
-Créer avant tout code produit :
+restent strictement limités à `quasi-empty`.
 
-- `docs/tasks/TASK-0024-deterministic-relation-engine.md`;
-- `docs/decisions/DEC-0026-deterministic-rule-runtime.md`.
+En particulier, ne jamais lancer `derive()` legacy sur `wide`, `deep` ou `mixed` seulement pour rendre le panneau disponible. Le plafond/quadratique historique reste une raison valide de garder ce producteur limité.
 
-Figer dans la tâche les critères `DR1` à `DR14` et `DR15` réel WebView2 définis plus bas.
-
-États :
-
-`TASK-0024: PROPOSED → APPROVED → IN_PROGRESS`
-
-Commit/push de **GEL** avant la première modification du code produit.
-
-Après ce commit, ne pas réécrire les critères pour faire passer l'implémentation.
+Le but est de **découpler le périmètre legacy du périmètre du moteur core**, pas d'élargir le legacy.
 
 ---
 
-# 3 — DEC-0026 : CONTRAT DU RULE ENGINE
+## 3 — comportement générique requis
 
-`DEC-0026` doit fixer les principes suivants.
+Après correction, pour n'importe quel `BrainRecord` valide :
 
-## 3.1 Trois niveaux, inchangés
+- `map_relation_engine_status(brain_id)` fonctionne;
+- `map_relation_engine_run(brain_id)` fonctionne;
+- `map_relations_open(brain_id)` retourne un overview utilisable;
+- `map_relations_for_node` fonctionne;
+- `map_relations_approve` fonctionne pour une suggestion core `CURRENT`;
+- le panneau **Relations internes au cerveau** reste disponible;
+- le bouton **Analyser les relations** est accessible;
+- aucune règle/seed legacy n'est inventé si le cerveau n'est pas `quasi-empty`.
 
-- `OBSERVED_FACT` : fait lu/démontré, n'est pas une relation.
-- `DETERMINISTIC_RELATION` : règle nommée + versionnée + proposition dont les signaux impliquent réellement le sens déclaré.
-- `SUGGESTION` : signaux insuffisants pour affirmer; objet distinct, état distinct.
+Pour un cerveau hors scope legacy avant tout run core : overview valide, relations/suggestions core vides, état moteur `NOT_RUN` (ou état exact dérivé), aucune erreur « fixture hors scope ».
 
-Aucune troisième provenance de relation.
-
-Une relation établie reste :
-
-- `DETERMINISTIC`, ou
-- `APPROVED`.
-
-## 3.2 Définition minimale d'une règle
-
-Chaque règle réelle du nouveau moteur possède au minimum :
-
-- `rule_id` stable et générique;
-- `version`;
-- `output_kind`: deterministic relation ou suggestion;
-- `relation_type` proposé/produit;
-- `symmetric` explicite;
-- définition de **ce qu'elle affirme**;
-- signaux requis;
-- explication FR;
-- explication EN.
-
-Un seuil ou un score ne peut pas remplacer cette définition.
-
-## 3.3 Version du moteur
-
-Nom canonique :
-
-`dre-v1`
-
-Aucune dépendance externe ni IA.
-
-## 3.4 Règles v1 obligatoires
-
-### Règle A — `core.identical-content/v1`
-
-**Sortie : relation déterministe.**
-
-Type de relation :
-
-`content-identical`
-
-Sens exact :
-
-> Les deux occurrences ont eu un contenu binaire non vide avec le même digest `sha256-v1` dans la génération d'observation de contenu utilisée par cette exécution du moteur.
-
-Cette règle n'affirme PAS :
-
-- même fichier physique;
-- copie;
-- original/copie;
-- version;
-- référence;
-- relation métier.
-
-Elle est sémantiquement **symétrique**, mais une seule arête canonique est stockée.
-
-Pour un groupe de `N` occurrences au même digest, ne pas créer `N×(N-1)/2` arêtes. Utiliser une représentation déterministe **N-1** :
-
-- trier les endpoints;
-- le premier endpoint canonique devient l'ancre du groupe;
-- une relation vraie `content-identical` relie l'ancre à chaque autre occurrence.
-
-Chaque arête reste vraie individuellement.
-
-**Fichiers vides :** le fait `hash identique` reste disponible dans `content_signals`, mais cette règle ne crée **aucune arête** pour un groupe de fichiers de taille 0. Cela évite de transformer les fichiers vides en faux réseau logique et respecte `F-046`.
-
-### Règle B — `core.numbered-sibling-revision-candidate/v1`
-
-**Sortie : suggestion, jamais relation déterministe.**
-
-Type proposé :
-
-`revision`
-
-Conditions exactes :
-
-- deux fichiers réguliers;
-- même dossier direct;
-- même extension;
-- noms identiques sauf un entier final dans le stem;
-- nombres consécutifs `n → n+1`;
-- endpoints distincts.
-
-Sens : ces signaux **suggèrent** une relation de révision, mais ne la prouvent pas.
-
-Explication attendue en langage ordinaire, sans score, par exemple :
-
-FR : « Suggestion créée parce que les deux fichiers sont dans le même dossier, ont la même extension et des noms identiques sauf un numéro final consécutif. »
-
-EN équivalent.
-
-Cette règle ne doit produire aucune relation établie avant une approbation explicite.
-
-## 3.5 Les règles historiques restent historiques
-
-Ne pas réinterpréter automatiquement :
-
-- `homonymes/v1` historique;
-- `suites-numerotees/v1` historique;
-
-comme les règles `core.*` ci-dessus.
-
-Leur comportement gelé peut rester nécessaire aux régressions `TASK-0017`/`J12`, mais le nouveau moteur doit avoir son propre catalogue, sa propre identité et son propre chemin d'exécution.
+Après run core : seules les sorties `core-rule-engine` de ce cerveau sont montrées selon la fraîcheur.
 
 ---
 
-# 4 — ARCHITECTURE DU NOUVEAU MOTEUR
+## 4 — refactor minimal recommandé
 
-Créer un module Rust distinct, nom recommandé :
+Refactorer `relation_commands.rs` de façon à séparer explicitement :
 
-`src-tauri/src/map/rule_engine.rs`
+### A. scope legacy
 
-ou équivalent clair.
+Un helper du genre `legacy_fixture_spec(brain) -> Option<FixtureSpec>` ou équivalent :
 
-Ne pas enterrer la nouvelle architecture dans le vieux `derive()`.
+- `Some(quasi-empty)` seulement pour la fixture historique;
+- `None` pour les autres fixtures valides;
+- fixture inconnue reste une erreur normale.
 
-Le moteur v1 consomme :
+### B. open générique
 
-- `MapNode` / hiérarchie et métadonnées observées;
-- génération courante de `content_signals` quand disponible;
-- état relationnel existant pour éviter les collisions.
+`open_relations` :
 
-Le moteur v1 est **intra-cerveau seulement**.
+1. résoudre la source valide;
+2. ouvrir snapshot/store du cerveau;
+3. si scope legacy : rejouer `derive()` + seeds historiques comme aujourd'hui;
+4. sinon : **ne jamais** exécuter `derive()` ni seed legacy;
+5. lire les sorties existantes core/humaines;
+6. appliquer le filtre `CURRENT/STALE` core existant;
+7. retourner un overview générique.
 
-Il ne crée aucune relation inter-cerveaux automatique.
+### C. node relations / approval
 
-Il doit être conçu pour qu'une future règle inter-cerveaux puisse exister sans refondre le modèle, mais rien de tel n'est implémenté ici.
+`node_relations` et `approve_suggestion` ne doivent plus être bloqués par `ensure_in_scope` pour un cerveau valide.
 
----
+- résolution endpoint par `brain_id` inchangée;
+- stale core approval toujours refusée;
+- approved reste `APPROVED`;
+- legacy reste inchangé sur Alpha/Gamma.
 
-# 5 — SNAPSHOT D'ENTRÉE ET FRAÎCHEUR
+### D. self-check legacy
 
-Une relation déterministe vraie aujourd'hui ne doit pas rester affichée comme vraie après disparition de sa preuve.
+`self_check` **peut et doit rester** limité à `quasi-empty`, parce qu'il vérifie le contrat gelé `TASK-0017`.
 
-Le moteur doit donc enregistrer un snapshot d'entrée suffisant, au minimum :
-
-- `brain_id`;
-- identité/digest reconstructible de la carte courante;
-- `content_generation_id` utilisé, nullable si aucune règle de contenu n'a pu être exécutée;
-- version `dre-v1`;
-- date d'exécution.
-
-Le store doit pouvoir déterminer si le résultat du moteur est **CURRENT** ou **STALE**.
-
-Si une nouvelle campagne de contenu est committée ou si la carte change et que le moteur n'a pas encore été rejoué :
-
-- les résultats `core.*` de l'ancien snapshot ne doivent PAS être présentés comme des relations/suggestions actuelles;
-- l'UI doit indiquer « analyse des relations à actualiser » / équivalent;
-- les anciennes relations approuvées par humain ne sont PAS supprimées par cette règle de fraîcheur;
-- les relations déterministes historiques de fixture ne doivent pas être détruites.
-
-Ne pas résoudre la fraîcheur en lançant silencieusement une lecture de fichiers ou un nouveau hash lors de l'ouverture du panneau.
+Ne pas affaiblir J12.
 
 ---
 
-# 6 — STORE : NE PAS DÉTRUIRE L'HISTORIQUE
+## 5 — UI
 
-Le store actuel contient :
+`RelationsPanel` ne doit plus retourner un panneau mort uniquement parce que la fixture n'est pas `quasi-empty`.
 
-- relations déterministes historiques;
-- relations approuvées;
-- suggestions historiques;
-- contraintes `X3`.
+Le périmètre legacy et la disponibilité du panneau core sont deux concepts distincts.
 
-La tranche peut migrer `RELATIONS_SCHEMA_VERSION` si nécessaire, avec migration testée.
+Si un indicateur legacy est conservé, il doit seulement expliquer que les **anciennes relations de démonstration TASK-0017** ne s'appliquent pas à ce cerveau; il ne doit jamais masquer :
 
-Mais elle doit permettre de distinguer structurellement les productions du nouveau moteur des productions historiques.
+- le bouton `Analyser les relations`;
+- l'état `dre-v1`;
+- les relations core;
+- les suggestions core;
+- leur approbation.
 
-Solution attendue : un champ/namespace de producteur ou une équivalence structurelle robuste, par exemple :
-
-`producer = core-rule-engine`
-
-avec règle/version.
-
-Ne pas utiliser une heuristique fragile du type « tout rule_name qui commence par X est à nous » si un schéma propre peut l'éviter.
-
-Les opérations de reconciliation du nouveau moteur :
-
-- remplacent/reconcilient uniquement les sorties du nouveau moteur;
-- ne suppriment jamais les relations déterministes historiques gelées;
-- ne suppriment jamais une relation `APPROVED`;
-- ne réécrivent jamais une suggestion déjà `approved` comme `pending`;
-- ne touchent jamais au store inter-cerveaux.
+Modifier DTO/nom de champ (`inScope`, `legacyInScope`, etc.) seulement si nécessaire. Préférer le changement le plus petit qui rende la sémantique honnête.
 
 ---
 
-# 7 — SUGGESTIONS EXPLICABLES
+## 6 — preuve obligatoire sur Cerveau Bêta
 
-Étendre le modèle de suggestion uniquement autant que nécessaire à `F-043`.
+`brain-beta` est le contre-exemple réel du catalogue :
 
-Une suggestion produite par le nouveau moteur doit conserver au minimum :
+- `brain-alpha` → `quasi-empty`;
+- `brain-beta` → `deep`;
+- `brain-gamma` → `quasi-empty`.
 
-- `suggestion_key` stable;
-- `rule_id`;
-- `rule_version`;
-- `relation_type`;
-- source;
-- cible;
-- explication FR;
-- explication EN;
-- signaux observés structurés;
-- état existant `pending` / `approved`;
-- timestamps déjà nécessaires.
+Ajouter des tests qui prouvent au minimum :
 
-Les signaux structurés ne doivent contenir aucun contenu de fichier, seulement les faits minimaux nécessaires à l'explication.
+1. build Beta;
+2. `open_relations(Beta)` réussit;
+3. aucune relation/suggestion legacy n'est seedée ou dérivée pour Beta;
+4. status core = `NOT_RUN` avant run;
+5. run `dre-v1` Beta réussit sans LLM/réseau;
+6. refresh overview après run réussit;
+7. node relations Beta réussit;
+8. Alpha J12 reste strictement identique sur ses invariants legacy;
+9. aucune donnée Alpha/Gamma ne fuit dans Beta;
+10. aucun store cross-brain n'est modifié.
 
-Exemple de signaux de la règle B :
-
-- `same_parent = true`;
-- `same_extension = true`;
-- `normalized_prefix = ...`;
-- `source_number = 4`;
-- `target_number = 5`.
-
-**Aucun `score`, `confidence = 0.87`, probabilité ou seuil numérique dans v1.**
-
-Un `suggestion_key` doit être dérivé de façon stable du contrat de la suggestion : règle/version + brain + endpoints + type, pas d'un timestamp ni d'un row id.
+Le test ne doit pas affirmer qu'une règle produit forcément une sortie sur `deep` si les signaux n'existent pas : **zéro sortie est un résultat valide**. Ce qui est obligatoire est que le moteur et l'interface fonctionnent génériquement.
 
 ---
 
-# 8 — RELATION `content-identical`
+## 7 — vrai WebView2 ciblé X11
 
-Ajouter le type générique `content-identical` au modèle de relations établi.
+Créer un contrôle réel Windows/WebView2 sur un fresh variant.
 
-Libellés :
+Le scénario doit :
 
-FR : `contenu identique`  
-EN : `identical content`
+- afficher/focaliser `brain-beta`;
+- confirmer que le panneau relations n'est pas « hors scope »;
+- confirmer que le bouton `Analyser les relations` est présent et activable;
+- l'activer par vraie frappe clavier (`keydownIsTrusted = true`, `activationIsTrusted = true`);
+- `programmaticClickCalls = 0` et `programmaticClickDispatches = 0`;
+- obtenir un report `brainId = brain-beta`, `engineVersion = dre-v1`, `inputState = CURRENT`;
+- confirmer que `map_relations_open` réussit après run;
+- confirmer qu'aucun producer legacy n'a été créé pour Beta;
+- source read-only;
+- X5 = 29;
+- process réellement fermé.
 
-L'interface doit pouvoir expliquer une relation déterministe de ce type :
+Publier cette preuve comme **preuve corrective non canonique** :
 
-- règle `core.identical-content`;
-- version `v1`;
-- SHA-256 identique;
-- génération d'observation utilisée;
-- sens exact « contenu binaire identique observé ».
+`docs/performance/runs/TASK-0024-X11-generic-brain-webview2.json`
 
-Ne jamais afficher :
-
-- « même fichier »;
-- « doublon physique »;
-- « copie ».
-
-La relation est sémantiquement symétrique. Ne pas inventer une seconde arête inverse en stockage.
-
----
-
-# 9 — ABSENCE DE CONTENT SIGNALS
-
-Le moteur doit rester utilisable quand aucune génération `content_signals` n'existe.
-
-Dans ce cas :
-
-- `core.identical-content/v1` = `SKIPPED_MISSING_SIGNAL` ou équivalent explicite;
-- aucune relation de contenu créée;
-- `core.numbered-sibling-revision-candidate/v1` peut être évaluée à partir de la carte;
-- aucune campagne SHA-256 n'est lancée silencieusement.
-
-Le rapport moteur doit exposer les règles évaluées et les règles sautées avec motif.
+Elle ne rejoint PAS X5 et ne remplace aucune des trois preuves canoniques gelées de TASK-0024.
 
 ---
 
-# 10 — API / REPORT
+## 8 — régressions à rejouer
 
-Créer une commande backend explicite, conceptuellement :
+Comme le chemin `open_relations` / panneau / approbation change :
 
-`run_deterministic_relation_engine(brain_id)`
+- rejouer DR15 pass1/pass2 sur un **nouveau variant frais** et réécrire seulement les deux preuves TASK-0024 DR15 (elles ne sont pas protégées tant que TASK-0024 n'est pas VERIFIED);
+- rejouer J12 réel et réécrire seulement `TASK-0024-J12-intrabrain-relations-regression-webview2.json`;
+- ne pas rejouer K11/K12/L12/M12/N15/H9 sauf dépendance directe imprévue.
 
-et une lecture d'état :
-
-`relation_engine_status(brain_id)`
-
-Noms exacts adaptés aux conventions du dépôt.
-
-Le report doit contenir au minimum :
-
-- `brainId`;
-- `engineVersion = dre-v1`;
-- `runId` opaque;
-- `mapDigest`;
-- `contentGenerationId` nullable;
-- `rulesEvaluated`;
-- `rulesSkipped` avec motif;
-- `deterministicRelationsProduced`;
-- `suggestionsProduced`;
-- `emptyContentGroupsSkipped`;
-- `establishedCollisionSuppressions`;
-- `approvedSuggestionPreservations`;
-- `sourceReadOnlyConfirmed`;
-- `inputState = CURRENT` au terme d'un run réussi.
-
-Aucun chemin absolu personnel dans le report ou les artefacts.
+Les 29 preuves X5 historiques restent intouchables.
 
 ---
 
-# 11 — UI MINIMALE MAIS RÉELLE
+## 9 — tests et validations
 
-Dans le panneau relations existant, ajouter une action accessible :
+Exécuter au minimum :
 
-FR : `Analyser les relations`  
-EN : `Analyze relations`
-
-Cette action :
-
-- lance uniquement le moteur `dre-v1`;
-- ne lance pas de hash silencieux;
-- affiche un résumé du dernier run;
-- montre clairement si l'analyse est `à jour` ou `à actualiser`.
-
-Pour une relation déterministe sélectionnée : afficher règle + version + explication.
-
-Pour une suggestion sélectionnée : afficher :
-
-- source;
-- cible;
-- type proposé;
-- règle/version;
-- pourquoi;
-- signaux observés.
-
-Ne pas construire la file globale « 17 relations à confirmer » : c'est `F-044`.
-
-Ne pas ajouter Rejeter / Plus tard : `F-044/F-045`.
-
-Le bouton d'approbation historique existant peut continuer de fonctionner. Une suggestion `core.*` approuvée devient une relation `APPROVED`, jamais `DETERMINISTIC` et jamais provenance `AI`.
-
----
-
-# 12 — IDEMPOTENCE ET RECONCILIATION
-
-Deux exécutions consécutives sans changement doivent produire :
-
-- même ensemble de relations déterministes `core.*`;
-- mêmes `suggestion_key` pending;
-- aucune duplication;
-- aucune croissance artificielle de tables;
-- un nouveau `runId` autorisé;
-- une explication identique pour les mêmes faits.
-
-Une suggestion déjà approuvée :
-
-- reste approuvée;
-- sa relation `APPROVED` reste unique;
-- le moteur ne recrée pas une nouvelle pending équivalente.
-
-Si une relation établie de même source/cible/type existe déjà :
-
-- ne pas créer une suggestion concurrente du même type;
-- enregistrer une suppression/collision dans le report.
-
----
-
-# 13 — CAS CONTENT-IDENTICAL
-
-Tests synthétiques spécialisés hors fixtures gelées :
-
-A. deux fichiers non vides mêmes octets, chemins différents :
-- même SHA-256;
-- une relation `content-identical`;
-- provenance `DETERMINISTIC`;
-- règle/version présentes;
-- pas de « copie ».
-
-B. trois fichiers mêmes octets :
-- exactement `N-1 = 2` arêtes;
-- ancre canonique déterministe;
-- jamais 3 paires complètes.
-
-C. deux fichiers vides :
-- même fait SHA-256 possible;
-- zéro relation `content-identical` créée par la règle.
-
-D. même taille / octets différents :
-- zéro relation.
-
-E. ancien digest devenu stale après nouvelle génération :
-- ancienne relation `core.*` non exposée comme actuelle avant rerun;
-- après rerun, relation supprimée si preuve disparue.
-
----
-
-# 14 — CAS SUGGESTION NUMÉROTÉE
-
-Tests :
-
-`rapport-4.pdf` + `rapport-5.pdf`, même dossier :
-- une suggestion `revision`;
-- aucune relation déterministe `revision`;
-- rule/version présents;
-- explication FR/EN;
-- signaux structurés;
-- aucun score.
-
-Contre-exemples :
-
-- dossiers différents → aucune suggestion;
-- extensions différentes → aucune suggestion;
-- numéros non consécutifs → aucune suggestion;
-- préfixes différents → aucune suggestion;
-- fichier + dossier → aucune suggestion;
-- même endpoint → impossible.
-
----
-
-# 15 — ISOLATION CERVEAUX
-
-Le moteur s'exécute pour UN `brain_id`.
-
-Alpha et Gamma peuvent observer le même contenu synthétique mais :
-
-- leurs runs sont distincts;
-- leurs stores restent isolés;
-- aucune relation inter-cerveaux n'est créée;
-- les endpoint keys restent namespacées par cerveau;
-- une suggestion Alpha n'apparaît pas dans Gamma.
-
-Aucun store commun de règles mutable par utilisateur dans cette tranche.
-
-Le catalogue de règles v1 peut être statique/read-only dans le code.
-
----
-
-# 16 — LEGACY / RÉGRESSIONS
-
-Conserver les invariants historiques :
-
-- provenance seulement `DETERMINISTIC` / `APPROVED`;
-- suggestion ≠ relation;
-- `X3` approval constraints;
-- pas d'inverse inventé;
-- rebuild ne casse pas les endpoints;
-- anciennes fixtures/règles historiques continuent de satisfaire `J12`.
-
-Le nouveau moteur ne doit pas modifier les quatre fixtures gelées.
-
-Ne pas « nettoyer » les vieux noms de règle uniquement pour esthétique.
-
----
-
-# 17 — MIGRATION DES ARTEFACTS AVANT TOUT REPLAY
-
-X5 contient maintenant **29** preuves.
-
-Les deux EC15 `TASK-0023` sont scellées et le runtime actuel les épelle encore.
-
-AVANT tout scénario réel : migrer **toutes les destinations runtime courantes** de `TASK-0023-*` vers `TASK-0024-*` :
-
-- H9;
-- J12;
-- K11;
-- K12;
-- L12;
-- M12;
-- N15;
-- EC15.
-
-Ajouter DR15 sous `TASK-0024`.
-
-Après migration et avant replay :
-
-- `protectedArtifactCount = 29`;
-- `protectedDestinations = []`;
-- `writesUnderItsOwnTaskOnly = true`;
-- owning task = `TASK-0024`.
-
-Ne modifier aucune des 29 preuves protégées.
-
-Les preuves `TASK-0024` ne sont pas ajoutées à X5 tant que la tâche n'est pas `VERIFIED`.
-
----
-
-# 18 — PREUVES CANONIQUES DE TASK-0024
-
-Publier seulement comme nouvelles preuves obligatoires :
-
-- `docs/performance/runs/TASK-0024-DR15-deterministic-relation-engine-webview2-pass1.json`
-- `docs/performance/runs/TASK-0024-DR15-deterministic-relation-engine-webview2-pass2.json`
-
-Et, parce que le store intra-relations est réellement modifié/migré :
-
-- rejouer `J12` sous son nom `TASK-0024-J12-intrabrain-relations-regression-webview2.json`.
-
-Ne pas rejouer K11/K12/L12/M12/N15/H9 sauf si leur code fonctionnel partagé est réellement modifié au-delà du simple renommage des destinations.
-
----
-
-# 19 — DR1 À DR14 GELÉS
-
-## DR1 — Rule catalog
-
-Deux règles `core.*` exactement en v1, chacune avec id/version/output/type/sens/signaux/FR/EN/symétrie.
-
-## DR2 — Deterministic truth
-
-`core.identical-content/v1` produit uniquement des relations vraies `content-identical`, provenance `DETERMINISTIC`.
-
-## DR3 — No pair explosion
-
-Groupe de N contenus identiques non vides → N-1 arêtes canoniques, déterministes.
-
-## DR4 — Empty files
-
-Groupe de fichiers vides → zéro arête `content-identical` du moteur.
-
-## DR5 — Suggestion boundary
-
-`core.numbered-sibling-revision-candidate/v1` produit uniquement des suggestions, jamais une relation automatique.
-
-## DR6 — Explainability
-
-Chaque relation/suggestion `core.*` expose règle/version et une explication FR/EN; suggestion expose signaux structurés; aucun score.
-
-## DR7 — Idempotence
-
-Deux runs sans changement → mêmes sorties logiques, aucune duplication.
-
-## DR8 — Approval preservation
-
-Une suggestion `core.*` approuvée via le flux existant reste `APPROVED`; rerun ne recrée pas pending et ne change pas sa provenance.
-
-## DR9 — Freshness
-
-Changement de map/content generation invalide l'état `CURRENT`; les anciennes sorties core ne sont pas présentées comme actuelles. Rerun réconcilie correctement.
-
-## DR10 — Brain isolation
-
-Aucun état/résultat automatique ne traverse Alpha/Gamma; aucune relation interbrain créée.
-
-## DR11 — Rebuild
-
-Rebuild de map sans changement logique : endpoint resolution et sorties du moteur restent cohérentes après rerun; relations approuvées intactes.
-
-## DR12 — Legacy regression
-
-J12 historique passe sous `TASK-0024`; anciennes règles synthétiques/relations approuvées gardent leurs invariants.
-
-## DR13 — Read-only / no AI
-
-Aucune source modifiée; aucune donnée réelle; aucune IA, réseau, API, embedding, extraction, OCR, RAG ou vector DB.
-
-## DR14 — Governance/X5
-
-29 preuves X5 inchangées; runtime migré `TASK-0024`; main intacte; aucune preuve protégée réécrite.
-
----
-
-# 20 — DR15 : VRAI TAURI / WEBVIEW2
-
-Créer un fresh variant :
-
-`task0024-dr15-<timestamp>-<suffix>`
-
-Même variant pass1/pass2.
-
-## PASS 1
-
-1. vrai processus Tauri/WebView2;
-2. fresh variant;
-3. Alpha actif;
-4. build map Alpha;
-5. exécuter une vraie campagne de contenu Alpha pour disposer de `sha256-v1` actuel;
-6. vérifier le moteur `dre-v1` initialement non exécuté/stale;
-7. lancer **Analyser les relations** par vraie interaction utilisateur;
-8. `keydownIsTrusted = true` / activation réelle selon le contrôle utilisé;
-9. zéro clic programmatique de repli;
-10. report `dre-v1` CURRENT;
-11. les deux règles du catalogue sont présentes;
-12. la règle content-identical est évaluée;
-13. la règle numbered sibling est évaluée;
-14. vérifier sur les données synthétiques de preuve prévues pour DR15 au moins une relation `content-identical` non vide et au moins une suggestion `revision`;
-15. relation déterministe montre rule id/version et explication;
-16. suggestion montre rule id/version, pourquoi et signaux;
-17. aucun score visible/stocké dans le DTO de suggestion;
-18. suggestion distincte visuellement et textuellement d'une relation;
-19. approuver UNE suggestion DR15 via le mécanisme historique réel disponible;
-20. elle devient exactement une relation `APPROVED`;
-21. provenance jamais `AI`/`SUGGESTED`;
-22. rerun moteur sans changement;
-23. relation approuvée persiste;
-24. suggestion approuvée ne revient pas pending;
-25. relation content-identical n'est pas dupliquée;
-26. source fingerprints avant/après inchangés;
-27. relation store cross-brain inchangé;
-28. X5 = 29, aucune destination protégée;
-29. fermeture réelle du processus.
-
-Les données spécialisées nécessaires à DR15 doivent être synthétiques et ne doivent PAS modifier les quatre fixtures historiques gelées. Utiliser un mécanisme de fixture/scénario temporaire explicitement TASK-0024 si nécessaire.
-
-## PASS 2
-
-30. nouveau vrai processus;
-31. même variant;
-32. relation APPROVED de pass1 persiste;
-33. dernière exécution du moteur est retrouvée;
-34. état `CURRENT` si map/content snapshot n'a pas changé;
-35. aucune pending équivalente à l'approbation;
-36. rerun moteur;
-37. idempotence confirmée;
-38. relation deterministic set identique;
-39. approved set identique;
-40. suggestion pending set identique hors suggestion approuvée;
-41. aucun store cross-brain modifié;
-42. source read-only;
-43. X5 toujours 29;
-44. fermeture réelle.
-
----
-
-# 21 — TESTS RUST OBLIGATOIRES
-
-Au minimum :
-
-- catalogue règle complet;
-- IDs/version uniques;
-- aucune règle sans sens/explication;
-- relation type validé;
-- content-identical 2 fichiers;
-- groupe 3 → 2 arêtes;
-- groupe vide → 0;
-- same-size/different-content → 0;
-- numbered suggestion positive;
-- tous les contre-exemples de §14;
-- stable suggestion key;
-- stable deterministic output;
-- no score field/serialization;
-- relation store migration;
-- ancien store v2 → nouveau schema sans perte;
-- legacy deterministic rows préservées;
-- approved rows préservées;
-- approved suggestion non recréée;
-- collision established supprime suggestion;
-- engine-owned reconciliation ne touche pas legacy;
-- stale map/content snapshot;
-- missing content generation;
-- Alpha/Gamma isolation;
-- map rebuild;
-- cross store unchanged;
-- read-only;
-- 29 preuves protégées;
-- aucune identité physique persistante ajoutée.
-
----
-
-# 22 — TESTS TYPESCRIPT
-
-Au minimum :
-
-- libellé `content-identical` FR/EN;
-- règle/version relation visible;
-- suggestion explication FR/EN;
-- signaux visibles sans score;
-- stale/current UI;
-- action Analyze relations accessible clavier;
-- suggestion n'est pas accentuée comme relation établie;
-- approved provenance reste APPROVED;
-- runtime artifact ownership TASK-0024;
-- X5 exact 29;
-- protectedDestinations [] après migration;
-- aucune preuve TASK-0024 protégée.
-
----
-
-# 23 — F-043 / F-044 / F-045 / F-046
-
-Si DR1–DR15 passent :
-
-- `F-043 → IMPLEMENTED`;
-- jamais `VERIFIED` par l'exécuteur.
-
-Conserver :
-
-- `F-044 = PROPOSED` : pas de file de révision complète;
-- `F-045 = PROPOSED` : pas de mémoire de rejet;
-- `F-046 = PROPOSED` : identité physique toujours absente; seule la fondation de contenu exact et la relation au sens strict `content-identical` progressent;
-- `DEC-0013/F` reste bloquante.
-
-Ne pas inventer un état PARTIAL si la matrice ne le permet pas.
-
----
-
-# 24 — HORS SCOPE ABSOLU
-
-Ne pas implémenter :
-
-- `REJECTED` / mémoire de rejet;
-- file « N relations à confirmer »;
-- `Plus tard`;
-- éditeur de règles;
-- configuration de seuils;
-- packs métier;
-- relation automatique inter-cerveaux;
-- identité physique persistante;
-- FileId / VolumeSerialNumber stockés;
-- fermeture B4;
-- extraction de contenu;
-- plein texte nouveau;
-- RAG;
-- vector DB;
-- embeddings;
-- GraphRAG;
-- chatbot;
-- LLM/BYOK;
-- OCR;
-- IA;
-- permissions multi-utilisateur;
-- watcher;
-- recherche sémantique;
-- données réelles;
-- folder picker réel;
-- H9/performance 100K;
-- release/merge/main.
-
----
-
-# 25 — VALIDATION FINALE
-
-Exécuter :
-
+- tests Rust ciblés relation_commands/rule_engine/relations;
 - suite Rust complète;
 - suite TypeScript complète;
 - `pnpm check`;
 - `pnpm build`;
 - Tauri debug `--no-bundle`;
-- DR1–DR14;
-- DR15 pass1;
-- DR15 pass2;
-- J12 regression TASK-0024.
+- X11 WebView2 Beta;
+- DR15 pass1/pass2 frais;
+- J12 réel.
 
-Si ICE incrémental B0 revient :
-
-`CARGO_INCREMENTAL=0` autorisé.
-
-Ne jamais :
-
-- `cargo clean`;
-- supprimer `target`;
-- prétendre B0 corrigé.
+B0 : `CARGO_INCREMENTAL=0` autorisé si nécessaire; aucun `clean`, aucune suppression `target`.
 
 ---
 
-# 26 — DOCUMENTATION / GOUVERNANCE
+## 10 — X5 / Git
 
-Si tout passe :
+X5 reste **exactement 29**.
 
-- `TASK-0024 = IMPLEMENTED`, jamais VERIFIED;
-- `DEC-0026 = IMPLEMENTED — contrôle indépendant requis`;
-- `F-043 = IMPLEMENTED`, contrôle indépendant requis;
-- aucune autre fonction promue sans preuve.
+Aucune preuve TASK-0024 n'est protégée maintenant.
+
+Runtime reste propriétaire `TASK-0024` :
+
+- `protectedDestinations = []`;
+- `writesUnderItsOwnTaskOnly = true`.
+
+`main` reste exactement `91bbe90f0f99026c28cd345784d4f579a0016db2`.
+
+Aucun merge, PR, release, tag, force push, rebase/reset destructif.
+
+---
+
+## 11 — gouvernance de fin
 
 Mettre à jour :
 
-- `docs/tasks/TASK-0024-deterministic-relation-engine.md`;
-- `docs/decisions/DEC-0026-deterministic-rule-runtime.md`;
-- `docs/decisions/README.md`;
-- `docs/product/FEATURE_MATRIX.md`;
-- `docs/ai/CURRENT_STATE.md`;
-- `docs/ai/NEXT_ACTION.md`;
-- `docs/ai/HANDOFF.md`;
-- `docs/ai/VALIDATION.md`;
-- `docs/ai/CHANGELOG_AI.md`;
+- `ACTION-0040`;
+- `TASK-0024`;
+- `DEC-0026` seulement dans une section résultat/implémentation si utile, sans réécrire sa décision gelée;
+- `CURRENT_STATE`;
+- `NEXT_ACTION`;
+- `HANDOFF`;
+- `VALIDATION`;
+- `CHANGELOG_AI`;
 - `.orchestrator/RESULT.md`.
 
-Ne pas modifier `.orchestrator/NEXT_PROMPT.md` : il est l'instruction reçue.
+À la fin de l'exécution :
 
-`NEXT_ACTION` : contrôle indépendant de TASK-0024.
+- `TASK-0024 = IMPLEMENTED`;
+- `F-043 = IMPLEMENTED`;
+- `ACTION-0040 = CHANGES_REQUIRED`;
+- `X11 = OPEN`;
+- aucune nouvelle réserve auto-fermée;
+- aucune `TASK-0025` créée.
 
-Ne pas créer TASK-0025.
+Claude **ne ferme pas X11** et ne met pas TASK-0024 VERIFIED.
 
----
+`NEXT_ACTION` = re-contrôle indépendant ciblé X11 / TASK-0024.
 
-# 27 — RESULT.md
-
-Remplacer `.orchestrator/RESULT.md` :
+## RESULT.md
 
 ```text
-TASK_ID: TASK-0024
-AGENT: CODEX
-RESULT: DONE | PAUSED | BLOCKED | FAILED
+TASK_ID: TASK-0024 — correction X11
+AGENT: CLAUDE
+RESULT: DONE | BLOCKED | FAILED
 BRANCH: build/v0.2-a8-deterministic-relation-engine
-FINAL_HEAD: <commit substantif>
+FINAL_HEAD: <commit substantif correction X11>
 
 SUMMARY:
 -
@@ -918,48 +300,11 @@ COMMIT:
 PUSHED: yes/no
 
 LIMITS_OR_BLOCKERS:
--
 - DEC-0013/F physical identity persistence remains blocked
-- F-044/F-045 not implemented
+- non-Windows X10 guarantee remains unproven
 
 NEXT_ORCHESTRATOR_DECISION:
-- contrôle indépendant TASK-0024
+- re-contrôle indépendant X11 / TASK-0024
 ```
 
----
-
-# 28 — GIT / STOP
-
-Commit/push sur la nouvelle branche uniquement.
-
-Interdit :
-
-- main;
-- merge;
-- PR;
-- release;
-- tag;
-- label;
-- force push;
-- rebase destructif;
-- reset destructif;
-- clean;
-- suppression target;
-- modification/suppression/renommage d'une des 29 preuves protégées;
-- données réelles.
-
-STOP/BLOCKED si :
-
-- la base ne correspond pas;
-- TASK-0024 ou DEC-0026 existe déjà;
-- une fixture gelée doit être modifiée;
-- une preuve X5 doit changer;
-- le modèle nécessiterait une troisième provenance;
-- une suggestion devrait être stockée comme relation pour réussir;
-- une règle deterministic ne peut pas définir une proposition réellement impliquée par ses signaux;
-- une identité physique persistante devient nécessaire;
-- une dépendance externe/IA est nécessaire;
-- une action destructive est nécessaire;
-- les critères gelés devraient être affaiblis.
-
-Appliquer ensuite le protocole de fermeture de session, push, arbre propre, rapport terminal court, puis arrêt.
+Appliquer ensuite le protocole de fermeture de session, commit/push fast-forward, rapport terminal court, puis arrêt.
